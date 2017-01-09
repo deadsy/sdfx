@@ -1,5 +1,7 @@
 //-----------------------------------------------------------------------------
-
+/*
+Vector Math
+*/
 //-----------------------------------------------------------------------------
 
 package vec
@@ -31,12 +33,26 @@ func (a V3) Scale(k float64) V3 {
 	}
 }
 
+func (a V2) Scale(k float64) V2 {
+	return V2{
+		a[0] * k,
+		a[1] * k,
+	}
+}
+
 // Return a + b
 func (a V3) Sum(b V3) V3 {
 	return V3{
 		a[0] + b[0],
 		a[1] + b[1],
 		a[2] + b[2],
+	}
+}
+
+func (a V2) Sum(b V2) V2 {
+	return V2{
+		a[0] + b[0],
+		a[1] + b[1],
 	}
 }
 
@@ -170,6 +186,9 @@ func (a V2) Vmin() float64 {
 	return math.Min(a[0], a[1])
 }
 
+//-----------------------------------------------------------------------------
+// Scalar Functions (similar to GLSL counterparts)
+
 // Return 0 if x < edge, else 1
 func Step(edge, x float64) float64 {
 	if x < edge {
@@ -181,6 +200,14 @@ func Step(edge, x float64) float64 {
 // Linear Interpolation
 func Mix(x, y, a float64) float64 {
 	return (x * (1 - a)) + (y * a)
+}
+
+func Clamp(x, a, b float64) float64 {
+	return math.Min(math.Max(x, a), b)
+}
+
+func Saturate(x float64) float64 {
+	return Clamp(x, 0, 1)
 }
 
 //-----------------------------------------------------------------------------
