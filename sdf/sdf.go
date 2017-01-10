@@ -34,12 +34,22 @@ func mix(x, y, a float64) float64 {
 	return (x * (1 - a)) + (y * a)
 }
 
+// Clamp value between a and b
 func clamp(x, a, b float64) float64 {
 	return math.Min(math.Max(x, a), b)
 }
 
+// Clamp value between 0 and 1
 func saturate(x float64) float64 {
 	return clamp(x, 0, 1)
+}
+
+// Sign function that doesn't return 0
+func sgn(x float64) float64 {
+	if x < 0 {
+		return -1
+	}
+	return 1
 }
 
 //-----------------------------------------------------------------------------
@@ -291,60 +301,62 @@ func pMod1(p *float64, size float64) float64 {
 	return c
 }
 
-/*
-
 // Same, but mirror every second cell so they match at the boundaries
-float pModMirror1(inout float p, float size) {
-	float halfsize = size*0.5;
-	float c = floor((p + halfsize)/size);
-	p = mod(p + halfsize,size) - halfsize;
-	p *= mod(c, 2.0)*2 - 1;
-	return c;
+func pModMirror1(p *float64, size float64) float64 {
+	halfsize := size * 0.5
+	c := math.Floor((*p + halfsize) / size)
+	*p = math.Mod(*p+halfsize, size) - halfsize
+	*p = *p * (math.Mod(c, 2.0)*2 - 1)
+	return c
 }
 
 // Repeat the domain only in positive direction. Everything in the negative half-space is unchanged.
-float pModSingle1(inout float p, float size) {
-	float halfsize = size*0.5;
-	float c = floor((p + halfsize)/size);
-	if (p >= 0)
-		p = mod(p + halfsize, size) - halfsize;
-	return c;
+func pModSingle1(p *float64, size float64) float64 {
+	halfsize := size * 0.5
+	c := math.Floor((*p + halfsize) / size)
+	if *p >= 0 {
+		*p = math.Mod(*p+halfsize, size) - halfsize
+	}
+	return c
 }
 
 // Repeat only a few times: from indices <start> to <stop> (similar to above, but more flexible)
-float pModInterval1(inout float p, float size, float start, float stop) {
-	float halfsize = size*0.5;
-	float c = floor((p + halfsize)/size);
-	p = mod(p+halfsize, size) - halfsize;
-	if (c > stop) { //yes, this might not be the best thing numerically.
-		p += size*(c - stop);
-		c = stop;
+func pModInterval1(p *float64, size, start, stop float64) float64 {
+	halfsize := size * 0.5
+	c := math.Floor((*p + halfsize) / size)
+	*p = math.Mod(*p+halfsize, size) - halfsize
+	if c > stop { //yes, this might not be the best thing numerically.
+		*p += size * (c - stop)
+		c = stop
 	}
-	if (c <start) {
-		p += size*(c - start);
-		c = start;
+	if c < start {
+		*p += size * (c - start)
+		c = start
 	}
-	return c;
+	return c
 }
-
 
 // Repeat around the origin by a fixed angle.
 // For easier use, num of repetitions is use to specify the angle.
-float pModPolar(inout vec2 p, float repetitions) {
-	float angle = 2*PI/repetitions;
-	float a = atan(p.y, p.x) + angle/2.;
-	float r = length(p);
-	float c = floor(a/angle);
-	a = mod(a,angle) - angle/2.;
-	p = vec2(cos(a), sin(a))*r;
+func pModPolar(p *vec.V2, repetitions float64) float64 {
+	angle := 2 * PI / repetitions
+	a := math.Atan2(p[1], p[0]) + angle/2
+	r := p.Length()
+	c := math.Floor(a / angle)
+	a = math.Mod(a, angle) - angle/2
+	*p = vec.V2{math.Cos(a), math.Sin(a)}.Scale(r)
 	// For an odd number of repetitions, fix cell index of the cell in -x direction
 	// (cell index would be e.g. -5 and 5 in the two halves of the cell):
-	if (abs(c) >= (repetitions/2)) c = abs(c);
-	return c;
+	if math.Abs(c) >= (repetitions / 2) {
+		c = math.Abs(c)
+	}
+	return c
 }
 
+/*
+
 // Repeat in two dimensions
-vec2 pMod2(inout vec2 p, vec2 size) {
+func pMod2(p *vec.V2, size vec.V2) vec.V2 {
 	vec2 c = floor((p + size*0.5)/size);
 	p = mod(p + size*0.5,size) - size*0.5;
 	return c;
@@ -376,34 +388,35 @@ vec3 pMod3(inout vec3 p, vec3 size) {
 	return c;
 }
 
+*/
+
 // Mirror at an axis-aligned plane which is at a specified distance <dist> from the origin.
-float pMirror (inout float p, float dist) {
-	float s = sgn(p);
-	p = abs(p)-dist;
-	return s;
+func pMirror(p *float64, dist float64) float64 {
+	s := sgn(*p)
+	*p = math.Abs(*p) - dist
+	return s
 }
 
 // Mirror in both dimensions and at the diagonal, yielding one eighth of the space.
 // translate by dist before mirroring.
-vec2 pMirrorOctant (inout vec2 p, vec2 dist) {
-	vec2 s = sgn(p);
-	pMirror(p.x, dist.x);
-	pMirror(p.y, dist.y);
-	if (p.y > p.x)
-		p.xy = p.yx;
-	return s;
+func pMirrorOctant(p *vec.V2, dist vec.V2) vec.V2 {
+	s := p.Sgn()
+	pMirror(&p[0], dist[0])
+	pMirror(&p[1], dist[1])
+	if p[1] > p[0] {
+		*p = vec.V2{p[1], p[0]}
+	}
+	return s
 }
 
 // Reflect space at a plane
-float pReflect(inout vec3 p, vec3 planeNormal, float offset) {
-	float t = dot(p, planeNormal)+offset;
-	if (t < 0) {
-		p = p - (2*t)*planeNormal;
+func pReflect(p *vec.V3, planeNormal vec.V3, offset float64) float64 {
+	t := p.Dot(planeNormal) + offset
+	if t < 0 {
+		*p = p.Sub(planeNormal.Scale(2 * t))
 	}
-	return sgn(t);
+	return sgn(t)
 }
-
-*/
 
 //-----------------------------------------------------------------------------
 // Object Combination Operators
@@ -490,58 +503,54 @@ func OpDifferenceColumns(a, b, r float64, n uint) float64 {
 	}
 }
 
-/*
-
-func OpIntersectionColumns(a, b, r float64, n uint)float64 {
-	return fOpDifferenceColumns(a,-b,r, n)
+func OpIntersectionColumns(a, b, r float64, n uint) float64 {
+	return OpDifferenceColumns(a, -b, r, n)
 }
 
 // The "Stairs" flavour produces n-1 steps of a staircase:
 // much less stupid version by paniq
-func OpUnionStairs(a,b,r,n float64) float64 {
-	float s = r/n
-	float u = b-r
-	return math.Min(math.Min(a,b), 0.5 * (u + a + abs ((mod (u - a + s, 2 * s)) - s)))
+func OpUnionStairs(a, b, r float64, n uint) float64 {
+	s := r / float64(n)
+	u := b - r
+	return math.Min(math.Min(a, b), 0.5*(u+a+math.Abs((math.Mod(u-a+s, 2*s))-s)))
 }
 
 // We can just call Union since stairs are symmetric.
 func OpIntersectionStairs(a, b, r float64, n uint) float64 {
-	return -fOpUnionStairs(-a, -b, r, n)
+	return -OpUnionStairs(-a, -b, r, n)
 }
 
-func OpDifferenceStairs(a, b, r float64, n uint)float64 {
-	return -fOpUnionStairs(-a, b, r, n)
+func OpDifferenceStairs(a, b, r float64, n uint) float64 {
+	return -OpUnionStairs(-a, b, r, n)
 }
 
 // Similar to fOpUnionRound, but more lipschitz-y at acute angles
 // (and less so at 90 degrees). Useful when fudging around too much
 // by MediaMolecule, from Alex Evans' siggraph slides
-func OpUnionSoft(a,b,r float64) float64 {
-	float e = max(r - abs(a - b), 0)
+func OpUnionSoft(a, b, r float64) float64 {
+	e := math.Max(r-math.Abs(a-b), 0)
 	return math.Min(a, b) - e*e*0.25/r
 }
 
 // produces a cylindical pipe that runs along the intersection.
 // No objects remain, only the pipe. This is not a boolean operator.
-func OpPipe(a,b,r float64) float64 {
-	return length(vec2(a, b)) - r
+func OpPipe(a, b, r float64) float64 {
+	return vec.V2{a, b}.Length() - r
 }
 
 // first object gets a v-shaped engraving where it intersect the second
-func OpEngrave(a,b,r float64) float64 {
-	return math.Max(a, (a + r - abs(b))*sqrt(0.5))
+func OpEngrave(a, b, r float64) float64 {
+	return math.Max(a, (a+r-math.Abs(b))*math.Sqrt(0.5))
 }
 
 // first object gets a capenter-style groove cut out
-func OpGroove(a,b,ra,rb float64) float64 {
-	return math.Max(a, mtah.Min(a + ra, rb - math.Abs(b)))
+func OpGroove(a, b, ra, rb float64) float64 {
+	return math.Max(a, math.Min(a+ra, rb-math.Abs(b)))
 }
 
 // first object gets a capenter-style tongue attached
-func OpTongue(a,b,ra,rb float64) float64 {
-	return math.Min(a, math.Max(a - ra, math.Abs(b) - rb))
+func OpTongue(a, b, ra, rb float64) float64 {
+	return math.Min(a, math.Max(a-ra, math.Abs(b)-rb))
 }
-
-*/
 
 //-----------------------------------------------------------------------------

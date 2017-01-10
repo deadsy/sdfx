@@ -168,6 +168,22 @@ func (a V2) Min(b V2) V2 {
 	}
 }
 
+// Floor function
+func (a V3) Floor() V3 {
+	return V3{
+		math.Floor(a[0]),
+		math.Floor(a[1]),
+		math.Floor(a[2]),
+	}
+}
+
+func (a V2) Floor() V2 {
+	return V2{
+		math.Floor(a[0]),
+		math.Floor(a[1]),
+	}
+}
+
 // Return maximum component of a
 func (a V3) Vmax() float64 {
 	return math.Max(math.Max(a[0], a[1]), a[2])
@@ -184,6 +200,18 @@ func (a V3) Vmin() float64 {
 
 func (a V2) Vmin() float64 {
 	return math.Min(a[0], a[1])
+}
+
+// Sign function that doesn't return 0
+func (a V2) Sgn() V2 {
+	b := V2{1, 1}
+	if a[0] < 0 {
+		b[0] = -1
+	}
+	if a[1] < 0 {
+		b[1] = -1
+	}
+	return b
 }
 
 //-----------------------------------------------------------------------------
