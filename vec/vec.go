@@ -187,27 +187,3 @@ func (a V2) Vmin() float64 {
 }
 
 //-----------------------------------------------------------------------------
-// Scalar Functions (similar to GLSL counterparts)
-
-// Return 0 if x < edge, else 1
-func Step(edge, x float64) float64 {
-	if x < edge {
-		return 0
-	}
-	return 1
-}
-
-// Linear Interpolation
-func Mix(x, y, a float64) float64 {
-	return (x * (1 - a)) + (y * a)
-}
-
-func Clamp(x, a, b float64) float64 {
-	return math.Min(math.Max(x, a), b)
-}
-
-func Saturate(x float64) float64 {
-	return Clamp(x, 0, 1)
-}
-
-//-----------------------------------------------------------------------------
