@@ -270,28 +270,28 @@ func TruncatedIcosahedron2(p vec.V3, r float64) float64 {
 //-----------------------------------------------------------------------------
 // Domain Manipulation Operators
 
-/*
-
 // Rotate around a coordinate axis (i.e. in a plane perpendicular to that axis) by angle <a>.
 // Read like this: R(p.xz, a) rotates "x towards z".
 // This is fast if <a> is a compile-time constant and slower (but still practical) if not.
-void pR(inout vec2 p, float a) {
-	p = cos(a)*p + sin(a)*vec2(p.y, -p.x);
+func pR(p *vec.V2, a float64) {
+	*p = p.Scale(math.Cos(a)).Sum(vec.V2{p[1], -p[0]}.Scale(math.Sin(a)))
 }
 
 // Shortcut for 45-degrees rotation
-void pR45(inout vec2 p) {
-	p = (p + vec2(p.y, -p.x))*sqrt(0.5);
+func pR45(p *vec.V2) {
+	*p = p.Sum(vec.V2{p[1], -p[0]}).Scale(math.Sqrt(0.5))
 }
 
 // Repeat space along one axis. Use like this to repeat along the x axis:
 // <float cell = pMod1(p.x,5);> - using the return value is optional.
-float pMod1(inout float p, float size) {
-	float halfsize = size*0.5;
-	float c = floor((p + halfsize)/size);
-	p = mod(p + halfsize, size) - halfsize;
-	return c;
+func pMod1(p *float64, size float64) float64 {
+	halfsize := size * 0.5
+	c := math.Floor((*p + halfsize) / size)
+	*p = math.Mod(*p+halfsize, size) - halfsize
+	return c
 }
+
+/*
 
 // Same, but mirror every second cell so they match at the boundaries
 float pModMirror1(inout float p, float size) {
@@ -408,143 +408,138 @@ float pReflect(inout vec3 p, vec3 planeNormal, float offset) {
 //-----------------------------------------------------------------------------
 // Object Combination Operators
 
-/*
-
 // The "Chamfer" flavour makes a 45-degree chamfered edge (the diagonal of a square of size <r>):
-float fOpUnionChamfer(float a, float b, float r) {
-	return min(min(a, b), (a - r + b)*sqrt(0.5));
+func OpUnionChamfer(a, b, r float64) float64 {
+	return math.Min(math.Min(a, b), (a-r+b)*math.Sqrt(0.5))
 }
 
 // Intersection has to deal with what is normally the inside of the resulting object
 // when using union, which we normally don't care about too much. Thus, intersection
 // implementations sometimes differ from union implementations.
-float fOpIntersectionChamfer(float a, float b, float r) {
-	return max(max(a, b), (a + r + b)*sqrt(0.5));
+func OpIntersectionChamfer(a, b, r float64) float64 {
+	return math.Max(math.Max(a, b), (a+r+b)*math.Sqrt(0.5))
 }
 
 // Difference can be built from Intersection or Union:
-float fOpDifferenceChamfer (float a, float b, float r) {
-	return fOpIntersectionChamfer(a, -b, r);
+func OpDifferenceChamfer(a, b, r float64) float64 {
+	return OpIntersectionChamfer(a, -b, r)
 }
 
 // The "Round" variant uses a quarter-circle to join the two objects smoothly:
-float fOpUnionRound(float a, float b, float r) {
-	vec2 u = max(vec2(r - a,r - b), vec2(0));
-	return max(r, min (a, b)) - length(u);
+func OpUnionRound(a, b, r float64) float64 {
+	u := vec.V2{r - a, r - b}.Max(vec.V2{0, 0})
+	return math.Max(r, math.Min(a, b)) - u.Length()
 }
 
-float fOpIntersectionRound(float a, float b, float r) {
-	vec2 u = max(vec2(r + a,r + b), vec2(0));
-	return min(-r, max (a, b)) + length(u);
+func OpIntersectionRound(a, b, r float64) float64 {
+	u := vec.V2{r + a, r + b}.Max(vec.V2{0, 0})
+	return math.Min(-r, math.Max(a, b)) + u.Length()
 }
 
-float fOpDifferenceRound (float a, float b, float r) {
-	return fOpIntersectionRound(a, -b, r);
+func OpDifferenceRound(a, b, r float64) float64 {
+	return OpIntersectionRound(a, -b, r)
 }
-
 
 // The "Columns" flavour makes n-1 circular columns at a 45 degree angle:
-float fOpUnionColumns(float a, float b, float r, float n) {
-	if ((a < r) && (b < r)) {
-		vec2 p = vec2(a, b);
-		float columnradius = r*sqrt(2)/((n-1)*2+sqrt(2));
-		pR45(p);
-		p.x -= sqrt(2)/2*r;
-		p.x += columnradius*sqrt(2);
-		if (mod(n,2) == 1) {
-			p.y += columnradius;
+func OpUnionColumns(a, b, r float64, n uint) float64 {
+	if (a < r) && (b < r) {
+		p := vec.V2{a, b}
+		columnradius := r * math.Sqrt2 / ((float64(n)-1)*2 + math.Sqrt2)
+		pR45(&p)
+		p[0] -= math.Sqrt(2) / 2 * r
+		p[0] += columnradius * math.Sqrt2
+		if n%2 == 1 {
+			p[1] += columnradius
 		}
 		// At this point, we have turned 45 degrees and moved at a point on the
 		// diagonal that we want to place the columns on.
 		// Now, repeat the domain along this direction and place a circle.
-		pMod1(p.y, columnradius*2);
-		float result = length(p) - columnradius;
-		result = min(result, p.x);
-		result = min(result, a);
-		return min(result, b);
+		pMod1(&p[1], columnradius*2)
+		result := p.Length() - columnradius
+		result = math.Min(result, p[0])
+		result = math.Min(result, a)
+		return math.Min(result, b)
 	} else {
-		return min(a, b);
+		return math.Min(a, b)
 	}
 }
 
-float fOpDifferenceColumns(float a, float b, float r, float n) {
-	a = -a;
-	float m = min(a, b);
+func OpDifferenceColumns(a, b, r float64, n uint) float64 {
+	a = -a
+	m := math.Min(a, b)
 	//avoid the expensive computation where not needed (produces discontinuity though)
-	if ((a < r) && (b < r)) {
-		vec2 p = vec2(a, b);
-		float columnradius = r*sqrt(2)/n/2.0;
-		columnradius = r*sqrt(2)/((n-1)*2+sqrt(2));
+	if (a < r) && (b < r) {
+		p := vec.V2{a, b}
+		columnradius := r * math.Sqrt2 / ((float64(n)-1)*2 + math.Sqrt2)
+		pR45(&p)
+		p[1] += columnradius
+		p[0] -= math.Sqrt2 / 2 * r
+		p[0] += -columnradius * math.Sqrt2 / 2
 
-		pR45(p);
-		p.y += columnradius;
-		p.x -= sqrt(2)/2*r;
-		p.x += -columnradius*sqrt(2)/2;
-
-		if (mod(n,2) == 1) {
-			p.y += columnradius;
+		if n%2 == 1 {
+			p[1] += columnradius
 		}
-		pMod1(p.y,columnradius*2);
+		pMod1(&p[1], columnradius*2)
 
-		float result = -length(p) + columnradius;
-		result = max(result, p.x);
-		result = min(result, a);
-		return -min(result, b);
+		result := -p.Length() + columnradius
+		result = math.Max(result, p[0])
+		result = math.Min(result, a)
+		return -math.Min(result, b)
 	} else {
-		return -m;
+		return -m
 	}
 }
 
-float fOpIntersectionColumns(float a, float b, float r, float n) {
-	return fOpDifferenceColumns(a,-b,r, n);
+/*
+
+func OpIntersectionColumns(a, b, r float64, n uint)float64 {
+	return fOpDifferenceColumns(a,-b,r, n)
 }
 
 // The "Stairs" flavour produces n-1 steps of a staircase:
 // much less stupid version by paniq
-float fOpUnionStairs(float a, float b, float r, float n) {
-	float s = r/n;
-	float u = b-r;
-	return min(min(a,b), 0.5 * (u + a + abs ((mod (u - a + s, 2 * s)) - s)));
+func OpUnionStairs(a,b,r,n float64) float64 {
+	float s = r/n
+	float u = b-r
+	return math.Min(math.Min(a,b), 0.5 * (u + a + abs ((mod (u - a + s, 2 * s)) - s)))
 }
 
 // We can just call Union since stairs are symmetric.
-float fOpIntersectionStairs(float a, float b, float r, float n) {
-	return -fOpUnionStairs(-a, -b, r, n);
+func OpIntersectionStairs(a, b, r float64, n uint) float64 {
+	return -fOpUnionStairs(-a, -b, r, n)
 }
 
-float fOpDifferenceStairs(float a, float b, float r, float n) {
-	return -fOpUnionStairs(-a, b, r, n);
+func OpDifferenceStairs(a, b, r float64, n uint)float64 {
+	return -fOpUnionStairs(-a, b, r, n)
 }
-
 
 // Similar to fOpUnionRound, but more lipschitz-y at acute angles
 // (and less so at 90 degrees). Useful when fudging around too much
 // by MediaMolecule, from Alex Evans' siggraph slides
-float fOpUnionSoft(float a, float b, float r) {
-	float e = max(r - abs(a - b), 0);
-	return min(a, b) - e*e*0.25/r;
+func OpUnionSoft(a,b,r float64) float64 {
+	float e = max(r - abs(a - b), 0)
+	return math.Min(a, b) - e*e*0.25/r
 }
-
 
 // produces a cylindical pipe that runs along the intersection.
 // No objects remain, only the pipe. This is not a boolean operator.
-float fOpPipe(float a, float b, float r) {
-	return length(vec2(a, b)) - r;
+func OpPipe(a,b,r float64) float64 {
+	return length(vec2(a, b)) - r
 }
 
 // first object gets a v-shaped engraving where it intersect the second
-float fOpEngrave(float a, float b, float r) {
-	return max(a, (a + r - abs(b))*sqrt(0.5));
+func OpEngrave(a,b,r float64) float64 {
+	return math.Max(a, (a + r - abs(b))*sqrt(0.5))
 }
 
 // first object gets a capenter-style groove cut out
-float fOpGroove(float a, float b, float ra, float rb) {
-	return max(a, min(a + ra, rb - abs(b)));
+func OpGroove(a,b,ra,rb float64) float64 {
+	return math.Max(a, mtah.Min(a + ra, rb - math.Abs(b)))
 }
 
 // first object gets a capenter-style tongue attached
-float fOpTongue(float a, float b, float ra, float rb) {
-	return min(a, max(a - ra, abs(b) - rb));
+func OpTongue(a,b,ra,rb float64) float64 {
+	return math.Min(a, math.Max(a - ra, math.Abs(b) - rb))
 }
 
 */
