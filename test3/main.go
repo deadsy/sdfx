@@ -1,6 +1,6 @@
 package main
 
-import . "github.com/fogleman/pt/pt"
+import . "github.com/deadsy/pt/pt"
 
 func main() {
   scene := Scene{}
@@ -14,12 +14,15 @@ func main() {
 
   material := GlossyMaterial(HexColor(0x468966), 1.2, Radians(20))
 
-  s := NewSphereSDF(0.65)
 
-  s0 := NewTransformSDF(s, Translate(V(0, 0.5, 0)))
-  s1 := NewTransformSDF(s, Translate(V(0, -0.5, 0)))
+  s := NewOctahedronSDF(0.65, 8)
+  sdf := NewTransformSDF(s, Translate(V(0, 0, 0.2)))
 
-  sdf := NewUnionSDF(s0, s1)
+
+  //s := NewSphereSDF(0.65)
+  //s0 := NewTransformSDF(s, Translate(V(0, 0.5, 0)))
+  //s1 := NewTransformSDF(s, Translate(V(0, -0.5, 0)))
+  //sdf := NewUnionSDF(s0, s1)
 
 
 
