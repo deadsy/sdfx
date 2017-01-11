@@ -14,7 +14,14 @@ func main() {
 
   material := GlossyMaterial(HexColor(0x468966), 1.2, Radians(20))
 
-  sphere := NewSphereSDF(0.65)
+  s := NewSphereSDF(0.65)
+
+  s0 := NewTransformSDF(s, Translate(V(0, 0.5, 0)))
+  s1 := NewTransformSDF(s, Translate(V(0, -0.5, 0)))
+
+  sdf := NewUnionSDF(s0, s1)
+
+
 
   //cube := NewCubeSDF(V(1, 1, 1))
   //roundedCube := NewIntersectionSDF(sphere, cube)
@@ -26,10 +33,7 @@ func main() {
 
   //sdf := NewTransformSDF(difference, Rotate(V(0, 0, 1), Radians(30)))
 
-  //scene.Add(NewSDFShape(sdf, material))
-
-  scene.Add(NewSDFShape(sphere, material))
-
+  scene.Add(NewSDFShape(sdf, material))
 
   floor := GlossyMaterial(HexColor(0xFFF0A5), 1.2, Radians(20))
   scene.Add(NewPlane(V(0, 0, -0.5), V(0, 0, 1), floor))
@@ -38,6 +42,6 @@ func main() {
   sampler := NewSampler(4, 4)
   sampler.LightMode = LightModeAll
   sampler.SpecularMode = SpecularModeAll
-  renderer := NewRenderer(&scene, &camera, sampler, 1600, 1600)
+  renderer := NewRenderer(&scene, &camera, sampler, 1200, 800)
   renderer.IterativeRender("out%03d.png", 1000)
 }
