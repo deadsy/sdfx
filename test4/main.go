@@ -14,7 +14,7 @@ func main() {
 
 	material := GlossyMaterial(HexColor(0x468966), 1.2, Radians(20))
 
-	s := NewOctahedronSDF(0.65, 8)
+	s := NewRoundedBoxSDF(Vector{0.1, 0.2, 0.3}, 0.05)
 	sdf := NewTransformSDF(s, Translate(V(0, 0, 0.2)))
 
 	//s := NewSphereSDF(0.65)
