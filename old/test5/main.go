@@ -14,9 +14,15 @@ func main() {
 
 	material := GlossyMaterial(HexColor(0x468966), 1.2, Radians(20))
 
-	s := NewRoundedBoxSDF(Vector{0.4, 0.8, 1.2}, 0.05)
-	s = NewTransformSDF(s, Translate(V(0, 0, 0.2)))
-	sdf := NewTransformSDF(s, Rotate(V(0, 0, 1), Radians(30)))
+	b0 := NewBoxSDF(Vector{0.4, 0.8, 1.2})
+	b0 = NewTransformSDF(b0, Rotate(V(0, 0, 1), Radians(30)))
+	b0 = NewTransformSDF(b0, Translate(V(0, 0.5, 0.2)))
+
+	b1 := NewRoundedBoxSDF(Vector{0.4, 0.8, 1.2}, 0.05)
+	b1 = NewTransformSDF(b1, Rotate(V(0, 0, 1), Radians(30)))
+	b1 = NewTransformSDF(b1, Translate(V(0, -0.5, 0.2)))
+
+	sdf := NewUnionSDF(b0, b1)
 
 	//s := NewSphereSDF(0.65)
 	//s0 := NewTransformSDF(s, Translate(V(0, 0.5, 0)))
