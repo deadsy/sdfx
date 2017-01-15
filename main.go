@@ -11,17 +11,11 @@ func main() {
 	a := s.MulScalar(0.8)
 	b := a.Negate()
 
-	x := sdf.NewRectangleSDF(s)
+	x := sdf.NewBoxSDF2(s)
 
-	for i := 0; i < 20000; i++ {
+	for i := 0; i < 200; i++ {
 		p := sdf.RandomV2(a, b)
-
 		e0 := x.Evaluate(p)
-		e1 := x.Evaluate2(p)
-
-		if e0 != e1 {
-			fmt.Printf("%+v %f %f\n", p, e0, e1)
-		}
-
+		fmt.Printf("%+v %f\n", p, e0)
 	}
 }
