@@ -194,7 +194,7 @@ func NewRoundedBoxSDF2(size V2, radius float64) SDF2 {
 }
 
 func (s *RoundedBoxSDF2) Evaluate(p V2) float64 {
-	return sdf_box2d(s.Size, p) - s.Radius
+	return sdf_box2d(p, s.Size) - s.Radius
 }
 
 func (s *RoundedBoxSDF2) BoundingBox() Box2 {
