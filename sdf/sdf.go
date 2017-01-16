@@ -203,3 +203,25 @@ func (s *RoundedBoxSDF2) BoundingBox() Box2 {
 }
 
 //-----------------------------------------------------------------------------
+// TransformSDF2
+
+type TransformSDF2 struct {
+	Sdf     SDF2
+	Matrix  M33
+	Inverse M33
+}
+
+func NewTransformSDF2(sdf SDF2, matrix M33) SDF2 {
+	return &TransformSDF2{sdf, matrix, matrix.Inverse()}
+}
+
+func (s *TransformSDF2) Evaluate(p V2) float64 {
+	q := s.Inverse.MulPosition(p)
+	return s.Sdf.Evaluate(q)
+}
+
+func (s *TransformSDF2) BoundingBox() Box2 {
+	return s.Matrix.MulBox(s.Sdf.BoundingBox())
+}
+
+//-----------------------------------------------------------------------------
