@@ -25,30 +25,6 @@ type SDF2 interface {
 }
 
 //-----------------------------------------------------------------------------
-// Create a pt.SDF from an SDF3
-
-type PtSDF struct {
-	Sdf *SDF3
-}
-
-func NewPtSDF(sdf *SDF3) pt.SDF {
-	return &PtSDF{sdf}
-}
-
-func (s *PtSDF) Evaluate(p pt.Vector) float64 {
-	x := *s.Sdf
-	return x.Evaluate(V3{p.X, p.Y, p.Z})
-}
-
-func (s *PtSDF) BoundingBox() pt.Box {
-	x := *s.Sdf
-	b := x.BoundingBox()
-	j := b.Min
-	k := b.Max
-	return pt.Box{pt.Vector{j[0], j[1], j[2]}, pt.Vector{k[0], k[1], k[2]}}
-}
-
-//-----------------------------------------------------------------------------
 // Basic SDF Functions
 
 func sdf_box3d(p, s V3) float64 {
@@ -75,6 +51,52 @@ func sdf_box2d(p, s V2) float64 {
 	return d[0]
 }
 */
+
+//-----------------------------------------------------------------------------
+// Create a pt.SDF from an SDF3
+
+type PtSDF struct {
+	Sdf *SDF3
+}
+
+func NewPtSDF(sdf *SDF3) pt.SDF {
+	return &PtSDF{sdf}
+}
+
+func (s *PtSDF) Evaluate(p pt.Vector) float64 {
+	return (*s.Sdf).Evaluate(V3{p.X, p.Y, p.Z})
+}
+
+func (s *PtSDF) BoundingBox() pt.Box {
+	b := (*s.Sdf).BoundingBox()
+	j := b.Min
+	k := b.Max
+	return pt.Box{pt.Vector{j[0], j[1], j[2]}, pt.Vector{k[0], k[1], k[2]}}
+}
+
+//-----------------------------------------------------------------------------
+// Solid of Revolution, SDF2 -> SDF3
+
+type SorSDF3 struct {
+	Sdf *SDF2
+}
+
+func NewSorSDF3(sdf *SDF2) SDF3 {
+	return &SorSDF3{sdf}
+}
+
+func (s *SorSDF3) Evaluate(p V3) float64 {
+	x := math.Sqrt(p[0]*p[0] + p[1]*p[1])
+	return (*s.Sdf).Evaluate(V2{x, p[2]})
+}
+
+func (s *SorSDF3) BoundingBox() Box3 {
+	b := (*s.Sdf).BoundingBox()
+	j := b.Min
+	k := b.Max
+	l := math.Max(math.Abs(j[0]), math.Abs(k[0]))
+	return Box3{V3{-l, -l, j[1]}, V3{l, l, k[1]}}
+}
 
 //-----------------------------------------------------------------------------
 // 3D Normal Box
@@ -119,25 +141,6 @@ func (s *RoundedBoxSDF3) BoundingBox() Box3 {
 }
 
 //-----------------------------------------------------------------------------
-// 3D Solid of Revolution
-
-type SorSDF3 struct {
-	Sdf *SDF2
-}
-
-func NewSorSDF3(sdf *SDF2) SDF3 {
-	return &SorSDF3{sdf}
-}
-
-func (s *SorSDF3) Evaluate(p V3) float64 {
-	return 0
-}
-
-func (s *SorSDF3) BoundingBox() Box3 {
-	return Box3{}
-}
-
-//-----------------------------------------------------------------------------
 // 2D Circle
 
 type CircleSDF2 struct {
@@ -153,7 +156,8 @@ func (s *CircleSDF2) Evaluate(p V2) float64 {
 }
 
 func (s *CircleSDF2) BoundingBox() Box2 {
-	return Box2{}
+	d := V2{s.Radius, s.Radius}
+	return Box2{d.Negate(), d}
 }
 
 //-----------------------------------------------------------------------------
@@ -173,7 +177,7 @@ func (s *BoxSDF2) Evaluate(p V2) float64 {
 }
 
 func (s *BoxSDF2) BoundingBox() Box2 {
-	return Box2{}
+	return Box2{s.Size.Negate(), s.Size}
 }
 
 //-----------------------------------------------------------------------------
@@ -194,7 +198,8 @@ func (s *RoundedBoxSDF2) Evaluate(p V2) float64 {
 }
 
 func (s *RoundedBoxSDF2) BoundingBox() Box2 {
-	return Box2{}
+	d := s.Size.AddScalar(s.Radius)
+	return Box2{d.Negate(), d}
 }
 
 //-----------------------------------------------------------------------------
