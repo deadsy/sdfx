@@ -8,6 +8,8 @@ package sdf
 
 import (
 	"math"
+
+	"github.com/deadsy/pt/pt"
 )
 
 //-----------------------------------------------------------------------------
@@ -20,6 +22,30 @@ type SDF3 interface {
 type SDF2 interface {
 	Evaluate(p V2) float64
 	BoundingBox() Box2
+}
+
+//-----------------------------------------------------------------------------
+// Create a pt.SDF from an SDF3
+
+type PtSDF struct {
+	Sdf *SDF3
+}
+
+func NewPtSDF(sdf *SDF3) pt.SDF {
+	return &PtSDF{sdf}
+}
+
+func (s *PtSDF) Evaluate(p pt.Vector) float64 {
+	x := *s.Sdf
+	return x.Evaluate(V3{p.X, p.Y, p.Z})
+}
+
+func (s *PtSDF) BoundingBox() pt.Box {
+	x := *s.Sdf
+	b := x.BoundingBox()
+	j := b.Min
+	k := b.Max
+	return pt.Box{pt.Vector{j[0], j[1], j[2]}, pt.Vector{k[0], k[1], k[2]}}
 }
 
 //-----------------------------------------------------------------------------
