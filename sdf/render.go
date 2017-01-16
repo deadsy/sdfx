@@ -4,7 +4,7 @@ import (
 	"github.com/deadsy/pt/pt"
 )
 
-func Render(s *SDF3) {
+func Render(s *SDF3, render_floor bool) {
 
 	scene := pt.Scene{}
 
@@ -18,13 +18,23 @@ func Render(s *SDF3) {
 	material := pt.GlossyMaterial(pt.HexColor(0x468966), 1.2, pt.Radians(20))
 
 	s0 := NewPtSDF(s)
-	s0 = pt.NewTransformSDF(s0, pt.Translate(pt.V(0, 0, 0.2)))
-	s0 = pt.NewTransformSDF(s0, pt.Rotate(pt.V(0, 0, 1), pt.Radians(30)))
+	//s0 = pt.NewTransformSDF(s0, pt.Translate(pt.V(0, 0, 0.2)))
+	//s0 = pt.NewTransformSDF(s0, pt.Rotate(pt.V(0, 0, 1), pt.Radians(30)))
 
 	scene.Add(pt.NewSDFShape(s0, material))
 
-	floor := pt.GlossyMaterial(pt.HexColor(0xFFF0A5), 1.2, pt.Radians(20))
-	scene.Add(pt.NewPlane(pt.V(0, 0, -0.5), pt.V(0, 0, 1), floor))
+	if render_floor {
+		bb := s0.BoundingBox()
+		z_min := bb.Min.Z
+		z_height := bb.Max.Z - bb.Min.Z
+		z_gap := z_height * 0.1 // 10% of height
+
+		floor := pt.GlossyMaterial(pt.HexColor(0xFFF0A5), 1.2, pt.Radians(20))
+		floor_plane := pt.V(0, 0, z_min-z_gap)
+		floor_normal := pt.V(0, 0, 1)
+
+		scene.Add(pt.NewPlane(floor_plane, floor_normal, floor))
+	}
 
 	camera := pt.LookAt(pt.V(-3, 0, 1), pt.V(0, 0, 0), pt.V(0, 0, 1), 35)
 	sampler := pt.NewSampler(4, 4)
