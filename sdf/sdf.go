@@ -99,6 +99,34 @@ func (s *SorSDF3) BoundingBox() Box3 {
 }
 
 //-----------------------------------------------------------------------------
+// Extrude, SDF2 -> SDF3
+
+type ExtrudeSDF3 struct {
+	Sdf    SDF2
+	Height float64
+}
+
+func NewExtrudeSDF3(sdf SDF2, height float64) SDF3 {
+	return &ExtrudeSDF3{sdf, height}
+}
+
+func (s *ExtrudeSDF3) Evaluate(p V3) float64 {
+	// sdf for the projected 2d surface
+	a := s.Sdf.Evaluate(V2{p.X, p.Y})
+	// sdf for the extrusion region: z = [0, height]
+	b := -math.Min(p.Z, s.Height-p.Z)
+	// return the intersection
+	return math.Max(a, b)
+}
+
+func (s *ExtrudeSDF3) BoundingBox() Box3 {
+	b := s.Sdf.BoundingBox()
+	j := b.Min
+	k := b.Max
+	return Box3{V3{j.X, j.Y, 0}, V3{k.X, k.Y, s.Height}}
+}
+
+//-----------------------------------------------------------------------------
 // 3D Normal Box
 
 type BoxSDF3 struct {
