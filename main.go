@@ -25,6 +25,7 @@ func test2() {
 	fmt.Printf("%+v\n", a)
 	fmt.Printf("%+v\n", b)
 	fmt.Printf("%+v\n", c)
+	fmt.Printf("%f\n", sdf.Test33_Det.Determinant())
 
 }
 
