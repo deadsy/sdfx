@@ -14,6 +14,10 @@ import (
 
 //-----------------------------------------------------------------------------
 
+const TAU = 2 * math.Pi
+
+//-----------------------------------------------------------------------------
+
 type SDF3 interface {
 	Evaluate(p V3) float64
 	BoundingBox() Box3
@@ -78,16 +82,27 @@ func (s *PtSDF) BoundingBox() pt.Box {
 // Solid of Revolution, SDF2 -> SDF3
 
 type SorSDF3 struct {
-	Sdf SDF2
+	Sdf   SDF2
+	Theta float64
 }
 
 func NewSorSDF3(sdf SDF2) SDF3 {
-	return &SorSDF3{sdf}
+	return &SorSDF3{sdf, TAU}
+}
+
+func NewSorThetaSDF3(sdf SDF2, theta float64) SDF3 {
+	return &SorSDF3{sdf, theta}
 }
 
 func (s *SorSDF3) Evaluate(p V3) float64 {
 	x := math.Sqrt(p.X*p.X + p.Y*p.Y)
-	return s.Sdf.Evaluate(V2{x, p.Z})
+	a := s.Sdf.Evaluate(V2{x, p.Z})
+	b := a
+	if s.Theta != TAU {
+		// TODO
+	}
+	// return the intersection
+	return math.Max(a, b)
 }
 
 func (s *SorSDF3) BoundingBox() Box3 {
