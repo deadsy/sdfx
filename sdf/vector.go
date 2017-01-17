@@ -24,6 +24,19 @@ type V2 struct {
 
 //-----------------------------------------------------------------------------
 
+func (a V3) Equals(b V3, tolerance float64) bool {
+	return (math.Abs(a.X-b.X) < tolerance &&
+		math.Abs(a.Y-b.Y) < tolerance &&
+		math.Abs(a.Z-b.Z) < tolerance)
+}
+
+func (a V2) Equals(b V2, tolerance float64) bool {
+	return (math.Abs(a.X-b.X) < tolerance &&
+		math.Abs(a.Y-b.Y) < tolerance)
+}
+
+//-----------------------------------------------------------------------------
+
 func RandomUnitV3(rnd *rand.Rand) V3 {
 	for {
 		var x, y, z float64
@@ -64,17 +77,15 @@ func random_range(a, b float64) float64 {
 	return a + (b-a)*rand.Float64()
 }
 
-func RandomV3(a, b V3) V3 {
-	x := random_range(a.X, b.X)
-	y := random_range(a.X, b.X)
-	z := random_range(a.X, b.X)
-	return V3{x, y, z}
+func RandomV3(a, b float64) V3 {
+	return V3{random_range(a, b),
+		random_range(a, b),
+		random_range(a, b)}
 }
 
-func RandomV2(a, b V2) V2 {
-	x := random_range(a.X, b.X)
-	y := random_range(a.X, b.X)
-	return V2{x, y}
+func RandomV2(a, b float64) V2 {
+	return V2{random_range(a, b),
+		random_range(a, b)}
 }
 
 //-----------------------------------------------------------------------------

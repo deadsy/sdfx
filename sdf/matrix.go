@@ -80,6 +80,60 @@ func IdentityM33() M33 {
 		0, 0, 1}
 }
 
+func TranslateM44(v V3) M44 {
+	return M44{
+		1, 0, 0, v.X,
+		0, 1, 0, v.Y,
+		0, 0, 1, v.Z,
+		0, 0, 0, 1}
+}
+
+func TranslateM33(v V2) M33 {
+	return M33{
+		1, 0, v.X,
+		0, 1, v.Y,
+		0, 0, 1}
+}
+
+func ScaleM44(v V3) M44 {
+	return M44{
+		v.X, 0, 0, 0,
+		0, v.Y, 0, 0,
+		0, 0, v.Z, 0,
+		0, 0, 0, 1}
+}
+
+func ScaleM33(v V2) M33 {
+	return M33{
+		v.X, 0, 0,
+		0, v.Y, 0,
+		0, 0, 1}
+}
+
+func RotateM44(v V3, a float64) M44 {
+	v = v.Normalize()
+	s := math.Sin(a)
+	c := math.Cos(a)
+	m := 1 - c
+	return M44{
+		m*v.X*v.X + c, m*v.X*v.Y + v.Z*s, m*v.Z*v.X - v.Y*s, 0,
+		m*v.X*v.Y - v.Z*s, m*v.Y*v.Y + c, m*v.Y*v.Z + v.X*s, 0,
+		m*v.Z*v.X + v.Y*s, m*v.Y*v.Z - v.X*s, m*v.Z*v.Z + c, 0,
+		0, 0, 0, 1}
+}
+
+// probably not right
+func RotateM33(v V2, a float64) M33 {
+	v = v.Normalize()
+	//s := math.Sin(a)
+	c := math.Cos(a)
+	m := 1 - c
+	return M33{
+		m*v.X*v.X + c, m * v.X * v.Y, 0,
+		m * v.X * v.Y, m*v.Y*v.Y + c, 0,
+		0, 0, 1}
+}
+
 //-----------------------------------------------------------------------------
 
 func (a M44) Equals(b M44, tolerance float64) bool {
@@ -123,8 +177,9 @@ func (a M44) MulPosition(b V3) V3 {
 }
 
 func (a M33) MulPosition(b V2) V2 {
-	// TODO
-	return V2{0, 0}
+	x := a.x00*b.X + a.x01*b.Y + a.x02
+	y := a.x10*b.X + a.x11*b.Y + a.x12
+	return V2{x, y}
 }
 
 //-----------------------------------------------------------------------------
@@ -165,6 +220,7 @@ func (a M33) Mul(b M33) M33 {
 }
 
 //-----------------------------------------------------------------------------
+// Transform bounding boxes - keep them axis aligned
 // http://dev.theomader.com/transform-bounding-boxes/
 
 func (a M44) MulBox(box Box3) Box3 {
@@ -187,8 +243,18 @@ func (a M44) MulBox(box Box3) Box3 {
 }
 
 func (a M33) MulBox(box Box2) Box2 {
-	// TODO
-	return Box2{}
+	r := V2{a.x00, a.x10}
+	u := V2{a.x01, a.x11}
+	t := V2{a.x02, a.x12}
+	xa := r.MulScalar(box.Min.X)
+	xb := r.MulScalar(box.Max.X)
+	ya := u.MulScalar(box.Min.Y)
+	yb := u.MulScalar(box.Max.Y)
+	xa, xb = xa.Min(xb), xa.Max(xb)
+	ya, yb = ya.Min(yb), ya.Max(yb)
+	min := xa.Add(ya).Add(t)
+	max := xb.Add(yb).Add(t)
+	return Box2{min, max}
 }
 
 //-----------------------------------------------------------------------------
