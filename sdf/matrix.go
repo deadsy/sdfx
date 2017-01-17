@@ -8,6 +8,10 @@ Matrix Operations
 
 package sdf
 
+import (
+	"math"
+)
+
 //-----------------------------------------------------------------------------
 
 type M44 struct {
@@ -26,22 +30,42 @@ type M33 struct {
 //-----------------------------------------------------------------------------
 
 func RandomM33(a, b float64) M33 {
-	m := M33{}
-	m.x00 = random_range(a, b)
-	m.x10 = random_range(a, b)
-	m.x20 = random_range(a, b)
-	m.x01 = random_range(a, b)
-	m.x11 = random_range(a, b)
-	m.x21 = random_range(a, b)
-	m.x02 = random_range(a, b)
-	m.x12 = random_range(a, b)
-	m.x22 = random_range(a, b)
+	m := M33{random_range(a, b),
+		random_range(a, b),
+		random_range(a, b),
+		random_range(a, b),
+		random_range(a, b),
+		random_range(a, b),
+		random_range(a, b),
+		random_range(a, b),
+		random_range(a, b)}
+	return m
+}
+
+func RandomM44(a, b float64) M44 {
+	m := M44{
+		random_range(a, b),
+		random_range(a, b),
+		random_range(a, b),
+		random_range(a, b),
+		random_range(a, b),
+		random_range(a, b),
+		random_range(a, b),
+		random_range(a, b),
+		random_range(a, b),
+		random_range(a, b),
+		random_range(a, b),
+		random_range(a, b),
+		random_range(a, b),
+		random_range(a, b),
+		random_range(a, b),
+		random_range(a, b)}
 	return m
 }
 
 //-----------------------------------------------------------------------------
 
-func Identity44() M44 {
+func IdentityM44() M44 {
 	return M44{
 		1, 0, 0, 0,
 		0, 1, 0, 0,
@@ -49,17 +73,45 @@ func Identity44() M44 {
 		0, 0, 0, 1}
 }
 
-func Identity33() M33 {
+func IdentityM33() M33 {
 	return M33{
 		1, 0, 0,
 		0, 1, 0,
 		0, 0, 1}
 }
 
-var Test33 = M33{2, 1, 1, 3, 2, 1, 2, 1, 2}
-var Test33_Inv = M33{3, -1, -1, -4, 2, 1, -1, 0, 1}
-var Test33_Det = M33{2,3,1,-1,-6,7,4,5,-1}
+//-----------------------------------------------------------------------------
 
+func (a M44) Equals(b M44, tolerance float64) bool {
+	return (math.Abs(a.x00-b.x00) < tolerance &&
+		math.Abs(a.x01-b.x01) < tolerance &&
+		math.Abs(a.x02-b.x02) < tolerance &&
+		math.Abs(a.x03-b.x03) < tolerance &&
+		math.Abs(a.x10-b.x10) < tolerance &&
+		math.Abs(a.x11-b.x11) < tolerance &&
+		math.Abs(a.x12-b.x12) < tolerance &&
+		math.Abs(a.x13-b.x13) < tolerance &&
+		math.Abs(a.x20-b.x20) < tolerance &&
+		math.Abs(a.x21-b.x21) < tolerance &&
+		math.Abs(a.x22-b.x22) < tolerance &&
+		math.Abs(a.x23-b.x23) < tolerance &&
+		math.Abs(a.x30-b.x30) < tolerance &&
+		math.Abs(a.x31-b.x31) < tolerance &&
+		math.Abs(a.x32-b.x32) < tolerance &&
+		math.Abs(a.x33-b.x33) < tolerance)
+}
+
+func (a M33) Equals(b M33, tolerance float64) bool {
+	return (math.Abs(a.x00-b.x00) < tolerance &&
+		math.Abs(a.x01-b.x01) < tolerance &&
+		math.Abs(a.x02-b.x02) < tolerance &&
+		math.Abs(a.x10-b.x10) < tolerance &&
+		math.Abs(a.x11-b.x11) < tolerance &&
+		math.Abs(a.x12-b.x12) < tolerance &&
+		math.Abs(a.x20-b.x20) < tolerance &&
+		math.Abs(a.x21-b.x21) < tolerance &&
+		math.Abs(a.x22-b.x22) < tolerance)
+}
 
 //-----------------------------------------------------------------------------
 
@@ -190,7 +242,7 @@ func (a M33) Inverse() M33 {
 	m := M33{}
 	d := 1 / a.Determinant()
 	m.x00 = (a.x11*a.x22 - a.x12*a.x21) * d
-	m.x01 = (a.x12*a.x20 - a.x01*a.x22) * d
+	m.x01 = (a.x21*a.x02 - a.x01*a.x22) * d
 	m.x02 = (a.x01*a.x12 - a.x11*a.x02) * d
 	m.x10 = (a.x12*a.x20 - a.x22*a.x10) * d
 	m.x11 = (a.x22*a.x00 - a.x20*a.x02) * d
