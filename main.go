@@ -1,10 +1,12 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/deadsy/sdfx/sdf"
 )
 
-func main() {
+func test1() {
 
 	//s0 := sdf.NewRoundedBoxSDF3(sdf.V3{0.4, 0.8, 1.2}, 0.05)
 	//s0 := sdf.NewBoxSDF2(sdf.V2{0.8, 1.2})
@@ -13,4 +15,19 @@ func main() {
 	s1 := sdf.NewSorSDF3(s0)
 
 	sdf.Render(s1, true)
+}
+
+func test2() {
+	a := sdf.Test33
+	b := sdf.Test33_Inv
+	c := a.Mul(b)
+
+	fmt.Printf("%+v\n", a)
+	fmt.Printf("%+v\n", b)
+	fmt.Printf("%+v\n", c)
+
+}
+
+func main() {
+	test2()
 }
