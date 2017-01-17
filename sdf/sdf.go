@@ -41,14 +41,14 @@ func sdf_box2d(p, s V2) float64 {
 func sdf_box2d(p, s V2) float64 {
 	p = p.Abs()
 	d := p.Sub(s)
-	k := s[1] - s[0]
-	if d[0] > 0 && d[1] > 0 {
+	k := s.Y - s.X
+	if d.X > 0 && d.Y > 0 {
 		return d.Length()
 	}
-	if p[1]-p[0] > k {
-		return d[1]
+	if p.Y-p.X > k {
+		return d.Y
 	}
-	return d[0]
+	return d.X
 }
 */
 
@@ -56,46 +56,46 @@ func sdf_box2d(p, s V2) float64 {
 // Create a pt.SDF from an SDF3
 
 type PtSDF struct {
-	Sdf *SDF3
+	Sdf SDF3
 }
 
-func NewPtSDF(sdf *SDF3) pt.SDF {
+func NewPtSDF(sdf SDF3) pt.SDF {
 	return &PtSDF{sdf}
 }
 
 func (s *PtSDF) Evaluate(p pt.Vector) float64 {
-	return (*s.Sdf).Evaluate(V3{p.X, p.Y, p.Z})
+	return s.Sdf.Evaluate(V3{p.X, p.Y, p.Z})
 }
 
 func (s *PtSDF) BoundingBox() pt.Box {
-	b := (*s.Sdf).BoundingBox()
+	b := s.Sdf.BoundingBox()
 	j := b.Min
 	k := b.Max
-	return pt.Box{pt.Vector{j[0], j[1], j[2]}, pt.Vector{k[0], k[1], k[2]}}
+	return pt.Box{pt.Vector{j.X, j.Y, j.Z}, pt.Vector{k.X, k.Y, k.Z}}
 }
 
 //-----------------------------------------------------------------------------
 // Solid of Revolution, SDF2 -> SDF3
 
 type SorSDF3 struct {
-	Sdf *SDF2
+	Sdf SDF2
 }
 
-func NewSorSDF3(sdf *SDF2) SDF3 {
+func NewSorSDF3(sdf SDF2) SDF3 {
 	return &SorSDF3{sdf}
 }
 
 func (s *SorSDF3) Evaluate(p V3) float64 {
-	x := math.Sqrt(p[0]*p[0] + p[1]*p[1])
-	return (*s.Sdf).Evaluate(V2{x, p[2]})
+	x := math.Sqrt(p.X*p.X + p.Y*p.Y)
+	return s.Sdf.Evaluate(V2{x, p.Z})
 }
 
 func (s *SorSDF3) BoundingBox() Box3 {
-	b := (*s.Sdf).BoundingBox()
+	b := s.Sdf.BoundingBox()
 	j := b.Min
 	k := b.Max
-	l := math.Max(math.Abs(j[0]), math.Abs(k[0]))
-	return Box3{V3{-l, -l, j[1]}, V3{l, l, k[1]}}
+	l := math.Max(math.Abs(j.X), math.Abs(k.X))
+	return Box3{V3{-l, -l, j.Y}, V3{l, l, k.Y}}
 }
 
 //-----------------------------------------------------------------------------

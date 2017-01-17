@@ -59,6 +59,11 @@ func (a M44) MulBox(box Box3) Box3 {
 	return Box3{min, max}
 }
 
+func (a M33) MulBox(box Box2) Box2 {
+	// TODO
+	return Box2{}
+}
+
 //-----------------------------------------------------------------------------
 
 func (a M44) Determinant() float64 {

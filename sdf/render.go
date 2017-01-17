@@ -4,7 +4,7 @@ import (
 	"github.com/deadsy/pt/pt"
 )
 
-func Render(s *SDF3, render_floor bool) {
+func Render(s SDF3, render_floor bool) {
 
 	scene := pt.Scene{}
 
