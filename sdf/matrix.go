@@ -122,15 +122,12 @@ func Rotate3d(v V3, a float64) M44 {
 		0, 0, 0, 1}
 }
 
-// probably not right
-func Rotate2d(v V2, a float64) M33 {
-	v = v.Normalize()
-	//s := math.Sin(a)
+func Rotate2d(a float64) M33 {
+	s := math.Sin(a)
 	c := math.Cos(a)
-	m := 1 - c
 	return M33{
-		m*v.X*v.X + c, m * v.X * v.Y, 0,
-		m * v.X * v.Y, m*v.Y*v.Y + c, 0,
+		c, -s, 0,
+		s, c, 0,
 		0, 0, 1}
 }
 
