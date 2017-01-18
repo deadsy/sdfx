@@ -14,6 +14,7 @@ import (
 
 //-----------------------------------------------------------------------------
 
+const PI = math.Pi
 const TAU = 2 * math.Pi
 
 //-----------------------------------------------------------------------------
@@ -83,29 +84,41 @@ func (s *PtSDF) BoundingBox() pt.Box {
 
 type SorSDF3 struct {
 	Sdf   SDF2
-	Theta float64
+	Theta float64 // angle for partial revolutions
+	Norm  V2      // pre-calculated normal to theta line
 }
 
 func NewSorSDF3(sdf SDF2) SDF3 {
-	return &SorSDF3{sdf, TAU}
+	return &SorSDF3{sdf, 0, V2{}}
 }
 
 func NewSorThetaSDF3(sdf SDF2, theta float64) SDF3 {
-	return &SorSDF3{sdf, theta}
+	// normalize theta
+	theta = math.Mod(math.Abs(theta), TAU)
+	// pre-calculate the normal to the theta line
+	norm := V2{math.Sin(theta), -math.Cos(theta)}
+	return &SorSDF3{sdf, theta, norm}
 }
 
 func (s *SorSDF3) Evaluate(p V3) float64 {
 	x := math.Sqrt(p.X*p.X + p.Y*p.Y)
 	a := s.Sdf.Evaluate(V2{x, p.Z})
 	b := a
-	if s.Theta != TAU {
-		// TODO
+	if s.Theta != 0 {
+		// combine two vertical planes to give an intersection wedge
+		d := s.Norm.Dot(V2{p.X, p.Y})
+		if s.Theta < PI {
+			b = math.Max(p.Y, d) // intersect
+		} else {
+			b = math.Min(p.Y, d) // union
+		}
 	}
 	// return the intersection
 	return math.Max(a, b)
 }
 
 func (s *SorSDF3) BoundingBox() Box3 {
+	// TODO - reduce the BB for theta != 0
 	b := s.Sdf.BoundingBox()
 	j := b.Min
 	k := b.Max
@@ -129,7 +142,7 @@ func (s *ExtrudeSDF3) Evaluate(p V3) float64 {
 	// sdf for the projected 2d surface
 	a := s.Sdf.Evaluate(V2{p.X, p.Y})
 	// sdf for the extrusion region: z = [0, height]
-	b := -math.Min(p.Z, s.Height-p.Z)
+	b := math.Max(-p.Z, p.Z-s.Height)
 	// return the intersection
 	return math.Max(a, b)
 }

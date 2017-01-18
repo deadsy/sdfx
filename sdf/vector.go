@@ -90,6 +90,16 @@ func RandomV2(a, b float64) V2 {
 
 //-----------------------------------------------------------------------------
 
+func (a V3) Dot(b V3) float64 {
+	return a.X*b.X + a.Y*b.Y + a.Z*b.Z
+}
+
+func (a V2) Dot(b V2) float64 {
+	return a.X*b.X + a.Y*b.Y
+}
+
+//-----------------------------------------------------------------------------
+
 func (a V3) AddScalar(b float64) V3 {
 	return V3{a.X + b, a.Y + b, a.Z + b}
 }
