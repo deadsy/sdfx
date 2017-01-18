@@ -65,7 +65,7 @@ func RandomM44(a, b float64) M44 {
 
 //-----------------------------------------------------------------------------
 
-func IdentityM44() M44 {
+func Identity3d() M44 {
 	return M44{
 		1, 0, 0, 0,
 		0, 1, 0, 0,
@@ -73,14 +73,14 @@ func IdentityM44() M44 {
 		0, 0, 0, 1}
 }
 
-func IdentityM33() M33 {
+func Identity2d() M33 {
 	return M33{
 		1, 0, 0,
 		0, 1, 0,
 		0, 0, 1}
 }
 
-func TranslateM44(v V3) M44 {
+func Translate3d(v V3) M44 {
 	return M44{
 		1, 0, 0, v.X,
 		0, 1, 0, v.Y,
@@ -88,14 +88,14 @@ func TranslateM44(v V3) M44 {
 		0, 0, 0, 1}
 }
 
-func TranslateM33(v V2) M33 {
+func Translate2d(v V2) M33 {
 	return M33{
 		1, 0, v.X,
 		0, 1, v.Y,
 		0, 0, 1}
 }
 
-func ScaleM44(v V3) M44 {
+func Scale3d(v V3) M44 {
 	return M44{
 		v.X, 0, 0, 0,
 		0, v.Y, 0, 0,
@@ -103,14 +103,14 @@ func ScaleM44(v V3) M44 {
 		0, 0, 0, 1}
 }
 
-func ScaleM33(v V2) M33 {
+func Scale2d(v V2) M33 {
 	return M33{
 		v.X, 0, 0,
 		0, v.Y, 0,
 		0, 0, 1}
 }
 
-func RotateM44(v V3, a float64) M44 {
+func Rotate3d(v V3, a float64) M44 {
 	v = v.Normalize()
 	s := math.Sin(a)
 	c := math.Cos(a)
@@ -123,7 +123,7 @@ func RotateM44(v V3, a float64) M44 {
 }
 
 // probably not right
-func RotateM33(v V2, a float64) M33 {
+func Rotate2d(v V2, a float64) M33 {
 	v = v.Normalize()
 	//s := math.Sin(a)
 	c := math.Cos(a)
