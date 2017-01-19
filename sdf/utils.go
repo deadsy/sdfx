@@ -17,24 +17,30 @@ const TAU = 2 * math.Pi
 
 // Degrees to radians
 func DtoR(degrees float64) float64 {
-	return math.Pi * degrees / 180
+	return (math.Pi / 180) * degrees
 }
 
 // Radians to degrees
 func RtoD(radians float64) float64 {
-	return 180 * radians / math.Pi
+	return (180 / math.Pi) * radians
 }
 
 //-----------------------------------------------------------------------------
 
-// Clamp value between a and b
+// Clamp x between a and b, assume a <= b
 func Clamp(x, a, b float64) float64 {
-	return math.Min(math.Max(x, a), b)
+	if x < a {
+		return a
+	}
+	if x > b {
+		return b
+	}
+	return x
 }
 
-// Linear Interpolation
+// Linear Interpolation from x to y, a = [0,1]
 func Mix(x, y, a float64) float64 {
-	return (x * (1 - a)) + (y * a)
+	return x + (a * (y - x))
 }
 
 //-----------------------------------------------------------------------------
