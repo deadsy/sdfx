@@ -110,7 +110,7 @@ func (s *PtSDF) BoundingBox() pt.Box {
 	b := s.Sdf.BoundingBox()
 	j := b.Min
 	k := b.Max
-	return pt.Box{pt.Vector{j.X, j.Y, j.Z}, pt.Vector{k.X, k.Y, k.Z}}
+	return pt.Box{Min: pt.Vector{X: j.X, Y: j.Y, Z: j.Z}, Max: pt.Vector{X: k.X, Y: k.Y, Z: k.Z}}
 }
 
 //-----------------------------------------------------------------------------
