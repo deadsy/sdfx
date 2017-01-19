@@ -14,11 +14,6 @@ import (
 
 //-----------------------------------------------------------------------------
 
-const PI = math.Pi
-const TAU = 2 * math.Pi
-
-//-----------------------------------------------------------------------------
-
 type SDF3 interface {
 	Evaluate(p V3) float64
 	BoundingBox() Box3
@@ -56,6 +51,45 @@ func sdf_box2d(p, s V2) float64 {
 	return d.X
 }
 */
+
+//-----------------------------------------------------------------------------
+// Minimum Functions
+
+type MinFunc func(a, b, k float64) float64
+
+// normal min - no blending
+func NormalMin(a, b, k float64) float64 {
+	return math.Min(a, b)
+}
+
+// round min uses a quarter-circle to join the two objects smoothly
+func RoundMin(a, b, k float64) float64 {
+	u := V2{k - a, k - b}.Max(V2{0, 0})
+	return math.Max(k, math.Min(a, b)) - u.Length()
+}
+
+// chamfer min makes a 45-degree chamfered edge (the diagonal of a square of size <r>)
+func ChamferMin(a, b, k float64) float64 {
+	return math.Min(math.Min(a, b), (a-k+b)*math.Sqrt(0.5))
+}
+
+// exponential smooth min (k = 32);
+func ExpMin(a, b, k float64) float64 {
+	return -math.Log(math.Exp(-k*a)+math.Exp(-k*b)) / k
+}
+
+// power smooth min (k = 8) (TODO - weird results, is this correct?)
+func PowMin(a, b, k float64) float64 {
+	a = math.Pow(a, k)
+	b = math.Pow(b, k)
+	return math.Pow((a*b)/(a+b), 1/k)
+}
+
+// polynomial smooth min (k = 0.1)
+func PolyMin(a, b, k float64) float64 {
+	h := Clamp(0.5+0.5*(b-a)/k, 0.0, 1.0)
+	return Mix(b, a, h) - k*h*(1.0-h)
+}
 
 //-----------------------------------------------------------------------------
 // Create a pt.SDF from an SDF3
@@ -197,6 +231,26 @@ func (s *RoundedBoxSDF3) BoundingBox() Box3 {
 }
 
 //-----------------------------------------------------------------------------
+// 3D Sphere
+
+type SphereSDF3 struct {
+	Radius float64
+}
+
+func NewSphereSDF3(radius float64) SDF3 {
+	return &SphereSDF3{radius}
+}
+
+func (s *SphereSDF3) Evaluate(p V3) float64 {
+	return p.Length() - s.Radius
+}
+
+func (s *SphereSDF3) BoundingBox() Box3 {
+	d := V3{s.Radius, s.Radius, s.Radius}
+	return Box3{d.Negate(), d}
+}
+
+//-----------------------------------------------------------------------------
 // 2D Circle
 
 type CircleSDF2 struct {
@@ -259,7 +313,7 @@ func (s *RoundedBoxSDF2) BoundingBox() Box2 {
 }
 
 //-----------------------------------------------------------------------------
-// TransformSDF2
+// Transform SDF2
 
 type TransformSDF2 struct {
 	Sdf     SDF2
@@ -278,6 +332,73 @@ func (s *TransformSDF2) Evaluate(p V2) float64 {
 
 func (s *TransformSDF2) BoundingBox() Box2 {
 	return s.Matrix.MulBox(s.Sdf.BoundingBox())
+}
+
+//-----------------------------------------------------------------------------
+// Transform SDF3
+
+type TransformSDF3 struct {
+	Sdf     SDF3
+	Matrix  M44
+	Inverse M44
+}
+
+func NewTransformSDF3(sdf SDF3, matrix M44) SDF3 {
+	return &TransformSDF3{sdf, matrix, matrix.Inverse()}
+}
+
+func (s *TransformSDF3) Evaluate(p V3) float64 {
+	q := s.Inverse.MulPosition(p)
+	return s.Sdf.Evaluate(q)
+}
+
+func (s *TransformSDF3) BoundingBox() Box3 {
+	return s.Matrix.MulBox(s.Sdf.BoundingBox())
+}
+
+//-----------------------------------------------------------------------------
+// Union of SDF3
+
+type UnionSDF3 struct {
+	s0  SDF3
+	s1  SDF3
+	min MinFunc
+	k   float64
+}
+
+func NewUnionSDF3(s0, s1 SDF3) SDF3 {
+	return &UnionSDF3{s0, s1, NormalMin, 0}
+}
+
+func NewUnionRoundSDF3(s0, s1 SDF3, k float64) SDF3 {
+	return &UnionSDF3{s0, s1, RoundMin, k}
+}
+
+func NewUnionExpSDF3(s0, s1 SDF3, k float64) SDF3 {
+	return &UnionSDF3{s0, s1, ExpMin, k}
+}
+
+func NewUnionPowSDF3(s0, s1 SDF3, k float64) SDF3 {
+	return &UnionSDF3{s0, s1, PowMin, k}
+}
+
+func NewUnionPolySDF3(s0, s1 SDF3, k float64) SDF3 {
+	return &UnionSDF3{s0, s1, PolyMin, k}
+}
+
+func NewUnionChamferSDF3(s0, s1 SDF3, k float64) SDF3 {
+	return &UnionSDF3{s0, s1, ChamferMin, k}
+}
+
+func (s *UnionSDF3) Evaluate(p V3) float64 {
+	a := s.s0.Evaluate(p)
+	b := s.s1.Evaluate(p)
+	return s.min(a, b, s.k)
+}
+
+func (s *UnionSDF3) BoundingBox() Box3 {
+	bb := s.s0.BoundingBox()
+	return bb.Extend(s.s1.BoundingBox())
 }
 
 //-----------------------------------------------------------------------------

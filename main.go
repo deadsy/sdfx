@@ -39,6 +39,19 @@ func test5() {
 	sdf.Render(s1, true)
 }
 
+func test6() {
+	s0 := sdf.NewSphereSDF3(0.5)
+	d := 0.4
+	s1 := sdf.NewTransformSDF3(s0, sdf.Translate3d(sdf.V3{0, d, 0}))
+	s2 := sdf.NewTransformSDF3(s0, sdf.Translate3d(sdf.V3{0, -d, 0}))
+	//s3 := sdf.NewUnionRoundSDF3(s1, s2, 0.1)
+	//s3 := sdf.NewUnionExpSDF3(s1, s2, 32)
+	//s3 := sdf.NewUnionPowSDF3(s1, s2, 8)
+	s3 := sdf.NewUnionPolySDF3(s1, s2, 0.1)
+	//s3 := sdf.NewUnionChamferSDF3(s1, s2, 0.1)
+	sdf.Render(s3, true)
+}
+
 func main() {
-	test5()
+	test6()
 }
