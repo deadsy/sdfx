@@ -25,14 +25,14 @@ type V2 struct {
 //-----------------------------------------------------------------------------
 
 func (a V3) Equals(b V3, tolerance float64) bool {
-	return (math.Abs(a.X-b.X) < tolerance &&
-		math.Abs(a.Y-b.Y) < tolerance &&
-		math.Abs(a.Z-b.Z) < tolerance)
+	return (Abs(a.X-b.X) < tolerance &&
+		Abs(a.Y-b.Y) < tolerance &&
+		Abs(a.Z-b.Z) < tolerance)
 }
 
 func (a V2) Equals(b V2, tolerance float64) bool {
-	return (math.Abs(a.X-b.X) < tolerance &&
-		math.Abs(a.Y-b.Y) < tolerance)
+	return (Abs(a.X-b.X) < tolerance &&
+		Abs(a.Y-b.Y) < tolerance)
 }
 
 //-----------------------------------------------------------------------------
@@ -138,26 +138,26 @@ func (a V2) Negate() V2 {
 }
 
 func (a V3) Abs() V3 {
-	return V3{math.Abs(a.X), math.Abs(a.Y), math.Abs(a.Z)}
+	return V3{Abs(a.X), Abs(a.Y), Abs(a.Z)}
 }
 func (a V2) Abs() V2 {
-	return V2{math.Abs(a.X), math.Abs(a.Y)}
+	return V2{Abs(a.X), Abs(a.Y)}
 }
 
 //-----------------------------------------------------------------------------
 
 func (a V3) Min(b V3) V3 {
-	return V3{math.Min(a.X, b.X), math.Min(a.Y, b.Y), math.Min(a.Z, b.Z)}
+	return V3{Min(a.X, b.X), Min(a.Y, b.Y), Min(a.Z, b.Z)}
 }
 func (a V2) Min(b V2) V2 {
-	return V2{math.Min(a.X, b.X), math.Min(a.Y, b.Y)}
+	return V2{Min(a.X, b.X), Min(a.Y, b.Y)}
 }
 
 func (a V3) Max(b V3) V3 {
-	return V3{math.Max(a.X, b.X), math.Max(a.Y, b.Y), math.Max(a.Z, b.Z)}
+	return V3{Max(a.X, b.X), Max(a.Y, b.Y), Max(a.Z, b.Z)}
 }
 func (a V2) Max(b V2) V2 {
-	return V2{math.Max(a.X, b.X), math.Max(a.Y, b.Y)}
+	return V2{Max(a.X, b.X), Max(a.Y, b.Y)}
 }
 
 func (a V3) Add(b V3) V3 {
@@ -198,17 +198,17 @@ func (a V2) Length() float64 {
 }
 
 func (a V3) MinComponent() float64 {
-	return math.Min(math.Min(a.X, a.Y), a.Z)
+	return Min(Min(a.X, a.Y), a.Z)
 }
 func (a V2) MinComponent() float64 {
-	return math.Min(a.X, a.Y)
+	return Min(a.X, a.Y)
 }
 
 func (a V3) MaxComponent() float64 {
-	return math.Max(math.Max(a.X, a.Y), a.Z)
+	return Max(Max(a.X, a.Y), a.Z)
 }
 func (a V2) MaxComponent() float64 {
-	return math.Max(a.X, a.Y)
+	return Max(a.X, a.Y)
 }
 
 //-----------------------------------------------------------------------------

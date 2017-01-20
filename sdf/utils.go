@@ -12,17 +12,18 @@ import (
 
 const PI = math.Pi
 const TAU = 2 * math.Pi
+const SQRT_HALF = 0.7071067811865476
 
 //-----------------------------------------------------------------------------
 
 // Degrees to radians
 func DtoR(degrees float64) float64 {
-	return (math.Pi / 180) * degrees
+	return (PI / 180) * degrees
 }
 
 // Radians to degrees
 func RtoD(radians float64) float64 {
-	return (180 / math.Pi) * radians
+	return (180 / PI) * radians
 }
 
 //-----------------------------------------------------------------------------

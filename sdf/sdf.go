@@ -29,12 +29,12 @@ type SDF2 interface {
 
 func sdf_box3d(p, s V3) float64 {
 	d := p.Abs().Sub(s)
-	return d.Max(V3{0, 0, 0}).Length() + math.Min(d.MaxComponent(), 0)
+	return d.Max(V3{0, 0, 0}).Length() + Min(d.MaxComponent(), 0)
 }
 
 func sdf_box2d(p, s V2) float64 {
 	d := p.Abs().Sub(s)
-	return d.Max(V2{0, 0}).Length() + math.Min(d.MaxComponent(), 0)
+	return d.Max(V2{0, 0}).Length() + Min(d.MaxComponent(), 0)
 }
 
 /* alternate function - probably faster
@@ -59,18 +59,18 @@ type MinFunc func(a, b, k float64) float64
 
 // normal min - no blending
 func NormalMin(a, b, k float64) float64 {
-	return math.Min(a, b)
+	return Min(a, b)
 }
 
 // round min uses a quarter-circle to join the two objects smoothly
 func RoundMin(a, b, k float64) float64 {
 	u := V2{k - a, k - b}.Max(V2{0, 0})
-	return math.Max(k, math.Min(a, b)) - u.Length()
+	return Max(k, Min(a, b)) - u.Length()
 }
 
 // chamfer min makes a 45-degree chamfered edge (the diagonal of a square of size <r>)
 func ChamferMin(a, b, k float64) float64 {
-	return math.Min(math.Min(a, b), (a-k+b)*math.Sqrt(0.5))
+	return Min(Min(a, b), (a-k+b)*SQRT_HALF)
 }
 
 // exponential smooth min (k = 32);
@@ -128,7 +128,7 @@ func NewSorSDF3(sdf SDF2) SDF3 {
 
 func NewSorThetaSDF3(sdf SDF2, theta float64) SDF3 {
 	// normalize theta
-	theta = math.Mod(math.Abs(theta), TAU)
+	theta = math.Mod(Abs(theta), TAU)
 	// pre-calculate the normal to the theta line
 	norm := V2{math.Sin(theta), -math.Cos(theta)}
 	return &SorSDF3{sdf, theta, norm}
@@ -142,13 +142,13 @@ func (s *SorSDF3) Evaluate(p V3) float64 {
 		// combine two vertical planes to give an intersection wedge
 		d := s.Norm.Dot(V2{p.X, p.Y})
 		if s.Theta < PI {
-			b = math.Max(p.Y, d) // intersect
+			b = Max(p.Y, d) // intersect
 		} else {
-			b = math.Min(p.Y, d) // union
+			b = Min(p.Y, d) // union
 		}
 	}
 	// return the intersection
-	return math.Max(a, b)
+	return Max(a, b)
 }
 
 func (s *SorSDF3) BoundingBox() Box3 {
@@ -156,7 +156,7 @@ func (s *SorSDF3) BoundingBox() Box3 {
 	b := s.Sdf.BoundingBox()
 	j := b.Min
 	k := b.Max
-	l := math.Max(math.Abs(j.X), math.Abs(k.X))
+	l := Max(Abs(j.X), Abs(k.X))
 	return Box3{V3{-l, -l, j.Y}, V3{l, l, k.Y}}
 }
 
@@ -176,9 +176,9 @@ func (s *ExtrudeSDF3) Evaluate(p V3) float64 {
 	// sdf for the projected 2d surface
 	a := s.Sdf.Evaluate(V2{p.X, p.Y})
 	// sdf for the extrusion region: z = [0, height]
-	b := math.Max(-p.Z, p.Z-s.Height)
+	b := Max(-p.Z, p.Z-s.Height)
 	// return the intersection
-	return math.Max(a, b)
+	return Max(a, b)
 }
 
 func (s *ExtrudeSDF3) BoundingBox() Box3 {

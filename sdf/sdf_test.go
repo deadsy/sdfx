@@ -29,14 +29,14 @@ func Test_Inverse(t *testing.T) {
 	if a.Inverse().Equals(a_inv, TOLERANCE) == false {
 		t.Error("FAIL")
 	}
-	if a.Mul(a_inv).Equals(IdentityM33(), TOLERANCE) == false {
+	if a.Mul(a_inv).Equals(Identity2d(), TOLERANCE) == false {
 		t.Error("FAIL")
 	}
 
 	for i := 0; i < 100; i++ {
 		a = RandomM33(-5, 5)
 		a_inv = a.Inverse()
-		if a.Mul(a_inv).Equals(IdentityM33(), TOLERANCE) == false {
+		if a.Mul(a_inv).Equals(Identity2d(), TOLERANCE) == false {
 			t.Error("FAIL")
 		}
 	}
@@ -44,7 +44,7 @@ func Test_Inverse(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		b := RandomM44(-1, 1)
 		b_inv := b.Inverse()
-		if b.Mul(b_inv).Equals(IdentityM44(), TOLERANCE) == false {
+		if b.Mul(b_inv).Equals(Identity3d(), TOLERANCE) == false {
 			t.Error("FAIL")
 		}
 	}
@@ -59,16 +59,16 @@ func Test_MulBox(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		v := RandomV2(-5, 5)
 		// translating
-		m0 := TranslateM33(v)
-		m1 := TranslateM33(v.Negate())
+		m0 := Translate2d(v)
+		m1 := Translate2d(v.Negate())
 		b1 := m0.MulBox(b2d)
 		b2 := m1.MulBox(b1)
 		if b2d.Equals(b2, TOLERANCE) == false {
 			t.Error("FAIL")
 		}
 		// scaling
-		m0 = ScaleM33(v)
-		m1 = ScaleM33(V2{1 / v.X, 1 / v.Y})
+		m0 = Scale2d(v)
+		m1 = Scale2d(V2{1 / v.X, 1 / v.Y})
 		b1 = m0.MulBox(b2d)
 		b2 = m1.MulBox(b1)
 		if b2d.Equals(b2, TOLERANCE) == false {
@@ -81,16 +81,16 @@ func Test_MulBox(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		v := RandomV3(-5, 5)
 		// translating
-		m0 := TranslateM44(v)
-		m1 := TranslateM44(v.Negate())
+		m0 := Translate3d(v)
+		m1 := Translate3d(v.Negate())
 		b1 := m0.MulBox(b3d)
 		b2 := m1.MulBox(b1)
 		if b3d.Equals(b2, TOLERANCE) == false {
 			t.Error("FAIL")
 		}
 		// scaling
-		m0 = ScaleM44(v)
-		m1 = ScaleM44(V3{1 / v.X, 1 / v.Y, 1 / v.Z})
+		m0 = Scale3d(v)
+		m1 = Scale3d(V3{1 / v.X, 1 / v.Y, 1 / v.Z})
 		b1 = m0.MulBox(b3d)
 		b2 = m1.MulBox(b1)
 		if b3d.Equals(b2, TOLERANCE) == false {
