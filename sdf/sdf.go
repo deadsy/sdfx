@@ -69,6 +69,7 @@ func RoundMin(a, b, k float64) float64 {
 }
 
 // chamfer min makes a 45-degree chamfered edge (the diagonal of a square of size <r>)
+// TODO: why the holes in the rendering?
 func ChamferMin(a, b, k float64) float64 {
 	return Min(Min(a, b), (a-k+b)*SQRT_HALF)
 }
@@ -78,14 +79,15 @@ func ExpMin(a, b, k float64) float64 {
 	return -math.Log(math.Exp(-k*a)+math.Exp(-k*b)) / k
 }
 
-// power smooth min (k = 8) (TODO - weird results, is this correct?)
+// power smooth min (k = 8)
+// TODO - weird results, is this correct?
 func PowMin(a, b, k float64) float64 {
 	a = math.Pow(a, k)
 	b = math.Pow(b, k)
 	return math.Pow((a*b)/(a+b), 1/k)
 }
 
-// polynomial smooth min (k = 0.1)
+// polynomial smooth min (Try k = 0.1, bigger k == bigger fillet)
 func PolyMin(a, b, k float64) float64 {
 	h := Clamp(0.5+0.5*(b-a)/k, 0.0, 1.0)
 	return Mix(b, a, h) - k*h*(1.0-h)
