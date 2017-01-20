@@ -44,3 +44,35 @@ func Mix(x, y, a float64) float64 {
 }
 
 //-----------------------------------------------------------------------------
+// Max/Min functions
+// Note: math.Max/Min don't inline because they do NaN/Inf checking.
+// These RonCo-style versions will inline.
+
+func Max(a, b float64) float64 {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+func Min(a, b float64) float64 {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+//-----------------------------------------------------------------------------
+
+// Return abs(x)
+func Abs(x float64) float64 {
+	if x < 0 {
+		return -x
+	}
+	if x == 0 {
+		return 0 // return correctly abs(-0)
+	}
+	return x
+}
+
+//-----------------------------------------------------------------------------
