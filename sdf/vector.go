@@ -98,6 +98,13 @@ func (a V2) Dot(b V2) float64 {
 	return a.X*b.X + a.Y*b.Y
 }
 
+func (a V3) Cross(b V3) V3 {
+	x := a.Y*b.Z - a.Z*b.Y
+	y := a.Z*b.X - a.X*b.Z
+	z := a.X*b.Y - a.Y*b.X
+	return V3{x, y, z}
+}
+
 //-----------------------------------------------------------------------------
 
 func (a V3) AddScalar(b float64) V3 {

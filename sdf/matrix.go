@@ -271,10 +271,18 @@ func (a M44) Determinant() float64 {
 		a.x03*a.x12*a.x20*a.x31 + a.x03*a.x12*a.x21*a.x30)
 }
 
+/*
 func (a M33) Determinant() float64 {
 	return (a.x00*a.x11*a.x22 - a.x00*a.x12*a.x21 -
 		a.x01*a.x10*a.x22 + a.x01*a.x12*a.x20 +
 		a.x02*a.x10*a.x21 - a.x02*a.x11*a.x20)
+}
+*/
+
+func (a M33) Determinant() float64 {
+	return (a.x00*(a.x11*a.x22-a.x21*a.x12) -
+		a.x01*(a.x10*a.x22-a.x20*a.x12) +
+		a.x02*(a.x10*a.x21-a.x20*a.x11))
 }
 
 //-----------------------------------------------------------------------------

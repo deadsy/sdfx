@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/deadsy/sdfx/sdf"
 )
 
@@ -60,6 +62,22 @@ func test7() {
 	sdf.Render(s3, true)
 }
 
+func test8() {
+	a := sdf.V3{0, 0, 0}
+	b := sdf.V3{1, 0, 0}
+	c := sdf.V3{0, 1, 0}
+	d := sdf.V3{0, 0, 1}
+	t1 := sdf.Triangle{a, b, d}
+	t2 := sdf.Triangle{a, c, b}
+	t3 := sdf.Triangle{a, d, c}
+	t4 := sdf.Triangle{b, c, d}
+	m := sdf.NewMesh([]*sdf.Triangle{&t1, &t2, &t3, &t4})
+	err := sdf.SaveSTL("test.stl", m)
+	if err != nil {
+		fmt.Printf("%s", err)
+	}
+}
+
 func main() {
-	test7()
+	test8()
 }
