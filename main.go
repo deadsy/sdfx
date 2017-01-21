@@ -67,11 +67,33 @@ func test8() {
 	b := sdf.V3{1, 0, 0}
 	c := sdf.V3{0, 1, 0}
 	d := sdf.V3{0, 0, 1}
-	t1 := sdf.Triangle{a, b, d}
-	t2 := sdf.Triangle{a, c, b}
-	t3 := sdf.Triangle{a, d, c}
-	t4 := sdf.Triangle{b, c, d}
-	m := sdf.NewMesh([]*sdf.Triangle{&t1, &t2, &t3, &t4})
+	t1 := sdf.NewTriangle(a, b, d)
+	t2 := sdf.NewTriangle(a, c, b)
+	t3 := sdf.NewTriangle(a, d, c)
+	t4 := sdf.NewTriangle(b, c, d)
+	m := sdf.NewMesh([]*sdf.Triangle{t1, t2, t3, t4})
+	err := sdf.SaveSTL("test.stl", m)
+	if err != nil {
+		fmt.Printf("%s", err)
+	}
+}
+
+func test9() {
+	s := sdf.NewSphereSDF3(10.0)
+	b := s.BoundingBox().Scale(1.1)
+	m := sdf.NewSDFMesh(s, b, 0.5)
+	err := sdf.SaveSTL("test.stl", m)
+	if err != nil {
+		fmt.Printf("%s", err)
+	}
+}
+
+func test10() {
+	s0 := sdf.NewBoxSDF3(sdf.V3{0.8, 0.8, 0.05})
+	s1 := sdf.NewTransformSDF3(s0, sdf.Rotate3d(sdf.V3{1, 0, 0}, sdf.DtoR(60)))
+	s := sdf.NewUnionPolySDF3(s0, s1, 0.1)
+	b := s.BoundingBox().Scale(1.1)
+	m := sdf.NewSDFMesh(s, b, 0.005)
 	err := sdf.SaveSTL("test.stl", m)
 	if err != nil {
 		fmt.Printf("%s", err)
@@ -79,5 +101,5 @@ func test8() {
 }
 
 func main() {
-	test8()
+	test10()
 }

@@ -9,14 +9,24 @@ package sdf
 //-----------------------------------------------------------------------------
 
 type Triangle struct {
-	Vertex1, Vertex2, Vertex3 V3
+	V [3]V3
+}
+
+//-----------------------------------------------------------------------------
+
+func NewTriangle(a, b, c V3) *Triangle {
+	t := Triangle{}
+	t.V[0] = a
+	t.V[1] = b
+	t.V[2] = c
+	return &t
 }
 
 //-----------------------------------------------------------------------------
 
 func (t *Triangle) Normal() V3 {
-	e1 := t.Vertex2.Sub(t.Vertex1)
-	e2 := t.Vertex3.Sub(t.Vertex1)
+	e1 := t.V[1].Sub(t.V[0])
+	e2 := t.V[2].Sub(t.V[0])
 	return e1.Cross(e2).Normalize()
 }
 

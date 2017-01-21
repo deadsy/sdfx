@@ -13,6 +13,7 @@ import (
 const PI = math.Pi
 const TAU = 2 * math.Pi
 const SQRT_HALF = 0.7071067811865476
+const EPS = 1e-9
 
 //-----------------------------------------------------------------------------
 
