@@ -100,6 +100,16 @@ func test10() {
 	}
 }
 
+func test11() {
+	s := sdf.NewCapsuleSDF3(sdf.V3{0, -0.7, 0}, sdf.V3{0, 0.7, 0}, 0.3)
+	b := s.BoundingBox().Scale(1.05)
+	m := sdf.NewSDFMesh(s, b, 0.01)
+	err := sdf.SaveSTL("test.stl", m)
+	if err != nil {
+		fmt.Printf("%s", err)
+	}
+}
+
 func main() {
-	test10()
+	test11()
 }

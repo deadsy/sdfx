@@ -191,6 +191,30 @@ func (s *ExtrudeSDF3) BoundingBox() Box3 {
 }
 
 //-----------------------------------------------------------------------------
+
+type CapsuleSDF3 struct {
+	A, B   V3
+	Radius float64
+}
+
+func NewCapsuleSDF3(a, b V3, radius float64) SDF3 {
+	return &CapsuleSDF3{a, b, radius}
+}
+
+func (s *CapsuleSDF3) Evaluate(p V3) float64 {
+	pa := p.Sub(s.A)
+	ba := s.B.Sub(s.A)
+	t := Clamp(pa.Dot(ba)/ba.Dot(ba), 0, 1)
+	return pa.Sub(ba.MulScalar(t)).Length() - s.Radius
+}
+
+func (s *CapsuleSDF3) BoundingBox() Box3 {
+	a := s.A.Min(s.B).SubScalar(s.Radius)
+	b := s.A.Max(s.B).AddScalar(s.Radius)
+	return Box3{a, b}
+}
+
+//-----------------------------------------------------------------------------
 // 3D Normal Box
 
 type BoxSDF3 struct {
