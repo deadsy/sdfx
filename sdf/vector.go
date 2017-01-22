@@ -156,6 +156,7 @@ func (a V2) Abs() V2 {
 func (a V3) Min(b V3) V3 {
 	return V3{Min(a.X, b.X), Min(a.Y, b.Y), Min(a.Z, b.Z)}
 }
+
 func (a V2) Min(b V2) V2 {
 	return V2{Min(a.X, b.X), Min(a.Y, b.Y)}
 }
@@ -163,6 +164,7 @@ func (a V2) Min(b V2) V2 {
 func (a V3) Max(b V3) V3 {
 	return V3{Max(a.X, b.X), Max(a.Y, b.Y), Max(a.Z, b.Z)}
 }
+
 func (a V2) Max(b V2) V2 {
 	return V2{Max(a.X, b.X), Max(a.Y, b.Y)}
 }
@@ -170,6 +172,7 @@ func (a V2) Max(b V2) V2 {
 func (a V3) Add(b V3) V3 {
 	return V3{a.X + b.X, a.Y + b.Y, a.Z + b.Z}
 }
+
 func (a V2) Add(b V2) V2 {
 	return V2{a.X + b.X, a.Y + b.Y}
 }
@@ -177,6 +180,7 @@ func (a V2) Add(b V2) V2 {
 func (a V3) Sub(b V3) V3 {
 	return V3{a.X - b.X, a.Y - b.Y, a.Z - b.Z}
 }
+
 func (a V2) Sub(b V2) V2 {
 	return V2{a.X - b.X, a.Y - b.Y}
 }
@@ -184,6 +188,7 @@ func (a V2) Sub(b V2) V2 {
 func (a V3) Mul(b V3) V3 {
 	return V3{a.X * b.X, a.Y * b.Y, a.Z * b.Z}
 }
+
 func (a V2) Mul(b V2) V2 {
 	return V2{a.X * b.X, a.Y * b.Y}
 }
@@ -191,6 +196,7 @@ func (a V2) Mul(b V2) V2 {
 func (a V3) Div(b V3) V3 {
 	return V3{a.X / b.X, a.Y / b.Y, a.Z / b.Z}
 }
+
 func (a V2) Div(b V2) V2 {
 	return V2{a.X / b.X, a.Y / b.Y}
 }

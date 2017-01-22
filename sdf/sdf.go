@@ -339,6 +339,56 @@ func (s *RoundedBoxSDF2) BoundingBox() Box2 {
 }
 
 //-----------------------------------------------------------------------------
+// 2D Polygon
+
+type PolySDF2 struct {
+	Line []Line2
+}
+
+func NewPolySDF2(points []*V2) SDF2 {
+	n := len(points)
+	if n < 3 {
+		return nil
+	}
+	p := PolySDF2{}
+	for i := 0; i < n-1; i++ {
+		p.Line = append(p.Line, NewLine2(points[i], points[i+1]))
+	}
+	// close the loop
+	p.Line = append(p.Line, NewLine2(points[n-1], points[0]))
+	return &p
+}
+
+func (s *PolySDF2) Evaluate(p V2) float64 {
+	d := math.MaxFloat64
+	neg := false
+	// find the minium distance - remember the sign
+	for _, l := range s.Line {
+		x := l.Distance(&p)
+		xa := Abs(x)
+		if xa < d {
+			d = xa
+			neg = x < 0
+		}
+	}
+	if neg {
+		return -d
+	}
+	return d
+}
+
+func (s *PolySDF2) BoundingBox() Box2 {
+	l := s.Line[0]
+	a := l.A.Min(l.B)
+	b := l.A.Max(l.B)
+	for _, l := range s.Line {
+		a = a.Min(l.A.Min(l.B))
+		b = b.Max(l.A.Max(l.B))
+	}
+	return Box2{a, b}
+}
+
+//-----------------------------------------------------------------------------
 // Transform SDF2
 
 type TransformSDF2 struct {
