@@ -5,6 +5,7 @@
 package sdf
 
 import (
+	"math"
 	"testing"
 )
 
@@ -149,7 +150,7 @@ func Test_Line(t *testing.T) {
 
 //-----------------------------------------------------------------------------
 
-func Test_Polygon(t *testing.T) {
+func Test_Polygon1(t *testing.T) {
 	s := NewPolySDF2([]*V2{&V2{0, 0}, &V2{1, 0}, &V2{0, 1}})
 	b := s.BoundingBox()
 	b0 := Box2{V2{0, 0}, V2{1, 1}}
@@ -164,6 +165,59 @@ func Test_Polygon(t *testing.T) {
 		t.Error("FAIL")
 	}
 
+	points := []*V2{
+		&V2{0, -1},
+		&V2{1, 1},
+		&V2{-1, 1},
+	}
+
+	s = NewPolySDF2(points)
+	b = s.BoundingBox()
+	b0 = Box2{V2{-1, -1}, V2{1, 1}}
+	if b.Equals(b0, TOLERANCE) == false {
+		t.Error("FAIL")
+	}
+
+	test_points := []struct {
+		p V2
+		d float64
+	}{
+		{V2{0, -1}, 0},
+		{V2{1, 1}, 0},
+		{V2{-1, 1}, 0},
+		{V2{0, 1}, 0},
+		{V2{0, 2}, 1},
+		{V2{0, -2}, 1},
+		{V2{1, 0}, 1 / math.Sqrt(5)},
+		{V2{-1, 0}, 1 / math.Sqrt(5)},
+		{V2{0, 0}, -1 / math.Sqrt(5)},
+	}
+
+	for _, p := range test_points {
+		d := s.Evaluate(p.p)
+		if d != p.d {
+			t.Error("FAIL")
+		}
+	}
+}
+
+//-----------------------------------------------------------------------------
+
+func Test_Polygon2(t *testing.T) {
+	k := 1.2
+
+	s0 := NewPolySDF2([]*V2{&V2{k, -k}, &V2{k, k}, &V2{-k, k}, &V2{-k, -k}})
+	s0 = NewTransformSDF2(s0, Translate2d(V2{0.8, 0}))
+
+	s1 := NewBoxSDF2(V2{2 * k, 2 * k})
+	s1 = NewTransformSDF2(s1, Translate2d(V2{0.8, 0}))
+
+	for i := 0; i < 10000; i++ {
+		p := RandomV2(-10*k, 10*k)
+		if s0.Evaluate(p) != s1.Evaluate(p) {
+			t.Error("FAIL")
+		}
+	}
 }
 
 //-----------------------------------------------------------------------------
