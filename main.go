@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/deadsy/sdfx/sdf"
 )
@@ -151,6 +152,36 @@ func test13() {
 	//sdf.Render(s1, true)
 }
 
+func test14() {
+
+	// size
+	a := 0.3
+	b := 0.7
+	// rotation
+	theta := 30.0
+	c := math.Cos(sdf.DtoR(theta))
+	s := math.Sin(sdf.DtoR(theta))
+	// translate
+	j := 10.0
+	k := 2.0
+
+	points := []*sdf.V2{
+		&sdf.V2{j + c*a - s*b, k + s*a + c*b},
+		&sdf.V2{j - c*a - s*b, k - s*a + c*b},
+		&sdf.V2{j - c*a + s*b, k - s*a - c*b},
+		&sdf.V2{j + c*a + s*b, k + s*a - c*b},
+	}
+
+	s0 := sdf.NewPolySDF2(points)
+	s1 := sdf.NewSorThetaSDF3(s0, sdf.DtoR(300))
+
+	m := sdf.NewSDFMesh(s1, s1.BoundingBox().Scale(1.1), 0.05)
+	err := sdf.SaveSTL("test.stl", m)
+	if err != nil {
+		fmt.Printf("%s", err)
+	}
+}
+
 func main() {
-	test13()
+	test14()
 }

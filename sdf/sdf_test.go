@@ -214,7 +214,43 @@ func Test_Polygon2(t *testing.T) {
 
 	for i := 0; i < 10000; i++ {
 		p := RandomV2(-10*k, 10*k)
-		if s0.Evaluate(p) != s1.Evaluate(p) {
+		if Abs(s0.Evaluate(p)-s1.Evaluate(p)) > TOLERANCE {
+			t.Error("FAIL")
+		}
+	}
+}
+
+//-----------------------------------------------------------------------------
+
+func Test_Polygon3(t *testing.T) {
+
+	// size
+	a := 1.4
+	b := 2.2
+	// rotation
+	theta := -15.0
+	c := math.Cos(DtoR(theta))
+	s := math.Sin(DtoR(theta))
+	// translate
+	j := -1.0
+	k := 2.0
+
+	s1 := NewBoxSDF2(V2{2 * a, 2 * b})
+	s1 = NewTransformSDF2(s1, Rotate2d(DtoR(theta)))
+	s1 = NewTransformSDF2(s1, Translate2d(V2{j, k}))
+
+	points := []*V2{
+		&V2{j + c*a - s*b, k + s*a + c*b},
+		&V2{j - c*a - s*b, k - s*a + c*b},
+		&V2{j - c*a + s*b, k - s*a - c*b},
+		&V2{j + c*a + s*b, k + s*a - c*b},
+	}
+
+	s0 := NewPolySDF2(points)
+
+	for i := 0; i < 1000; i++ {
+		p := RandomV2(-5*b, 5*b)
+		if Abs(s0.Evaluate(p)-s1.Evaluate(p)) > TOLERANCE {
 			t.Error("FAIL")
 		}
 	}
