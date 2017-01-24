@@ -5,6 +5,7 @@
 package sdf
 
 import (
+	"fmt"
 	"math"
 	"testing"
 )
@@ -254,6 +255,25 @@ func Test_Polygon3(t *testing.T) {
 			t.Error("FAIL")
 		}
 	}
+}
+
+//-----------------------------------------------------------------------------
+
+func Test_KdTree2(t *testing.T) {
+
+	points := []V2{
+		V2{2, 3},
+		V2{5, 4},
+		V2{9, 6},
+		V2{4, 7},
+		V2{8, 1},
+		V2{7, 2},
+	}
+
+	fmt.Printf("before %+v\n", points)
+	k := NewKdTree2(points)
+	fmt.Printf("%+v\n", k)
+	fmt.Printf("after %+v\n", points)
 }
 
 //-----------------------------------------------------------------------------
