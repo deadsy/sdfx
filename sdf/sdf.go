@@ -345,7 +345,7 @@ type PolySDF2 struct {
 	Line []Line2
 }
 
-func NewPolySDF2(points []*V2) SDF2 {
+func NewPolySDF2(points []V2) SDF2 {
 	n := len(points)
 	if n < 3 {
 		return nil
@@ -364,7 +364,7 @@ func (s *PolySDF2) Evaluate(p V2) float64 {
 	neg := false
 	// find the minium distance - remember the sign
 	for _, l := range s.Line {
-		x := l.Distance(&p)
+		x := l.Distance(p)
 		xa := Abs(x)
 		if xa < d {
 			d = xa

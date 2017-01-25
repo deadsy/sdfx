@@ -120,10 +120,10 @@ func test11() {
 func test12() {
 	k := 0.1
 
-	points := []*sdf.V2{
-		&sdf.V2{0, -k},
-		&sdf.V2{k, k},
-		&sdf.V2{-k, k},
+	points := []sdf.V2{
+		sdf.V2{0, -k},
+		sdf.V2{k, k},
+		sdf.V2{-k, k},
 	}
 	s0 := sdf.NewPolySDF2(points)
 	s0 = sdf.NewTransformSDF2(s0, sdf.Translate2d(sdf.V2{0.8, 0}))
@@ -140,7 +140,7 @@ func test12() {
 func test13() {
 	k := 0.4
 
-	s0 := sdf.NewPolySDF2([]*sdf.V2{&sdf.V2{k, -k}, &sdf.V2{k, k}, &sdf.V2{-k, k}, &sdf.V2{-k, -k}})
+	s0 := sdf.NewPolySDF2([]sdf.V2{sdf.V2{k, -k}, sdf.V2{k, k}, sdf.V2{-k, k}, sdf.V2{-k, -k}})
 	s0 = sdf.NewTransformSDF2(s0, sdf.Translate2d(sdf.V2{0.8, 0}))
 	s1 := sdf.NewSorThetaSDF3(s0, sdf.DtoR(270))
 
@@ -165,11 +165,11 @@ func test14() {
 	j := 10.0
 	k := 2.0
 
-	points := []*sdf.V2{
-		&sdf.V2{j + c*a - s*b, k + s*a + c*b},
-		&sdf.V2{j - c*a - s*b, k - s*a + c*b},
-		&sdf.V2{j - c*a + s*b, k - s*a - c*b},
-		&sdf.V2{j + c*a + s*b, k + s*a - c*b},
+	points := []sdf.V2{
+		sdf.V2{j + c*a - s*b, k + s*a + c*b},
+		sdf.V2{j - c*a - s*b, k - s*a + c*b},
+		sdf.V2{j - c*a + s*b, k - s*a - c*b},
+		sdf.V2{j + c*a + s*b, k + s*a - c*b},
 	}
 
 	s0 := sdf.NewPolySDF2(points)
@@ -183,7 +183,6 @@ func test14() {
 }
 
 func test15() {
-
 	// size
 	a := 1.3
 	b := 0.4
@@ -193,10 +192,10 @@ func test15() {
 	j := 3.0
 	k := 0.0
 
-	points := []*sdf.V2{
-		&sdf.V2{0, -b},
-		&sdf.V2{a, b},
-		&sdf.V2{-a, b},
+	points := []sdf.V2{
+		sdf.V2{0, -b},
+		sdf.V2{a, b},
+		sdf.V2{-a, b},
 	}
 
 	s0 := sdf.NewPolySDF2(points)
@@ -211,7 +210,40 @@ func test15() {
 	if err != nil {
 		fmt.Printf("%s", err)
 	}
+}
 
+func test16() {
+	// size
+	a0 := 1.3
+	a1 := 1.3
+	b0 := 0.4
+	b1 := 0.0
+	c := 0.8
+	// rotation
+	theta := 0.0
+	// translate
+	j := 1.7
+	k := 0.0
+
+	points := []sdf.V2{
+		sdf.V2{b0, -c},
+		sdf.V2{a0, c},
+		sdf.V2{-a1, c},
+		sdf.V2{-b1, -c},
+	}
+
+	s0 := sdf.NewPolySDF2(points)
+	s0 = sdf.NewTransformSDF2(s0, sdf.Rotate2d(sdf.DtoR(theta)))
+	s0 = sdf.NewTransformSDF2(s0, sdf.Translate2d(sdf.V2{j, k}))
+
+	s1 := sdf.NewSorThetaSDF3(s0, sdf.DtoR(300))
+	s1 = sdf.NewTransformSDF3(s1, sdf.Rotate3d(sdf.V3{0, 0, 1}, sdf.DtoR(30)))
+
+	m := sdf.NewSDFMesh(s1, s1.BoundingBox().Scale(1.1), 0.03)
+	err := sdf.SaveSTL("test.stl", m)
+	if err != nil {
+		fmt.Printf("%s", err)
+	}
 }
 
 func main() {

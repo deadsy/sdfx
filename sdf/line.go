@@ -15,11 +15,11 @@ type Line2 struct {
 	N    V2 // normal to line
 }
 
-func NewLine2(a, b *V2) Line2 {
+func NewLine2(a, b V2) Line2 {
 	l := Line2{}
-	l.A = *a
-	l.B = *b
-	ba := l.B.Sub(l.A)
+	l.A = a
+	l.B = b
+	ba := b.Sub(a)
 	v := ba.Normalize()
 	l.N = V2{v.Y, -v.X}
 	l.V = ba.MulScalar(1 / ba.Dot(ba))
@@ -27,7 +27,7 @@ func NewLine2(a, b *V2) Line2 {
 }
 
 // return the distance to the line, +ve implies same side as line normal
-func (l *Line2) Distance(p *V2) float64 {
+func (l *Line2) Distance(p V2) float64 {
 	pa := p.Sub(l.A)
 	t := pa.Dot(l.V)  // t-parameter of projection onto line
 	dn := pa.Dot(l.N) // distance normal to line

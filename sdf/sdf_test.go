@@ -122,7 +122,7 @@ func Test_ScaleBox(t *testing.T) {
 //-----------------------------------------------------------------------------
 
 func Test_Line(t *testing.T) {
-	l := NewLine2(&V2{0, 1}, &V2{0, 2})
+	l := NewLine2(V2{0, 1}, V2{0, 2})
 	points := []struct {
 		p V2
 		d float64
@@ -142,7 +142,7 @@ func Test_Line(t *testing.T) {
 		{V2{-3, -3}, -5},
 	}
 	for _, p := range points {
-		d := l.Distance(&p.p)
+		d := l.Distance(p.p)
 		if d != p.d {
 			t.Error("FAIL")
 		}
@@ -152,24 +152,24 @@ func Test_Line(t *testing.T) {
 //-----------------------------------------------------------------------------
 
 func Test_Polygon1(t *testing.T) {
-	s := NewPolySDF2([]*V2{&V2{0, 0}, &V2{1, 0}, &V2{0, 1}})
+	s := NewPolySDF2([]V2{V2{0, 0}, V2{1, 0}, V2{0, 1}})
 	b := s.BoundingBox()
 	b0 := Box2{V2{0, 0}, V2{1, 1}}
 	if b.Equals(b0, TOLERANCE) == false {
 		t.Error("FAIL")
 	}
 
-	s = NewPolySDF2([]*V2{&V2{0, -2}, &V2{1, 1}, &V2{-2, 2}})
+	s = NewPolySDF2([]V2{V2{0, -2}, V2{1, 1}, V2{-2, 2}})
 	b = s.BoundingBox()
 	b0 = Box2{V2{-2, -2}, V2{1, 2}}
 	if b.Equals(b0, TOLERANCE) == false {
 		t.Error("FAIL")
 	}
 
-	points := []*V2{
-		&V2{0, -1},
-		&V2{1, 1},
-		&V2{-1, 1},
+	points := []V2{
+		V2{0, -1},
+		V2{1, 1},
+		V2{-1, 1},
 	}
 
 	s = NewPolySDF2(points)
@@ -207,7 +207,7 @@ func Test_Polygon1(t *testing.T) {
 func Test_Polygon2(t *testing.T) {
 	k := 1.2
 
-	s0 := NewPolySDF2([]*V2{&V2{k, -k}, &V2{k, k}, &V2{-k, k}, &V2{-k, -k}})
+	s0 := NewPolySDF2([]V2{V2{k, -k}, V2{k, k}, V2{-k, k}, V2{-k, -k}})
 	s0 = NewTransformSDF2(s0, Translate2d(V2{0.8, 0}))
 
 	s1 := NewBoxSDF2(V2{2 * k, 2 * k})
@@ -240,11 +240,11 @@ func Test_Polygon3(t *testing.T) {
 	s1 = NewTransformSDF2(s1, Rotate2d(DtoR(theta)))
 	s1 = NewTransformSDF2(s1, Translate2d(V2{j, k}))
 
-	points := []*V2{
-		&V2{j + c*a - s*b, k + s*a + c*b},
-		&V2{j - c*a - s*b, k - s*a + c*b},
-		&V2{j - c*a + s*b, k - s*a - c*b},
-		&V2{j + c*a + s*b, k + s*a - c*b},
+	points := []V2{
+		V2{j + c*a - s*b, k + s*a + c*b},
+		V2{j - c*a - s*b, k - s*a + c*b},
+		V2{j - c*a + s*b, k - s*a - c*b},
+		V2{j + c*a + s*b, k + s*a - c*b},
 	}
 
 	s0 := NewPolySDF2(points)
