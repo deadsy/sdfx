@@ -184,8 +184,8 @@ func test14() {
 
 func test15() {
 	// size
-	a := 1.3
-	b := 0.4
+	a := 1.0
+	b := 1.0
 	// rotation
 	theta := 0.0
 	// translate
@@ -199,6 +199,9 @@ func test15() {
 	}
 
 	s0 := sdf.NewPolySDF2(points)
+
+	fmt.Printf("%+v\n", s0)
+
 	s0 = sdf.NewTransformSDF2(s0, sdf.Rotate2d(sdf.DtoR(theta)))
 	s0 = sdf.NewTransformSDF2(s0, sdf.Translate2d(sdf.V2{j, k}))
 
@@ -277,5 +280,5 @@ func test17() {
 }
 
 func main() {
-	test17()
+	test15()
 }
