@@ -173,6 +173,7 @@ func Test_Polygon1(t *testing.T) {
 	}
 
 	s = NewPolySDF2(points)
+
 	b = s.BoundingBox()
 	b0 = Box2{V2{-1, -1}, V2{1, 1}}
 	if b.Equals(b0, TOLERANCE) == false {
@@ -192,11 +193,14 @@ func Test_Polygon1(t *testing.T) {
 		{V2{1, 0}, 1 / math.Sqrt(5)},
 		{V2{-1, 0}, 1 / math.Sqrt(5)},
 		{V2{0, 0}, -1 / math.Sqrt(5)},
+		{V2{3, 0}, math.Sqrt(5)},
+		{V2{-3, 0}, math.Sqrt(5)},
 	}
 
 	for _, p := range test_points {
 		d := s.Evaluate(p.p)
 		if d != p.d {
+			fmt.Printf("%+v %f (expected) %f (actual)\n", p.p, p.d, d)
 			t.Error("FAIL")
 		}
 	}
