@@ -1,10 +1,18 @@
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+
 package sdf
 
 import (
+	"fmt"
+
 	"github.com/deadsy/pt/pt"
 )
 
-func Render(s SDF3, render_floor bool) {
+//-----------------------------------------------------------------------------
+
+func RenderPNG(s SDF3, render_floor bool) {
 
 	scene := pt.Scene{}
 
@@ -43,3 +51,22 @@ func Render(s SDF3, render_floor bool) {
 	renderer := pt.NewRenderer(&scene, &camera, sampler, 800, 600)
 	renderer.IterativeRender("out%03d.png", 10)
 }
+
+//-----------------------------------------------------------------------------
+
+const MESH_CELLS = 200.0
+
+func RenderSTL(s SDF3) {
+
+	bb := s.BoundingBox().Scale(1.1)
+	major_axis := bb.Size().MaxComponent()
+	mesh_inc := major_axis / MESH_CELLS
+
+	m := NewSDFMesh(s, bb, mesh_inc)
+	err := SaveSTL("test.stl", m)
+	if err != nil {
+		fmt.Printf("%s", err)
+	}
+}
+
+//-----------------------------------------------------------------------------

@@ -10,27 +10,27 @@ import (
 func test1() {
 	s0 := sdf.NewRoundedBoxSDF2(sdf.V2{0.8, 1.2}, 0.05)
 	s1 := sdf.NewSorThetaSDF3(s0, sdf.DtoR(225))
-	sdf.Render(s1, true)
+	sdf.RenderPNG(s1, true)
 }
 
 func test2() {
 	s0 := sdf.NewRoundedBoxSDF2(sdf.V2{0.8, 1.2}, 0.1)
 	s1 := sdf.NewExtrudeSDF3(s0, 0.3)
-	sdf.Render(s1, true)
+	sdf.RenderPNG(s1, true)
 }
 
 func test3() {
 	s0 := sdf.NewCircleSDF2(0.1)
 	s0 = sdf.NewTransformSDF2(s0, sdf.Translate2d(sdf.V2{1, 0}))
 	s1 := sdf.NewSorSDF3(s0)
-	sdf.Render(s1, true)
+	sdf.RenderPNG(s1, true)
 }
 
 func test4() {
 	s0 := sdf.NewRoundedBoxSDF2(sdf.V2{0.2, 0.4}, 0.05)
 	s0 = sdf.NewTransformSDF2(s0, sdf.Translate2d(sdf.V2{1, 0}))
 	s1 := sdf.NewSorThetaSDF3(s0, sdf.DtoR(270))
-	sdf.Render(s1, true)
+	sdf.RenderPNG(s1, true)
 }
 
 func test5() {
@@ -45,7 +45,7 @@ func test5() {
 		fmt.Printf("%s", err)
 	}
 
-	//sdf.Render(s1, true)
+	//sdf.RenderPNG(s1, true)
 }
 
 func test6() {
@@ -58,7 +58,7 @@ func test6() {
 	//s3 := sdf.NewUnionPowSDF3(s1, s2, 8)
 	s3 := sdf.NewUnionPolySDF3(s1, s2, 0.1)
 	//s3 := sdf.NewUnionChamferSDF3(s1, s2, 0.1)
-	sdf.Render(s3, true)
+	sdf.RenderPNG(s3, true)
 }
 
 func test7() {
@@ -66,7 +66,7 @@ func test7() {
 	s1 := sdf.NewTransformSDF3(s0, sdf.Rotate3d(sdf.V3{1, 0, 0}, sdf.DtoR(60)))
 	s2 := sdf.NewUnionPolySDF3(s0, s1, 0.1)
 	s3 := sdf.NewTransformSDF3(s2, sdf.Rotate3d(sdf.V3{0, 0, 1}, sdf.DtoR(-30)))
-	sdf.Render(s3, true)
+	sdf.RenderPNG(s3, true)
 }
 
 func test8() {
@@ -87,39 +87,23 @@ func test8() {
 
 func test9() {
 	s := sdf.NewSphereSDF3(10.0)
-	b := s.BoundingBox().Scale(1.1)
-	m := sdf.NewSDFMesh(s, b, 0.5)
-	err := sdf.SaveSTL("test.stl", m)
-	if err != nil {
-		fmt.Printf("%s", err)
-	}
+	sdf.RenderSTL(s)
 }
 
 func test10() {
 	s0 := sdf.NewBoxSDF3(sdf.V3{0.8, 0.8, 0.05})
 	s1 := sdf.NewTransformSDF3(s0, sdf.Rotate3d(sdf.V3{1, 0, 0}, sdf.DtoR(60)))
 	s := sdf.NewUnionPolySDF3(s0, s1, 0.1)
-	b := s.BoundingBox().Scale(1.1)
-	m := sdf.NewSDFMesh(s, b, 0.005)
-	err := sdf.SaveSTL("test.stl", m)
-	if err != nil {
-		fmt.Printf("%s", err)
-	}
+	sdf.RenderSTL(s)
 }
 
 func test11() {
 	s := sdf.NewCapsuleSDF3(sdf.V3{0, -0.7, 0}, sdf.V3{0, 0.7, 0}, 0.3)
-	b := s.BoundingBox().Scale(1.05)
-	m := sdf.NewSDFMesh(s, b, 0.01)
-	err := sdf.SaveSTL("test.stl", m)
-	if err != nil {
-		fmt.Printf("%s", err)
-	}
+	sdf.RenderSTL(s)
 }
 
 func test12() {
 	k := 0.1
-
 	points := []sdf.V2{
 		sdf.V2{0, -k},
 		sdf.V2{k, k},
@@ -128,28 +112,17 @@ func test12() {
 	s0 := sdf.NewPolySDF2(points)
 	s0 = sdf.NewTransformSDF2(s0, sdf.Translate2d(sdf.V2{0.8, 0}))
 	s1 := sdf.NewSorThetaSDF3(s0, sdf.DtoR(360))
-
-	m := sdf.NewSDFMesh(s1, s1.BoundingBox().Scale(1.1), 0.01)
-	err := sdf.SaveSTL("test.stl", m)
-	if err != nil {
-		fmt.Printf("%s", err)
-	}
-	sdf.Render(s1, true)
+	sdf.RenderSTL(s1)
+	//sdf.RenderPNG(s1, true)
 }
 
 func test13() {
 	k := 0.4
-
 	s0 := sdf.NewPolySDF2([]sdf.V2{sdf.V2{k, -k}, sdf.V2{k, k}, sdf.V2{-k, k}, sdf.V2{-k, -k}})
 	s0 = sdf.NewTransformSDF2(s0, sdf.Translate2d(sdf.V2{0.8, 0}))
 	s1 := sdf.NewSorThetaSDF3(s0, sdf.DtoR(270))
-
-	m := sdf.NewSDFMesh(s1, s1.BoundingBox().Scale(1.1), 0.01)
-	err := sdf.SaveSTL("test.stl", m)
-	if err != nil {
-		fmt.Printf("%s", err)
-	}
-	//sdf.Render(s1, true)
+	sdf.RenderSTL(s1)
+	//sdf.RenderPNG(s1, true)
 }
 
 func test14() {
@@ -175,11 +148,7 @@ func test14() {
 	s0 := sdf.NewPolySDF2(points)
 	s1 := sdf.NewSorThetaSDF3(s0, sdf.DtoR(300))
 
-	m := sdf.NewSDFMesh(s1, s1.BoundingBox().Scale(1.1), 0.05)
-	err := sdf.SaveSTL("test.stl", m)
-	if err != nil {
-		fmt.Printf("%s", err)
-	}
+	sdf.RenderSTL(s1)
 }
 
 func test15() {
@@ -205,11 +174,7 @@ func test15() {
 	s1 := sdf.NewSorThetaSDF3(s0, sdf.DtoR(300))
 	s1 = sdf.NewTransformSDF3(s1, sdf.Rotate3d(sdf.V3{0, 0, 1}, sdf.DtoR(30)))
 
-	m := sdf.NewSDFMesh(s1, s1.BoundingBox().Scale(1.1), 0.03)
-	err := sdf.SaveSTL("test.stl", m)
-	if err != nil {
-		fmt.Printf("%s", err)
-	}
+	sdf.RenderSTL(s1)
 }
 
 func test16() {
@@ -239,11 +204,7 @@ func test16() {
 	s1 := sdf.NewSorThetaSDF3(s0, sdf.DtoR(300))
 	s1 = sdf.NewTransformSDF3(s1, sdf.Rotate3d(sdf.V3{0, 0, 1}, sdf.DtoR(30)))
 
-	m := sdf.NewSDFMesh(s1, s1.BoundingBox().Scale(1.1), 0.03)
-	err := sdf.SaveSTL("test.stl", m)
-	if err != nil {
-		fmt.Printf("%s", err)
-	}
+	sdf.RenderSTL(s1)
 }
 
 func test17() {
@@ -266,11 +227,7 @@ func test17() {
 	s1 := sdf.NewSorThetaSDF3(s0, sdf.DtoR(300))
 	s1 = sdf.NewTransformSDF3(s1, sdf.Rotate3d(sdf.V3{0, 0, 1}, sdf.DtoR(30)))
 
-	m := sdf.NewSDFMesh(s1, s1.BoundingBox().Scale(1.1), 0.03)
-	err := sdf.SaveSTL("test.stl", m)
-	if err != nil {
-		fmt.Printf("%s", err)
-	}
+	sdf.RenderSTL(s1)
 }
 
 func test18() {
@@ -301,13 +258,9 @@ func test18() {
 	s1 := sdf.NewSorThetaSDF3(s0, sdf.DtoR(300))
 	s1 = sdf.NewTransformSDF3(s1, sdf.Rotate3d(sdf.V3{0, 0, 1}, sdf.DtoR(30)))
 
-	m := sdf.NewSDFMesh(s1, s1.BoundingBox().Scale(1.1), 0.1)
-	err := sdf.SaveSTL("test.stl", m)
-	if err != nil {
-		fmt.Printf("%s", err)
-	}
+	sdf.RenderSTL(s1)
 }
 
 func main() {
-	test18()
+	test10()
 }
