@@ -274,10 +274,10 @@ func Test_KdTree2(t *testing.T) {
 		V2{7, 2},
 	}
 
-	fmt.Printf("before %+v\n", points)
+	//fmt.Printf("before %+v\n", points)
 	k := NewKdTree2(points)
 	fmt.Printf("%+v\n", k)
-	fmt.Printf("after %+v\n", points)
+	//fmt.Printf("after %+v\n", points)
 }
 
 //-----------------------------------------------------------------------------

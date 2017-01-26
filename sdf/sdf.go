@@ -342,7 +342,8 @@ func (s *RoundedBoxSDF2) BoundingBox() Box2 {
 // 2D Polygon
 
 type PolySDF2 struct {
-	Line []Line2
+	line []Line2 // line segments
+	bb   Box2    // bounding box
 }
 
 func NewPolySDF2(points []V2) SDF2 {
@@ -350,42 +351,64 @@ func NewPolySDF2(points []V2) SDF2 {
 	if n < 3 {
 		return nil
 	}
-	p := PolySDF2{}
+	// build the line segments
+	s := PolySDF2{}
 	for i := 0; i < n-1; i++ {
-		p.Line = append(p.Line, NewLine2(points[i], points[i+1]))
+		s.line = append(s.line, NewLine2(points[i], points[i+1]))
 	}
 	// close the loop
-	p.Line = append(p.Line, NewLine2(points[n-1], points[0]))
-	return &p
+	s.line = append(s.line, NewLine2(points[n-1], points[0]))
+	// build the bounding box
+	l := s.line[0]
+	a := l.A.Min(l.B)
+	b := l.A.Max(l.B)
+	for _, l := range s.line {
+		a = a.Min(l.A.Min(l.B))
+		b = b.Max(l.A.Max(l.B))
+	}
+	s.bb = Box2{a, b}
+	return &s
 }
 
 func (s *PolySDF2) Evaluate(p V2) float64 {
-	d := math.MaxFloat64
-	neg := false
-	// find the minium distance - remember the sign
-	for _, l := range s.Line {
+	d := math.MaxFloat64 // distance to polygon (>0)
+	wn := 0              // winding number (inside/outside)
+
+	// iterate over the line segments
+	for _, l := range s.line {
+		// record the minimum distance
 		x := l.Distance(p)
-		xa := Abs(x)
-		if xa < d {
-			d = xa
-			neg = x < 0
+		if Abs(x) < d {
+			d = Abs(x)
+		}
+
+		// Is the point in the polygon?
+		// See: http://geomalgorithms.com/a03-_inclusion.html
+		if l.A.Y <= p.Y {
+			if l.B.Y > p.Y { // upward crossing
+				if x < 0 { // p is to the left of the line segment
+					wn += 1 // up intersect
+				}
+			}
+		} else {
+			if l.B.Y <= p.Y { // downward crossing
+				if x > 0 { // p is to the right of the line segment
+					wn -= 1 // down intersect
+				}
+			}
 		}
 	}
-	if neg {
+
+	if wn != 0 {
+		// p is inside the polygon
 		return -d
 	}
+	// p is outside the polygon
 	return d
 }
 
 func (s *PolySDF2) BoundingBox() Box2 {
-	l := s.Line[0]
-	a := l.A.Min(l.B)
-	b := l.A.Max(l.B)
-	for _, l := range s.Line {
-		a = a.Min(l.A.Min(l.B))
-		b = b.Max(l.A.Max(l.B))
-	}
-	return Box2{a, b}
+	return s.bb
 }
 
 //-----------------------------------------------------------------------------
