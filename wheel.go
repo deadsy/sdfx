@@ -8,7 +8,10 @@
 package main
 
 import (
-	"github.com/deadsy/sdfx/sdf"
+	"fmt"
+	"math"
+
+	. "github.com/deadsy/sdfx/sdf"
 )
 
 //-----------------------------------------------------------------------------
@@ -29,8 +32,8 @@ func dim(x float64) float64 {
 //-----------------------------------------------------------------------------
 
 // draft angles
-var draft_angle = sdf.DtoR(4.0)       // standard overall draft
-var core_draft_angle = sdf.DtoR(10.0) // draft angle for the core print
+var draft_angle = DtoR(4.0)       // standard overall draft
+var core_draft_angle = DtoR(10.0) // draft angle for the core print
 
 // nominal size values (mm)
 var wheel_diameter = dim(MM_PER_INCH * 8.0) // total wheel diameter
@@ -54,104 +57,97 @@ var web_length = wheel_radius - (wall_thickness / 2) - shaft_radius
 
 //-----------------------------------------------------------------------------
 
-// build wheel profile
-func wheel_profile() *sdf.PolySDF2 {
+// build 2d wheel profile
+func wheel_profile() SDF2 {
 
-	/*
+	draft0 := (hub_height - plate_thickness) * math.Tan(draft_angle)
+	draft1 := (wall_height - plate_thickness) * math.Tan(draft_angle)
+	draft2 := wall_height * math.Tan(draft_angle)
+	draft3 := core_height * math.Tan(core_draft_angle)
 
-	   """build wheel profile"""
-	   draft0 = (hub_h - plate_t) * math.tan(draft_angle)
-	   draft1 = (wall_h - plate_t) * math.tan(draft_angle)
-	   draft2 = wall_h * math.tan(draft_angle)
-	   draft3 = core_h * math.tan(core_draft_angle)
-	   if core_print:
-	     points = [
-	       point((0, 0)),
-	       point((0, hub_h + core_h)),
-	       point((shaft_r - draft3, hub_h + core_h)),
-	       point((shaft_r, hub_h)),
-	       point((hub_r, hub_h), 5, 2.0),
-	       point((hub_r + draft0, plate_t), 5, 2.0),
-	       point((wheel_r - wall_t - draft1, plate_t), 5, 2.0),
-	       point((wheel_r - wall_t, wall_h), 5, 1.0),
-	       point((wheel_r, wall_h), 5, 1.0),
-	       point((wheel_r + draft2, 0)),
-	     ]
-	   else:
-	     points = [
-	       point((0, 0)),
-	       point((0, hub_h - shaft_l)),
-	       point((shaft_r, hub_h - shaft_l)),
-	       point((shaft_r, hub_h)),
-	       point((hub_r, hub_h), 5, 2.0),
-	       point((hub_r + draft0, plate_t), 5, 2.0),
-	       point((wheel_r - wall_t - draft1, plate_t), 5, 2.0),
-	       point((wheel_r - wall_t, wall_h), 5, 1.0),
-	       point((wheel_r, wall_h), 5, 1.0),
-	       point((wheel_r + draft2, 0)),
-	     ]
-	   p = polygon(points, closed=False)
-	   p.smooth()
-	   return p
+	var points Smoothable
 
-	*/
+	if core_print {
+		points = Smoothable{
+			SmoothV2{V2{0, 0}, 0, 0},
+			SmoothV2{V2{0, hub_height + core_height}, 0, 0},
+			SmoothV2{V2{shaft_radius - draft3, hub_height + core_height}, 0, 0},
+			SmoothV2{V2{shaft_radius, hub_height}, 0, 0},
+			SmoothV2{V2{hub_radius, hub_height}, 5, 2.0},
+			SmoothV2{V2{hub_radius + draft0, plate_thickness}, 5, 2.0},
+			SmoothV2{V2{wheel_radius - wall_thickness - draft1, plate_thickness}, 5, 2.0},
+			SmoothV2{V2{wheel_radius - wall_thickness, wall_height}, 5, 1.0},
+			SmoothV2{V2{wheel_radius, wall_height}, 5, 1.0},
+			SmoothV2{V2{wheel_radius + draft2, 0}, 0, 0},
+		}
+	} else {
+		points = Smoothable{
+			SmoothV2{V2{0, 0}, 0, 0},
+			SmoothV2{V2{0, hub_height - shaft_length}, 0, 0},
+			SmoothV2{V2{shaft_radius, hub_height - shaft_length}, 0, 0},
+			SmoothV2{V2{shaft_radius, hub_height}, 0, 0},
+			SmoothV2{V2{hub_radius, hub_height}, 5, 2.0},
+			SmoothV2{V2{hub_radius + draft0, plate_thickness}, 5, 2.0},
+			SmoothV2{V2{wheel_radius - wall_thickness - draft1, plate_thickness}, 5, 2.0},
+			SmoothV2{V2{wheel_radius - wall_thickness, wall_height}, 5, 1.0},
+			SmoothV2{V2{wheel_radius, wall_height}, 5, 1.0},
+			SmoothV2{V2{wheel_radius + draft2, 0}, 0, 0},
+		}
+	}
 
-	return nil
+	return NewPolySDF2(points.Smooth(false))
 }
 
 //-----------------------------------------------------------------------------
 
-// build web profile
-func web_profile() *sdf.PolySDF2 {
+// build 2d web profile
+func web_profile() SDF2 {
 
-	/*
-	   draft = web_h * math.tan(draft_angle)
-	   x0 = (2 * web_w) + draft
-	   x1 = web_w + draft
-	   x2 = web_w
-	   points = [
-	     point((-x0, 0)),
-	     point((-x1, 0), 3, 1.0),
-	     point((-x2, web_h), 3, 1.0),
-	     point((x2, web_h), 3, 1.0),
-	     point((x1, 0), 3, 1.0),
-	     point((x0, 0)),
-	   ]
-	   p = polygon(points, closed=False)
-	   p.smooth()
-	   return p
-	*/
-	return nil
+	draft := web_height * math.Tan(draft_angle)
+	x0 := (2 * web_width) + draft
+	x1 := web_width + draft
+	x2 := web_width
+
+	points := Smoothable{
+		SmoothV2{V2{-x0, 0}, 0, 0},
+		SmoothV2{V2{-x1, 0}, 3, 1.0},
+		SmoothV2{V2{-x2, web_height}, 3, 1.0},
+		SmoothV2{V2{x2, web_height}, 3, 1.0},
+		SmoothV2{V2{x1, 0}, 3, 1.0},
+		SmoothV2{V2{x0, 0}, 0, 0},
+	}
+
+	return NewPolySDF2(points.Smooth(false))
 }
 
 //-----------------------------------------------------------------------------
 
-// build core profile
-func core_profile() *sdf.PolySDF2 {
+// build 2d core profile
+func core_profile() SDF2 {
 
-	/*
-	  draft = core_h * math.tan(core_draft_angle)
-	  x0 = (2 * web_w) + draft
-	  x1 = web_w + draft
-	  x2 = web_w
-	  points = [
-	    point((0, 0)),
-	    point((0, core_h + shaft_l)),
-	    point((shaft_r, core_h + shaft_l), 3, 2.0),
-	    point((shaft_r, core_h)),
-	    point((shaft_r - draft, 0)),
-	  ]
-	  p = polygon(points, closed=True)
-	  p.smooth()
-	  return p
+	draft := core_height * math.Tan(core_draft_angle)
 
-	*/
-	return nil
+	points := Smoothable{
+		SmoothV2{V2{0, 0}, 0, 0},
+		SmoothV2{V2{0, core_height + shaft_length}, 0, 0},
+		SmoothV2{V2{shaft_radius, core_height + shaft_length}, 3, 2.0},
+		SmoothV2{V2{shaft_radius, core_height}, 0, 0},
+		SmoothV2{V2{shaft_radius - draft, 0}, 0, 0},
+	}
+
+	return NewPolySDF2(points.Smooth(false))
 }
 
 //-----------------------------------------------------------------------------
 
 func wheel() {
+	wheel := wheel_profile()
+	web := web_profile()
+	core := core_profile()
+
+	fmt.Printf("%+v\n", wheel)
+	fmt.Printf("%+v\n", web)
+	fmt.Printf("%+v\n", core)
 }
 
 //-----------------------------------------------------------------------------

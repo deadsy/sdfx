@@ -262,5 +262,5 @@ func test18() {
 }
 
 func main() {
-	test10()
+	wheel()
 }
