@@ -105,6 +105,10 @@ func (a V3) Cross(b V3) V3 {
 	return V3{x, y, z}
 }
 
+func (a V2) Cross(b V2) float64 {
+	return (a.X * b.Y) - (a.Y * b.X)
+}
+
 //-----------------------------------------------------------------------------
 
 func (a V3) AddScalar(b float64) V3 {

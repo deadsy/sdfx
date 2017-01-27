@@ -77,4 +77,15 @@ func Abs(x float64) float64 {
 	return x
 }
 
+// Return sign(x), +1, -1 or 0
+func Sign(x float64) float64 {
+	if math.Signbit(x) {
+		return -1
+	}
+	if x == 0 {
+		return 0
+	}
+	return 1
+}
+
 //-----------------------------------------------------------------------------

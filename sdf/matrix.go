@@ -27,6 +27,11 @@ type M33 struct {
 	x20, x21, x22 float64
 }
 
+type M22 struct {
+	x00, x01 float64
+	x10, x11 float64
+}
+
 //-----------------------------------------------------------------------------
 
 func RandomM33(a, b float64) M33 {
@@ -131,6 +136,15 @@ func Rotate2d(a float64) M33 {
 		0, 0, 1}
 }
 
+func Rotate(a float64) M22 {
+	s := math.Sin(a)
+	c := math.Cos(a)
+	return M22{
+		c, -s,
+		s, c,
+	}
+}
+
 //-----------------------------------------------------------------------------
 
 func (a M44) Equals(b M44, tolerance float64) bool {
@@ -167,16 +181,19 @@ func (a M33) Equals(b M33, tolerance float64) bool {
 //-----------------------------------------------------------------------------
 
 func (a M44) MulPosition(b V3) V3 {
-	x := a.x00*b.X + a.x01*b.Y + a.x02*b.Z + a.x03
-	y := a.x10*b.X + a.x11*b.Y + a.x12*b.Z + a.x13
-	z := a.x20*b.X + a.x21*b.Y + a.x22*b.Z + a.x23
-	return V3{x, y, z}
+	return V3{a.x00*b.X + a.x01*b.Y + a.x02*b.Z + a.x03,
+		a.x10*b.X + a.x11*b.Y + a.x12*b.Z + a.x13,
+		a.x20*b.X + a.x21*b.Y + a.x22*b.Z + a.x23}
 }
 
 func (a M33) MulPosition(b V2) V2 {
-	x := a.x00*b.X + a.x01*b.Y + a.x02
-	y := a.x10*b.X + a.x11*b.Y + a.x12
-	return V2{x, y}
+	return V2{a.x00*b.X + a.x01*b.Y + a.x02,
+		a.x10*b.X + a.x11*b.Y + a.x12}
+}
+
+func (a M22) MulPosition(b V2) V2 {
+	return V2{a.x00*b.X + a.x01*b.Y,
+		a.x10*b.X + a.x11*b.Y}
 }
 
 //-----------------------------------------------------------------------------
