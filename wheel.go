@@ -8,7 +8,6 @@
 package main
 
 import (
-	"fmt"
 	"math"
 
 	. "github.com/deadsy/sdfx/sdf"
@@ -69,29 +68,31 @@ func wheel_profile() SDF2 {
 
 	if core_print {
 		s.Add(V2{0, 0})
-		s.Add(V2{0, hub_height + core_height})
-		s.Add(V2{shaft_radius - draft3, hub_height + core_height})
-		s.Add(V2{shaft_radius, hub_height})
-		s.AddSmooth(V2{hub_radius, hub_height}, 5, 2.0)
-		s.AddSmooth(V2{hub_radius + draft0, plate_thickness}, 5, 2.0)
-		s.AddSmooth(V2{wheel_radius - wall_thickness - draft1, plate_thickness}, 5, 2.0)
-		s.AddSmooth(V2{wheel_radius - wall_thickness, wall_height}, 5, 1.0)
-		s.AddSmooth(V2{wheel_radius, wall_height}, 5, 1.0)
 		s.Add(V2{wheel_radius + draft2, 0})
+		s.AddSmooth(V2{wheel_radius, wall_height}, 5, 1.0)
+		s.AddSmooth(V2{wheel_radius - wall_thickness, wall_height}, 5, 1.0)
+		s.AddSmooth(V2{wheel_radius - wall_thickness - draft1, plate_thickness}, 5, 2.0)
+		s.AddSmooth(V2{hub_radius + draft0, plate_thickness}, 5, 2.0)
+		s.AddSmooth(V2{hub_radius, hub_height}, 5, 2.0)
+		s.Add(V2{shaft_radius, hub_height})
+		s.Add(V2{shaft_radius - draft3, hub_height + core_height})
+		s.Add(V2{0, hub_height + core_height})
 	} else {
 		s.Add(V2{0, 0})
-		s.Add(V2{0, hub_height - shaft_length})
-		s.Add(V2{shaft_radius, hub_height - shaft_length})
-		s.Add(V2{shaft_radius, hub_height})
-		s.AddSmooth(V2{hub_radius, hub_height}, 5, 2.0)
-		s.AddSmooth(V2{hub_radius + draft0, plate_thickness}, 5, 2.0)
-		s.AddSmooth(V2{wheel_radius - wall_thickness - draft1, plate_thickness}, 5, 2.0)
-		s.AddSmooth(V2{wheel_radius - wall_thickness, wall_height}, 5, 1.0)
-		s.AddSmooth(V2{wheel_radius, wall_height}, 5, 1.0)
 		s.Add(V2{wheel_radius + draft2, 0})
+		s.AddSmooth(V2{wheel_radius, wall_height}, 5, 1.0)
+		s.AddSmooth(V2{wheel_radius - wall_thickness, wall_height}, 5, 1.0)
+		s.AddSmooth(V2{wheel_radius - wall_thickness - draft1, plate_thickness}, 5, 2.0)
+		s.AddSmooth(V2{hub_radius + draft0, plate_thickness}, 5, 2.0)
+		s.AddSmooth(V2{hub_radius, hub_height}, 5, 2.0)
+		s.Add(V2{shaft_radius, hub_height})
+		s.Add(V2{shaft_radius, hub_height - shaft_length})
+		s.Add(V2{0, hub_height - shaft_length})
 	}
+	s.Smooth()
 
-	return NewPolySDF2(s.Smooth())
+	RenderDXF("wheel.dxf", s.Vertices())
+	return NewPolySDF2(s.Vertices())
 }
 
 //-----------------------------------------------------------------------------
@@ -111,8 +112,10 @@ func web_profile() SDF2 {
 	s.AddSmooth(V2{x2, web_height}, 3, 1.0)
 	s.AddSmooth(V2{x1, 0}, 3, 1.0)
 	s.Add(V2{x0, 0})
+	s.Smooth()
 
-	return NewPolySDF2(s.Smooth())
+	RenderDXF("web.dxf", s.Vertices())
+	return NewPolySDF2(s.Vertices())
 }
 
 //-----------------------------------------------------------------------------
@@ -124,24 +127,25 @@ func core_profile() SDF2 {
 
 	s := NewSmoother(false)
 	s.Add(V2{0, 0})
-	s.Add(V2{0, core_height + shaft_length})
-	s.AddSmooth(V2{shaft_radius, core_height + shaft_length}, 3, 2.0)
-	s.Add(V2{shaft_radius, core_height})
 	s.Add(V2{shaft_radius - draft, 0})
+	s.Add(V2{shaft_radius, core_height})
+	s.AddSmooth(V2{shaft_radius, core_height + shaft_length}, 3, 2.0)
+	s.Add(V2{0, core_height + shaft_length})
+	s.Smooth()
 
-	return NewPolySDF2(s.Smooth())
+	RenderDXF("core.dxf", s.Vertices())
+	return NewPolySDF2(s.Vertices())
 }
 
 //-----------------------------------------------------------------------------
 
 func wheel() {
-	wheel := wheel_profile()
-	web := web_profile()
-	core := core_profile()
+	//web := web_profile()
+	//core := core_profile()
 
-	fmt.Printf("%+v\n", wheel)
-	fmt.Printf("%+v\n", web)
-	fmt.Printf("%+v\n", core)
+	w_s2 := wheel_profile()
+	s3 := NewSorSDF3(w_s2)
+	RenderSTL(s3)
 }
 
 //-----------------------------------------------------------------------------
