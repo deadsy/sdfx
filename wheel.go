@@ -65,37 +65,33 @@ func wheel_profile() SDF2 {
 	draft2 := wall_height * math.Tan(draft_angle)
 	draft3 := core_height * math.Tan(core_draft_angle)
 
-	var points Smoothable
+	s := NewSmoother(false)
 
 	if core_print {
-		points = Smoothable{
-			SmoothV2{V2{0, 0}, 0, 0},
-			SmoothV2{V2{0, hub_height + core_height}, 0, 0},
-			SmoothV2{V2{shaft_radius - draft3, hub_height + core_height}, 0, 0},
-			SmoothV2{V2{shaft_radius, hub_height}, 0, 0},
-			SmoothV2{V2{hub_radius, hub_height}, 5, 2.0},
-			SmoothV2{V2{hub_radius + draft0, plate_thickness}, 5, 2.0},
-			SmoothV2{V2{wheel_radius - wall_thickness - draft1, plate_thickness}, 5, 2.0},
-			SmoothV2{V2{wheel_radius - wall_thickness, wall_height}, 5, 1.0},
-			SmoothV2{V2{wheel_radius, wall_height}, 5, 1.0},
-			SmoothV2{V2{wheel_radius + draft2, 0}, 0, 0},
-		}
+		s.Add(V2{0, 0})
+		s.Add(V2{0, hub_height + core_height})
+		s.Add(V2{shaft_radius - draft3, hub_height + core_height})
+		s.Add(V2{shaft_radius, hub_height})
+		s.AddSmooth(V2{hub_radius, hub_height}, 5, 2.0)
+		s.AddSmooth(V2{hub_radius + draft0, plate_thickness}, 5, 2.0)
+		s.AddSmooth(V2{wheel_radius - wall_thickness - draft1, plate_thickness}, 5, 2.0)
+		s.AddSmooth(V2{wheel_radius - wall_thickness, wall_height}, 5, 1.0)
+		s.AddSmooth(V2{wheel_radius, wall_height}, 5, 1.0)
+		s.Add(V2{wheel_radius + draft2, 0})
 	} else {
-		points = Smoothable{
-			SmoothV2{V2{0, 0}, 0, 0},
-			SmoothV2{V2{0, hub_height - shaft_length}, 0, 0},
-			SmoothV2{V2{shaft_radius, hub_height - shaft_length}, 0, 0},
-			SmoothV2{V2{shaft_radius, hub_height}, 0, 0},
-			SmoothV2{V2{hub_radius, hub_height}, 5, 2.0},
-			SmoothV2{V2{hub_radius + draft0, plate_thickness}, 5, 2.0},
-			SmoothV2{V2{wheel_radius - wall_thickness - draft1, plate_thickness}, 5, 2.0},
-			SmoothV2{V2{wheel_radius - wall_thickness, wall_height}, 5, 1.0},
-			SmoothV2{V2{wheel_radius, wall_height}, 5, 1.0},
-			SmoothV2{V2{wheel_radius + draft2, 0}, 0, 0},
-		}
+		s.Add(V2{0, 0})
+		s.Add(V2{0, hub_height - shaft_length})
+		s.Add(V2{shaft_radius, hub_height - shaft_length})
+		s.Add(V2{shaft_radius, hub_height})
+		s.AddSmooth(V2{hub_radius, hub_height}, 5, 2.0)
+		s.AddSmooth(V2{hub_radius + draft0, plate_thickness}, 5, 2.0)
+		s.AddSmooth(V2{wheel_radius - wall_thickness - draft1, plate_thickness}, 5, 2.0)
+		s.AddSmooth(V2{wheel_radius - wall_thickness, wall_height}, 5, 1.0)
+		s.AddSmooth(V2{wheel_radius, wall_height}, 5, 1.0)
+		s.Add(V2{wheel_radius + draft2, 0})
 	}
 
-	return NewPolySDF2(points.Smooth(false))
+	return NewPolySDF2(s.Smooth())
 }
 
 //-----------------------------------------------------------------------------
@@ -108,16 +104,15 @@ func web_profile() SDF2 {
 	x1 := web_width + draft
 	x2 := web_width
 
-	points := Smoothable{
-		SmoothV2{V2{-x0, 0}, 0, 0},
-		SmoothV2{V2{-x1, 0}, 3, 1.0},
-		SmoothV2{V2{-x2, web_height}, 3, 1.0},
-		SmoothV2{V2{x2, web_height}, 3, 1.0},
-		SmoothV2{V2{x1, 0}, 3, 1.0},
-		SmoothV2{V2{x0, 0}, 0, 0},
-	}
+	s := NewSmoother(false)
+	s.Add(V2{-x0, 0})
+	s.AddSmooth(V2{-x1, 0}, 3, 1.0)
+	s.AddSmooth(V2{-x2, web_height}, 3, 1.0)
+	s.AddSmooth(V2{x2, web_height}, 3, 1.0)
+	s.AddSmooth(V2{x1, 0}, 3, 1.0)
+	s.Add(V2{x0, 0})
 
-	return NewPolySDF2(points.Smooth(false))
+	return NewPolySDF2(s.Smooth())
 }
 
 //-----------------------------------------------------------------------------
@@ -127,15 +122,14 @@ func core_profile() SDF2 {
 
 	draft := core_height * math.Tan(core_draft_angle)
 
-	points := Smoothable{
-		SmoothV2{V2{0, 0}, 0, 0},
-		SmoothV2{V2{0, core_height + shaft_length}, 0, 0},
-		SmoothV2{V2{shaft_radius, core_height + shaft_length}, 3, 2.0},
-		SmoothV2{V2{shaft_radius, core_height}, 0, 0},
-		SmoothV2{V2{shaft_radius - draft, 0}, 0, 0},
-	}
+	s := NewSmoother(false)
+	s.Add(V2{0, 0})
+	s.Add(V2{0, core_height + shaft_length})
+	s.AddSmooth(V2{shaft_radius, core_height + shaft_length}, 3, 2.0)
+	s.Add(V2{shaft_radius, core_height})
+	s.Add(V2{shaft_radius - draft, 0})
 
-	return NewPolySDF2(points.Smooth(false))
+	return NewPolySDF2(s.Smooth())
 }
 
 //-----------------------------------------------------------------------------
