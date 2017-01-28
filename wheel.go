@@ -101,17 +101,14 @@ func wheel_profile() SDF2 {
 func web_profile() SDF2 {
 
 	draft := web_height * math.Tan(draft_angle)
-	x0 := (2 * web_width) + draft
 	x1 := web_width + draft
 	x2 := web_width
 
 	s := NewSmoother(false)
-	s.Add(V2{-x0, 0})
-	s.AddSmooth(V2{-x1, 0}, 3, 1.0)
+	s.Add(V2{-x1, 0})
 	s.AddSmooth(V2{-x2, web_height}, 3, 1.0)
 	s.AddSmooth(V2{x2, web_height}, 3, 1.0)
-	s.AddSmooth(V2{x1, 0}, 3, 1.0)
-	s.Add(V2{x0, 0})
+	s.Add(V2{x1, 0})
 	s.Smooth()
 
 	RenderDXF("web.dxf", s.Vertices())
@@ -143,8 +140,12 @@ func wheel() {
 	//web := web_profile()
 	//core := core_profile()
 
-	w_s2 := wheel_profile()
-	s3 := NewSorSDF3(w_s2)
+	//s0 := wheel_profile()
+	//s1 := NewSorSDF3(s0)
+
+	s2 := web_profile()
+	s3 := NewExtrudeSDF3(s2, web_length)
+
 	RenderSTL(s3)
 }
 

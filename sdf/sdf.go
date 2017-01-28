@@ -163,6 +163,30 @@ func (s *SorSDF3) BoundingBox() Box3 {
 }
 
 //-----------------------------------------------------------------------------
+
+type RotateSDF3 struct {
+	sdf      SDF3
+	rotation M44
+	num      int
+}
+
+func NewRotateSDF3(sdf SDF3, axis V3, theta float64, num int) SDF3 {
+	s := RotateSDF3{}
+	s.sdf = sdf
+	s.rotation = Rotate3d(axis, theta)
+	s.num = num
+	return &s
+}
+
+func (s *RotateSDF3) Evaluate(p V3) float64 {
+	return 0
+}
+
+func (s *RotateSDF3) BoundingBox() Box3 {
+	return Box3{}
+}
+
+//-----------------------------------------------------------------------------
 // Extrude, SDF2 -> SDF3
 
 type ExtrudeSDF3 struct {
