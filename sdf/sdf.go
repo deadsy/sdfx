@@ -376,8 +376,8 @@ func (s *PolySDF2) Evaluate(p V2) float64 {
 
 	// iterate over the line segments
 	for _, l := range s.line {
-		// record the minimum distance
-		x := l.Distance(p)
+		// record the minimum distance squared
+		x := l.DistanceSquared(p)
 		if Abs(x) < d {
 			d = Abs(x)
 		}
@@ -399,6 +399,8 @@ func (s *PolySDF2) Evaluate(p V2) float64 {
 		}
 	}
 
+	// normalise d*d to d
+	d = math.Sqrt(d)
 	if wn != 0 {
 		// p is inside the polygon
 		return -d

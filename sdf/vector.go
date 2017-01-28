@@ -210,8 +210,17 @@ func (a V2) Div(b V2) V2 {
 func (a V3) Length() float64 {
 	return math.Sqrt(a.X*a.X + a.Y*a.Y + a.Z*a.Z)
 }
+
+func (a V3) LengthSquared() float64 {
+	return a.X*a.X + a.Y*a.Y + a.Z*a.Z
+}
+
 func (a V2) Length() float64 {
 	return math.Sqrt(a.X*a.X + a.Y*a.Y)
+}
+
+func (a V2) LengthSquared() float64 {
+	return a.X*a.X + a.Y*a.Y
 }
 
 func (a V3) MinComponent() float64 {

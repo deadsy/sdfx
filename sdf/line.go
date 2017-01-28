@@ -24,24 +24,21 @@ func NewLine2(a, b V2) Line2 {
 	return l
 }
 
-// return the distance to the line, +ve implies same side as line normal
-func (l *Line2) Distance(p V2) float64 {
+// return the distance squared to the line, +ve implies same side as line normal
+func (l *Line2) DistanceSquared(p V2) float64 {
 	pa := p.Sub(l.A)
 	t := pa.Dot(l.V)  // t-parameter of projection onto line
 	dn := pa.Dot(l.N) // distance normal to line
 	var d float64
 	if t < 0 {
-		d = pa.Length()
-		if dn < 0 {
-			d = -d
-		}
+		d = pa.LengthSquared()
 	} else if t > 1 {
-		d = p.Sub(l.B).Length()
-		if dn < 0 {
-			d = -d
-		}
+		d = p.Sub(l.B).LengthSquared()
 	} else {
-		d = dn
+		d = dn * dn
+	}
+	if dn < 0 {
+		d = -d
 	}
 	return d
 }
