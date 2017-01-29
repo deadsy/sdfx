@@ -1,7 +1,9 @@
 //-----------------------------------------------------------------------------
 /*
 
- */
+3D Signed Distance Functions
+
+*/
 //-----------------------------------------------------------------------------
 
 package sdf
@@ -19,78 +21,12 @@ type SDF3 interface {
 	BoundingBox() Box3
 }
 
-type SDF2 interface {
-	Evaluate(p V2) float64
-	BoundingBox() Box2
-}
-
 //-----------------------------------------------------------------------------
 // Basic SDF Functions
 
 func sdf_box3d(p, s V3) float64 {
 	d := p.Abs().Sub(s)
 	return d.Max(V3{0, 0, 0}).Length() + Min(d.MaxComponent(), 0)
-}
-
-func sdf_box2d(p, s V2) float64 {
-	d := p.Abs().Sub(s)
-	return d.Max(V2{0, 0}).Length() + Min(d.MaxComponent(), 0)
-}
-
-/* alternate function - probably faster
-func sdf_box2d(p, s V2) float64 {
-	p = p.Abs()
-	d := p.Sub(s)
-	k := s.Y - s.X
-	if d.X > 0 && d.Y > 0 {
-		return d.Length()
-	}
-	if p.Y-p.X > k {
-		return d.Y
-	}
-	return d.X
-}
-*/
-
-//-----------------------------------------------------------------------------
-// Minimum Functions
-
-type MinFunc func(a, b, k float64) float64
-
-// normal min - no blending
-func NormalMin(a, b, k float64) float64 {
-	return Min(a, b)
-}
-
-// round min uses a quarter-circle to join the two objects smoothly
-func RoundMin(a, b, k float64) float64 {
-	u := V2{k - a, k - b}.Max(V2{0, 0})
-	return Max(k, Min(a, b)) - u.Length()
-}
-
-// chamfer min makes a 45-degree chamfered edge (the diagonal of a square of size <r>)
-// TODO: why the holes in the rendering?
-func ChamferMin(a, b, k float64) float64 {
-	return Min(Min(a, b), (a-k+b)*SQRT_HALF)
-}
-
-// exponential smooth min (k = 32);
-func ExpMin(a, b, k float64) float64 {
-	return -math.Log(math.Exp(-k*a)+math.Exp(-k*b)) / k
-}
-
-// power smooth min (k = 8)
-// TODO - weird results, is this correct?
-func PowMin(a, b, k float64) float64 {
-	a = math.Pow(a, k)
-	b = math.Pow(b, k)
-	return math.Pow((a*b)/(a+b), 1/k)
-}
-
-// polynomial smooth min (Try k = 0.1, bigger k == bigger fillet)
-func PolyMin(a, b, k float64) float64 {
-	h := Clamp(0.5+0.5*(b-a)/k, 0.0, 1.0)
-	return Mix(b, a, h) - k*h*(1.0-h)
 }
 
 //-----------------------------------------------------------------------------
@@ -163,6 +99,7 @@ func (s *SorSDF3) BoundingBox() Box3 {
 }
 
 //-----------------------------------------------------------------------------
+// Rotate SDF3
 
 type RotateSDF3 struct {
 	sdf      SDF3
@@ -298,165 +235,6 @@ func (s *SphereSDF3) Evaluate(p V3) float64 {
 func (s *SphereSDF3) BoundingBox() Box3 {
 	d := V3{s.Radius, s.Radius, s.Radius}
 	return Box3{d.Negate(), d}
-}
-
-//-----------------------------------------------------------------------------
-// 2D Circle
-
-type CircleSDF2 struct {
-	Radius float64
-}
-
-func NewCircleSDF2(radius float64) SDF2 {
-	return &CircleSDF2{radius}
-}
-
-func (s *CircleSDF2) Evaluate(p V2) float64 {
-	return p.Length() - s.Radius
-}
-
-func (s *CircleSDF2) BoundingBox() Box2 {
-	d := V2{s.Radius, s.Radius}
-	return Box2{d.Negate(), d}
-}
-
-//-----------------------------------------------------------------------------
-// 2D Normal Box
-
-type BoxSDF2 struct {
-	Size V2
-}
-
-func NewBoxSDF2(size V2) SDF2 {
-	// note: store a modified size
-	return &BoxSDF2{size.MulScalar(0.5)}
-}
-
-func (s *BoxSDF2) Evaluate(p V2) float64 {
-	return sdf_box2d(p, s.Size)
-}
-
-func (s *BoxSDF2) BoundingBox() Box2 {
-	return Box2{s.Size.Negate(), s.Size}
-}
-
-//-----------------------------------------------------------------------------
-// 2D Rounded Box
-
-type RoundedBoxSDF2 struct {
-	Size   V2
-	Radius float64
-}
-
-func NewRoundedBoxSDF2(size V2, radius float64) SDF2 {
-	// note: store a modified size
-	return &RoundedBoxSDF2{size.MulScalar(0.5).SubScalar(radius), radius}
-}
-
-func (s *RoundedBoxSDF2) Evaluate(p V2) float64 {
-	return sdf_box2d(p, s.Size) - s.Radius
-}
-
-func (s *RoundedBoxSDF2) BoundingBox() Box2 {
-	d := s.Size.AddScalar(s.Radius)
-	return Box2{d.Negate(), d}
-}
-
-//-----------------------------------------------------------------------------
-// 2D Polygon
-
-type PolySDF2 struct {
-	line []Line2 // line segments
-	bb   Box2    // bounding box
-}
-
-func NewPolySDF2(points []V2) SDF2 {
-	n := len(points)
-	if n < 3 {
-		return nil
-	}
-	// build the line segments
-	s := PolySDF2{}
-	for i := 0; i < n-1; i++ {
-		s.line = append(s.line, NewLine2(points[i], points[i+1]))
-	}
-	// close the loop
-	s.line = append(s.line, NewLine2(points[n-1], points[0]))
-	// build the bounding box
-	l := s.line[0]
-	a := l.A.Min(l.B)
-	b := l.A.Max(l.B)
-	for _, l := range s.line {
-		a = a.Min(l.A.Min(l.B))
-		b = b.Max(l.A.Max(l.B))
-	}
-	s.bb = Box2{a, b}
-	return &s
-}
-
-func (s *PolySDF2) Evaluate(p V2) float64 {
-	d := math.MaxFloat64 // distance to polygon (>0)
-	wn := 0              // winding number (inside/outside)
-
-	// iterate over the line segments
-	for _, l := range s.line {
-		// record the minimum distance squared
-		x := l.DistanceSquared(p)
-		if Abs(x) < d {
-			d = Abs(x)
-		}
-
-		// Is the point in the polygon?
-		// See: http://geomalgorithms.com/a03-_inclusion.html
-		if l.A.Y <= p.Y {
-			if l.B.Y > p.Y { // upward crossing
-				if x < 0 { // p is to the left of the line segment
-					wn += 1 // up intersect
-				}
-			}
-		} else {
-			if l.B.Y <= p.Y { // downward crossing
-				if x > 0 { // p is to the right of the line segment
-					wn -= 1 // down intersect
-				}
-			}
-		}
-	}
-
-	// normalise d*d to d
-	d = math.Sqrt(d)
-	if wn != 0 {
-		// p is inside the polygon
-		return -d
-	}
-	// p is outside the polygon
-	return d
-}
-
-func (s *PolySDF2) BoundingBox() Box2 {
-	return s.bb
-}
-
-//-----------------------------------------------------------------------------
-// Transform SDF2
-
-type TransformSDF2 struct {
-	Sdf     SDF2
-	Matrix  M33
-	Inverse M33
-}
-
-func NewTransformSDF2(sdf SDF2, matrix M33) SDF2 {
-	return &TransformSDF2{sdf, matrix, matrix.Inverse()}
-}
-
-func (s *TransformSDF2) Evaluate(p V2) float64 {
-	q := s.Inverse.MulPosition(p)
-	return s.Sdf.Evaluate(q)
-}
-
-func (s *TransformSDF2) BoundingBox() Box2 {
-	return s.Matrix.MulBox(s.Sdf.BoundingBox())
 }
 
 //-----------------------------------------------------------------------------

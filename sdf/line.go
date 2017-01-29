@@ -1,5 +1,11 @@
 //-----------------------------------------------------------------------------
+/*
 
+2D line segments
+
+Used for building 2D polygons SDFs.
+
+*/
 //-----------------------------------------------------------------------------
 
 package sdf
@@ -24,16 +30,16 @@ func NewLine2(a, b V2) Line2 {
 	return l
 }
 
-// return the distance squared to the line, +ve implies same side as line normal
-func (l *Line2) DistanceSquared(p V2) float64 {
+// return the distance^2 to the line, +ve implies same side as line normal
+func (l *Line2) Distance2(p V2) float64 {
 	pa := p.Sub(l.A)
 	t := pa.Dot(l.V)  // t-parameter of projection onto line
 	dn := pa.Dot(l.N) // distance normal to line
 	var d float64
 	if t < 0 {
-		d = pa.LengthSquared()
+		d = pa.Length2()
 	} else if t > 1 {
-		d = p.Sub(l.B).LengthSquared()
+		d = p.Sub(l.B).Length2()
 	} else {
 		d = dn * dn
 	}

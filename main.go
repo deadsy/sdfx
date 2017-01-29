@@ -261,6 +261,16 @@ func test18() {
 	sdf.RenderSTL(s1)
 }
 
+func test19() {
+	r := 2.0
+	k := 1.9
+	s0 := sdf.NewCircleSDF2(r)
+	s1 := sdf.NewArraySDF2(s0, sdf.V2i{3, 7}, sdf.V2{k * r, k * r})
+	s1.(*sdf.ArraySDF2).SetMin(sdf.PolyMin, 0.8)
+	s2 := sdf.NewExtrudeSDF3(s1, 1.0)
+	sdf.RenderSTL(s2)
+}
+
 func main() {
-	wheel()
+	test19()
 }

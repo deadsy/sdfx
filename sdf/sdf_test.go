@@ -142,7 +142,7 @@ func Test_Line(t *testing.T) {
 		{V2{-3, -3}, -25},
 	}
 	for _, p := range points {
-		d := l.DistanceSquared(p.p)
+		d := l.Distance2(p.p)
 		if Abs(d-p.d) > TOLERANCE {
 			fmt.Printf("%+v %f (expected) %f (actual)\n", p.p, p.d, d)
 			t.Error("FAIL")

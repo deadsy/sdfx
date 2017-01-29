@@ -1,7 +1,7 @@
 //-----------------------------------------------------------------------------
 /*
 
-3D/2D Vector Operations
+Floating Point 2D/3D Vectors
 
 */
 //-----------------------------------------------------------------------------
@@ -141,16 +141,22 @@ func (a V2) DivScalar(b float64) V2 {
 
 //-----------------------------------------------------------------------------
 
+// negate each vector component
 func (a V3) Negate() V3 {
 	return V3{-a.X, -a.Y, -a.Z}
 }
+
+// negate each vector component
 func (a V2) Negate() V2 {
 	return V2{-a.X, -a.Y}
 }
 
+// absolute value of each vector component
 func (a V3) Abs() V3 {
 	return V3{Abs(a.X), Abs(a.Y), Abs(a.Z)}
 }
+
+// absolute value of each vector component
 func (a V2) Abs() V2 {
 	return V2{Abs(a.X), Abs(a.Y)}
 }
@@ -207,32 +213,42 @@ func (a V2) Div(b V2) V2 {
 
 //-----------------------------------------------------------------------------
 
+// return vector length
 func (a V3) Length() float64 {
 	return math.Sqrt(a.X*a.X + a.Y*a.Y + a.Z*a.Z)
 }
 
-func (a V3) LengthSquared() float64 {
+// return vector length^2
+func (a V3) Length2() float64 {
 	return a.X*a.X + a.Y*a.Y + a.Z*a.Z
 }
 
+// return vector length
 func (a V2) Length() float64 {
 	return math.Sqrt(a.X*a.X + a.Y*a.Y)
 }
 
-func (a V2) LengthSquared() float64 {
+// return vector length^2
+func (a V2) Length2() float64 {
 	return a.X*a.X + a.Y*a.Y
 }
 
+// return the minimum component of the vector
 func (a V3) MinComponent() float64 {
 	return Min(Min(a.X, a.Y), a.Z)
 }
+
+// return the minimum component of the vector
 func (a V2) MinComponent() float64 {
 	return Min(a.X, a.Y)
 }
 
+// return the maximum component of the vector
 func (a V3) MaxComponent() float64 {
 	return Max(Max(a.X, a.Y), a.Z)
 }
+
+// return the maximum component of the vector
 func (a V2) MaxComponent() float64 {
 	return Max(a.X, a.Y)
 }
