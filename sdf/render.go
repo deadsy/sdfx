@@ -59,9 +59,13 @@ const MESH_CELLS = 200.0
 
 func RenderSTL(s SDF3) {
 
-	bb := s.BoundingBox().Scale(1.1)
-	major_axis := bb.Size().MaxComponent()
-	mesh_inc := major_axis / MESH_CELLS
+	bb0 := s.BoundingBox()
+	bb0_size := bb0.Size()
+	mesh_inc := bb0_size.MaxComponent() / MESH_CELLS
+	bb1_size := bb0_size.DivScalar(mesh_inc)
+	bb1_size = bb1_size.Ceil().AddScalar(2)
+	bb1_size = bb1_size.MulScalar(mesh_inc)
+	bb := NewBox3(bb0.Center(), bb1_size)
 
 	m := NewSDFMesh(s, bb, mesh_inc)
 	err := SaveSTL("test.stl", m)

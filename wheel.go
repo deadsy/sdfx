@@ -140,13 +140,13 @@ func wheel() {
 	//web := web_profile()
 	//core := core_profile()
 
-	//s0 := wheel_profile()
-	//s1 := NewSorSDF3(s0)
+	s0 := wheel_profile()
+	s1 := NewSorSDF3(s0)
 
-	s2 := web_profile()
-	s3 := NewExtrudeSDF3(s2, web_length)
+	//s2 := web_profile()
+	//s3 := NewExtrudeSDF3(s2, web_length)
 
-	RenderSTL(s3)
+	RenderSTL(s1)
 }
 
 //-----------------------------------------------------------------------------

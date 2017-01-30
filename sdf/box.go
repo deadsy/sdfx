@@ -18,6 +18,14 @@ type Box2 struct {
 
 //-----------------------------------------------------------------------------
 
+// create a new Box with a given center and size
+func NewBox3(center, size V3) Box3 {
+	half := size.MulScalar(0.5)
+	return Box3{center.Sub(half), center.Add(half)}
+}
+
+//-----------------------------------------------------------------------------
+
 func (a Box3) Equals(b Box3, tolerance float64) bool {
 	return (a.Min.Equals(b.Min, tolerance) && a.Max.Equals(b.Max, tolerance))
 }
@@ -38,33 +46,20 @@ func (a Box2) Extend(b Box2) Box2 {
 }
 
 //-----------------------------------------------------------------------------
-// Size - Return the size of the box
 
+// return the size of the box
 func (a Box3) Size() V3 {
 	return a.Max.Sub(a.Min)
 }
 
+// return the size of the box
 func (a Box2) Size() V2 {
 	return a.Max.Sub(a.Min)
 }
 
-//-----------------------------------------------------------------------------
-
-func (a Box3) Anchor(anchor V3) V3 {
-	return a.Min.Add(a.Size().Mul(anchor))
-}
-
+// return the center of the box
 func (a Box3) Center() V3 {
-	return a.Anchor(V3{0.5, 0.5, 0.5})
-}
-
-//-----------------------------------------------------------------------------
-
-func (a Box3) Scale(k float64) Box3 {
-	k = k / 2
-	c := a.Center()
-	s := a.Size().Mul(V3{k, k, k})
-	return Box3{c.Sub(s), c.Add(s)}
+	return a.Min.Add(a.Size().MulScalar(0.5))
 }
 
 //-----------------------------------------------------------------------------

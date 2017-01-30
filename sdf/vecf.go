@@ -111,30 +111,42 @@ func (a V2) Cross(b V2) float64 {
 
 //-----------------------------------------------------------------------------
 
+// add a scalar to each vector component
 func (a V3) AddScalar(b float64) V3 {
 	return V3{a.X + b, a.Y + b, a.Z + b}
 }
+
+// add a scalar to each vector component
 func (a V2) AddScalar(b float64) V2 {
 	return V2{a.X + b, a.Y + b}
 }
 
+// subtract a scalar from each vector component
 func (a V3) SubScalar(b float64) V3 {
 	return V3{a.X - b, a.Y - b, a.Z - b}
 }
+
+// subtract a scalar from each vector component
 func (a V2) SubScalar(b float64) V2 {
 	return V2{a.X - b, a.Y - b}
 }
 
+// multiply each vector component by a scalar
 func (a V3) MulScalar(b float64) V3 {
 	return V3{a.X * b, a.Y * b, a.Z * b}
 }
+
+// multiply each vector component by a scalar
 func (a V2) MulScalar(b float64) V2 {
 	return V2{a.X * b, a.Y * b}
 }
 
+// divide each vector component by a scalar
 func (a V3) DivScalar(b float64) V3 {
 	return V3{a.X / b, a.Y / b, a.Z / b}
 }
+
+// divide each vector component by a scalar
 func (a V2) DivScalar(b float64) V2 {
 	return V2{a.X / b, a.Y / b}
 }
@@ -159,6 +171,16 @@ func (a V3) Abs() V3 {
 // absolute value of each vector component
 func (a V2) Abs() V2 {
 	return V2{Abs(a.X), Abs(a.Y)}
+}
+
+// ceiling value of each vector component
+func (a V3) Ceil() V3 {
+	return V3{math.Ceil(a.X), math.Ceil(a.Y), math.Ceil(a.Z)}
+}
+
+// ceiling value of each vector component
+func (a V2) Ceil() V2 {
+	return V2{math.Ceil(a.X), math.Ceil(a.Y)}
 }
 
 //-----------------------------------------------------------------------------

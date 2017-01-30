@@ -39,12 +39,7 @@ func test5() {
 	s0 = sdf.NewTransformSDF2(s0, sdf.Translate2d(sdf.V2{1, 0}))
 	s1 := sdf.NewSorThetaSDF3(s0, sdf.DtoR(315))
 
-	m := sdf.NewSDFMesh(s1, s1.BoundingBox().Scale(1.1), 0.01)
-	err := sdf.SaveSTL("test.stl", m)
-	if err != nil {
-		fmt.Printf("%s", err)
-	}
-
+	sdf.RenderSTL(s1)
 	//sdf.RenderPNG(s1, true)
 }
 
@@ -272,5 +267,5 @@ func test19() {
 }
 
 func main() {
-	test19()
+	wheel()
 }
