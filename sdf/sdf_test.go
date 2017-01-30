@@ -105,15 +105,8 @@ func Test_MulBox(t *testing.T) {
 
 func Test_ScaleBox(t *testing.T) {
 	b0 := Box3{V3{-1, -1, -1}, V3{1, 1, 1}}
-
 	b1 := Box3{V3{-2, -2, -2}, V3{2, 2, 2}}
-	b2 := b0.Scale(2)
-	if b1.Equals(b2, TOLERANCE) == false {
-		t.Error("FAIL")
-	}
-
-	b1 = Box3{V3{-1.1, -1.1, -1.1}, V3{1.1, 1.1, 1.1}}
-	b2 = b0.Scale(1.1)
+	b2 := NewBox3(b0.Center(), b0.Size().MulScalar(2))
 	if b1.Equals(b2, TOLERANCE) == false {
 		t.Error("FAIL")
 	}

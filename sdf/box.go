@@ -47,6 +47,18 @@ func (a Box2) Extend(b Box2) Box2 {
 
 //-----------------------------------------------------------------------------
 
+// translate a box a distance v
+func (a Box3) Translate(v V3) Box3 {
+	return Box3{a.Min.Add(v), a.Max.Add(v)}
+}
+
+// translate a box a distance v
+func (a Box2) Translate(v V2) Box2 {
+	return Box2{a.Min.Add(v), a.Max.Add(v)}
+}
+
+//-----------------------------------------------------------------------------
+
 // return the size of the box
 func (a Box3) Size() V3 {
 	return a.Max.Sub(a.Min)

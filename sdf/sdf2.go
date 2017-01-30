@@ -205,13 +205,13 @@ func (s *TransformSDF2) BoundingBox() Box2 {
 type ArraySDF2 struct {
 	sdf  SDF2
 	num  V2i
-	size V2
+	step V2
 	min  MinFunc
 	k    float64
 	bb   Box2
 }
 
-func NewArraySDF2(sdf SDF2, num V2i, size V2) SDF2 {
+func NewArraySDF2(sdf SDF2, num V2i, step V2) SDF2 {
 	// check the number of x/y steps
 	if num[0] <= 0 || num[1] <= 0 {
 		return nil
@@ -219,27 +219,12 @@ func NewArraySDF2(sdf SDF2, num V2i, size V2) SDF2 {
 	s := ArraySDF2{}
 	s.sdf = sdf
 	s.num = num
-	s.size = size
+	s.step = step
 	s.min = NormalMin
 	// work out the bounding box
 	bb0 := sdf.BoundingBox()
-	bb0_size := bb0.Size()
-	bb_size := bb0_size.Add(size.Mul(num.SubScalar(1).ToV2()).Abs())
-	var bb_min V2
-	if size.X > 0 {
-		if size.Y > 0 {
-			bb_min = bb0.Min
-		} else {
-			bb_min = bb0.Min.Add(V2{0, bb0_size.Y - bb_size.Y})
-		}
-	} else {
-		if size.Y > 0 {
-			bb_min = bb0.Min.Add(V2{bb0_size.X - bb_size.X, 0})
-		} else {
-			bb_min = bb0.Max.Sub(bb_size)
-		}
-	}
-	s.bb = Box2{bb_min, bb_min.Add(bb_size)}
+	bb1 := bb0.Translate(step.Mul(num.SubScalar(1).ToV2()))
+	s.bb = bb0.Extend(bb1)
 	return &s
 }
 
@@ -253,7 +238,7 @@ func (s *ArraySDF2) Evaluate(p V2) float64 {
 	d := math.MaxFloat64
 	for j := 0; j < s.num[0]; j++ {
 		for k := 0; k < s.num[1]; k++ {
-			x := p.Sub(V2{float64(j) * s.size.X, float64(k) * s.size.Y})
+			x := p.Sub(V2{float64(j) * s.step.X, float64(k) * s.step.Y})
 			d = s.min(d, s.sdf.Evaluate(x), s.k)
 		}
 	}
@@ -261,6 +246,61 @@ func (s *ArraySDF2) Evaluate(p V2) float64 {
 }
 
 func (s *ArraySDF2) BoundingBox() Box2 {
+	return s.bb
+}
+
+//-----------------------------------------------------------------------------
+
+type RotateSDF2 struct {
+	sdf  SDF2
+	num  int
+	step M33
+	min  MinFunc
+	k    float64
+	bb   Box2
+}
+
+func NewRotateSDF2(sdf SDF2, num int, step M33) SDF2 {
+	// check the number of steps
+	if num <= 0 {
+		return nil
+	}
+	s := RotateSDF2{}
+	s.sdf = sdf
+	s.num = num
+	s.step = step.Inverse()
+	s.min = NormalMin
+	// work out the bounding box
+	// TODO: It could be smaller based on num * step
+	bb := sdf.BoundingBox()
+	size := bb.Size()
+	tr := bb.Max
+	bl := bb.Min
+	br := bl.Add(V2{size.X, 0})
+	tl := bl.Add(V2{0, size.Y})
+	r := math.Sqrt(Max(Max(tl.Length2(), tr.Length2()), Max(bl.Length2(), br.Length2())))
+	s.bb = Box2{V2{-r, -r}, V2{r, r}}
+	return &s
+}
+
+func (s *RotateSDF2) Evaluate(p V2) float64 {
+	d := math.MaxFloat64
+	rot := Identity2d()
+	for i := 0; i < s.num; i++ {
+		x := rot.MulPosition(p)
+		d = s.min(d, s.sdf.Evaluate(x), s.k)
+		rot = rot.Mul(s.step)
+	}
+	return d
+}
+
+// set the minimum function to control blending
+func (s *RotateSDF2) SetMin(min MinFunc, k float64) {
+	s.min = min
+	s.k = k
+}
+
+func (s *RotateSDF2) BoundingBox() Box2 {
 	return s.bb
 }
 

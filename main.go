@@ -266,6 +266,17 @@ func test19() {
 	sdf.RenderSTL(s2)
 }
 
+func test20() {
+	r := 4.0
+	d := 20.0
+	s0 := sdf.NewCircleSDF2(r)
+	s0 = sdf.NewTransformSDF2(s0, sdf.Translate2d(sdf.V2{d, 0}))
+	s0 = sdf.NewRotateSDF2(s0, 11, sdf.Rotate2d(sdf.DtoR(20)))
+	s0.(*sdf.RotateSDF2).SetMin(sdf.PolyMin, 1.2)
+	s1 := sdf.NewExtrudeSDF3(s0, 10.0)
+	sdf.RenderSTL(s1)
+}
+
 func main() {
-	wheel()
+	test20()
 }
