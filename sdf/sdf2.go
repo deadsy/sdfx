@@ -103,30 +103,52 @@ func (s *RoundedBoxSDF2) BoundingBox() Box2 {
 }
 
 //-----------------------------------------------------------------------------
-// Outset an SDF2 - adds a rounding radius to the shape
+// Offset an SDF2 - add a constant to the distance function
+// offset > 0, enlarges and adds rounding to convex corners of the SDF
+// offset < 0, skeletonizes the SDF
 
-type OutsetSDF2 struct {
+type OffsetSDF2 struct {
 	sdf    SDF2
-	outset float64
+	offset float64
 	bb     Box2
 }
 
-func NewOutsetSDF2(sdf SDF2, outset float64) SDF2 {
-	s := OutsetSDF2{}
+func NewOffsetSDF2(sdf SDF2, offset float64) SDF2 {
+	s := OffsetSDF2{}
 	s.sdf = sdf
-	s.outset = outset
+	s.offset = offset
 	// work out the bounding box
 	bb := sdf.BoundingBox()
-	s.bb = NewBox2(bb.Center(), bb.Size().AddScalar(2*outset))
+	s.bb = NewBox2(bb.Center(), bb.Size().AddScalar(2*offset))
 	return &s
 }
 
-func (s *OutsetSDF2) Evaluate(p V2) float64 {
-	return s.sdf.Evaluate(p) - s.outset
+func (s *OffsetSDF2) Evaluate(p V2) float64 {
+	return s.sdf.Evaluate(p) - s.offset
 }
 
-func (s *OutsetSDF2) BoundingBox() Box2 {
+func (s *OffsetSDF2) BoundingBox() Box2 {
 	return s.bb
+}
+
+//-----------------------------------------------------------------------------
+// Round the convex corners of an SDF2
+
+type RoundSDF2 struct {
+	sdf SDF2
+}
+
+func NewRoundSDF2(sdf SDF2, radius float64) SDF2 {
+	// inset followed by outset
+	return &RoundSDF2{NewOffsetSDF2(NewOffsetSDF2(sdf, -radius), radius)}
+}
+
+func (s *RoundSDF2) Evaluate(p V2) float64 {
+	return s.sdf.Evaluate(p)
+}
+
+func (s *RoundSDF2) BoundingBox() Box2 {
+	return s.sdf.BoundingBox()
 }
 
 //-----------------------------------------------------------------------------
