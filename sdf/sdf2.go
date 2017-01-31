@@ -103,6 +103,33 @@ func (s *RoundedBoxSDF2) BoundingBox() Box2 {
 }
 
 //-----------------------------------------------------------------------------
+// Outset an SDF2 - adds a rounding radius to the shape
+
+type OutsetSDF2 struct {
+	sdf    SDF2
+	outset float64
+	bb     Box2
+}
+
+func NewOutsetSDF2(sdf SDF2, outset float64) SDF2 {
+	s := OutsetSDF2{}
+	s.sdf = sdf
+	s.outset = outset
+	// work out the bounding box
+	bb := sdf.BoundingBox()
+	s.bb = NewBox2(bb.Center(), bb.Size().AddScalar(2*outset))
+	return &s
+}
+
+func (s *OutsetSDF2) Evaluate(p V2) float64 {
+	return s.sdf.Evaluate(p) - s.outset
+}
+
+func (s *OutsetSDF2) BoundingBox() Box2 {
+	return s.bb
+}
+
+//-----------------------------------------------------------------------------
 // 2D Polygon
 
 type PolySDF2 struct {
@@ -212,7 +239,7 @@ type ArraySDF2 struct {
 }
 
 func NewArraySDF2(sdf SDF2, num V2i, step V2) SDF2 {
-	// check the number of x/y steps
+	// check the number of steps
 	if num[0] <= 0 || num[1] <= 0 {
 		return nil
 	}
@@ -270,16 +297,26 @@ func NewRotateSDF2(sdf SDF2, num int, step M33) SDF2 {
 	s.num = num
 	s.step = step.Inverse()
 	s.min = NormalMin
+
 	// work out the bounding box
-	// TODO: It could be smaller based on num * step
 	bb := sdf.BoundingBox()
 	size := bb.Size()
 	tr := bb.Max
 	bl := bb.Min
 	br := bl.Add(V2{size.X, 0})
 	tl := bl.Add(V2{0, size.Y})
-	r := math.Sqrt(Max(Max(tl.Length2(), tr.Length2()), Max(bl.Length2(), br.Length2())))
-	s.bb = Box2{V2{-r, -r}, V2{r, r}}
+	bb_min := bl
+	bb_max := tr
+	for i := 0; i < s.num; i++ {
+		bb_min = bb_min.Min(tl.Min(tr).Min(bl.Min(br)))
+		bb_max = bb_max.Max(tl.Max(tr).Max(bl.Max(br)))
+		tl = step.MulPosition(tl)
+		tr = step.MulPosition(tr)
+		bl = step.MulPosition(bl)
+		br = step.MulPosition(br)
+	}
+	s.bb = Box2{bb_min, bb_max}
+
 	return &s
 }
 

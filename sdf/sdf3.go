@@ -305,3 +305,57 @@ func (s *UnionSDF3) BoundingBox() Box3 {
 }
 
 //-----------------------------------------------------------------------------
+// ArraySDF3: Create an X by Y by Z array of a given SDF3
+// num = the array size
+// size = the step size
+
+type ArraySDF3 struct {
+	sdf  SDF3
+	num  V3i
+	step V3
+	min  MinFunc
+	k    float64
+	bb   Box3
+}
+
+func NewArraySDF3(sdf SDF3, num V3i, step V3) SDF3 {
+	// check the number of steps
+	if num[0] <= 0 || num[1] <= 0 || num[2] <= 0 {
+		return nil
+	}
+	s := ArraySDF3{}
+	s.sdf = sdf
+	s.num = num
+	s.step = step
+	s.min = NormalMin
+	// work out the bounding box
+	bb0 := sdf.BoundingBox()
+	bb1 := bb0.Translate(step.Mul(num.SubScalar(1).ToV3()))
+	s.bb = bb0.Extend(bb1)
+	return &s
+}
+
+// set the minimum function to control blending
+func (s *ArraySDF3) SetMin(min MinFunc, k float64) {
+	s.min = min
+	s.k = k
+}
+
+func (s *ArraySDF3) Evaluate(p V3) float64 {
+	d := math.MaxFloat64
+	for j := 0; j < s.num[0]; j++ {
+		for k := 0; k < s.num[1]; k++ {
+			for l := 0; l < s.num[2]; l++ {
+				x := p.Sub(V3{float64(j) * s.step.X, float64(k) * s.step.Y, float64(l) * s.step.Z})
+				d = s.min(d, s.sdf.Evaluate(x), s.k)
+			}
+		}
+	}
+	return d
+}
+
+func (s *ArraySDF3) BoundingBox() Box3 {
+	return s.bb
+}
+
+//-----------------------------------------------------------------------------

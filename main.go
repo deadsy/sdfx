@@ -250,6 +250,7 @@ func test18() {
 	}
 
 	s0 := sdf.NewPolySDF2(points)
+	s0 = sdf.NewOutsetSDF2(s0, 1.0)
 	s1 := sdf.NewSorThetaSDF3(s0, sdf.DtoR(300))
 	s1 = sdf.NewTransformSDF3(s1, sdf.Rotate3d(sdf.V3{0, 0, 1}, sdf.DtoR(30)))
 
@@ -271,12 +272,21 @@ func test20() {
 	d := 20.0
 	s0 := sdf.NewCircleSDF2(r)
 	s0 = sdf.NewTransformSDF2(s0, sdf.Translate2d(sdf.V2{d, 0}))
-	s0 = sdf.NewRotateSDF2(s0, 11, sdf.Rotate2d(sdf.DtoR(20)))
+	s0 = sdf.NewRotateSDF2(s0, 5, sdf.Rotate2d(sdf.DtoR(20)))
 	s0.(*sdf.RotateSDF2).SetMin(sdf.PolyMin, 1.2)
 	s1 := sdf.NewExtrudeSDF3(s0, 10.0)
 	sdf.RenderSTL(s1)
 }
 
+func test21() {
+	r := 2.0
+	k := 1.9
+	s0 := sdf.NewSphereSDF3(r)
+	s1 := sdf.NewArraySDF3(s0, sdf.V3i{3, 7, 5}, sdf.V3{k * r, k * r, k * r})
+	s1.(*sdf.ArraySDF3).SetMin(sdf.PolyMin, 0.8)
+	sdf.RenderSTL(s1)
+}
+
 func main() {
-	test20()
+	test18()
 }
