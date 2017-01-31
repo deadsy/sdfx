@@ -132,26 +132,6 @@ func (s *OffsetSDF2) BoundingBox() Box2 {
 }
 
 //-----------------------------------------------------------------------------
-// Round the convex corners of an SDF2
-
-type RoundSDF2 struct {
-	sdf SDF2
-}
-
-func NewRoundSDF2(sdf SDF2, radius float64) SDF2 {
-	// inset followed by outset
-	return &RoundSDF2{NewOffsetSDF2(NewOffsetSDF2(sdf, -radius), radius)}
-}
-
-func (s *RoundSDF2) Evaluate(p V2) float64 {
-	return s.sdf.Evaluate(p)
-}
-
-func (s *RoundSDF2) BoundingBox() Box2 {
-	return s.sdf.BoundingBox()
-}
-
-//-----------------------------------------------------------------------------
 // 2D Polygon
 
 type PolySDF2 struct {
