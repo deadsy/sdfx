@@ -297,6 +297,11 @@ func test22() {
 	sdf.RenderSTL(s0)
 }
 
+func test23() {
+	s0 := sdf.NewCircleSDF2(4.0)
+	sdf.SDF2_RenderPNG(s0, "test.png")
+}
+
 func main() {
-	test22()
+	test23()
 }
