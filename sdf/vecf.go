@@ -22,6 +22,9 @@ type V2 struct {
 	X, Y float64
 }
 
+type V2Set []V2
+type V3Set []V3
+
 //-----------------------------------------------------------------------------
 
 func (a V3) Equals(b V3, tolerance float64) bool {
@@ -185,34 +188,42 @@ func (a V2) Ceil() V2 {
 
 //-----------------------------------------------------------------------------
 
+// Return the minimum components of two vectors.
 func (a V3) Min(b V3) V3 {
 	return V3{Min(a.X, b.X), Min(a.Y, b.Y), Min(a.Z, b.Z)}
 }
 
+// Return the minimum components of two vectors.
 func (a V2) Min(b V2) V2 {
 	return V2{Min(a.X, b.X), Min(a.Y, b.Y)}
 }
 
+// Return the maximum components of two vectors.
 func (a V3) Max(b V3) V3 {
 	return V3{Max(a.X, b.X), Max(a.Y, b.Y), Max(a.Z, b.Z)}
 }
 
+// Return the maximum components of two vectors.
 func (a V2) Max(b V2) V2 {
 	return V2{Max(a.X, b.X), Max(a.Y, b.Y)}
 }
 
+// Add two vectors. Return v = a + b.
 func (a V3) Add(b V3) V3 {
 	return V3{a.X + b.X, a.Y + b.Y, a.Z + b.Z}
 }
 
+// Add two vectors. Return v = a + b.
 func (a V2) Add(b V2) V2 {
 	return V2{a.X + b.X, a.Y + b.Y}
 }
 
+// Subtract two vectors. Return v = a - b
 func (a V3) Sub(b V3) V3 {
 	return V3{a.X - b.X, a.Y - b.Y, a.Z - b.Z}
 }
 
+// Subtract two vectors. Return v = a - b
 func (a V2) Sub(b V2) V2 {
 	return V2{a.X - b.X, a.Y - b.Y}
 }
@@ -231,6 +242,36 @@ func (a V3) Div(b V3) V3 {
 
 func (a V2) Div(b V2) V2 {
 	return V2{a.X / b.X, a.Y / b.Y}
+}
+
+//-----------------------------------------------------------------------------
+
+// Return the minimum components of a set of vectors.
+func (a V2Set) Min() V2 {
+	vmin := a[0]
+	for _, v := range a {
+		if v.X < vmin.X {
+			vmin.X = v.X
+		}
+		if v.Y < vmin.Y {
+			vmin.Y = v.Y
+		}
+	}
+	return vmin
+}
+
+// Return the maximum components of a set of vectors.
+func (a V2Set) Max() V2 {
+	vmax := a[0]
+	for _, v := range a {
+		if v.X > vmax.X {
+			vmax.X = v.X
+		}
+		if v.Y > vmax.Y {
+			vmax.Y = v.Y
+		}
+	}
+	return vmax
 }
 
 //-----------------------------------------------------------------------------

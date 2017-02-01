@@ -89,3 +89,15 @@ func (a Box2) Center() V2 {
 }
 
 //-----------------------------------------------------------------------------
+
+// Return a slice of box vertices
+func (a Box2) Vertices() V2Set {
+	v := make([]V2, 4)
+	v[0] = a.Min                // bl
+	v[1] = V2{a.Max.X, a.Min.Y} // br
+	v[2] = V2{a.Min.X, a.Max.Y} // tl
+	v[3] = a.Max                // tr
+	return v
+}
+
+//-----------------------------------------------------------------------------

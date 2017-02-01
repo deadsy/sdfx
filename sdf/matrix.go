@@ -196,6 +196,12 @@ func (a M22) MulPosition(b V2) V2 {
 		a.x10*b.X + a.x11*b.Y}
 }
 
+func (v V2Set) MulVertices(a M33) {
+	for i, _ := range v {
+		v[i] = a.MulPosition(v[i])
+	}
+}
+
 //-----------------------------------------------------------------------------
 
 func (a M44) Mul(b M44) M44 {

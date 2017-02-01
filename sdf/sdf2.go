@@ -299,26 +299,16 @@ func NewRotateSDF2(sdf SDF2, num int, step M33) SDF2 {
 	s.num = num
 	s.step = step.Inverse()
 	s.min = NormalMin
-
 	// work out the bounding box
-	bb := sdf.BoundingBox()
-	size := bb.Size()
-	tr := bb.Max
-	bl := bb.Min
-	br := bl.Add(V2{size.X, 0})
-	tl := bl.Add(V2{0, size.Y})
-	bb_min := bl
-	bb_max := tr
+	v := sdf.BoundingBox().Vertices()
+	bb_min := v[0]
+	bb_max := v[0]
 	for i := 0; i < s.num; i++ {
-		bb_min = bb_min.Min(tl.Min(tr).Min(bl.Min(br)))
-		bb_max = bb_max.Max(tl.Max(tr).Max(bl.Max(br)))
-		tl = step.MulPosition(tl)
-		tr = step.MulPosition(tr)
-		bl = step.MulPosition(bl)
-		br = step.MulPosition(br)
+		bb_min = bb_min.Min(v.Min())
+		bb_max = bb_max.Max(v.Max())
+		v.MulVertices(step)
 	}
 	s.bb = Box2{bb_min, bb_max}
-
 	return &s
 }
 
