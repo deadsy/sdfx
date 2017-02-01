@@ -100,4 +100,18 @@ func (a Box2) Vertices() V2Set {
 	return v
 }
 
+// Return a slice of box vertices
+func (a Box3) Vertices() V3Set {
+	v := make([]V3, 8)
+	v[0] = a.Min
+	v[1] = V3{a.Min.X, a.Min.Y, a.Max.Z}
+	v[2] = V3{a.Min.X, a.Max.Y, a.Min.Z}
+	v[3] = V3{a.Min.X, a.Max.Y, a.Max.Z}
+	v[4] = V3{a.Max.X, a.Min.Y, a.Min.Z}
+	v[5] = V3{a.Max.X, a.Min.Y, a.Max.Z}
+	v[6] = V3{a.Max.X, a.Max.Y, a.Min.Z}
+	v[7] = a.Max
+	return v
+}
+
 //-----------------------------------------------------------------------------

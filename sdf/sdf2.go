@@ -312,6 +312,7 @@ func NewRotateSDF2(sdf SDF2, num int, step M33) SDF2 {
 	return &s
 }
 
+// Return the minimum distance to the object.
 func (s *RotateSDF2) Evaluate(p V2) float64 {
 	d := math.MaxFloat64
 	rot := Identity2d()
@@ -323,12 +324,13 @@ func (s *RotateSDF2) Evaluate(p V2) float64 {
 	return d
 }
 
-// set the minimum function to control blending
+// Set the minimum function to control blending.
 func (s *RotateSDF2) SetMin(min MinFunc, k float64) {
 	s.min = min
 	s.k = k
 }
 
+// Return the bounding box.
 func (s *RotateSDF2) BoundingBox() Box2 {
 	return s.bb
 }

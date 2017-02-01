@@ -202,6 +202,12 @@ func (v V2Set) MulVertices(a M33) {
 	}
 }
 
+func (v V3Set) MulVertices(a M44) {
+	for i, _ := range v {
+		v[i] = a.MulPosition(v[i])
+	}
+}
+
 //-----------------------------------------------------------------------------
 
 func (a M44) Mul(b M44) M44 {

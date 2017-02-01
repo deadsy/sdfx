@@ -99,31 +99,6 @@ func (s *SorSDF3) BoundingBox() Box3 {
 }
 
 //-----------------------------------------------------------------------------
-// Rotate SDF3
-
-type RotateSDF3 struct {
-	sdf      SDF3
-	rotation M44
-	num      int
-}
-
-func NewRotateSDF3(sdf SDF3, axis V3, theta float64, num int) SDF3 {
-	s := RotateSDF3{}
-	s.sdf = sdf
-	s.rotation = Rotate3d(axis, theta)
-	s.num = num
-	return &s
-}
-
-func (s *RotateSDF3) Evaluate(p V3) float64 {
-	return 0
-}
-
-func (s *RotateSDF3) BoundingBox() Box3 {
-	return Box3{}
-}
-
-//-----------------------------------------------------------------------------
 // Extrude, SDF2 -> SDF3
 
 type ExtrudeSDF3 struct {
@@ -355,6 +330,63 @@ func (s *ArraySDF3) Evaluate(p V3) float64 {
 }
 
 func (s *ArraySDF3) BoundingBox() Box3 {
+	return s.bb
+}
+
+//-----------------------------------------------------------------------------
+
+type RotateSDF3 struct {
+	sdf  SDF3
+	num  int
+	step M44
+	min  MinFunc
+	k    float64
+	bb   Box3
+}
+
+func NewRotateSDF3(sdf SDF3, num int, step M44) SDF3 {
+	// check the number of steps
+	if num <= 0 {
+		return nil
+	}
+	s := RotateSDF3{}
+	s.sdf = sdf
+	s.num = num
+	s.step = step.Inverse()
+	s.min = NormalMin
+	// work out the bounding box
+	v := sdf.BoundingBox().Vertices()
+	bb_min := v[0]
+	bb_max := v[0]
+	for i := 0; i < s.num; i++ {
+		bb_min = bb_min.Min(v.Min())
+		bb_max = bb_max.Max(v.Max())
+		v.MulVertices(step)
+	}
+	s.bb = Box3{bb_min, bb_max}
+	return &s
+}
+
+// Return the minimum distance to the object.
+func (s *RotateSDF3) Evaluate(p V3) float64 {
+	d := math.MaxFloat64
+	rot := Identity3d()
+	for i := 0; i < s.num; i++ {
+		x := rot.MulPosition(p)
+		d = s.min(d, s.sdf.Evaluate(x), s.k)
+		rot = rot.Mul(s.step)
+	}
+	return d
+}
+
+// Set the minimum function to control blending.
+func (s *RotateSDF3) SetMin(min MinFunc, k float64) {
+	s.min = min
+	s.k = k
+}
+
+// Return the bounding box.
+func (s *RotateSDF3) BoundingBox() Box3 {
 	return s.bb
 }
 

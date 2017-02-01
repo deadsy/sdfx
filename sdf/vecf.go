@@ -247,29 +247,37 @@ func (a V2) Div(b V2) V2 {
 //-----------------------------------------------------------------------------
 
 // Return the minimum components of a set of vectors.
+func (a V3Set) Min() V3 {
+	vmin := a[0]
+	for _, v := range a {
+		vmin = vmin.Min(v)
+	}
+	return vmin
+}
+
+// Return the minimum components of a set of vectors.
 func (a V2Set) Min() V2 {
 	vmin := a[0]
 	for _, v := range a {
-		if v.X < vmin.X {
-			vmin.X = v.X
-		}
-		if v.Y < vmin.Y {
-			vmin.Y = v.Y
-		}
+		vmin = vmin.Min(v)
 	}
 	return vmin
+}
+
+// Return the maximum components of a set of vectors.
+func (a V3Set) Max() V3 {
+	vmax := a[0]
+	for _, v := range a {
+		vmax = vmax.Max(v)
+	}
+	return vmax
 }
 
 // Return the maximum components of a set of vectors.
 func (a V2Set) Max() V2 {
 	vmax := a[0]
 	for _, v := range a {
-		if v.X > vmax.X {
-			vmax.X = v.X
-		}
-		if v.Y > vmax.Y {
-			vmax.Y = v.Y
-		}
+		vmax = vmax.Max(v)
 	}
 	return vmax
 }

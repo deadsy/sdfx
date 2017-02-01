@@ -287,6 +287,16 @@ func test21() {
 	sdf.RenderSTL(s1)
 }
 
+func test22() {
+	r := 4.0
+	d := 20.0
+	s0 := sdf.NewSphereSDF3(r)
+	s0 = sdf.NewTransformSDF3(s0, sdf.Translate3d(sdf.V3{d, 0, 0}))
+	s0 = sdf.NewRotateSDF3(s0, 5, sdf.Rotate3d(sdf.V3{0, 0, 1}, sdf.DtoR(20)))
+	s0.(*sdf.RotateSDF3).SetMin(sdf.PolyMin, 1.2)
+	sdf.RenderSTL(s0)
+}
+
 func main() {
-	test20()
+	test22()
 }
