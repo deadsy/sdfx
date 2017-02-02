@@ -6,6 +6,10 @@ package sdf
 
 import (
 	"fmt"
+	"image"
+	"image/color"
+	"image/png"
+	"os"
 
 	"github.com/deadsy/pt/pt"
 	"github.com/yofu/dxf"
@@ -79,8 +83,8 @@ func RenderSTL(s SDF3) {
 // Render an SDF2 as a PNG image file.
 func SDF2_RenderPNG(s SDF2, path string) {
 
-	region_size := 10.0 // 700.0 // number of pixels on major axis of SDF2 bounding box
-	border_size := 2.0  // 50.0  // border pixels on either side of bounding box
+	region_size := 400.0 // number of pixels on major axis of SDF2 bounding box
+	border_size := 40.0  // border pixels on either side of bounding box
 
 	// work out the region we will sample
 	bb0 := s.BoundingBox()
@@ -95,13 +99,17 @@ func SDF2_RenderPNG(s SDF2, path string) {
 	fmt.Printf("rendering %s (%dx%d)\n", path, pixels[0], pixels[1])
 
 	// sample the distance field
+	var dmax, dmin float64
 	distance := make([]float64, pixels[0]*pixels[1])
 	dx := inc / 2
 	dy := inc / 2
 	xofs := 0
 	for x := 0; x < pixels[0]; x++ {
 		for y := 0; y < pixels[1]; y++ {
-			distance[xofs+y] = s.Evaluate(bb.Min.Add(V2{dx, dy}))
+			d := s.Evaluate(bb.Min.Add(V2{dx, dy}))
+			dmax = Max(dmax, d)
+			dmin = Min(dmin, d)
+			distance[xofs+y] = d
 			dy += inc
 		}
 		dy = inc / 2
@@ -109,7 +117,23 @@ func SDF2_RenderPNG(s SDF2, path string) {
 		xofs += pixels[1]
 	}
 
-	fmt.Printf("%+v\n", distance)
+	img := image.NewRGBA(image.Rect(0, 0, pixels[0]-1, pixels[1]-1))
+
+	xofs = 0
+	for x := 0; x < pixels[0]; x++ {
+		for y := 0; y < pixels[1]; y++ {
+			val := 255.0 * ((distance[xofs+y] - dmin) / (dmax - dmin))
+			img.Set(x, y, color.Gray{uint8(val)})
+		}
+		xofs += pixels[1]
+	}
+
+	outpng, err := os.Create(path)
+	if err != nil {
+		panic("Error storing png: " + err.Error())
+	}
+	defer outpng.Close()
+	png.Encode(outpng, img)
 }
 
 //-----------------------------------------------------------------------------

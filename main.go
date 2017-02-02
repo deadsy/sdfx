@@ -8,13 +8,13 @@ import (
 )
 
 func test1() {
-	s0 := sdf.NewRoundedBoxSDF2(sdf.V2{0.8, 1.2}, 0.05)
+	s0 := sdf.NewBoxSDF2(sdf.V2{0.8, 1.2}, 0.05)
 	s1 := sdf.NewSorThetaSDF3(s0, sdf.DtoR(225))
 	sdf.RenderPNG(s1, true)
 }
 
 func test2() {
-	s0 := sdf.NewRoundedBoxSDF2(sdf.V2{0.8, 1.2}, 0.1)
+	s0 := sdf.NewBoxSDF2(sdf.V2{0.8, 1.2}, 0.1)
 	s1 := sdf.NewExtrudeSDF3(s0, 0.3)
 	sdf.RenderPNG(s1, true)
 }
@@ -27,14 +27,14 @@ func test3() {
 }
 
 func test4() {
-	s0 := sdf.NewRoundedBoxSDF2(sdf.V2{0.2, 0.4}, 0.05)
+	s0 := sdf.NewBoxSDF2(sdf.V2{0.2, 0.4}, 0.05)
 	s0 = sdf.NewTransformSDF2(s0, sdf.Translate2d(sdf.V2{1, 0}))
 	s1 := sdf.NewSorThetaSDF3(s0, sdf.DtoR(270))
 	sdf.RenderPNG(s1, true)
 }
 
 func test5() {
-	s0 := sdf.NewRoundedBoxSDF2(sdf.V2{0.2, 0.4}, 0.05)
+	s0 := sdf.NewBoxSDF2(sdf.V2{0.2, 0.4}, 0.05)
 	s0 = sdf.NewTransformSDF2(s0, sdf.Rotate2d(sdf.DtoR(45)))
 	s0 = sdf.NewTransformSDF2(s0, sdf.Translate2d(sdf.V2{1, 0}))
 	s1 := sdf.NewSorThetaSDF3(s0, sdf.DtoR(315))
@@ -302,6 +302,20 @@ func test23() {
 	sdf.SDF2_RenderPNG(s0, "test.png")
 }
 
+func test24() {
+	s0 := sdf.NewBoxSDF2(sdf.V2{50, 70}, 4)
+	sdf.SDF2_RenderPNG(s0, "test.png")
+}
+
+func test25() {
+	s0 := sdf.NewCircleSDF2(0.0)
+	var s1 sdf.SDF2
+	for i := 0; i < 50; i++ {
+		s1 = sdf.NewUnionSDF2(s1, sdf.NewTransformSDF2(s0, sdf.Translate2d(sdf.RandomV2(-10, 10))))
+	}
+	sdf.SDF2_RenderPNG(s1, "test.png")
+}
+
 func main() {
-	test23()
+	test25()
 }

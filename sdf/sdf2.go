@@ -45,10 +45,15 @@ func sdf_box2d(p, s V2) float64 {
 
 type CircleSDF2 struct {
 	radius float64
+	bb     Box2
 }
 
 func NewCircleSDF2(radius float64) SDF2 {
-	return &CircleSDF2{radius}
+	s := CircleSDF2{}
+	s.radius = radius
+	d := V2{radius, radius}
+	s.bb = Box2{d.Negate(), d}
+	return &s
 }
 
 func (s *CircleSDF2) Evaluate(p V2) float64 {
@@ -56,50 +61,33 @@ func (s *CircleSDF2) Evaluate(p V2) float64 {
 }
 
 func (s *CircleSDF2) BoundingBox() Box2 {
-	d := V2{s.radius, s.radius}
-	return Box2{d.Negate(), d}
+	return s.bb
 }
 
 //-----------------------------------------------------------------------------
-// 2D Normal Box
+// 2D Box (rounded corners with radius > 0)
 
 type BoxSDF2 struct {
-	Size V2
+	size   V2
+	radius float64
+	bb     Box2
 }
 
-func NewBoxSDF2(size V2) SDF2 {
-	// note: store a modified size
-	return &BoxSDF2{size.MulScalar(0.5)}
+func NewBoxSDF2(size V2, radius float64) SDF2 {
+	size = size.MulScalar(0.5)
+	s := BoxSDF2{}
+	s.size = size.SubScalar(radius)
+	s.radius = radius
+	s.bb = Box2{size.Negate(), size}
+	return &s
 }
 
 func (s *BoxSDF2) Evaluate(p V2) float64 {
-	return sdf_box2d(p, s.Size)
+	return sdf_box2d(p, s.size) - s.radius
 }
 
 func (s *BoxSDF2) BoundingBox() Box2 {
-	return Box2{s.Size.Negate(), s.Size}
-}
-
-//-----------------------------------------------------------------------------
-// 2D Rounded Box
-
-type RoundedBoxSDF2 struct {
-	Size   V2
-	Radius float64
-}
-
-func NewRoundedBoxSDF2(size V2, radius float64) SDF2 {
-	// note: store a modified size
-	return &RoundedBoxSDF2{size.MulScalar(0.5).SubScalar(radius), radius}
-}
-
-func (s *RoundedBoxSDF2) Evaluate(p V2) float64 {
-	return sdf_box2d(p, s.Size) - s.Radius
-}
-
-func (s *RoundedBoxSDF2) BoundingBox() Box2 {
-	d := s.Size.AddScalar(s.Radius)
-	return Box2{d.Negate(), d}
+	return s.bb
 }
 
 //-----------------------------------------------------------------------------
@@ -208,22 +196,28 @@ func (s *PolySDF2) BoundingBox() Box2 {
 // Transform SDF2
 
 type TransformSDF2 struct {
-	Sdf     SDF2
-	Matrix  M33
-	Inverse M33
+	sdf     SDF2
+	matrix  M33
+	inverse M33
+	bb      Box2
 }
 
 func NewTransformSDF2(sdf SDF2, matrix M33) SDF2 {
-	return &TransformSDF2{sdf, matrix, matrix.Inverse()}
+	s := TransformSDF2{}
+	s.sdf = sdf
+	s.matrix = matrix
+	s.inverse = matrix.Inverse()
+	s.bb = matrix.MulBox(sdf.BoundingBox())
+	return &s
 }
 
 func (s *TransformSDF2) Evaluate(p V2) float64 {
-	q := s.Inverse.MulPosition(p)
-	return s.Sdf.Evaluate(q)
+	q := s.inverse.MulPosition(p)
+	return s.sdf.Evaluate(q)
 }
 
 func (s *TransformSDF2) BoundingBox() Box2 {
-	return s.Matrix.MulBox(s.Sdf.BoundingBox())
+	return s.bb
 }
 
 //-----------------------------------------------------------------------------
@@ -332,6 +326,47 @@ func (s *RotateSDF2) SetMin(min MinFunc, k float64) {
 
 // Return the bounding box.
 func (s *RotateSDF2) BoundingBox() Box2 {
+	return s.bb
+}
+
+//-----------------------------------------------------------------------------
+
+type UnionSDF2 struct {
+	s0  SDF2
+	s1  SDF2
+	min MinFunc
+	k   float64
+	bb  Box2
+}
+
+func NewUnionSDF2(s0, s1 SDF2) SDF2 {
+	if s0 == nil {
+		return s1
+	}
+	if s1 == nil {
+		return s0
+	}
+	s := UnionSDF2{}
+	s.s0 = s0
+	s.s1 = s1
+	s.min = NormalMin
+	s.bb = s0.BoundingBox().Extend(s1.BoundingBox())
+	return &s
+}
+
+// set the minimum function to control blending
+func (s *UnionSDF2) SetMin(min MinFunc, k float64) {
+	s.min = min
+	s.k = k
+}
+
+func (s *UnionSDF2) Evaluate(p V2) float64 {
+	a := s.s0.Evaluate(p)
+	b := s.s1.Evaluate(p)
+	return s.min(a, b, s.k)
+}
+
+func (s *UnionSDF2) BoundingBox() Box2 {
 	return s.bb
 }
 
