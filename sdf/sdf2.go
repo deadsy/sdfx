@@ -91,6 +91,32 @@ func (s *BoxSDF2) BoundingBox() Box2 {
 }
 
 //-----------------------------------------------------------------------------
+// 2D Line, infinite line used for intersections and differences
+
+type LineSDF2 struct {
+	a      V2 // point on line
+	normal V2 // normal to line, to the right of the line direction
+}
+
+// Return an infinite 2D line passing through a in direction v.
+func NewLineSDF2(a, v V2) SDF2 {
+	s := LineSDF2{}
+	s.a = a
+	s.normal = V2{v.Y, -v.X}.Normalize()
+	return &s
+}
+
+// Return the minimum distance to the line (right side >0, left side < 0).
+func (s *LineSDF2) Evaluate(p V2) float64 {
+	return p.Sub(s.a).Dot(s.normal)
+}
+
+// Return the bounding box for the line (zero size).
+func (s *LineSDF2) BoundingBox() Box2 {
+	return Box2{}
+}
+
+//-----------------------------------------------------------------------------
 // Offset an SDF2 - add a constant to the distance function
 // offset > 0, enlarges and adds rounding to convex corners of the SDF
 // offset < 0, skeletonizes the SDF
