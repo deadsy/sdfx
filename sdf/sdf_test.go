@@ -208,7 +208,7 @@ func Test_Polygon2(t *testing.T) {
 	s0 := NewPolySDF2([]V2{V2{k, -k}, V2{k, k}, V2{-k, k}, V2{-k, -k}})
 	s0 = NewTransformSDF2(s0, Translate2d(V2{0.8, 0}))
 
-	s1 := NewBoxSDF2(V2{2 * k, 2 * k})
+	s1 := NewBoxSDF2(V2{2 * k, 2 * k}, 0)
 	s1 = NewTransformSDF2(s1, Translate2d(V2{0.8, 0}))
 
 	for i := 0; i < 10000; i++ {
@@ -234,7 +234,7 @@ func Test_Polygon3(t *testing.T) {
 	j := -1.0
 	k := 2.0
 
-	s1 := NewBoxSDF2(V2{2 * a, 2 * b})
+	s1 := NewBoxSDF2(V2{2 * a, 2 * b}, 0)
 	s1 = NewTransformSDF2(s1, Rotate2d(DtoR(theta)))
 	s1 = NewTransformSDF2(s1, Translate2d(V2{j, k}))
 
@@ -252,6 +252,72 @@ func Test_Polygon3(t *testing.T) {
 		if Abs(s0.Evaluate(p)-s1.Evaluate(p)) > TOLERANCE {
 			t.Error("FAIL")
 		}
+	}
+}
+
+//-----------------------------------------------------------------------------
+
+func Test_ArraySDF2(t *testing.T) {
+	r := 0.5
+	s := NewCircleSDF2(r)
+	bb := s.BoundingBox()
+	if bb.Min.Equals(V2{-r, -r}, TOLERANCE) == false {
+		t.Error("FAIL")
+	}
+	if bb.Max.Equals(V2{r, r}, TOLERANCE) == false {
+		t.Error("FAIL")
+	}
+
+	j := 3
+	k := 4
+	dx := 2.0
+	dy := 7.0
+	sa := NewArraySDF2(s, V2i{j, k}, V2{dx, dy})
+	sa_bb := sa.BoundingBox()
+	if sa_bb.Min.Equals(V2{-r, -r}, TOLERANCE) == false {
+		t.Error("FAIL")
+	}
+	if sa_bb.Max.Equals(V2{r + (float64(j-1) * dx), r + (float64(k-1) * dy)}, TOLERANCE) == false {
+		t.Error("FAIL")
+	}
+
+	j = 7
+	k = 4
+	dx = -3.0
+	dy = -5.0
+	sa = NewArraySDF2(s, V2i{j, k}, V2{dx, dy})
+	sa_bb = sa.BoundingBox()
+	if sa_bb.Min.Equals(V2{-r + (float64(j-1) * dx), -r + (float64(k-1) * dy)}, TOLERANCE) == false {
+		t.Error("FAIL")
+	}
+	if sa_bb.Max.Equals(V2{r, r}, TOLERANCE) == false {
+		t.Error("FAIL")
+	}
+
+	j = 6
+	k = 8
+	dx = 5.0
+	dy = -3.0
+	sa = NewArraySDF2(s, V2i{j, k}, V2{dx, dy})
+	sa_bb = sa.BoundingBox()
+	if sa_bb.Min.Equals(V2{-r, -r + (float64(k-1) * dy)}, TOLERANCE) == false {
+		t.Error("FAIL")
+	}
+	if sa_bb.Max.Equals(V2{r + (float64(j-1) * dx), r}, TOLERANCE) == false {
+		t.Error("FAIL")
+	}
+
+	j = 9
+	k = 1
+	dx = -0.5
+	dy = 6.5
+	sa = NewArraySDF2(s, V2i{j, k}, V2{dx, dy})
+	sa_bb = sa.BoundingBox()
+	if sa_bb.Min.Equals(V2{-r + (float64(j-1) * dx), -r}, TOLERANCE) == false {
+		t.Error("FAIL")
+	}
+	if sa_bb.Max.Equals(V2{r, r + (float64(k-1) * dy)}, TOLERANCE) == false {
+		t.Error("FAIL")
 	}
 }
 
