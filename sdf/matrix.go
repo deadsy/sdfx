@@ -115,6 +115,7 @@ func Scale2d(v V2) M33 {
 		0, 0, 1}
 }
 
+// TODO: does this follow the right hand rule?
 func Rotate3d(v V3, a float64) M44 {
 	v = v.Normalize()
 	s := math.Sin(a)

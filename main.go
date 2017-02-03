@@ -48,18 +48,16 @@ func test6() {
 	d := 0.4
 	s1 := sdf.NewTransformSDF3(s0, sdf.Translate3d(sdf.V3{0, d, 0}))
 	s2 := sdf.NewTransformSDF3(s0, sdf.Translate3d(sdf.V3{0, -d, 0}))
-	//s3 := sdf.NewUnionRoundSDF3(s1, s2, 0.1)
-	//s3 := sdf.NewUnionExpSDF3(s1, s2, 32)
-	//s3 := sdf.NewUnionPowSDF3(s1, s2, 8)
-	s3 := sdf.NewUnionPolySDF3(s1, s2, 0.1)
-	//s3 := sdf.NewUnionChamferSDF3(s1, s2, 0.1)
+	s3 := sdf.NewUnionSDF3(s1, s2)
+	s3.(*sdf.UnionSDF3).SetMin(sdf.PolyMin, 0.1)
 	sdf.RenderPNG(s3, true)
 }
 
 func test7() {
 	s0 := sdf.NewBoxSDF3(sdf.V3{0.8, 0.8, 0.05})
 	s1 := sdf.NewTransformSDF3(s0, sdf.Rotate3d(sdf.V3{1, 0, 0}, sdf.DtoR(60)))
-	s2 := sdf.NewUnionPolySDF3(s0, s1, 0.1)
+	s2 := sdf.NewUnionSDF3(s0, s1)
+	s2.(*sdf.UnionSDF3).SetMin(sdf.PolyMin, 0.1)
 	s3 := sdf.NewTransformSDF3(s2, sdf.Rotate3d(sdf.V3{0, 0, 1}, sdf.DtoR(-30)))
 	sdf.RenderPNG(s3, true)
 }
@@ -88,7 +86,8 @@ func test9() {
 func test10() {
 	s0 := sdf.NewBoxSDF3(sdf.V3{0.8, 0.8, 0.05})
 	s1 := sdf.NewTransformSDF3(s0, sdf.Rotate3d(sdf.V3{1, 0, 0}, sdf.DtoR(60)))
-	s := sdf.NewUnionPolySDF3(s0, s1, 0.1)
+	s := sdf.NewUnionSDF3(s0, s1)
+	s.(*sdf.UnionSDF3).SetMin(sdf.PolyMin, 0.1)
 	sdf.RenderSTL(s)
 }
 
@@ -317,5 +316,5 @@ func test25() {
 }
 
 func main() {
-	test25()
+	wheel()
 }

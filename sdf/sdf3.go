@@ -242,41 +242,33 @@ type UnionSDF3 struct {
 	s1  SDF3
 	min MinFunc
 	k   float64
+	bb  Box3
 }
 
+// Return the union of two SDF3 objects.
 func NewUnionSDF3(s0, s1 SDF3) SDF3 {
-	return &UnionSDF3{s0, s1, NormalMin, 0}
+	s := UnionSDF3{}
+	s.s0 = s0
+	s.s1 = s1
+	s.min = NormalMin
+	s.bb = s0.BoundingBox().Extend(s1.BoundingBox())
+	return &s
 }
 
-func NewUnionRoundSDF3(s0, s1 SDF3, k float64) SDF3 {
-	return &UnionSDF3{s0, s1, RoundMin, k}
-}
-
-func NewUnionExpSDF3(s0, s1 SDF3, k float64) SDF3 {
-	return &UnionSDF3{s0, s1, ExpMin, k}
-}
-
-func NewUnionPowSDF3(s0, s1 SDF3, k float64) SDF3 {
-	return &UnionSDF3{s0, s1, PowMin, k}
-}
-
-func NewUnionPolySDF3(s0, s1 SDF3, k float64) SDF3 {
-	return &UnionSDF3{s0, s1, PolyMin, k}
-}
-
-func NewUnionChamferSDF3(s0, s1 SDF3, k float64) SDF3 {
-	return &UnionSDF3{s0, s1, ChamferMin, k}
-}
-
+// Return the minimum distance to the object.
 func (s *UnionSDF3) Evaluate(p V3) float64 {
-	a := s.s0.Evaluate(p)
-	b := s.s1.Evaluate(p)
-	return s.min(a, b, s.k)
+	return s.min(s.s0.Evaluate(p), s.s1.Evaluate(p), s.k)
 }
 
+// Set the minimum function to control blending.
+func (s *UnionSDF3) SetMin(min MinFunc, k float64) {
+	s.min = min
+	s.k = k
+}
+
+// Return the bounding box.
 func (s *UnionSDF3) BoundingBox() Box3 {
-	bb := s.s0.BoundingBox()
-	return bb.Extend(s.s1.BoundingBox())
+	return s.bb
 }
 
 //-----------------------------------------------------------------------------

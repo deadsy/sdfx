@@ -94,29 +94,29 @@ func Sign(x float64) float64 {
 
 type MinFunc func(a, b, k float64) float64
 
-// normal min - no blending
+// Normal Minimum, no blending.
 func NormalMin(a, b, k float64) float64 {
 	return Min(a, b)
 }
 
-// round min uses a quarter-circle to join the two objects smoothly
+// Round Minimum, uses a quarter-circle to join the two objects smoothly.
 func RoundMin(a, b, k float64) float64 {
 	u := V2{k - a, k - b}.Max(V2{0, 0})
 	return Max(k, Min(a, b)) - u.Length()
 }
 
-// chamfer min makes a 45-degree chamfered edge (the diagonal of a square of size <r>)
+// Chamfer Minimum, makes a 45-degree chamfered edge (the diagonal of a square of size <r>).
 // TODO: why the holes in the rendering?
 func ChamferMin(a, b, k float64) float64 {
 	return Min(Min(a, b), (a-k+b)*SQRT_HALF)
 }
 
-// exponential smooth min (k = 32);
+// Exponential Smooth Minimum (k = 32).
 func ExpMin(a, b, k float64) float64 {
 	return -math.Log(math.Exp(-k*a)+math.Exp(-k*b)) / k
 }
 
-// power smooth min (k = 8)
+// Power Smooth Minimum (k = 8).
 // TODO - weird results, is this correct?
 func PowMin(a, b, k float64) float64 {
 	a = math.Pow(a, k)
@@ -124,7 +124,7 @@ func PowMin(a, b, k float64) float64 {
 	return math.Pow((a*b)/(a+b), 1/k)
 }
 
-// polynomial smooth min (Try k = 0.1, a bigger k gives a bigger fillet)
+// Polynomial Smooth Minimum (Try k = 0.1, a bigger k gives a bigger fillet).
 func PolyMin(a, b, k float64) float64 {
 	h := Clamp(0.5+0.5*(b-a)/k, 0.0, 1.0)
 	return Mix(b, a, h) - k*h*(1.0-h)

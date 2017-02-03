@@ -137,16 +137,21 @@ func core_profile() SDF2 {
 //-----------------------------------------------------------------------------
 
 func wheel() {
-	//web := web_profile()
 	//core := core_profile()
 
-	s0 := wheel_profile()
-	s1 := NewSorSDF3(s0)
+	s0 := web_profile()
+	s1 := NewExtrudeSDF3(s0, web_length)
+	m := Rotate3d(V3{1, 0, 0}, DtoR(-90)).Mul(Translate3d(V3{0, plate_thickness, shaft_radius}))
+	s1 = NewTransformSDF3(s1, m)
+	s1 = NewRotateSDF3(s1, 6, Rotate3d(V3{0, 0, 1}, DtoR(60)))
 
-	//s2 := web_profile()
-	//s3 := NewExtrudeSDF3(s2, web_length)
+	s2 := wheel_profile()
+	s3 := NewSorSDF3(s2)
 
-	RenderSTL(s1)
+	s4 := NewUnionSDF3(s1, s3)
+	s4.(*UnionSDF3).SetMin(PolyMin, 4.0)
+
+	RenderSTL(s4)
 }
 
 //-----------------------------------------------------------------------------
