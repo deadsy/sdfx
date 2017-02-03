@@ -1,8 +1,9 @@
 //-----------------------------------------------------------------------------
 /*
 
+Pottery Wheel
 
- */
+*/
 //-----------------------------------------------------------------------------
 
 package main
@@ -91,7 +92,7 @@ func wheel_profile() SDF2 {
 	}
 	s.Smooth()
 
-	RenderDXF("wheel.dxf", s.Vertices())
+	//RenderDXF("wheel.dxf", s.Vertices())
 	return NewPolySDF2(s.Vertices())
 }
 
@@ -111,7 +112,7 @@ func web_profile() SDF2 {
 	s.Add(V2{x1, 0})
 	s.Smooth()
 
-	RenderDXF("web.dxf", s.Vertices())
+	//RenderDXF("web.dxf", s.Vertices())
 	return NewPolySDF2(s.Vertices())
 }
 
@@ -130,28 +131,45 @@ func core_profile() SDF2 {
 	s.Add(V2{0, core_height + shaft_length})
 	s.Smooth()
 
-	RenderDXF("core.dxf", s.Vertices())
+	//RenderDXF("core.dxf", s.Vertices())
 	return NewPolySDF2(s.Vertices())
 }
 
 //-----------------------------------------------------------------------------
 
-func wheel() {
-	//core := core_profile()
+// build the wheel pattern
+func wheel_pattern() {
 
+	// build the reinforcing webs
 	s0 := web_profile()
 	s1 := NewExtrudeSDF3(s0, web_length)
 	m := Rotate3d(V3{1, 0, 0}, DtoR(-90)).Mul(Translate3d(V3{0, plate_thickness, shaft_radius}))
 	s1 = NewTransformSDF3(s1, m)
 	s1 = NewRotateSDF3(s1, 6, Rotate3d(V3{0, 0, 1}, DtoR(60)))
 
+	// build the wheel
 	s2 := wheel_profile()
 	s3 := NewSorSDF3(s2)
 
+	// add the webs to the wheel
 	s4 := NewUnionSDF3(s1, s3)
 	s4.(*UnionSDF3).SetMin(PolyMin, 4.0)
 
-	RenderSTL(s4)
+	RenderSTL(s4, "wheel.stl")
+}
+
+//-----------------------------------------------------------------------------
+
+// build the core box
+func core_box() {
+	//core := core_profile()
+}
+
+//-----------------------------------------------------------------------------
+
+func main() {
+	wheel_pattern()
+	core_box()
 }
 
 //-----------------------------------------------------------------------------

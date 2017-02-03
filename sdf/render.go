@@ -59,20 +59,25 @@ func RenderPNG(s SDF3, render_floor bool) {
 
 //-----------------------------------------------------------------------------
 
-const MESH_CELLS = 200.0
+// Render an SDF3 as an STL triangle mesh file.
+func RenderSTL(s SDF3, path string) {
 
-func RenderSTL(s SDF3) {
+	mesh_cells := 200.0 // number of mesh cells on major axis of SDF3 bounding box
 
+	// work out the region we will sample
 	bb0 := s.BoundingBox()
 	bb0_size := bb0.Size()
-	mesh_inc := bb0_size.MaxComponent() / MESH_CELLS
+	mesh_inc := bb0_size.MaxComponent() / mesh_cells
 	bb1_size := bb0_size.DivScalar(mesh_inc)
 	bb1_size = bb1_size.Ceil().AddScalar(2)
+	cells := bb1_size.ToV3i()
 	bb1_size = bb1_size.MulScalar(mesh_inc)
 	bb := NewBox3(bb0.Center(), bb1_size)
 
+	fmt.Printf("rendering %s (%dx%dx%d)\n", path, cells[0], cells[1], cells[2])
+
 	m := NewSDFMesh(s, bb, mesh_inc)
-	err := SaveSTL("test.stl", m)
+	err := SaveSTL(path, m)
 	if err != nil {
 		fmt.Printf("%s", err)
 	}
