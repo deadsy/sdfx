@@ -96,8 +96,6 @@ func wheel_profile() SDF2 {
 	return NewPolySDF2(s.Vertices())
 }
 
-//-----------------------------------------------------------------------------
-
 // build 2d web profile
 func web_profile() SDF2 {
 
@@ -115,27 +113,6 @@ func web_profile() SDF2 {
 	//RenderDXF("web.dxf", s.Vertices())
 	return NewPolySDF2(s.Vertices())
 }
-
-//-----------------------------------------------------------------------------
-
-// build 2d core profile
-func core_profile() SDF2 {
-
-	draft := core_height * math.Tan(core_draft_angle)
-
-	s := NewSmoother(false)
-	s.Add(V2{0, 0})
-	s.Add(V2{shaft_radius - draft, 0})
-	s.Add(V2{shaft_radius, core_height})
-	s.AddSmooth(V2{shaft_radius, core_height + shaft_length}, 3, 2.0)
-	s.Add(V2{0, core_height + shaft_length})
-	s.Smooth()
-
-	//RenderDXF("core.dxf", s.Vertices())
-	return NewPolySDF2(s.Vertices())
-}
-
-//-----------------------------------------------------------------------------
 
 // build the wheel pattern
 func wheel_pattern() {
@@ -160,6 +137,23 @@ func wheel_pattern() {
 
 //-----------------------------------------------------------------------------
 
+// build 2d core profile
+func core_profile() SDF2 {
+
+	draft := core_height * math.Tan(core_draft_angle)
+
+	s := NewSmoother(false)
+	s.Add(V2{0, 0})
+	s.Add(V2{shaft_radius - draft, 0})
+	s.Add(V2{shaft_radius, core_height})
+	s.AddSmooth(V2{shaft_radius, core_height + shaft_length}, 3, 2.0)
+	s.Add(V2{0, core_height + shaft_length})
+	s.Smooth()
+
+	//RenderDXF("core.dxf", s.Vertices())
+	return NewPolySDF2(s.Vertices())
+}
+
 // build the core box
 func core_box() {
 
@@ -167,13 +161,27 @@ func core_box() {
 	w := 4.2 * shaft_radius
 	d := 1.2 * shaft_radius
 	h := (core_height + shaft_length) * 1.1
-	box_3d := NewBoxSDF3(V3{w, d, h}, 0)
-	m := Translate3d(V3{0, d / 2, h / 2})
-	box_3d = NewTransformSDF3(box_3d, m)
+	box_3d := NewBoxSDF3(V3{h, w, d}, 0)
+
+	// holes in the box
+	dy := w * 0.37
+	dx := h * 0.4
+	hole_radius := ((3.0 / 16.0) * MM_PER_INCH) / 2.0
+	positions := []V2{
+		V2{dx, dy},
+		V2{-dx, dy},
+		V2{dx, -dy},
+		V2{-dx, -dy}}
+	holes_3d := NewMultiCylinderSDF3(d, hole_radius, positions)
+
+	// Drill the holes
+	box_3d = NewDifferenceSDF3(box_3d, holes_3d)
 
 	// build the core
 	core_2d := core_profile()
 	core_3d := NewSorSDF3(core_2d)
+	m := Translate3d(V3{h / 2, 0, d / 2}).Mul(RotateY(DtoR(-90)))
+	core_3d = NewTransformSDF3(core_3d, m)
 
 	// remove the core from the box
 	core_box := NewDifferenceSDF3(box_3d, core_3d)

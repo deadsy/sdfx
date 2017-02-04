@@ -193,7 +193,7 @@ type CylinderSDF3 struct {
 }
 
 // Return an SDF3 for a cylinder (rounded edges with round > 0).
-func NewCylinderSDF3(radius, height, round float64) SDF3 {
+func NewCylinderSDF3(height, radius, round float64) SDF3 {
 	s := CylinderSDF3{}
 	s.height = (height / 2) - round
 	s.radius = radius - round
@@ -216,6 +216,46 @@ func (s *CylinderSDF3) Evaluate(p V3) float64 {
 
 // Return the bounding box for a cylinder.
 func (s *CylinderSDF3) BoundingBox() Box3 {
+	return s.bb
+}
+
+//-----------------------------------------------------------------------------
+// Cylinders of the same radius and height at various x/y positions
+// (E.g. drilling patterns) are useful enough to warrant their own SDF3 function.
+
+// Multiple Cylinders
+type MultiCylinderSDF3 struct {
+	height    float64
+	radius    float64
+	positions V2Set
+	bb        Box3
+}
+
+// Return an SDF3 for multiple cylinders.
+func NewMultiCylinderSDF3(height, radius float64, positions V2Set) SDF3 {
+	s := MultiCylinderSDF3{}
+	s.height = height / 2
+	s.radius = radius
+	s.positions = positions
+	// work out the bounding box
+	pmin := positions.Min().Sub(V2{radius, radius})
+	pmax := positions.Max().Add(V2{radius, radius})
+	s.bb = Box3{V3{pmin.X, pmin.Y, -height / 2}, V3{pmax.X, pmax.Y, height / 2}}
+	return &s
+}
+
+// Return the minimum distance to multiple cylinders.
+func (s *MultiCylinderSDF3) Evaluate(p V3) float64 {
+	d := math.MaxFloat64
+	for _, posn := range s.positions {
+		l := V2{p.X, p.Y}.Sub(posn).Length()
+		d = Min(d, sdf_box2d(V2{l, p.Z}, V2{s.radius, s.height}))
+	}
+	return d
+}
+
+// Return the bounding box for multiple cylinders.
+func (s *MultiCylinderSDF3) BoundingBox() Box3 {
 	return s.bb
 }
 

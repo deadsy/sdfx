@@ -320,6 +320,13 @@ func test26() {
 	sdf.RenderSTL(s, "test.stl")
 }
 
+func test27() {
+	r := 5.0
+	posn := []sdf.V2{sdf.V2{2 * r, 2 * r}, sdf.V2{-r, r}, sdf.V2{r, -r}, sdf.V2{-r, -r}, sdf.V2{0, 0}}
+	s := sdf.NewMultiCylinderSDF3(3, 1, posn)
+	sdf.RenderSTL(s, "test.stl")
+}
+
 func main() {
-	test11()
+	test27()
 }

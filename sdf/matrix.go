@@ -128,6 +128,21 @@ func Rotate3d(v V3, a float64) M44 {
 		0, 0, 0, 1}
 }
 
+// Rotate about the X axis.
+func RotateX(a float64) M44 {
+	return Rotate3d(V3{1, 0, 0}, a)
+}
+
+// Rotate about the Y axis.
+func RotateY(a float64) M44 {
+	return Rotate3d(V3{0, 1, 0}, a)
+}
+
+// Rotate about the Z axis.
+func RotateZ(a float64) M44 {
+	return Rotate3d(V3{0, 0, 1}, a)
+}
+
 // Return an orthographic 2d rotation matrix (right hand rule)
 func Rotate2d(a float64) M33 {
 	s := math.Sin(a)
