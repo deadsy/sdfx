@@ -52,55 +52,63 @@ func (s *PtSDF) BoundingBox() pt.Box {
 }
 
 //-----------------------------------------------------------------------------
-// Solid of Revolution, SDF2 -> SDF3
 
+// Solid of Revolution, SDF2 to SDF3
 type SorSDF3 struct {
-	Sdf   SDF2
-	Theta float64 // angle for partial revolutions
-	Norm  V2      // pre-calculated normal to theta line
+	sdf   SDF2
+	theta float64 // angle for partial revolutions
+	norm  V2      // pre-calculated normal to theta line
+	bb    Box3
 }
 
-func NewSorSDF3(sdf SDF2) SDF3 {
-	return &SorSDF3{sdf, 0, V2{}}
-}
-
+// Return an SDF3 for a solid of revolution.
 func NewSorThetaSDF3(sdf SDF2, theta float64) SDF3 {
+	s := SorSDF3{}
+	s.sdf = sdf
 	// normalize theta
-	theta = math.Mod(Abs(theta), TAU)
+	s.theta = math.Mod(Abs(theta), TAU)
 	// pre-calculate the normal to the theta line
-	norm := V2{math.Sin(theta), -math.Cos(theta)}
-	return &SorSDF3{sdf, theta, norm}
+	s.norm = V2{-math.Sin(s.theta), math.Cos(s.theta)}
+	// TODO - reduce the BB for theta != 0
+	b := s.sdf.BoundingBox()
+	j := b.Min
+	k := b.Max
+	l := Max(Abs(j.X), Abs(k.X))
+	s.bb = Box3{V3{-l, -l, j.Y}, V3{l, l, k.Y}}
+	return &s
 }
 
+// Return an SDF3 for a solid of revolution.
+func NewSorSDF3(sdf SDF2) SDF3 {
+	return NewSorThetaSDF3(sdf, 0)
+}
+
+// Return the minimum distance to a solid of revolution.
 func (s *SorSDF3) Evaluate(p V3) float64 {
 	x := math.Sqrt(p.X*p.X + p.Y*p.Y)
-	a := s.Sdf.Evaluate(V2{x, p.Z})
+	a := s.sdf.Evaluate(V2{x, p.Z})
 	b := a
-	if s.Theta != 0 {
+	if s.theta != 0 {
 		// combine two vertical planes to give an intersection wedge
-		d := s.Norm.Dot(V2{p.X, p.Y})
-		if s.Theta < PI {
-			b = Max(p.Y, d) // intersect
+		d := s.norm.Dot(V2{p.X, p.Y})
+		if s.theta < PI {
+			b = Max(-p.Y, d) // intersect
 		} else {
-			b = Min(p.Y, d) // union
+			b = Min(-p.Y, d) // union
 		}
 	}
 	// return the intersection
 	return Max(a, b)
 }
 
+// Return the bounding box for a solid of revolution.
 func (s *SorSDF3) BoundingBox() Box3 {
-	// TODO - reduce the BB for theta != 0
-	b := s.Sdf.BoundingBox()
-	j := b.Min
-	k := b.Max
-	l := Max(Abs(j.X), Abs(k.X))
-	return Box3{V3{-l, -l, j.Y}, V3{l, l, k.Y}}
+	return s.bb
 }
 
 //-----------------------------------------------------------------------------
-// Extrude, SDF2 -> SDF3
 
+// Extrude, SDF2 to SDF3
 type ExtrudeSDF3 struct {
 	Sdf    SDF2
 	Height float64

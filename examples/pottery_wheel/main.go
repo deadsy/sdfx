@@ -19,8 +19,8 @@ import (
 
 const MM_PER_INCH = 25.4
 const SCALE = 1.0 / 0.98 // 2% Al shrinkage
-const core_print = true  // add the core print to the wheel
-const pie_print = true   // create a 1/n pie segment (n = number of webs)
+const core_print = false // add the core print to the wheel
+const pie_print = false  // create a 1/n pie segment (n = number of webs)
 
 //-----------------------------------------------------------------------------
 
@@ -44,7 +44,7 @@ var shaft_length = dim(45.0)                // length of shaft bore
 var wall_height = dim(35.0)                 // height of wheel side walls
 var wall_thickness = dim(4.0)               // base thickness of outer wheel walls
 var plate_thickness = dim(7.0)              // thickness of wheel top plate
-var web_width = dim(4.0)                    // base thickness of reinforcing webs
+var web_width = dim(2.0)                    // thickness of reinforcing webs
 var web_height = dim(25.0)                  // height of reinforcing webs
 var core_height = dim(15.0)                 // height of core print
 var number_of_webs = 6                      // number of reinforcing webs
@@ -53,7 +53,7 @@ var number_of_webs = 6                      // number of reinforcing webs
 var wheel_radius = wheel_diameter / 2
 var hub_radius = hub_diameter / 2
 var shaft_radius = shaft_diameter / 2
-var web_length = wheel_radius - (wall_thickness / 2) - shaft_radius
+var web_length = wheel_radius - wall_thickness - hub_radius
 
 //-----------------------------------------------------------------------------
 
@@ -100,14 +100,14 @@ func wheel_profile() SDF2 {
 func web_profile() SDF2 {
 
 	draft := web_height * math.Tan(draft_angle)
-	x1 := web_width + draft
-	x2 := web_width
+	x0 := web_width + draft
+	x1 := web_width
 
 	s := NewSmoother(false)
-	s.Add(V2{-x1, 0})
-	s.AddSmooth(V2{-x2, web_height}, 3, 1.0)
-	s.AddSmooth(V2{x2, web_height}, 3, 1.0)
-	s.Add(V2{x1, 0})
+	s.Add(V2{-x0, 0})
+	s.AddSmooth(V2{-x1, web_height}, 3, 1.0)
+	s.AddSmooth(V2{x1, web_height}, 3, 1.0)
+	s.Add(V2{x0, 0})
 	s.Smooth()
 
 	//RenderDXF("web.dxf", s.Vertices())
@@ -117,20 +117,26 @@ func web_profile() SDF2 {
 // build the wheel pattern
 func wheel_pattern() {
 
-	// build the reinforcing webs
+	// build a reinforcing webs
 	web_2d := web_profile()
 	web_3d := NewExtrudeSDF3(web_2d, web_length)
-	m := Rotate3d(V3{1, 0, 0}, DtoR(90)).Mul(Translate3d(V3{0, plate_thickness, shaft_radius}))
+	m := RotateZ(DtoR(120)).Mul(RotateX(DtoR(90)).Mul(Translate3d(V3{0, plate_thickness, hub_radius})))
 	web_3d = NewTransformSDF3(web_3d, m)
-	web_3d = NewRotateSDF3(web_3d, 6, Rotate3d(V3{0, 0, 1}, DtoR(60)))
 
-	// build the wheel
+	// build the wheel profile
 	wheel_2d := wheel_profile()
-	wheel_3d := NewSorSDF3(wheel_2d)
+	var wheel_3d SDF3
+
+	if pie_print {
+		wheel_3d = NewSorThetaSDF3(wheel_2d, DtoR(60))
+	} else {
+		web_3d = NewRotateSDF3(web_3d, 6, Rotate3d(V3{0, 0, 1}, DtoR(60)))
+		wheel_3d = NewSorSDF3(wheel_2d)
+	}
 
 	// add the webs to the wheel with some blending
 	wheel := NewUnionSDF3(wheel_3d, web_3d)
-	wheel.(*UnionSDF3).SetMin(PolyMin, 4.0)
+	wheel.(*UnionSDF3).SetMin(PolyMin, wall_thickness)
 
 	RenderSTL(wheel, "wheel.stl")
 }
