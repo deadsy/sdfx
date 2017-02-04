@@ -115,19 +115,20 @@ func Scale2d(v V2) M33 {
 		0, 0, 1}
 }
 
-// TODO: does this follow the right hand rule?
+// Return an orthographic 3d rotation matrix (right hand rule)
 func Rotate3d(v V3, a float64) M44 {
 	v = v.Normalize()
 	s := math.Sin(a)
 	c := math.Cos(a)
 	m := 1 - c
 	return M44{
-		m*v.X*v.X + c, m*v.X*v.Y + v.Z*s, m*v.Z*v.X - v.Y*s, 0,
-		m*v.X*v.Y - v.Z*s, m*v.Y*v.Y + c, m*v.Y*v.Z + v.X*s, 0,
-		m*v.Z*v.X + v.Y*s, m*v.Y*v.Z - v.X*s, m*v.Z*v.Z + c, 0,
+		m*v.X*v.X + c, m*v.X*v.Y - v.Z*s, m*v.Z*v.X + v.Y*s, 0,
+		m*v.X*v.Y + v.Z*s, m*v.Y*v.Y + c, m*v.Y*v.Z - v.X*s, 0,
+		m*v.Z*v.X - v.Y*s, m*v.Y*v.Z + v.X*s, m*v.Z*v.Z + c, 0,
 		0, 0, 0, 1}
 }
 
+// Return an orthographic 2d rotation matrix (right hand rule)
 func Rotate2d(a float64) M33 {
 	s := math.Sin(a)
 	c := math.Cos(a)

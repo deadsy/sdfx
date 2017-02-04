@@ -143,7 +143,7 @@ func wheel_pattern() {
 	// build the reinforcing webs
 	s0 := web_profile()
 	s1 := NewExtrudeSDF3(s0, web_length)
-	m := Rotate3d(V3{1, 0, 0}, DtoR(-90)).Mul(Translate3d(V3{0, plate_thickness, shaft_radius}))
+	m := Rotate3d(V3{1, 0, 0}, DtoR(90)).Mul(Translate3d(V3{0, plate_thickness, shaft_radius}))
 	s1 = NewTransformSDF3(s1, m)
 	s1 = NewRotateSDF3(s1, 6, Rotate3d(V3{0, 0, 1}, DtoR(60)))
 
@@ -151,7 +151,7 @@ func wheel_pattern() {
 	s2 := wheel_profile()
 	s3 := NewSorSDF3(s2)
 
-	// add the webs to the wheel
+	// add the webs to the wheel with some blending
 	s4 := NewUnionSDF3(s1, s3)
 	s4.(*UnionSDF3).SetMin(PolyMin, 4.0)
 

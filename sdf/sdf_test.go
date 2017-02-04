@@ -322,3 +322,23 @@ func Test_ArraySDF2(t *testing.T) {
 }
 
 //-----------------------------------------------------------------------------
+
+func Test_Rotation2d(t *testing.T) {
+	r := Rotate2d(DtoR(90))
+	v := V2{1, 0}
+	v = r.MulPosition(v)
+	if v.Equals(V2{0, 1}, TOLERANCE) == false {
+		t.Error("FAIL")
+	}
+}
+
+func Test_Rotation3d(t *testing.T) {
+	r := Rotate3d(V3{0, 0, 1}, DtoR(90))
+	v := V3{1, 0, 0}
+	v = r.MulPosition(v)
+	if v.Equals(V3{0, 1, 0}, TOLERANCE) == false {
+		t.Error("FAIL")
+	}
+}
+
+//-----------------------------------------------------------------------------
