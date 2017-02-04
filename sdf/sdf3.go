@@ -151,45 +151,29 @@ func (s *CapsuleSDF3) BoundingBox() Box3 {
 }
 
 //-----------------------------------------------------------------------------
-// 3D Normal Box
+// 3D Box (rounded corners with radius > 0)
 
 type BoxSDF3 struct {
-	Size V3
+	size   V3
+	radius float64
+	bb     Box3
 }
 
-func NewBoxSDF3(size V3) SDF3 {
-	// note: store a modified size
-	return &BoxSDF3{size.MulScalar(0.5)}
+func NewBoxSDF3(size V3, radius float64) SDF3 {
+	size = size.MulScalar(0.5)
+	s := BoxSDF3{}
+	s.size = size.SubScalar(radius)
+	s.radius = radius
+	s.bb = Box3{size.Negate(), size}
+	return &s
 }
 
 func (s *BoxSDF3) Evaluate(p V3) float64 {
-	return sdf_box3d(p, s.Size)
+	return sdf_box3d(p, s.size) - s.radius
 }
 
 func (s *BoxSDF3) BoundingBox() Box3 {
-	return Box3{s.Size.Negate(), s.Size}
-}
-
-//-----------------------------------------------------------------------------
-// 3D Rounded Box
-
-type RoundedBoxSDF3 struct {
-	Size   V3
-	Radius float64
-}
-
-func NewRoundedBoxSDF3(size V3, radius float64) SDF3 {
-	// note: store a modified size
-	return &RoundedBoxSDF3{size.MulScalar(0.5).SubScalar(radius), radius}
-}
-
-func (s *RoundedBoxSDF3) Evaluate(p V3) float64 {
-	return sdf_box3d(p, s.Size) - s.Radius
-}
-
-func (s *RoundedBoxSDF3) BoundingBox() Box3 {
-	d := s.Size.AddScalar(s.Radius)
-	return Box3{d.Negate(), d}
+	return s.bb
 }
 
 //-----------------------------------------------------------------------------
@@ -235,7 +219,7 @@ func (s *TransformSDF3) BoundingBox() Box3 {
 }
 
 //-----------------------------------------------------------------------------
-// Union of SDF3
+// Union of SDF3s
 
 type UnionSDF3 struct {
 	s0  SDF3
@@ -268,6 +252,43 @@ func (s *UnionSDF3) SetMin(min MinFunc, k float64) {
 
 // Return the bounding box.
 func (s *UnionSDF3) BoundingBox() Box3 {
+	return s.bb
+}
+
+//-----------------------------------------------------------------------------
+// Difference of SDF3s
+
+type DifferenceSDF3 struct {
+	s0  SDF3
+	s1  SDF3
+	max MaxFunc
+	k   float64
+	bb  Box3
+}
+
+// Return the difference of two SDF3 objects, s0 - s1.
+func NewDifferenceSDF3(s0, s1 SDF3) SDF3 {
+	s := DifferenceSDF3{}
+	s.s0 = s0
+	s.s1 = s1
+	s.max = NormalMax
+	s.bb = s0.BoundingBox()
+	return &s
+}
+
+// Return the minimum distance to the object.
+func (s *DifferenceSDF3) Evaluate(p V3) float64 {
+	return s.max(s.s0.Evaluate(p), -s.s1.Evaluate(p), s.k)
+}
+
+// Set the maximum function to control blending.
+func (s *DifferenceSDF3) SetMax(max MaxFunc, k float64) {
+	s.max = max
+	s.k = k
+}
+
+// Return the bounding box.
+func (s *DifferenceSDF3) BoundingBox() Box3 {
 	return s.bb
 }
 

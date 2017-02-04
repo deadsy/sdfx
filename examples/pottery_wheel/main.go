@@ -141,28 +141,44 @@ func core_profile() SDF2 {
 func wheel_pattern() {
 
 	// build the reinforcing webs
-	s0 := web_profile()
-	s1 := NewExtrudeSDF3(s0, web_length)
+	web_2d := web_profile()
+	web_3d := NewExtrudeSDF3(web_2d, web_length)
 	m := Rotate3d(V3{1, 0, 0}, DtoR(90)).Mul(Translate3d(V3{0, plate_thickness, shaft_radius}))
-	s1 = NewTransformSDF3(s1, m)
-	s1 = NewRotateSDF3(s1, 6, Rotate3d(V3{0, 0, 1}, DtoR(60)))
+	web_3d = NewTransformSDF3(web_3d, m)
+	web_3d = NewRotateSDF3(web_3d, 6, Rotate3d(V3{0, 0, 1}, DtoR(60)))
 
 	// build the wheel
-	s2 := wheel_profile()
-	s3 := NewSorSDF3(s2)
+	wheel_2d := wheel_profile()
+	wheel_3d := NewSorSDF3(wheel_2d)
 
 	// add the webs to the wheel with some blending
-	s4 := NewUnionSDF3(s1, s3)
-	s4.(*UnionSDF3).SetMin(PolyMin, 4.0)
+	wheel := NewUnionSDF3(wheel_3d, web_3d)
+	wheel.(*UnionSDF3).SetMin(PolyMin, 4.0)
 
-	RenderSTL(s4, "wheel.stl")
+	RenderSTL(wheel, "wheel.stl")
 }
 
 //-----------------------------------------------------------------------------
 
 // build the core box
 func core_box() {
-	//core := core_profile()
+
+	// build the box
+	w := 4.2 * shaft_radius
+	d := 1.2 * shaft_radius
+	h := (core_height + shaft_length) * 1.1
+	box_3d := NewBoxSDF3(V3{w, d, h}, 0)
+	m := Translate3d(V3{0, d / 2, h / 2})
+	box_3d = NewTransformSDF3(box_3d, m)
+
+	// build the core
+	core_2d := core_profile()
+	core_3d := NewSorSDF3(core_2d)
+
+	// remove the core from the box
+	core_box := NewDifferenceSDF3(box_3d, core_3d)
+
+	RenderSTL(core_box, "core_box.stl")
 }
 
 //-----------------------------------------------------------------------------

@@ -131,3 +131,13 @@ func PolyMin(a, b, k float64) float64 {
 }
 
 //-----------------------------------------------------------------------------
+// Maximum Functions for SDF blending
+
+type MaxFunc func(a, b, k float64) float64
+
+// Normal maximum, no blending.
+func NormalMax(a, b, k float64) float64 {
+	return Max(a, b)
+}
+
+//-----------------------------------------------------------------------------

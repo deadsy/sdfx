@@ -54,7 +54,7 @@ func test6() {
 }
 
 func test7() {
-	s0 := sdf.NewBoxSDF3(sdf.V3{0.8, 0.8, 0.05})
+	s0 := sdf.NewBoxSDF3(sdf.V3{0.8, 0.8, 0.05}, 0)
 	s1 := sdf.NewTransformSDF3(s0, sdf.Rotate3d(sdf.V3{1, 0, 0}, sdf.DtoR(60)))
 	s2 := sdf.NewUnionSDF3(s0, s1)
 	s2.(*sdf.UnionSDF3).SetMin(sdf.PolyMin, 0.1)
@@ -84,7 +84,7 @@ func test9() {
 }
 
 func test10() {
-	s0 := sdf.NewBoxSDF3(sdf.V3{0.8, 0.8, 0.05})
+	s0 := sdf.NewBoxSDF3(sdf.V3{0.8, 0.8, 0.05}, 0)
 	s1 := sdf.NewTransformSDF3(s0, sdf.Rotate3d(sdf.V3{1, 0, 0}, sdf.DtoR(60)))
 	s := sdf.NewUnionSDF3(s0, s1)
 	s.(*sdf.UnionSDF3).SetMin(sdf.PolyMin, 0.1)
