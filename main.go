@@ -92,7 +92,7 @@ func test10() {
 }
 
 func test11() {
-	s := sdf.NewCapsuleSDF3(sdf.V3{0, -0.7, 0}, sdf.V3{0, 0.7, 0}, 0.3)
+	s := sdf.NewCapsuleSDF3(0.3, 1.4)
 	sdf.RenderSTL(s, "test.stl")
 }
 
@@ -315,6 +315,11 @@ func test25() {
 	sdf.SDF2_RenderPNG(s1, "test.png")
 }
 
+func test26() {
+	s := sdf.NewCylinderSDF3(1, 10, 10)
+	sdf.RenderSTL(s, "test.stl")
+}
+
 func main() {
-	test25()
+	test11()
 }

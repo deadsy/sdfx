@@ -128,72 +128,95 @@ func (s *ExtrudeSDF3) BoundingBox() Box3 {
 
 //-----------------------------------------------------------------------------
 
-type CapsuleSDF3 struct {
-	A, B   V3
-	Radius float64
-}
-
-func NewCapsuleSDF3(a, b V3, radius float64) SDF3 {
-	return &CapsuleSDF3{a, b, radius}
-}
-
-func (s *CapsuleSDF3) Evaluate(p V3) float64 {
-	pa := p.Sub(s.A)
-	ba := s.B.Sub(s.A)
-	t := Clamp(pa.Dot(ba)/ba.Dot(ba), 0, 1)
-	return pa.Sub(ba.MulScalar(t)).Length() - s.Radius
-}
-
-func (s *CapsuleSDF3) BoundingBox() Box3 {
-	a := s.A.Min(s.B).SubScalar(s.Radius)
-	b := s.A.Max(s.B).AddScalar(s.Radius)
-	return Box3{a, b}
-}
-
-//-----------------------------------------------------------------------------
-// 3D Box (rounded corners with radius > 0)
-
+// 3D Box
 type BoxSDF3 struct {
-	size   V3
-	radius float64
-	bb     Box3
+	size  V3
+	round float64
+	bb    Box3
 }
 
-func NewBoxSDF3(size V3, radius float64) SDF3 {
+// Return an SDF3 for a box (rounded corners with round > 0).
+func NewBoxSDF3(size V3, round float64) SDF3 {
 	size = size.MulScalar(0.5)
 	s := BoxSDF3{}
-	s.size = size.SubScalar(radius)
-	s.radius = radius
+	s.size = size.SubScalar(round)
+	s.round = round
 	s.bb = Box3{size.Negate(), size}
 	return &s
 }
 
+// Return the minimum distance to a box.
 func (s *BoxSDF3) Evaluate(p V3) float64 {
-	return sdf_box3d(p, s.size) - s.radius
+	return sdf_box3d(p, s.size) - s.round
 }
 
+// Return the bounding box for a box.
 func (s *BoxSDF3) BoundingBox() Box3 {
 	return s.bb
 }
 
 //-----------------------------------------------------------------------------
+
 // 3D Sphere
-
 type SphereSDF3 struct {
-	Radius float64
+	radius float64
+	bb     Box3
 }
 
+// Return an SDF3 for a sphere.
 func NewSphereSDF3(radius float64) SDF3 {
-	return &SphereSDF3{radius}
+	s := SphereSDF3{}
+	s.radius = radius
+	d := V3{radius, radius, radius}
+	s.bb = Box3{d.Negate(), d}
+	return &s
 }
 
+// Return the minimum distance to a sphere.
 func (s *SphereSDF3) Evaluate(p V3) float64 {
-	return p.Length() - s.Radius
+	return p.Length() - s.radius
 }
 
+// Return the bounding box for a sphere.
 func (s *SphereSDF3) BoundingBox() Box3 {
-	d := V3{s.Radius, s.Radius, s.Radius}
-	return Box3{d.Negate(), d}
+	return s.bb
+}
+
+//-----------------------------------------------------------------------------
+
+// 3D Cylinder
+type CylinderSDF3 struct {
+	height float64
+	radius float64
+	round  float64
+	bb     Box3
+}
+
+// Return an SDF3 for a cylinder (rounded edges with round > 0).
+func NewCylinderSDF3(radius, height, round float64) SDF3 {
+	s := CylinderSDF3{}
+	s.height = (height / 2) - round
+	s.radius = radius - round
+	s.round = round
+	d := V3{radius, radius, height / 2}
+	s.bb = Box3{d.Negate(), d}
+	return &s
+}
+
+// Return an SDF3 for a capsule.
+func NewCapsuleSDF3(radius, height float64) SDF3 {
+	return NewCylinderSDF3(radius, height, radius)
+}
+
+// Return the minimum distance to a cylinder.
+func (s *CylinderSDF3) Evaluate(p V3) float64 {
+	d := sdf_box2d(V2{V2{p.X, p.Y}.Length(), p.Z}, V2{s.radius, s.height})
+	return d - s.round
+}
+
+// Return the bounding box for a cylinder.
+func (s *CylinderSDF3) BoundingBox() Box3 {
+	return s.bb
 }
 
 //-----------------------------------------------------------------------------

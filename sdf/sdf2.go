@@ -20,12 +20,13 @@ type SDF2 interface {
 //-----------------------------------------------------------------------------
 // Basic SDF Functions
 
+/*
 func sdf_box2d(p, s V2) float64 {
 	d := p.Abs().Sub(s)
 	return d.Max(V2{0, 0}).Length() + Min(d.MaxComponent(), 0)
 }
+*/
 
-/* alternate function - probably faster
 func sdf_box2d(p, s V2) float64 {
 	p = p.Abs()
 	d := p.Sub(s)
@@ -38,7 +39,6 @@ func sdf_box2d(p, s V2) float64 {
 	}
 	return d.X
 }
-*/
 
 //-----------------------------------------------------------------------------
 // 2D Circle
