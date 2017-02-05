@@ -65,25 +65,25 @@ func (s *CircleSDF2) BoundingBox() Box2 {
 }
 
 //-----------------------------------------------------------------------------
-// 2D Box (rounded corners with radius > 0)
+// 2D Box (rounded corners with round > 0)
 
 type BoxSDF2 struct {
-	size   V2
-	radius float64
-	bb     Box2
+	size  V2
+	round float64
+	bb    Box2
 }
 
-func NewBoxSDF2(size V2, radius float64) SDF2 {
+func NewBoxSDF2(size V2, round float64) SDF2 {
 	size = size.MulScalar(0.5)
 	s := BoxSDF2{}
-	s.size = size.SubScalar(radius)
-	s.radius = radius
+	s.size = size.SubScalar(round)
+	s.round = round
 	s.bb = Box2{size.Negate(), size}
 	return &s
 }
 
 func (s *BoxSDF2) Evaluate(p V2) float64 {
-	return sdf_box2d(p, s.size) - s.radius
+	return sdf_box2d(p, s.size) - s.round
 }
 
 func (s *BoxSDF2) BoundingBox() Box2 {

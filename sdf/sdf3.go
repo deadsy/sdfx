@@ -137,7 +137,7 @@ func NewExtrudeSDF3(sdf SDF2, height float64) SDF3 {
 	s.sdf = sdf
 	s.height = height
 	bb := sdf.BoundingBox()
-	s.bb = Box3{V3{bb.Min.X, bb.Min.Y, 0}, V3{bb.Max.X, bb.Max.Y, s.height}}
+	s.bb = Box3{V3{bb.Min.X, bb.Min.Y, 0}, V3{bb.Max.X, bb.Max.Y, height}}
 	return &s
 }
 
