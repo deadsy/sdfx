@@ -67,14 +67,31 @@ func NewSorThetaSDF3(sdf SDF2, theta float64) SDF3 {
 	s.sdf = sdf
 	// normalize theta
 	s.theta = math.Mod(Abs(theta), TAU)
+	sin := math.Sin(s.theta)
+	cos := math.Cos(s.theta)
 	// pre-calculate the normal to the theta line
-	s.norm = V2{-math.Sin(s.theta), math.Cos(s.theta)}
-	// TODO - reduce the BB for theta != 0
-	b := s.sdf.BoundingBox()
-	j := b.Min
-	k := b.Max
-	l := Max(Abs(j.X), Abs(k.X))
-	s.bb = Box3{V3{-l, -l, j.Y}, V3{l, l, k.Y}}
+	s.norm = V2{-sin, cos}
+	// work out the bounding box
+	var vset V2Set
+	if s.theta == 0 {
+		vset = []V2{V2{1, 1}, V2{-1, -1}}
+	} else {
+		vset = []V2{V2{0, 0}, V2{1, 0}, V2{cos, sin}}
+		if s.theta > 0.5*PI {
+			vset = append(vset, V2{0, 1})
+		}
+		if s.theta > PI {
+			vset = append(vset, V2{-1, 0})
+		}
+		if s.theta > 1.5*PI {
+			vset = append(vset, V2{0, -1})
+		}
+	}
+	bb := s.sdf.BoundingBox()
+	l := Max(Abs(bb.Min.X), Abs(bb.Max.X))
+	vmin := vset.Min().MulScalar(l)
+	vmax := vset.Max().MulScalar(l)
+	s.bb = Box3{V3{vmin.X, vmin.Y, bb.Min.Y}, V3{vmax.X, vmax.Y, bb.Max.Y}}
 	return &s
 }
 
@@ -110,28 +127,31 @@ func (s *SorSDF3) BoundingBox() Box3 {
 
 // Extrude, SDF2 to SDF3
 type ExtrudeSDF3 struct {
-	Sdf    SDF2
-	Height float64
+	sdf    SDF2
+	height float64
+	bb     Box3
 }
 
 func NewExtrudeSDF3(sdf SDF2, height float64) SDF3 {
-	return &ExtrudeSDF3{sdf, height}
+	s := ExtrudeSDF3{}
+	s.sdf = sdf
+	s.height = height
+	bb := sdf.BoundingBox()
+	s.bb = Box3{V3{bb.Min.X, bb.Min.Y, 0}, V3{bb.Max.X, bb.Max.Y, s.height}}
+	return &s
 }
 
 func (s *ExtrudeSDF3) Evaluate(p V3) float64 {
 	// sdf for the projected 2d surface
-	a := s.Sdf.Evaluate(V2{p.X, p.Y})
+	a := s.sdf.Evaluate(V2{p.X, p.Y})
 	// sdf for the extrusion region: z = [0, height]
-	b := Max(-p.Z, p.Z-s.Height)
+	b := Max(-p.Z, p.Z-s.height)
 	// return the intersection
 	return Max(a, b)
 }
 
 func (s *ExtrudeSDF3) BoundingBox() Box3 {
-	b := s.Sdf.BoundingBox()
-	j := b.Min
-	k := b.Max
-	return Box3{V3{j.X, j.Y, 0}, V3{k.X, k.Y, s.Height}}
+	return s.bb
 }
 
 //-----------------------------------------------------------------------------
@@ -271,22 +291,27 @@ func (s *MultiCylinderSDF3) BoundingBox() Box3 {
 // Transform SDF3
 
 type TransformSDF3 struct {
-	Sdf     SDF3
-	Matrix  M44
-	Inverse M44
+	sdf     SDF3
+	matrix  M44
+	inverse M44
+	bb      Box3
 }
 
 func NewTransformSDF3(sdf SDF3, matrix M44) SDF3 {
-	return &TransformSDF3{sdf, matrix, matrix.Inverse()}
+	s := TransformSDF3{}
+	s.sdf = sdf
+	s.matrix = matrix
+	s.inverse = matrix.Inverse()
+	s.bb = matrix.MulBox(sdf.BoundingBox())
+	return &s
 }
 
 func (s *TransformSDF3) Evaluate(p V3) float64 {
-	q := s.Inverse.MulPosition(p)
-	return s.Sdf.Evaluate(q)
+	return s.sdf.Evaluate(s.inverse.MulPosition(p))
 }
 
 func (s *TransformSDF3) BoundingBox() Box3 {
-	return s.Matrix.MulBox(s.Sdf.BoundingBox())
+	return s.bb
 }
 
 //-----------------------------------------------------------------------------
