@@ -5,5 +5,6 @@ Experiments with Signed Distance Functions
 
 ![wheel](https://github.com/deadsy/sdfx/blob/master/docs/gallery/wheel.png "Pottery Wheel Casting Pattern")
 ![core_box](https://github.com/deadsy/sdfx/blob/master/docs/gallery/core_box.png "Pottery Wheel Core Box")
+![cylinder_head](https://github.com/deadsy/sdfx/blob/master/docs/gallery/head.png "Cylinder Head")
 ![voronoi](https://github.com/deadsy/sdfx/blob/master/docs/gallery/voronoi.png "2D Points Distance Field")
 

@@ -65,6 +65,41 @@ func (s *CircleSDF2) BoundingBox() Box2 {
 }
 
 //-----------------------------------------------------------------------------
+
+// Multiple Circles
+type MultiCircleSDF2 struct {
+	radius    float64
+	positions V2Set
+	bb        Box2
+}
+
+// Return an SDF2 for multiple circles.
+func NewMultiCircleSDF2(radius float64, positions V2Set) SDF2 {
+	s := MultiCircleSDF2{}
+	s.radius = radius
+	s.positions = positions
+	// work out the bounding box
+	pmin := positions.Min().Sub(V2{radius, radius})
+	pmax := positions.Max().Add(V2{radius, radius})
+	s.bb = Box2{pmin, pmax}
+	return &s
+}
+
+// Return the minimum distance to multiple circles.
+func (s *MultiCircleSDF2) Evaluate(p V2) float64 {
+	d := math.MaxFloat64
+	for _, posn := range s.positions {
+		d = Min(d, p.Sub(posn).Length()-s.radius)
+	}
+	return d
+}
+
+// Return the bounding box for multiple circles.
+func (s *MultiCircleSDF2) BoundingBox() Box2 {
+	return s.bb
+}
+
+//-----------------------------------------------------------------------------
 // 2D Box (rounded corners with round > 0)
 
 type BoxSDF2 struct {
@@ -393,6 +428,43 @@ func (s *UnionSDF2) Evaluate(p V2) float64 {
 }
 
 func (s *UnionSDF2) BoundingBox() Box2 {
+	return s.bb
+}
+
+//-----------------------------------------------------------------------------
+
+// Difference of SDF2s
+type DifferenceSDF2 struct {
+	s0  SDF2
+	s1  SDF2
+	max MaxFunc
+	k   float64
+	bb  Box2
+}
+
+// Return the difference of two SDF2 objects, s0 - s1.
+func NewDifferenceSDF2(s0, s1 SDF2) SDF2 {
+	s := DifferenceSDF2{}
+	s.s0 = s0
+	s.s1 = s1
+	s.max = NormalMax
+	s.bb = s0.BoundingBox()
+	return &s
+}
+
+// Return the minimum distance to the object.
+func (s *DifferenceSDF2) Evaluate(p V2) float64 {
+	return s.max(s.s0.Evaluate(p), -s.s1.Evaluate(p), s.k)
+}
+
+// Set the maximum function to control blending.
+func (s *DifferenceSDF2) SetMax(max MaxFunc, k float64) {
+	s.max = max
+	s.k = k
+}
+
+// Return the bounding box.
+func (s *DifferenceSDF2) BoundingBox() Box2 {
 	return s.bb
 }
 

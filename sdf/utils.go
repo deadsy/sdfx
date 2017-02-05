@@ -140,4 +140,9 @@ func NormalMax(a, b, k float64) float64 {
 	return Max(a, b)
 }
 
+// Polynomial Smooth Maximum (Try k = 0.1, a bigger k gives a bigger fillet).
+func PolyMax(a, b, k float64) float64 {
+	return -PolyMin(-a, -b, k)
+}
+
 //-----------------------------------------------------------------------------

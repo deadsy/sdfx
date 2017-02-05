@@ -31,6 +31,19 @@ func dim(x float64) float64 {
 }
 
 //-----------------------------------------------------------------------------
+// cylinder domes (or full base)
+
+var cylinder_height = dim(3.0 / 16.0)
+var cylinder_diameter = dim(1.0 + (1.0 / 8.0))
+var cylinder_wall = dim(1.0 / 4.0)
+var cylinder_radius = cylinder_diameter / 2.0
+
+var dome_radius = cylinder_wall + cylinder_radius
+var dome_height = cylinder_wall + cylinder_height
+
+var c2c_distance = dim(1.0 + (3.0 / 8.0))
+
+//-----------------------------------------------------------------------------
 // cylinder studs: location, bosses and holes
 
 var stud_hole_radius = dim(1.0 / 16.0)
@@ -52,37 +65,79 @@ var stud_locations = []V2{
 	V2{-stud_hole_dx0, -stud_hole_dy},
 }
 
+func head_stud_holes() SDF3 {
+	s := NewMultiCircleSDF2(stud_hole_radius, stud_locations)
+	return NewExtrudeSDF3(s, head_height)
+}
+
 //-----------------------------------------------------------------------------
 // head walls
 
 var head_length = dim(4.30 / 1.25)
 var head_width = dim(2.33 / 1.25)
 var head_height = dim(7.0 / 8.0)
-var head_corner_rounding = dim((5.0 / 32.0) / 1.25)
+var head_corner_round = dim((5.0 / 32.0) / 1.25)
+var head_internal_round = dim(0.125)
 var head_wall_thickness = dim(0.154)
 
 func head_wall_outer_2d() SDF2 {
-	return NewBoxSDF2(V2{head_length, head_width}, head_corner_rounding)
+	return NewBoxSDF2(V2{head_length, head_width}, head_corner_round)
 }
 
 func head_wall_inner_2d() SDF2 {
 	l := head_length - (2 * head_wall_thickness)
 	w := head_width - (2 * head_wall_thickness)
-	// TODO add studs
-	return NewBoxSDF2(V2{l, w}, 0)
+	s0 := NewBoxSDF2(V2{l, w}, 0)
+	s1 := NewMultiCircleSDF2(stud_boss_radius, stud_locations)
+	s := NewDifferenceSDF2(s0, s1)
+	s.(*DifferenceSDF2).SetMax(PolyMax, head_internal_round)
+	return s
+}
+
+func head_envelope() SDF3 {
+	return NewExtrudeSDF3(head_wall_outer_2d(), head_height)
 }
 
 func head_wall() SDF3 {
-	wall_2d := head_wall_outer_2d()
-	//  wall_2d = NewDifferenceSDF2(wall_2d, head_wall_inner_2d())
-	return NewExtrudeSDF3(wall_2d, head_height)
+	s := head_wall_outer_2d()
+	s = NewDifferenceSDF2(s, head_wall_inner_2d())
+	return NewExtrudeSDF3(s, head_height)
+}
+
+func head_base() SDF3 {
+	delta := head_height - dome_height
+	s := NewExtrudeSDF3(head_wall_inner_2d(), dome_height)
+	m := Translate3d(V3{0, 0, -delta / 2})
+	s = NewTransformSDF3(s, m)
+	return s
+}
+
+//-----------------------------------------------------------------------------
+
+func additive() SDF3 {
+	s := NewUnionSDF3(head_wall(), head_base())
+	s.(*UnionSDF3).SetMin(PolyMin, head_internal_round)
+	// cleanup the blending artifacts on the outside
+	s = NewIntersectionSDF3(s, head_envelope())
+
+	return s
+}
+
+//-----------------------------------------------------------------------------
+
+func subtractive(s SDF3) SDF3 {
+	s = NewDifferenceSDF3(s, head_stud_holes())
+	return s
 }
 
 //-----------------------------------------------------------------------------
 
 func main() {
-	head := head_wall()
-	RenderSTL(head, "head.stl")
+	s := additive()
+	if !casting {
+		s = subtractive(s)
+	}
+	RenderSTL(s, "head.stl")
 }
 
 //-----------------------------------------------------------------------------

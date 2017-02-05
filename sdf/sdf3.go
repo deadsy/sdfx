@@ -135,17 +135,17 @@ type ExtrudeSDF3 struct {
 func NewExtrudeSDF3(sdf SDF2, height float64) SDF3 {
 	s := ExtrudeSDF3{}
 	s.sdf = sdf
-	s.height = height
+	s.height = height / 2
 	bb := sdf.BoundingBox()
-	s.bb = Box3{V3{bb.Min.X, bb.Min.Y, 0}, V3{bb.Max.X, bb.Max.Y, height}}
+	s.bb = Box3{V3{bb.Min.X, bb.Min.Y, -s.height}, V3{bb.Max.X, bb.Max.Y, s.height}}
 	return &s
 }
 
 func (s *ExtrudeSDF3) Evaluate(p V3) float64 {
 	// sdf for the projected 2d surface
 	a := s.sdf.Evaluate(V2{p.X, p.Y})
-	// sdf for the extrusion region: z = [0, height]
-	b := Max(-p.Z, p.Z-s.height)
+	// sdf for the extrusion region: z = [-height, height]
+	b := Abs(p.Z) - s.height
 	// return the intersection
 	return Max(a, b)
 }
@@ -288,6 +288,35 @@ func (s *MultiCylinderSDF3) BoundingBox() Box3 {
 }
 
 //-----------------------------------------------------------------------------
+// Offset an SDF3 - add a constant to the distance function
+// offset > 0, enlarges and adds rounding to convex corners of the SDF
+// offset < 0, skeletonizes the SDF
+
+type OffsetSDF3 struct {
+	sdf    SDF3
+	offset float64
+	bb     Box3
+}
+
+func NewOffsetSDF3(sdf SDF3, offset float64) SDF3 {
+	s := OffsetSDF3{}
+	s.sdf = sdf
+	s.offset = offset
+	// work out the bounding box
+	bb := sdf.BoundingBox()
+	s.bb = NewBox3(bb.Center(), bb.Size().AddScalar(2*offset))
+	return &s
+}
+
+func (s *OffsetSDF3) Evaluate(p V3) float64 {
+	return s.sdf.Evaluate(p) - s.offset
+}
+
+func (s *OffsetSDF3) BoundingBox() Box3 {
+	return s.bb
+}
+
+//-----------------------------------------------------------------------------
 // Transform SDF3
 
 type TransformSDF3 struct {
@@ -352,8 +381,8 @@ func (s *UnionSDF3) BoundingBox() Box3 {
 }
 
 //-----------------------------------------------------------------------------
-// Difference of SDF3s
 
+// Difference of SDF3s
 type DifferenceSDF3 struct {
 	s0  SDF3
 	s1  SDF3
@@ -385,6 +414,43 @@ func (s *DifferenceSDF3) SetMax(max MaxFunc, k float64) {
 
 // Return the bounding box.
 func (s *DifferenceSDF3) BoundingBox() Box3 {
+	return s.bb
+}
+
+//-----------------------------------------------------------------------------
+
+// Intersection of SDF3s
+type IntersectionSDF3 struct {
+	s0  SDF3
+	s1  SDF3
+	max MaxFunc
+	k   float64
+	bb  Box3
+}
+
+// Return the intersection of two SDF3 objects, s0 with s1.
+func NewIntersectionSDF3(s0, s1 SDF3) SDF3 {
+	s := IntersectionSDF3{}
+	s.s0 = s0
+	s.s1 = s1
+	s.max = NormalMax
+	s.bb = s0.BoundingBox()
+	return &s
+}
+
+// Return the minimum distance to the object.
+func (s *IntersectionSDF3) Evaluate(p V3) float64 {
+	return s.max(s.s0.Evaluate(p), s.s1.Evaluate(p), s.k)
+}
+
+// Set the maximum function to control blending.
+func (s *IntersectionSDF3) SetMax(max MaxFunc, k float64) {
+	s.max = max
+	s.k = k
+}
+
+// Return the bounding box.
+func (s *IntersectionSDF3) BoundingBox() Box3 {
 	return s.bb
 }
 
