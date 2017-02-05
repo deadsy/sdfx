@@ -20,7 +20,7 @@ import (
 const MM_PER_INCH = 25.4
 const SCALE = 1.0 / 0.98 // 2% Al shrinkage
 const core_print = false // add the core print to the wheel
-const pie_print = true   // create a 1/n pie segment (n = number of webs)
+const pie_print = false  // create a 1/n pie segment (n = number of webs)
 
 //-----------------------------------------------------------------------------
 
