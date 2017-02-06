@@ -146,3 +146,13 @@ func PolyMax(a, b, k float64) float64 {
 }
 
 //-----------------------------------------------------------------------------
+// Extrude Functions
+
+type ExtrudeFunc func(sdf SDF2, p V3) float64
+
+// Normal Extrude
+func NormalExtrude(sdf SDF2, p V3) float64 {
+	return sdf.Evaluate(V2{p.X, p.Y})
+}
+
+//-----------------------------------------------------------------------------

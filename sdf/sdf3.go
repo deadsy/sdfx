@@ -127,15 +127,17 @@ func (s *SorSDF3) BoundingBox() Box3 {
 
 // Extrude, SDF2 to SDF3
 type ExtrudeSDF3 struct {
-	sdf    SDF2
-	height float64
-	bb     Box3
+	sdf     SDF2
+	height  float64
+	extrude ExtrudeFunc
+	bb      Box3
 }
 
 func NewExtrudeSDF3(sdf SDF2, height float64) SDF3 {
 	s := ExtrudeSDF3{}
 	s.sdf = sdf
 	s.height = height / 2
+	s.extrude = NormalExtrude
 	bb := sdf.BoundingBox()
 	s.bb = Box3{V3{bb.Min.X, bb.Min.Y, -s.height}, V3{bb.Max.X, bb.Max.Y, s.height}}
 	return &s
@@ -143,11 +145,16 @@ func NewExtrudeSDF3(sdf SDF2, height float64) SDF3 {
 
 func (s *ExtrudeSDF3) Evaluate(p V3) float64 {
 	// sdf for the projected 2d surface
-	a := s.sdf.Evaluate(V2{p.X, p.Y})
+	a := s.extrude(s.sdf, p)
 	// sdf for the extrusion region: z = [-height, height]
 	b := Abs(p.Z) - s.height
 	// return the intersection
 	return Max(a, b)
+}
+
+// Set the evaluation function to control extrusion.
+func (s *ExtrudeSDF3) SetExtrude(extrude ExtrudeFunc) {
+	s.extrude = extrude
 }
 
 func (s *ExtrudeSDF3) BoundingBox() Box3 {

@@ -147,3 +147,20 @@ func (s *Smoother) Vertices() []V2 {
 }
 
 //-----------------------------------------------------------------------------
+
+// Return the vertices of a N sided regular polygon
+func Nagon(n int, radius float64) []V2 {
+	if n < 3 {
+		return nil
+	}
+	m := Rotate(TAU / float64(n))
+	v := make([]V2, n)
+	p := V2{radius, 0}
+	for i := 0; i < n; i++ {
+		v[i] = p
+		p = m.MulPosition(p)
+	}
+	return v
+}
+
+//-----------------------------------------------------------------------------
