@@ -316,7 +316,7 @@ func test25() {
 }
 
 func test26() {
-	s := sdf.NewCylinderSDF3(1, 10, 10)
+	s := sdf.NewCylinderSDF3(5, 2, 1)
 	sdf.RenderSTL(s, "test.stl")
 }
 
@@ -328,5 +328,5 @@ func test27() {
 }
 
 func main() {
-	test27()
+	test26()
 }

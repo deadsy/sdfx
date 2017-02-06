@@ -133,6 +133,7 @@ type ExtrudeSDF3 struct {
 	bb      Box3
 }
 
+// Linear Extrude
 func NewExtrudeSDF3(sdf SDF2, height float64) SDF3 {
 	s := ExtrudeSDF3{}
 	s.sdf = sdf
@@ -140,6 +141,18 @@ func NewExtrudeSDF3(sdf SDF2, height float64) SDF3 {
 	s.extrude = NormalExtrude
 	bb := sdf.BoundingBox()
 	s.bb = Box3{V3{bb.Min.X, bb.Min.Y, -s.height}, V3{bb.Max.X, bb.Max.Y, s.height}}
+	return &s
+}
+
+// Twist Extrude - rotate by twist radians over the height of the extrusion
+func NewTwistExtrudeSDF3(sdf SDF2, height float64, twist float64) SDF3 {
+	s := ExtrudeSDF3{}
+	s.sdf = sdf
+	s.height = height / 2
+	s.extrude = TwistExtrude(twist / height)
+	bb := sdf.BoundingBox()
+	l := bb.Max.Length()
+	s.bb = Box3{V3{-l, -l, -s.height}, V3{l, l, s.height}}
 	return &s
 }
 

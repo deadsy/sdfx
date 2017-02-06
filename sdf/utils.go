@@ -155,4 +155,13 @@ func NormalExtrude(sdf SDF2, p V3) float64 {
 	return sdf.Evaluate(V2{p.X, p.Y})
 }
 
+// Twist Extrude
+func TwistExtrude(k float64) ExtrudeFunc {
+	return func(sdf SDF2, p V3) float64 {
+		m := Rotate(p.Z * k)
+		pnew := m.MulPosition(V2{p.X, p.Y})
+		return sdf.Evaluate(pnew)
+	}
+}
+
 //-----------------------------------------------------------------------------
