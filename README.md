@@ -21,7 +21,7 @@ A simple CAD package written in Go (https://golang.org/)
  * OpenSCAD can't do automatic filleting and chamfers.
  * SDFs can do auto filleting and chamfering.
  * Very hackable to try out oddball ideas.
- * Who needs WYSIWYG?
+ * Who needs an interactive GUI?
 
 ## Gallery
 
