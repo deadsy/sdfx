@@ -146,21 +146,48 @@ func PolyMax(a, b, k float64) float64 {
 }
 
 //-----------------------------------------------------------------------------
-// Extrude Functions
+// Extrude Functions: Map a V3 to V2 - the point used to evaluate the SDF2.
 
-type ExtrudeFunc func(sdf SDF2, p V3) float64
+type ExtrudeFunc func(p V3) V2
 
 // Normal Extrude
-func NormalExtrude(sdf SDF2, p V3) float64 {
-	return sdf.Evaluate(V2{p.X, p.Y})
+func NormalExtrude(p V3) V2 {
+	return V2{p.X, p.Y}
 }
 
-// Twist Extrude
-func TwistExtrude(k float64) ExtrudeFunc {
-	return func(sdf SDF2, p V3) float64 {
+// Return a Twist Extrude function
+func TwistExtrude(height, twist float64) ExtrudeFunc {
+	k := twist / height
+	return func(p V3) V2 {
 		m := Rotate(p.Z * k)
-		pnew := m.MulPosition(V2{p.X, p.Y})
-		return sdf.Evaluate(pnew)
+		return m.MulPosition(V2{p.X, p.Y})
+	}
+}
+
+// Return a Scale Extrude function
+func ScaleExtrude(height float64, scale V2) ExtrudeFunc {
+	inv := V2{1 / scale.X, 1 / scale.Y}
+	m := inv.Sub(V2{1, 1}).DivScalar(height) // slope
+	b := inv.DivScalar(2).AddScalar(0.5)     // intercept
+	return func(p V3) V2 {
+		return V2{p.X, p.Y}.Mul(m.MulScalar(p.Z).Add(b))
+	}
+}
+
+// Return a Scale and the Twist Extrude function
+func ScaleTwistExtrude(height, twist float64, scale V2) ExtrudeFunc {
+	k := twist / height
+	inv := V2{1 / scale.X, 1 / scale.Y}
+	m := inv.Sub(V2{1, 1}).DivScalar(height) // slope
+	b := inv.DivScalar(2).AddScalar(0.5)     // intercept
+	return func(p V3) V2 {
+		// Scale and then Twist
+		pnew := V2{p.X, p.Y}.Mul(m.MulScalar(p.Z).Add(b)) // Scale
+		return Rotate(p.Z * k).MulPosition(pnew)          // Twist
+
+		// Twist and then scale
+		//pnew := Rotate(p.Z * k).MulPosition(V2{p.X, p.Y})
+		//return pnew.Mul(m.MulScalar(p.Z).Add(b))
 	}
 }
 

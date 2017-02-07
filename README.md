@@ -28,6 +28,7 @@ A simple CAD package written in Go (https://golang.org/)
 ![wheel](docs/gallery/wheel.png "Pottery Wheel Casting Pattern")
 ![core_box](docs/gallery/core_box.png "Pottery Wheel Core Box")
 ![cylinder_head](docs/gallery/head.png "Cylinder Head")
-![extrusions](docs/gallery/extrusions.png "Extrusions")
+![extrude1](docs/gallery/extrude1.png "Twisted Extrusions")
+![extrude2](docs/gallery/extrude2.png "Scaled and Twisted Extrusions")
 ![voronoi](docs/gallery/voronoi.png "2D Points Distance Field")
 

@@ -139,18 +139,47 @@ func NewExtrudeSDF3(sdf SDF2, height float64) SDF3 {
 	s.sdf = sdf
 	s.height = height / 2
 	s.extrude = NormalExtrude
+	// work out the bounding box
 	bb := sdf.BoundingBox()
 	s.bb = Box3{V3{bb.Min.X, bb.Min.Y, -s.height}, V3{bb.Max.X, bb.Max.Y, s.height}}
 	return &s
 }
 
 // Twist Extrude - rotate by twist radians over the height of the extrusion
-func NewTwistExtrudeSDF3(sdf SDF2, height float64, twist float64) SDF3 {
+func NewTwistExtrudeSDF3(sdf SDF2, height, twist float64) SDF3 {
 	s := ExtrudeSDF3{}
 	s.sdf = sdf
 	s.height = height / 2
-	s.extrude = TwistExtrude(twist / height)
+	s.extrude = TwistExtrude(height, twist)
+	// work out the bounding box
 	bb := sdf.BoundingBox()
+	l := bb.Max.Length()
+	s.bb = Box3{V3{-l, -l, -s.height}, V3{l, l, s.height}}
+	return &s
+}
+
+// Scale Extrude - scale over the height of the extrusion
+func NewScaleExtrudeSDF3(sdf SDF2, height float64, scale V2) SDF3 {
+	s := ExtrudeSDF3{}
+	s.sdf = sdf
+	s.height = height / 2
+	s.extrude = ScaleExtrude(height, scale)
+	// work out the bounding box
+	bb := sdf.BoundingBox()
+	bb = bb.Extend(Box2{bb.Min.Mul(scale), bb.Max.Mul(scale)})
+	s.bb = Box3{V3{bb.Min.X, bb.Min.Y, -s.height}, V3{bb.Max.X, bb.Max.Y, s.height}}
+	return &s
+}
+
+// Scale + Twist Extrude - scale and then twist over the height of the extrusion
+func NewScaleTwistExtrudeSDF3(sdf SDF2, height, twist float64, scale V2) SDF3 {
+	s := ExtrudeSDF3{}
+	s.sdf = sdf
+	s.height = height / 2
+	s.extrude = ScaleTwistExtrude(height, twist, scale)
+	// work out the bounding box
+	bb := sdf.BoundingBox()
+	bb = bb.Extend(Box2{bb.Min.Mul(scale), bb.Max.Mul(scale)})
 	l := bb.Max.Length()
 	s.bb = Box3{V3{-l, -l, -s.height}, V3{l, l, s.height}}
 	return &s
@@ -158,7 +187,7 @@ func NewTwistExtrudeSDF3(sdf SDF2, height float64, twist float64) SDF3 {
 
 func (s *ExtrudeSDF3) Evaluate(p V3) float64 {
 	// sdf for the projected 2d surface
-	a := s.extrude(s.sdf, p)
+	a := s.sdf.Evaluate(s.extrude(p))
 	// sdf for the extrusion region: z = [-height, height]
 	b := Abs(p.Z) - s.height
 	// return the intersection
