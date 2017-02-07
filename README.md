@@ -16,11 +16,11 @@ A simple CAD package written in Go (https://golang.org/)
  5. Print the STL file if you like it enough.
 
 ## Why?
- * SDFs are cool.
+ * SDFs make CSG easy.
  * As a language Golang > OpenSCAD.
- * OpenSCAD can't do automatic filleting and chamfers.
- * SDFs can do auto filleting and chamfering.
- * Very hackable to try out oddball ideas.
+ * It's hard to do filleting and chamfering with OpenSCAD.
+ * SDFs can easily do filleting and chamfering.
+ * SDFs are hackable to try out oddball ideas.
  * Who needs an interactive GUI?
 
 ## Gallery
