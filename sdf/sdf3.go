@@ -360,7 +360,7 @@ func NewConeSDF3(height, r0, r1, round float64) SDF3 {
 	s.n = V2{s.u.Y, -s.u.X}
 	s.l = V2{r0 - r1, 2 * s.height}.Length()
 	// inset the radii because of the rounding
-	ofs := s.n.MulScalar(round).X
+	ofs := round / s.n.X
 	s.r0 = r0 - ofs
 	s.r1 = r1 - ofs
 	// work out the bounding box

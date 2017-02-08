@@ -69,7 +69,7 @@ func RenderSTL(s SDF3, path string) {
 	bb0_size := bb0.Size()
 	mesh_inc := bb0_size.MaxComponent() / mesh_cells
 	bb1_size := bb0_size.DivScalar(mesh_inc)
-	bb1_size = bb1_size.Ceil().AddScalar(3)
+	bb1_size = bb1_size.Ceil().AddScalar(2)
 	cells := bb1_size.ToV3i()
 	bb1_size = bb1_size.MulScalar(mesh_inc)
 	bb := NewBox3(bb0.Center(), bb1_size)
