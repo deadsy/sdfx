@@ -10,9 +10,14 @@ No draft version for 3d printing and lost-PLA investment casting.
 
 package main
 
-import . "github.com/deadsy/sdfx/sdf"
+import (
+	"math"
+
+	. "github.com/deadsy/sdfx/sdf"
+)
 
 //-----------------------------------------------------------------------------
+
 // overall build controls
 const casting = false // add allowances, remove machined features
 
@@ -30,6 +35,8 @@ func dim(x float64) float64 {
 	return x * desired_scale * MM_PER_INCH * al_shrink * pla_shrink
 }
 
+var general_round = dim(0.125)
+
 //-----------------------------------------------------------------------------
 // cylinder domes (or full base)
 
@@ -40,8 +47,35 @@ var cylinder_radius = cylinder_diameter / 2.0
 
 var dome_radius = cylinder_wall + cylinder_radius
 var dome_height = cylinder_wall + cylinder_height
+var dome_draft = DtoR(12)
 
 var c2c_distance = dim(1.0 + (3.0 / 8.0))
+
+func cylinder_head() SDF3 {
+	delta := dome_height * math.Tan(dome_draft)
+	// build the cylinder dome cross section
+	s := NewSmoother(false)
+	s.Add(V2{0, 0})
+	s.Add(V2{dome_radius + delta, 0})
+	s.AddSmooth(V2{dome_radius, dome_height}, 4, general_round)
+	s.Add(V2{0, dome_height})
+	s.Smooth()
+	return NewSorSDF3(NewPolySDF2(s.Vertices()))
+}
+
+func cylinder_chamber() SDF3 {
+	return NewCylinderSDF3(cylinder_height, cylinder_radius, 0.0)
+}
+
+func cylinder_heads() SDF3 {
+	s0 := cylinder_head()
+	d := c2c_distance / 2
+	s1 := NewTransformSDF3(s0, Translate3d(V3{0, d, 0}))
+	s2 := NewTransformSDF3(s0, Translate3d(V3{0, -d, 0}))
+	s := NewUnionSDF3(s1, s2)
+	s.(*UnionSDF3).SetMin(PolyMin, general_round)
+	return s
+}
 
 //-----------------------------------------------------------------------------
 // cylinder studs: location, bosses and holes
@@ -137,7 +171,10 @@ func main() {
 	if !casting {
 		s = subtractive(s)
 	}
-	RenderSTL(s, "head.stl")
+	//RenderSTL(s, "head.stl")
+
+	RenderSTL(cylinder_heads(), "head2.stl")
+
 }
 
 //-----------------------------------------------------------------------------

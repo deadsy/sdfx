@@ -327,6 +327,11 @@ func test27() {
 	sdf.RenderSTL(s, "test.stl")
 }
 
+func test28() {
+	s := sdf.NewConeSDF3(10, 10, 4, 1)
+	sdf.RenderSTL(s, "test.stl")
+}
+
 func main() {
-	test26()
+	test28()
 }

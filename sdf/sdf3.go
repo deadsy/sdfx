@@ -337,6 +337,76 @@ func (s *MultiCylinderSDF3) BoundingBox() Box3 {
 }
 
 //-----------------------------------------------------------------------------
+
+// Truncated Cone
+type ConeSDF3 struct {
+	r0     float64 // base radius
+	r1     float64 // top radius
+	height float64 // half height
+	round  float64 // rounding offset
+	u      V2      // normalized cone slope vector
+	n      V2      // normal to cone slope (points outward)
+	l      float64 // length of cone slope
+	bb     Box3    // bounding box
+}
+
+// Return a new trucated cone (round > 0 gives rounded edges)
+func NewConeSDF3(height, r0, r1, round float64) SDF3 {
+	s := ConeSDF3{}
+	s.height = (height / 2) - round
+	s.round = round
+	// cone slope vector, normal and length
+	s.u = V2{r1 - r0, height}.Normalize()
+	s.n = V2{s.u.Y, -s.u.X}
+	s.l = V2{r0 - r1, 2 * s.height}.Length()
+	// inset the radii because of the rounding
+	ofs := s.n.MulScalar(round).X
+	s.r0 = r0 - ofs
+	s.r1 = r1 - ofs
+	// work out the bounding box
+	r := Max(r0, r1)
+	s.bb = Box3{V3{-r, -r, -height / 2}, V3{r, r, height / 2}}
+	return &s
+}
+
+// Return the minimum distance to the trucated cone.
+func (s *ConeSDF3) Evaluate(p V3) float64 {
+	// convert to SoR 2d coordinates
+	p2 := V2{V2{p.X, p.Y}.Length(), p.Z}
+	// is p2 above the cone?
+	if p2.Y >= s.height && p2.X <= s.r1 {
+		return p2.Y - s.height - s.round
+	}
+	// is p2 below the cone?
+	if p2.Y <= -s.height && p2.X <= s.r0 {
+		return -p2.Y - s.height - s.round
+	}
+	// distance to slope line
+	v := p2.Sub(V2{s.r0, -s.height})
+	d_slope := v.Dot(s.n)
+	// is p2 inside the cone?
+	if (d_slope < 0) && (Abs(p2.Y) < s.height) {
+		return -Min(-d_slope, s.height-Abs(p2.Y)) - s.round
+	}
+	// is p2 closest to the slope line?
+	t := v.Dot(s.u)
+	if t >= 0 && t <= s.l {
+		return d_slope - s.round
+	}
+	// is p2 closest to the base radius vertex?
+	if t < 0 {
+		return v.Length() - s.round
+	}
+	// p2 is closest to the top radius vertex
+	return p2.Sub(V2{s.r1, s.height}).Length() - s.round
+}
+
+// Return the bounding box for the trucated cone.
+func (s *ConeSDF3) BoundingBox() Box3 {
+	return s.bb
+}
+
+//-----------------------------------------------------------------------------
 // Offset an SDF3 - add a constant to the distance function
 // offset > 0, enlarges and adds rounding to convex corners of the SDF
 // offset < 0, skeletonizes the SDF
