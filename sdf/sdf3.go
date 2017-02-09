@@ -204,8 +204,9 @@ func (s *ExtrudeSDF3) BoundingBox() Box3 {
 }
 
 //-----------------------------------------------------------------------------
+// Box (exact distance field)
 
-// 3D Box
+// Box
 type BoxSDF3 struct {
 	size  V3
 	round float64
@@ -233,8 +234,9 @@ func (s *BoxSDF3) BoundingBox() Box3 {
 }
 
 //-----------------------------------------------------------------------------
+// Sphere (exact distance field)
 
-// 3D Sphere
+// Sphere
 type SphereSDF3 struct {
 	radius float64
 	bb     Box3
@@ -260,8 +262,9 @@ func (s *SphereSDF3) BoundingBox() Box3 {
 }
 
 //-----------------------------------------------------------------------------
+// Cylinder (exact distance field)
 
-// 3D Cylinder
+// Cylinder
 type CylinderSDF3 struct {
 	height float64
 	radius float64
@@ -337,6 +340,7 @@ func (s *MultiCylinderSDF3) BoundingBox() Box3 {
 }
 
 //-----------------------------------------------------------------------------
+// Truncated Cone (exact distance field)
 
 // Truncated Cone
 type ConeSDF3 struct {
@@ -355,16 +359,17 @@ func NewConeSDF3(height, r0, r1, round float64) SDF3 {
 	s := ConeSDF3{}
 	s.height = (height / 2) - round
 	s.round = round
-	// cone slope vector, normal and length
-	s.u = V2{r1 - r0, height}.Normalize()
+	// cone slope vector and normal
+	s.u = V2{r1, height / 2}.Sub(V2{r0, -height / 2}).Normalize()
 	s.n = V2{s.u.Y, -s.u.X}
-	s.l = V2{r0 - r1, 2 * s.height}.Length()
-	// inset the radii because of the rounding
+	// inset the radii for the rounding
 	ofs := round / s.n.X
-	s.r0 = r0 - ofs
-	s.r1 = r1 - ofs
+	s.r0 = r0 - (1+s.n.Y)*ofs
+	s.r1 = r1 - (1-s.n.Y)*ofs
+	// cone slope length
+	s.l = V2{s.r1, s.height}.Sub(V2{s.r0, -s.height}).Length()
 	// work out the bounding box
-	r := Max(r0, r1)
+	r := Max(s.r0+round, s.r1+round)
 	s.bb = Box3{V3{-r, -r, -height / 2}, V3{r, r, height / 2}}
 	return &s
 }
@@ -385,7 +390,7 @@ func (s *ConeSDF3) Evaluate(p V3) float64 {
 	v := p2.Sub(V2{s.r0, -s.height})
 	d_slope := v.Dot(s.n)
 	// is p2 inside the cone?
-	if (d_slope < 0) && (Abs(p2.Y) < s.height) {
+	if d_slope < 0 && Abs(p2.Y) < s.height {
 		return -Min(-d_slope, s.height-Abs(p2.Y)) - s.round
 	}
 	// is p2 closest to the slope line?
