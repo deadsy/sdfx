@@ -13,7 +13,6 @@ import (
 const PI = math.Pi
 const TAU = 2 * math.Pi
 const SQRT_HALF = 0.7071067811865476
-const EPS = 1e-9
 
 //-----------------------------------------------------------------------------
 
@@ -47,7 +46,7 @@ func Mix(x, y, a float64) float64 {
 
 //-----------------------------------------------------------------------------
 // Max/Min functions
-// Note: math.Max/Min don't inline because they do NaN/Inf checking.
+// Note: math.Max/math.Min don't inline
 
 // maximum of a and b
 func Max(a, b float64) float64 {
