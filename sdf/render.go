@@ -83,6 +83,29 @@ func RenderSTL(s SDF3, path string) {
 	}
 }
 
+func NewRenderSTL(s SDF3, path string) {
+
+	mesh_cells := 200.0 // number of mesh cells on major axis of SDF3 bounding box
+
+	// work out the region we will sample
+	bb0 := s.BoundingBox()
+	bb0_size := bb0.Size()
+	mesh_inc := bb0_size.MaxComponent() / mesh_cells
+	bb1_size := bb0_size.DivScalar(mesh_inc)
+	bb1_size = bb1_size.Ceil().AddScalar(2)
+	cells := bb1_size.ToV3i()
+	bb1_size = bb1_size.MulScalar(mesh_inc)
+	bb := NewBox3(bb0.Center(), bb1_size)
+
+	fmt.Printf("rendering %s (%dx%dx%d)\n", path, cells[0], cells[1], cells[2])
+
+	NewMesh3(s, bb, mesh_inc)
+	//err := SaveSTL(path, m)
+	//if err != nil {
+	//		fmt.Printf("%s", err)
+	//}
+}
+
 //-----------------------------------------------------------------------------
 
 // Render an SDF2 as a PNG image file.

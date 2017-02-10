@@ -20,23 +20,27 @@ type LayerXY struct {
 	base  V3        // base coordinate of layer
 	inc   V3        // dx, dy, dz for each step
 	steps V3i       // number of x,y steps
-	val   []float64 // SDF values
+	val0  []float64 // SDF values for z+0 layer
+	val1  []float64 // SDF values for z+1 layer
 }
 
 func NewLayerXY(base, inc V3, steps V3i) *LayerXY {
-	l := LayerXY{base, inc, steps, nil}
+	l := LayerXY{base, inc, steps, nil, nil}
 	return &l
 }
 
 // Evaluate the SDF for a given XY layer
 func (l *LayerXY) Evaluate(sdf SDF3, z int) {
+
+	// Swap the layers
+	l.val0, l.val1 = l.val1, l.val0
+
 	nx := l.steps[0]
 	ny := l.steps[1]
-	l.steps[2] = z
 
 	// allocate storage
-	if l.val == nil {
-		l.val = make([]float64, (nx+1)*(ny+1))
+	if l.val1 == nil {
+		l.val1 = make([]float64, (nx+1)*(ny+1))
 	}
 
 	// setup the loop variables
@@ -52,7 +56,7 @@ func (l *LayerXY) Evaluate(sdf SDF3, z int) {
 	for x := 0; x < nx+1; x++ {
 		p.Y = l.base.Y
 		for y := 0; y < ny+1; y++ {
-			l.val[idx] = sdf.Evaluate(p)
+			l.val1[idx] = sdf.Evaluate(p)
 			idx += 1
 			p.Y += dy
 		}
@@ -68,16 +72,13 @@ func NewMesh3(sdf SDF3, box Box3, step float64) *Mesh {
 	steps := size.DivScalar(step).Ceil().ToV3i()
 	inc := size.Div(steps.ToV3())
 
-	// setup the alternating layers
-	l0 := NewLayerXY(box.Min, inc, steps)
-	l1 := NewLayerXY(box.Min, inc, steps)
-	// prime layer 1
-	l1.Evaluate(sdf, 0)
+	// setup the SDF layer cache
+	l := NewLayerXY(box.Min, inc, steps)
+	// prime the layer cache with z = 0
+	l.Evaluate(sdf, 0)
 
 	for z := 0; z < steps[2]+1; z++ {
-		// swap layers, evaluate the next layer
-		l0, l1 = l1, l0
-		l1.Evaluate(sdf, z+1)
+		l.Evaluate(sdf, z+1)
 	}
 
 	return nil
