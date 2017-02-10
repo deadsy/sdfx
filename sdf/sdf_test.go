@@ -257,57 +257,6 @@ func Test_Polygon3(t *testing.T) {
 
 //-----------------------------------------------------------------------------
 
-func Test_Polygon4(t *testing.T) {
-
-	s := NewNGPolySDF2([]V2{V2{0, 0}, V2{1, 0}, V2{0, 1}})
-	b := s.BoundingBox()
-	b0 := Box2{V2{0, 0}, V2{1, 1}}
-	if b.Equals(b0, TOLERANCE) == false {
-		t.Error("FAIL")
-	}
-
-	s = NewNGPolySDF2([]V2{V2{0, -2}, V2{1, 1}, V2{-2, 2}})
-	b = s.BoundingBox()
-	b0 = Box2{V2{-2, -2}, V2{1, 2}}
-	if b.Equals(b0, TOLERANCE) == false {
-		t.Error("FAIL")
-	}
-
-	s = NewNGPolySDF2([]V2{V2{0, -1}, V2{1, 1}, V2{-1, 1}})
-	b = s.BoundingBox()
-	b0 = Box2{V2{-1, -1}, V2{1, 1}}
-	if b.Equals(b0, TOLERANCE) == false {
-		t.Error("FAIL")
-	}
-
-	test_points := []struct {
-		p V2
-		d float64
-	}{
-		{V2{0, -1}, 0},
-		{V2{1, 1}, 0},
-		{V2{-1, 1}, 0},
-		{V2{0, 1}, 0},
-		{V2{0, 2}, 1},
-		{V2{0, -2}, 1},
-		{V2{1, 0}, 1 / math.Sqrt(5)},
-		{V2{-1, 0}, 1 / math.Sqrt(5)},
-		{V2{0, 0}, -1 / math.Sqrt(5)},
-		{V2{3, 0}, math.Sqrt(5)},
-		{V2{-3, 0}, math.Sqrt(5)},
-	}
-
-	for _, p := range test_points {
-		d := s.Evaluate(p.p)
-		if d != p.d {
-			fmt.Printf("%+v %f (expected) %f (actual)\n", p.p, p.d, d)
-			t.Error("FAIL")
-		}
-	}
-}
-
-//-----------------------------------------------------------------------------
-
 func Test_ArraySDF2(t *testing.T) {
 	r := 0.5
 	s := NewCircleSDF2(r)
