@@ -23,8 +23,7 @@ type LayerYZ struct {
 }
 
 func NewLayerYZ(base, inc V3, steps V3i) *LayerYZ {
-	l := LayerYZ{base, inc, steps, nil, nil}
-	return &l
+	return &LayerYZ{base, inc, steps, nil, nil}
 }
 
 // Evaluate the SDF for a given XY layer

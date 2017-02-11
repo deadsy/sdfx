@@ -480,6 +480,12 @@ type UnionSDF3 struct {
 
 // Return the union of two SDF3 objects.
 func NewUnionSDF3(s0, s1 SDF3) SDF3 {
+	if s0 == nil {
+		return s1
+	}
+	if s1 == nil {
+		return s0
+	}
 	s := UnionSDF3{}
 	s.s0 = s0
 	s.s1 = s1
@@ -517,6 +523,12 @@ type DifferenceSDF3 struct {
 
 // Return the difference of two SDF3 objects, s0 - s1.
 func NewDifferenceSDF3(s0, s1 SDF3) SDF3 {
+	if s1 == nil {
+		return s0
+	}
+	if s0 == nil {
+		return nil
+	}
 	s := DifferenceSDF3{}
 	s.s0 = s0
 	s.s1 = s1
@@ -554,10 +566,14 @@ type IntersectionSDF3 struct {
 
 // Return the intersection of two SDF3 objects, s0 with s1.
 func NewIntersectionSDF3(s0, s1 SDF3) SDF3 {
+	if s0 == nil || s1 == nil {
+		return nil
+	}
 	s := IntersectionSDF3{}
 	s.s0 = s0
 	s.s1 = s1
 	s.max = NormalMax
+	// TODO fix bounding box
 	s.bb = s0.BoundingBox()
 	return &s
 }

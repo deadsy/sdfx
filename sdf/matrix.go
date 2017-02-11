@@ -143,6 +143,16 @@ func RotateZ(a float64) M44 {
 	return Rotate3d(V3{0, 0, 1}, a)
 }
 
+// TODO - generalise for other mirror planes
+// Mirror across the YZ plane
+func MirrorYZ() M44 {
+	return M44{
+		-1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, 0,
+		0, 0, 0, 1}
+}
+
 // Return an orthographic 2d rotation matrix (right hand rule)
 func Rotate2d(a float64) M33 {
 	s := math.Sin(a)

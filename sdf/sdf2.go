@@ -465,6 +465,12 @@ type DifferenceSDF2 struct {
 
 // Return the difference of two SDF2 objects, s0 - s1.
 func NewDifferenceSDF2(s0, s1 SDF2) SDF2 {
+	if s1 == nil {
+		return s0
+	}
+	if s0 == nil {
+		return nil
+	}
 	s := DifferenceSDF2{}
 	s.s0 = s0
 	s.s1 = s1
