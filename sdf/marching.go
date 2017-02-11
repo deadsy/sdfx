@@ -8,7 +8,10 @@ Marching Cubes
 
 package sdf
 
-import "math"
+import (
+	"fmt"
+	"math"
+)
 
 //-----------------------------------------------------------------------------
 
@@ -16,51 +19,49 @@ const EPS = 1e-9
 
 //-----------------------------------------------------------------------------
 
-type LayerXY struct {
+type LayerYZ struct {
 	base  V3        // base coordinate of layer
 	inc   V3        // dx, dy, dz for each step
-	steps V3i       // number of x,y steps
-	val0  []float64 // SDF values for z+0 layer
-	val1  []float64 // SDF values for z+1 layer
+	steps V3i       // number of x,y,z steps
+	val0  []float64 // SDF values for x layer
+	val1  []float64 // SDF values for x + dx layer
 }
 
-func NewLayerXY(base, inc V3, steps V3i) *LayerXY {
-	l := LayerXY{base, inc, steps, nil, nil}
+func NewLayerYZ(base, inc V3, steps V3i) *LayerYZ {
+	l := LayerYZ{base, inc, steps, nil, nil}
 	return &l
 }
 
 // Evaluate the SDF for a given XY layer
-func (l *LayerXY) Evaluate(sdf SDF3, z int) {
+func (l *LayerYZ) Evaluate(sdf SDF3, x int) {
 
 	// Swap the layers
 	l.val0, l.val1 = l.val1, l.val0
 
-	nx := l.steps[0]
-	ny := l.steps[1]
+	ny, nz := l.steps[1], l.steps[2]
+	dx, dy, dz := l.inc.X, l.inc.Y, l.inc.Z
 
 	// allocate storage
 	if l.val1 == nil {
-		l.val1 = make([]float64, (nx+1)*(ny+1))
+		fmt.Printf("alloc\n")
+		l.val1 = make([]float64, (ny+1)*(nz+1))
 	}
 
 	// setup the loop variables
 	idx := 0
-	dx := l.inc.X
-	dy := l.inc.Y
-	dz := l.inc.Z
 	var p V3
-	p.Z = l.base.Z + (float64(z) * dz)
+	p.X = l.base.X + float64(x)*dx
 
 	// evaluate the layer
-	p.X = l.base.X
-	for x := 0; x < nx+1; x++ {
-		p.Y = l.base.Y
-		for y := 0; y < ny+1; y++ {
+	p.Y = l.base.Y
+	for y := 0; y < ny+1; y++ {
+		p.Z = l.base.Z
+		for z := 0; z < nz+1; z++ {
 			l.val1[idx] = sdf.Evaluate(p)
 			idx += 1
-			p.Y += dy
+			p.Z += dz
 		}
-		p.X += dx
+		p.Y += dy
 	}
 }
 
@@ -69,16 +70,34 @@ func (l *LayerXY) Evaluate(sdf SDF3, z int) {
 func NewMesh3(sdf SDF3, box Box3, step float64) *Mesh {
 
 	size := box.Size()
+	base := box.Min
 	steps := size.DivScalar(step).Ceil().ToV3i()
 	inc := size.Div(steps.ToV3())
 
 	// setup the SDF layer cache
-	l := NewLayerXY(box.Min, inc, steps)
-	// prime the layer cache with z = 0
+	l := NewLayerYZ(base, inc, steps)
+	// prime the layer cache with x = 0
 	l.Evaluate(sdf, 0)
 
-	for z := 0; z < steps[2]+1; z++ {
-		l.Evaluate(sdf, z+1)
+	nx, ny, nz := steps[0], steps[1], steps[2]
+	dx, dy, dz := inc.X, inc.Y, inc.Z
+
+	var p V3
+	p.X = base.X
+	for x := 0; x < nx; x++ {
+		l.Evaluate(sdf, x+1)
+		p.Y = base.Y
+		for y := 0; y < ny; y++ {
+			p.Z = base.Z
+			for z := 0; z < nz; z++ {
+
+				// TODO
+
+				p.Z += dz
+			}
+			p.Y += dy
+		}
+		p.X += dx
 	}
 
 	return nil
