@@ -8,11 +8,6 @@ Marching Cubes
 
 package sdf
 
-import (
-	"fmt"
-	"math"
-)
-
 //-----------------------------------------------------------------------------
 
 const EPS = 1e-9
@@ -43,7 +38,6 @@ func (l *LayerYZ) Evaluate(sdf SDF3, x int) {
 
 	// allocate storage
 	if l.val1 == nil {
-		fmt.Printf("alloc\n")
 		l.val1 = make([]float64, (ny+1)*(nz+1))
 	}
 
@@ -65,18 +59,27 @@ func (l *LayerYZ) Evaluate(sdf SDF3, x int) {
 	}
 }
 
+func (l *LayerYZ) Get(x, y, z int) float64 {
+	idx := y*(l.steps[2]+1) + z
+	if x == 0 {
+		return l.val0[idx]
+	}
+	return l.val1[idx]
+}
+
 //-----------------------------------------------------------------------------
 
-func NewMesh3(sdf SDF3, box Box3, step float64) *Mesh {
+func NewSDFMesh(sdf SDF3, box Box3, step float64) *Mesh {
 
+	var triangles []*Triangle
 	size := box.Size()
 	base := box.Min
 	steps := size.DivScalar(step).Ceil().ToV3i()
 	inc := size.Div(steps.ToV3())
 
-	// setup the SDF layer cache
+	// create the SDF layer cache
 	l := NewLayerYZ(base, inc, steps)
-	// prime the layer cache with x = 0
+	// evaluate the SDF for x = 0
 	l.Evaluate(sdf, 0)
 
 	nx, ny, nz := steps[0], steps[1], steps[2]
@@ -85,42 +88,16 @@ func NewMesh3(sdf SDF3, box Box3, step float64) *Mesh {
 	var p V3
 	p.X = base.X
 	for x := 0; x < nx; x++ {
+		// read the x + 1 layer
 		l.Evaluate(sdf, x+1)
+		// process all cubes in the x and x + 1 layers
 		p.Y = base.Y
 		for y := 0; y < ny; y++ {
 			p.Z = base.Z
 			for z := 0; z < nz; z++ {
-
-				// TODO
-
-				p.Z += dz
-			}
-			p.Y += dy
-		}
-		p.X += dx
-	}
-
-	return nil
-}
-
-//-----------------------------------------------------------------------------
-
-func NewSDFMesh(sdf SDF3, box Box3, step float64) *Mesh {
-	min := box.Min
-	size := box.Size()
-	nx := int(math.Ceil(size.X / step))
-	ny := int(math.Ceil(size.Y / step))
-	nz := int(math.Ceil(size.Z / step))
-	sx := size.X / float64(nx)
-	sy := size.Y / float64(ny)
-	sz := size.Z / float64(nz)
-	var triangles []*Triangle
-	for x := 0; x < nx-1; x++ {
-		for y := 0; y < ny-1; y++ {
-			for z := 0; z < nz-1; z++ {
-				x0, y0, z0 := float64(x)*sx+min.X, float64(y)*sy+min.Y, float64(z)*sz+min.Z
-				x1, y1, z1 := x0+sx, y0+sy, z0+sz
-				p := [8]V3{
+				x0, y0, z0 := p.X, p.Y, p.Z
+				x1, y1, z1 := x0+dx, y0+dy, z0+dz
+				corners := [8]V3{
 					V3{x0, y0, z0},
 					V3{x1, y0, z0},
 					V3{x1, y1, z0},
@@ -128,16 +105,24 @@ func NewSDFMesh(sdf SDF3, box Box3, step float64) *Mesh {
 					V3{x0, y0, z1},
 					V3{x1, y0, z1},
 					V3{x1, y1, z1},
-					V3{x0, y1, z1},
-				}
-				var v [8]float64
-				for i := 0; i < 8; i++ {
-					v[i] = sdf.Evaluate(p[i])
-				}
-				triangles = append(triangles, mcPolygonize(p, v, 0)...)
+					V3{x0, y1, z1}}
+				values := [8]float64{
+					l.Get(0, y, z),
+					l.Get(1, y, z),
+					l.Get(1, y+1, z),
+					l.Get(0, y+1, z),
+					l.Get(0, y, z+1),
+					l.Get(1, y, z+1),
+					l.Get(1, y+1, z+1),
+					l.Get(0, y+1, z+1)}
+				triangles = append(triangles, mcPolygonize(corners, values, 0)...)
+				p.Z += dz
 			}
+			p.Y += dy
 		}
+		p.X += dx
 	}
+
 	return NewMesh(triangles)
 }
 

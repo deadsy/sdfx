@@ -171,9 +171,8 @@ func main() {
 	if !casting {
 		s = subtractive(s)
 	}
-	//RenderSTL(s, "head.stl")
-
-	RenderSTL(cylinder_heads(), "head2.stl")
+	RenderSTL(s, "head.stl")
+	//RenderSTL(cylinder_heads(), "head2.stl")
 
 }
 
