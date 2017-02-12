@@ -332,6 +332,19 @@ func test28() {
 	sdf.RenderSTL(s, "test.stl")
 }
 
+func test29() {
+	s0 := sdf.NewLineSDF2(10, 3)
+	s1 := sdf.NewExtrudeSDF3(s0, 4)
+	sdf.RenderSTL(s1, "test.stl")
+}
+
+func test30() {
+	s0 := sdf.NewLineSDF2(10, 3)
+	s0 = sdf.NewCutSDF2(s0, sdf.V2{4, 0}, sdf.V2{1, 1})
+	s1 := sdf.NewExtrudeSDF3(s0, 4)
+	sdf.RenderSTL(s1, "test.stl")
+}
+
 func main() {
-	test28()
+	test30()
 }

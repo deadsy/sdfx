@@ -119,29 +119,35 @@ func (s *BoxSDF2) BoundingBox() Box2 {
 }
 
 //-----------------------------------------------------------------------------
-// 2D Line, infinite line used for intersections and differences
+// 2D Line
 
 type LineSDF2 struct {
-	a      V2 // point on line
-	normal V2 // normal to line, to the right of the line direction
+	l     float64 // line length
+	round float64 // rounding
+	bb    Box2    // bounding box
 }
 
-// Return an infinite 2D line passing through a in direction v.
-func NewLineSDF2(a, v V2) SDF2 {
+// Return a line from (-l/2,0) to (l/2,0)
+func NewLineSDF2(l, round float64) SDF2 {
 	s := LineSDF2{}
-	s.a = a
-	s.normal = V2{v.Y, -v.X}.Normalize()
+	s.l = l / 2
+	s.round = round
+	s.bb = Box2{V2{-s.l - round, -round}, V2{s.l + round, round}}
 	return &s
 }
 
-// Return the minimum distance to the line (right side >0, left side < 0).
+// Return the minimum distance to the line
 func (s *LineSDF2) Evaluate(p V2) float64 {
-	return p.Sub(s.a).Dot(s.normal)
+	p = p.Abs()
+	if p.X <= s.l {
+		return p.Y - s.round
+	}
+	return p.Sub(V2{s.l, 0}).Length() - s.round
 }
 
-// Return the bounding box for the line (zero size).
+// Return the bounding box for the line
 func (s *LineSDF2) BoundingBox() Box2 {
-	return Box2{}
+	return s.bb
 }
 
 //-----------------------------------------------------------------------------
@@ -170,6 +176,37 @@ func (s *OffsetSDF2) Evaluate(p V2) float64 {
 }
 
 func (s *OffsetSDF2) BoundingBox() Box2 {
+	return s.bb
+}
+
+//-----------------------------------------------------------------------------
+// Cut an SDF2 along a line
+
+type CutSDF2 struct {
+	sdf SDF2
+	a   V2   // point on line
+	n   V2   // normal to line
+	bb  Box2 // bounding box
+}
+
+// Cut the SDF2 along a line from a in direction v.
+// The SDF2 to the right of the line remains.
+func NewCutSDF2(sdf SDF2, a, v V2) SDF2 {
+	s := CutSDF2{}
+	s.sdf = sdf
+	s.a = a
+	v = v.Normalize()
+	s.n = V2{-v.Y, v.X}
+	// TODO - cut the bounding box
+	s.bb = sdf.BoundingBox()
+	return &s
+}
+
+func (s *CutSDF2) Evaluate(p V2) float64 {
+	return Max(p.Sub(s.a).Dot(s.n), s.sdf.Evaluate(p))
+}
+
+func (s *CutSDF2) BoundingBox() Box2 {
 	return s.bb
 }
 
