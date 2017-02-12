@@ -2,7 +2,11 @@
 
 package main
 
-import . "github.com/deadsy/sdfx/sdf"
+import (
+	"math"
+
+	. "github.com/deadsy/sdfx/sdf"
+)
 
 //-----------------------------------------------------------------------------
 // CAD Challenge #16 Part A
@@ -40,7 +44,7 @@ func cc16a() SDF3 {
 	block_2d = NewCutSDF2(block_2d, V2{0, 0}, V2{0, 1})
 	block_3d := NewExtrudeSDF3(block_2d, block_w)
 
-	cb_3d := CounterBore3d(block_w, hole_radius, cb_radius, cb_depth)
+	cb_3d := CounterBored_Hole3d(block_w, hole_radius, cb_radius, cb_depth)
 	cb_3d = NewTransformSDF3(cb_3d, Translate3d(V3{block_l / 2, 0, 0}))
 	block_3d = NewDifferenceSDF3(block_3d, cb_3d)
 
@@ -121,7 +125,83 @@ func cc16b() SDF3 {
 	recess_3d = NewTransformSDF3(recess_3d, q)
 	base_3d = NewDifferenceSDF3(base_3d, recess_3d)
 
-	return base_3d
+	// Tool Support
+	support_h := 109.0 - base_h
+	support_w := 24.0
+	support_base_w := 14.0
+	support_theta := math.Atan(support_h / (support_w - support_base_w)) // 83d 17m 25s
+	support_xofs := support_h / math.Tan(support_theta)
+
+	// make a polygon for the support profile
+	facets := 5
+	support := NewSmoother(false)
+	support.Add(V2{base_w / 2, -1})
+	support.Add(V2{base_w / 2, 0})
+	support.AddSmooth(V2{base_hole_xofs, 0}, facets, 5.0)
+	support.AddSmooth(V2{base_hole_xofs + support_xofs, support_h}, 3*facets, 25.0)
+	support.AddSmooth(V2{-base_hole_xofs - support_xofs, support_h}, 3*facets, 25.0)
+	support.AddSmooth(V2{-base_hole_xofs, 0}, facets, 5.0)
+	support.Add(V2{-base_w / 2, 0})
+	support.Add(V2{-base_w / 2, -1})
+	support.Smooth()
+	//RenderDXF("support.dxf", support.Vertices())
+	support_2d := NewPolySDF2(support.Vertices())
+
+	// extrude the support to 3d
+	support_3d := NewExtrudeSDF3(support_2d, support_w)
+
+	// remove the chamfered hole
+	hole_h := 84.0 - base_h
+	hole_r := 35.0 / 2.0
+	chamfer_d := 2.0
+	hole_3d := Chamfered_Hole3d(support_w, hole_r, chamfer_d)
+	q = Translate3d(V3{0, hole_h, 0})
+	hole_3d = NewTransformSDF3(hole_3d, q)
+	support_3d = NewDifferenceSDF3(support_3d, hole_3d)
+
+	// cut the sloped face of the support
+	support_3d = NewCutSDF3(support_3d, V3{0, support_h, -support_w / 2}, V3{0, math.Cos(support_theta), math.Sin(support_theta)})
+
+	// position the support
+	support_yofs := (base_d - support_w) / 2.0
+	q = RotateX(DtoR(90))
+	q = Translate3d(V3{0, -support_yofs, base_h / 2}).Mul(q)
+	support_3d = NewTransformSDF3(support_3d, q)
+
+	// Gussets
+	gusset_l := 20.0
+	gusset_w := 3.0
+	gusset_xofs := 37.0 / 2.0
+	gusset_h := 12.53
+
+	gusset_yofs := base_d / 2.0
+	gusset_yofs -= support_base_w
+	gusset_yofs -= gusset_h / math.Tan(support_theta)
+	gusset_yofs -= gusset_h
+
+	gusset := NewSmoother(false)
+	gusset.Add(V2{gusset_l, 0})
+	gusset.AddSmooth(V2{0, 0}, facets, 20.0)
+	gusset.Add(V2{-gusset_l, gusset_l})
+	gusset.Add(V2{-gusset_l, 0})
+	gusset.Smooth()
+	//RenderDXF("gusset.dxf", gusset.Vertices())
+	gusset_2d := NewPolySDF2(gusset.Vertices())
+
+	// extrude the gusset to 3d
+	gusset_3d := NewExtrudeSDF3(gusset_2d, gusset_w)
+
+	// orient the gusset
+	q = RotateX(DtoR(90))
+	q = RotateZ(DtoR(90)).Mul(q)
+	q = Translate3d(V3{0, -gusset_yofs, base_h / 2}).Mul(q)
+	gusset_3d = NewTransformSDF3(gusset_3d, q)
+
+	gusset0_3d := NewTransformSDF3(gusset_3d, Translate3d(V3{gusset_xofs, 0, 0}))
+	gusset1_3d := NewTransformSDF3(gusset_3d, Translate3d(V3{-gusset_xofs, 0, 0}))
+	gusset_3d = NewUnionSDF3(gusset0_3d, gusset1_3d)
+
+	return NewUnionSDF3(base_3d, NewUnionSDF3(support_3d, gusset_3d))
 }
 
 //-----------------------------------------------------------------------------

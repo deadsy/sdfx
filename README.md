@@ -31,4 +31,6 @@ A simple CAD package written in Go (https://golang.org/)
 ![extrude1](docs/gallery/extrude1.png "Twisted Extrusions")
 ![extrude2](docs/gallery/extrude2.png "Scaled and Twisted Extrusions")
 ![voronoi](docs/gallery/voronoi.png "2D Points Distance Field")
+![cc16a](docs/gallery/cc16a.png "Reddit CAD Challenge 16A")
+![cc16b](docs/gallery/cc16b_0.png "Reddit CAD Challenge 16B")
 

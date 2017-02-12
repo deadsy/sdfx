@@ -416,6 +416,8 @@ func (s *ConeSDF3) BoundingBox() Box3 {
 // offset > 0, enlarges and adds rounding to convex corners of the SDF
 // offset < 0, skeletonizes the SDF
 
+/*
+
 type OffsetSDF3 struct {
 	sdf    SDF3
 	offset float64
@@ -439,6 +441,8 @@ func (s *OffsetSDF3) Evaluate(p V3) float64 {
 func (s *OffsetSDF3) BoundingBox() Box3 {
 	return s.bb
 }
+
+*/
 
 //-----------------------------------------------------------------------------
 // Transform SDF3
@@ -591,6 +595,36 @@ func (s *IntersectionSDF3) SetMax(max MaxFunc, k float64) {
 
 // Return the bounding box.
 func (s *IntersectionSDF3) BoundingBox() Box3 {
+	return s.bb
+}
+
+//-----------------------------------------------------------------------------
+// Cut an SDF3 along a plane
+
+type CutSDF3 struct {
+	sdf SDF3
+	a   V3   // point on plane
+	n   V3   // normal to plane
+	bb  Box3 // bounding box
+}
+
+// Cut the SDF3 along a plane passing through a with normal n.
+// The SDF3 on the positive side of the normal remains.
+func NewCutSDF3(sdf SDF3, a, n V3) SDF3 {
+	s := CutSDF3{}
+	s.sdf = sdf
+	s.a = a
+	s.n = n.Normalize().Negate()
+	// TODO - cut the bounding box
+	s.bb = sdf.BoundingBox()
+	return &s
+}
+
+func (s *CutSDF3) Evaluate(p V3) float64 {
+	return Max(p.Sub(s.a).Dot(s.n), s.sdf.Evaluate(p))
+}
+
+func (s *CutSDF3) BoundingBox() Box3 {
 	return s.bb
 }
 

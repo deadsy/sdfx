@@ -249,7 +249,6 @@ func test18() {
 	}
 
 	s0 := sdf.NewPolySDF2(points)
-	s0 = sdf.NewOffsetSDF2(s0, 1.0)
 	s1 := sdf.NewSorThetaSDF3(s0, sdf.DtoR(300))
 	s1 = sdf.NewTransformSDF3(s1, sdf.Rotate3d(sdf.V3{0, 0, 1}, sdf.DtoR(30)))
 
@@ -345,6 +344,11 @@ func test30() {
 	sdf.RenderSTL(s1, "test.stl")
 }
 
+func test31() {
+	s := sdf.CounterSunk_Hole3d(30, 2)
+	sdf.RenderSTL(s, "test.stl")
+}
+
 func main() {
-	test30()
+	test31()
 }

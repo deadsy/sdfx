@@ -155,6 +155,8 @@ func (s *LineSDF2) BoundingBox() Box2 {
 // offset > 0, enlarges and adds rounding to convex corners of the SDF
 // offset < 0, skeletonizes the SDF
 
+/*
+
 type OffsetSDF2 struct {
 	sdf    SDF2
 	offset float64
@@ -178,6 +180,7 @@ func (s *OffsetSDF2) Evaluate(p V2) float64 {
 func (s *OffsetSDF2) BoundingBox() Box2 {
 	return s.bb
 }
+*/
 
 //-----------------------------------------------------------------------------
 // Cut an SDF2 along a line
