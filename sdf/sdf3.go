@@ -412,39 +412,6 @@ func (s *ConeSDF3) BoundingBox() Box3 {
 }
 
 //-----------------------------------------------------------------------------
-// Offset an SDF3 - add a constant to the distance function
-// offset > 0, enlarges and adds rounding to convex corners of the SDF
-// offset < 0, skeletonizes the SDF
-
-/*
-
-type OffsetSDF3 struct {
-	sdf    SDF3
-	offset float64
-	bb     Box3
-}
-
-func NewOffsetSDF3(sdf SDF3, offset float64) SDF3 {
-	s := OffsetSDF3{}
-	s.sdf = sdf
-	s.offset = offset
-	// work out the bounding box
-	bb := sdf.BoundingBox()
-	s.bb = NewBox3(bb.Center(), bb.Size().AddScalar(2*offset))
-	return &s
-}
-
-func (s *OffsetSDF3) Evaluate(p V3) float64 {
-	return s.sdf.Evaluate(p) - s.offset
-}
-
-func (s *OffsetSDF3) BoundingBox() Box3 {
-	return s.bb
-}
-
-*/
-
-//-----------------------------------------------------------------------------
 // Transform SDF3
 
 type TransformSDF3 struct {

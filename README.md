@@ -33,4 +33,4 @@ A simple CAD package written in Go (https://golang.org/)
 ![voronoi](docs/gallery/voronoi.png "2D Points Distance Field")
 ![cc16a](docs/gallery/cc16a.png "Reddit CAD Challenge 16A")
 ![cc16b](docs/gallery/cc16b_0.png "Reddit CAD Challenge 16B")
-
+![gear](docs/gallery/gear.png "Involute Gear")

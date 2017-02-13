@@ -151,38 +151,6 @@ func (s *LineSDF2) BoundingBox() Box2 {
 }
 
 //-----------------------------------------------------------------------------
-// Offset an SDF2 - add a constant to the distance function
-// offset > 0, enlarges and adds rounding to convex corners of the SDF
-// offset < 0, skeletonizes the SDF
-
-/*
-
-type OffsetSDF2 struct {
-	sdf    SDF2
-	offset float64
-	bb     Box2
-}
-
-func NewOffsetSDF2(sdf SDF2, offset float64) SDF2 {
-	s := OffsetSDF2{}
-	s.sdf = sdf
-	s.offset = offset
-	// work out the bounding box
-	bb := sdf.BoundingBox()
-	s.bb = NewBox2(bb.Center(), bb.Size().AddScalar(2*offset))
-	return &s
-}
-
-func (s *OffsetSDF2) Evaluate(p V2) float64 {
-	return s.sdf.Evaluate(p) - s.offset
-}
-
-func (s *OffsetSDF2) BoundingBox() Box2 {
-	return s.bb
-}
-*/
-
-//-----------------------------------------------------------------------------
 // Cut an SDF2 along a line
 
 type CutSDF2 struct {
@@ -312,6 +280,10 @@ func (s *PolySDF2) Evaluate(p V2) float64 {
 
 func (s *PolySDF2) BoundingBox() Box2 {
 	return s.bb
+}
+
+func (s *PolySDF2) Vertices() []V2 {
+	return s.vertex
 }
 
 //-----------------------------------------------------------------------------
