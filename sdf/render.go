@@ -62,7 +62,7 @@ func RenderPNG(s SDF3, render_floor bool) {
 // Render an SDF3 as an STL triangle mesh file.
 func RenderSTL(s SDF3, path string) {
 
-	mesh_cells := 400.0 // number of mesh cells on major axis of SDF3 bounding box
+	mesh_cells := 199.0 // number of mesh cells on major axis of SDF3 bounding box
 
 	// work out the region we will sample
 	bb0 := s.BoundingBox()

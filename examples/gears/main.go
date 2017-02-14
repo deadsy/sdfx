@@ -3,14 +3,35 @@ package main
 import . "github.com/deadsy/sdfx/sdf"
 
 func main() {
-	g := InvoluteGear(
-		20,             // number_teeth
-		(5.0/8.0)/20.0, // gear_module
-		DtoR(20.0),     // pressure_angle
-		0.0,            // backlash
-		0.0,            // clearance
-		0.05,           // ring_width
-		7,              // facets
+
+	module := (5.0 / 8.0) / 20.0
+	pa := DtoR(20.0)
+	h := 0.15
+	number_teeth := 20
+
+	gear_2d := InvoluteGear(
+		number_teeth, // number_teeth
+		module,       // gear_module
+		pa,           // pressure_angle
+		0.0,          // backlash
+		0.0,          // clearance
+		0.05,         // ring_width
+		7,            // facets
 	)
-	RenderSTL(NewExtrudeSDF3(g, 0.1), "gear.stl")
+	gear_3d := NewExtrudeSDF3(gear_2d, h)
+	m := Rotate3d(V3{0, 0, 1}, DtoR(180.0/float64(number_teeth)))
+	m = Translate3d(V3{0, 0.39, 0}).Mul(m)
+	gear_3d = NewTransformSDF3(gear_3d, m)
+
+	rack_2d := NewGearRack(
+		11,     // number_teeth
+		module, // gear_module
+		pa,     // pressure_angle
+		0.00,   // backlash
+		0.025,  // base_height
+	)
+	rack_3d := NewExtrudeSDF3(rack_2d, h)
+
+	s := NewUnionSDF3(rack_3d, gear_3d)
+	RenderSTL(s, "gear.stl")
 }

@@ -140,3 +140,78 @@ func InvoluteGear(
 }
 
 //-----------------------------------------------------------------------------
+// 2D Gear Rack
+
+type GearRack struct {
+	tooth  SDF2    // polygon for rack tooth
+	pitch  float64 // tooth to tooth pitch
+	length float64 // half the total rack length
+	bb     Box2    // bounding box
+}
+
+// Create a 2D gear rack.
+// number_teeth = number of rack teeth
+// gear_module = pitch circle diameter / number of gear teeth
+// pressure_angle = gear pressure angle (radians)
+// backlash = backlash expressed as units of pitch circumference
+// base_height = height of rack base
+func NewGearRack(
+	number_teeth float64,
+	gear_module float64,
+	pressure_angle float64,
+	backlash float64,
+	base_height float64,
+) SDF2 {
+	s := GearRack{}
+
+	// addendum: distance from pitch line to top of tooth
+	addendum := gear_module * 1.0
+	// dedendum: distance from pitch line to root of tooth
+	dedendum := gear_module * 1.25
+	// total tooth height
+	tooth_height := base_height + addendum + dedendum
+	// tooth_pitch: tooth to tooth distance along pitch line
+	pitch := gear_module * PI
+
+	// x size of tooth flank
+	dx := (addendum + dedendum) * math.Tan(pressure_angle)
+	// 1/2 x size of tooth top
+	dxt := ((pitch / 2.0) - dx) / 2.0
+	// x size of backlash
+	bl := backlash / 2.0
+
+	// create a half tooth profile centered on the y-axis
+	tooth := []V2{
+		V2{pitch, 0},
+		V2{pitch, base_height},
+		V2{dx + dxt - bl, base_height},
+		V2{dxt - bl, tooth_height},
+		V2{-pitch, tooth_height},
+		V2{-pitch, 0},
+	}
+
+	s.tooth = NewPolySDF2(tooth)
+	s.pitch = pitch
+	s.length = pitch * number_teeth / 2.0
+	s.bb = Box2{V2{-s.length, 0}, V2{s.length, tooth_height}}
+	return &s
+}
+
+// Return the minimum distance to the gear rack.
+func (s *GearRack) Evaluate(p V2) float64 {
+	// map p.X back to the [0,half_pitch) domain
+	p0 := V2{Abs(SawTooth(p.X, s.pitch)), p.Y}
+	// get the tooth profile distance
+	d0 := s.tooth.Evaluate(p0)
+	// create a region for the rack length
+	d1 := Abs(p.X) - s.length
+	// return the intersection
+	return Max(d0, d1)
+}
+
+// Return the bounding box for the gear rack.
+func (s *GearRack) BoundingBox() Box2 {
+	return s.bb
+}
+
+//-----------------------------------------------------------------------------

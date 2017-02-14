@@ -89,6 +89,15 @@ func Sign(x float64) float64 {
 }
 
 //-----------------------------------------------------------------------------
+
+// sawtooth function: returns [-period/2, period/2)
+func SawTooth(x, period float64) float64 {
+	x += period / 2
+	t := x / period
+	return period*(t-math.Floor(t)) - period/2
+}
+
+//-----------------------------------------------------------------------------
 // Minimum Functions for SDF blending
 
 type MinFunc func(a, b, k float64) float64
