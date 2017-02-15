@@ -349,6 +349,12 @@ func test31() {
 	sdf.RenderSTL(s, "test.stl")
 }
 
+func test32() {
+	s0 := sdf.NewCam1(20, 10, 4)
+	s1 := sdf.NewSorSDF3(s0)
+	sdf.RenderSTL(s1, "test.stl")
+}
+
 func main() {
-	test31()
+	test32()
 }
