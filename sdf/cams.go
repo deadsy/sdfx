@@ -88,7 +88,8 @@ type Cam2 struct {
 	distance     float64 // center to center circle distance
 	base_radius  float64 // radius of base circle
 	nose_radius  float64 // radius of nose circle
-	flank_radius float64 // radius of flnk circle
+	flank_radius float64 // radius of flank circle
+	flank_center V2      // center of flank circle (+ve x-axis flank arc)
 	bb           Box2    // bounding box
 }
 
@@ -107,6 +108,16 @@ func NewCam2(distance, base_radius, nose_radius, flank_radius float64) SDF2 {
 	s.base_radius = base_radius
 	s.nose_radius = nose_radius
 	s.flank_radius = flank_radius
+
+	// work out the center for the flank radius
+	// the flank arc center must lie on the intersection
+	// of two circles about the base/nose circles
+	r0 := flank_radius - base_radius
+	r1 := flank_radius - nose_radius
+	y := ((r0 * r0) - (r1 * r1) + (distance * distance)) / (2.0 * distance)
+	x := -math.Sqrt((r0 * r0) - (y * y)) // < 0 result, +ve x-axis flank arc
+	s.flank_center = V2{x, y}
+
 	return &s
 }
 
