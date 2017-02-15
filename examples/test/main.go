@@ -358,6 +358,13 @@ func test32() {
 	sdf.RenderSTL(s1, "test.stl")
 }
 
+func test33() {
+	s0 := sdf.NewCam2(30, 20, 5, 40)
+	fmt.Printf("%+v\n", s0)
+	s1 := sdf.NewExtrudeSDF3(s0, 4)
+	sdf.RenderSTL(s1, "test.stl")
+}
+
 func main() {
-	test32()
+	test33()
 }

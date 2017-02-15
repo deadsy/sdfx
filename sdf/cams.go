@@ -90,6 +90,8 @@ type Cam2 struct {
 	nose_radius  float64 // radius of nose circle
 	flank_radius float64 // radius of flank circle
 	flank_center V2      // center of flank circle (+ve x-axis flank arc)
+	theta_base   float64 // base/flank intersection angle wrt flank center
+	theta_nose   float64 // nose/flank intersection angle wrt flank center
 	bb           Box2    // bounding box
 }
 
@@ -108,7 +110,6 @@ func NewCam2(distance, base_radius, nose_radius, flank_radius float64) SDF2 {
 	s.base_radius = base_radius
 	s.nose_radius = nose_radius
 	s.flank_radius = flank_radius
-
 	// work out the center for the flank radius
 	// the flank arc center must lie on the intersection
 	// of two circles about the base/nose circles
@@ -117,13 +118,39 @@ func NewCam2(distance, base_radius, nose_radius, flank_radius float64) SDF2 {
 	y := ((r0 * r0) - (r1 * r1) + (distance * distance)) / (2.0 * distance)
 	x := -math.Sqrt((r0 * r0) - (y * y)) // < 0 result, +ve x-axis flank arc
 	s.flank_center = V2{x, y}
-
+	// work out theta for the intersection of flank arc and base radius
+	p := V2{0, 0}.Sub(s.flank_center).Normalize().MulScalar(flank_radius)
+	p = p.Sub(s.flank_center)
+	s.theta_base = math.Atan2(p.Y, p.X)
+	// work out theta for the intersection of flank arc and nose radius
+	p = V2{0, distance}.Sub(s.flank_center).Normalize().MulScalar(flank_radius)
+	p = p.Sub(s.flank_center)
+	s.theta_nose = math.Atan2(p.Y, p.X)
+	// work out the bounding box
+	s.bb = Box2{V2{-base_radius, -base_radius}, V2{base_radius, distance + nose_radius}}
 	return &s
 }
 
 // Return the minimum distance to the cam.
 func (s *Cam2) Evaluate(p V2) float64 {
-	return 0
+	// we have symmetry about the y-axis
+	p0 := V2{Abs(p.X), p.Y}
+	// work out the theta angle wrt the flank center
+	v := p0.Sub(s.flank_center)
+	t := math.Atan2(v.Y, v.X)
+	// work out the minimum distance
+	var d float64
+	if t < s.theta_base {
+		// the closest point is on the base radius
+		d = p0.Length() - s.base_radius
+	} else if t > s.theta_nose {
+		// the closest point is on the nose radius
+		d = p0.Sub(V2{0, s.distance}).Length() - s.nose_radius
+	} else {
+		// the closest point is on the flank radius
+		d = v.Length() - s.flank_radius
+	}
+	return d
 }
 
 // Return the bounding box for the cam.
