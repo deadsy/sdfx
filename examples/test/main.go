@@ -350,8 +350,11 @@ func test31() {
 }
 
 func test32() {
-	s0 := sdf.NewCam1(20, 10, 4)
-	s1 := sdf.NewSorSDF3(s0)
+	s0, err := sdf.MakeCam("flat_flank", 0.094, sdf.DtoR(2.0*57.5), 0.625)
+	if err != nil {
+		panic(err)
+	}
+	s1 := sdf.NewExtrudeSDF3(s0, 0.1)
 	sdf.RenderSTL(s1, "test.stl")
 }
 
