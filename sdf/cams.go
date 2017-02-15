@@ -31,8 +31,8 @@ type Cam1 struct {
 // The base circle is centered on the origin.
 // The nose circle is located on the positive y axis.
 // distance = circle to circle center distance
-// base_radius = radius of major circle
-// nose_radius = radius of minor circle
+// base_radius = radius of base circle
+// nose_radius = radius of nose circle
 func NewCam1(distance, base_radius, nose_radius float64) SDF2 {
 	s := Cam1{}
 	s.distance = distance
@@ -157,6 +157,7 @@ func MakeCam(cam_type string, lift, duration, max_diameter float64) (SDF2, error
 		return NewCam1(distance, base_radius, nose_radius), nil
 	} else if cam_type == "three_arc" {
 		// TODO
+
 	} else {
 		return nil, fmt.Errorf("unknown cam_type")
 	}
