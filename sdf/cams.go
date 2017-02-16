@@ -105,6 +105,10 @@ type Cam2 struct {
 // nose_radius = radius of minor circle
 // flank_radius = radius of flank arc
 func NewCam2(distance, base_radius, nose_radius, flank_radius float64) SDF2 {
+	// check for the minimum size flank radius
+	if flank_radius < (base_radius+distance+nose_radius)/2.0 {
+		panic("flank_radius too small")
+	}
 	s := Cam2{}
 	s.distance = distance
 	s.base_radius = base_radius
@@ -119,14 +123,13 @@ func NewCam2(distance, base_radius, nose_radius, flank_radius float64) SDF2 {
 	x := -math.Sqrt((r0 * r0) - (y * y)) // < 0 result, +ve x-axis flank arc
 	s.flank_center = V2{x, y}
 	// work out theta for the intersection of flank arc and base radius
-	p := V2{0, 0}.Sub(s.flank_center).Normalize().MulScalar(flank_radius)
-	p = p.Sub(s.flank_center)
+	p := V2{0, 0}.Sub(s.flank_center)
 	s.theta_base = math.Atan2(p.Y, p.X)
 	// work out theta for the intersection of flank arc and nose radius
-	p = V2{0, distance}.Sub(s.flank_center).Normalize().MulScalar(flank_radius)
-	p = p.Sub(s.flank_center)
+	p = V2{0, distance}.Sub(s.flank_center)
 	s.theta_nose = math.Atan2(p.Y, p.X)
 	// work out the bounding box
+	// TODO fix this - it's wrong if the flank radius is small
 	s.bb = Box2{V2{-base_radius, -base_radius}, V2{base_radius, distance + nose_radius}}
 	return &s
 }
@@ -174,7 +177,7 @@ func MakeCam(cam_type string, lift, duration, max_diameter float64) (SDF2, error
 	if lift <= 0 {
 		return nil, fmt.Errorf("lift <= 0")
 	}
-	if duration <= 0 || duration >= PI {
+	if duration <= 0 {
 		return nil, fmt.Errorf("invalid duration")
 	}
 
