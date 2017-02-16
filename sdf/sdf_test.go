@@ -124,54 +124,61 @@ func Test_ScaleBox(t *testing.T) {
 
 func Test_Line(t *testing.T) {
 
-	/*
-		  l := NewLine2(V2{0, 1}, V2{0, 2})
-		  points := []struct {
-				p V2
-				d float64
-			}{
-				{V2{0, 1}, 0},
-				{V2{0, 2}, 0},
-				{V2{0, 1.5}, 0},
-				{V2{0, 0}, 1},
-				{V2{0, 3}, 1},
-				{V2{0.5, 1.1}, 0.25},
-				{V2{-0.5, 1.1}, -0.25},
-				{V2{0.1, 1.98}, 0.01},
-				{V2{-0.1, 1.98}, -0.01},
-				{V2{3, 6}, 25},
-				{V2{-3, 6}, -25},
-				{V2{3, -3}, 25},
-				{V2{-3, -3}, -25},
-			}
-			for _, p := range points {
-				d := l.Distance2(p.p)
-				if Abs(d-p.d) > TOLERANCE {
-					fmt.Printf("%+v %f (expected) %f (actual)\n", p.p, p.d, d)
-					t.Error("FAIL")
-				}
-			}
-	*/
+	l := NewLine2_PP(V2{0, 1}, V2{0, 2})
+	points := []struct {
+		p V2
+		d float64
+	}{
+		{V2{0, 1}, 0},
+		{V2{0, 2}, 0},
+		{V2{0, 1.5}, 0},
+		{V2{0, 0}, 1},
+		{V2{0, 3}, 1},
+		{V2{0.5, 1.1}, 0.5},
+		{V2{-0.5, 1.1}, -0.5},
+		{V2{0.1, 1.98}, 0.1},
+		{V2{-0.1, 1.98}, -0.1},
+		{V2{3, 6}, 5},
+		{V2{-3, 6}, -5},
+		{V2{3, -3}, 5},
+		{V2{-3, -3}, -5},
+	}
+	for _, p := range points {
+		d := l.Distance(p.p)
+		if Abs(d-p.d) > TOLERANCE {
+			fmt.Printf("%+v %f (expected) %f (actual)\n", p.p, p.d, d)
+			t.Error("FAIL")
+		}
+	}
 
 	line_tests := []struct {
 		p0, v0 V2
 		p1, v1 V2
-		result V2
-		err    error
+		t0     float64
+		t1     float64
+		result string
 	}{
-		{V2{0, 0}, V2{0, 1}, V2{1, 0}, V2{-1, 0}, V2{0, 1}, nil},
+		{V2{0, 0}, V2{0, 1}, V2{1, 0}, V2{-1, 0}, 0, 1, "single"},
+		{V2{0, 0}, V2{0, 1}, V2{1, 1}, V2{0, 1}, 0, 1, "none"},
+		{V2{0, 0}, V2{0, 1}, V2{0, 0}, V2{0, 1}, 0, 1, "many"},
 	}
 
 	for _, test := range line_tests {
 		l0 := NewLine2_PV(test.p0, test.v0)
 		l1 := NewLine2_PV(test.p1, test.v1)
-		result, err := l0.Intersect(l1)
+		t0, t1, err := l0.Intersect(l1)
 		if err != nil {
 			t.Error("FAIL")
-		}
-		if !result.Equals(test.result, TOLERANCE) {
-			fmt.Printf("%+v %+v %+v (expected) %+v (actual)\n", l0, l1, test.result, result)
-			t.Error("FAIL")
+			fmt.Printf("l0: %+v\n", l0)
+			fmt.Printf("l1: %+v\n", l1)
+			fmt.Printf("error: %s\n", err)
+		} else {
+			if Abs(test.t0-t0) > TOLERANCE || Abs(test.t1-t1) > TOLERANCE {
+				fmt.Printf("l0: %+v\n", l0)
+				fmt.Printf("l1: %+v\n", l1)
+				fmt.Printf("%f %f (expected) %f %f (actual)\n", test.t0, test.t1, t0, t1)
+				t.Error("FAIL")
+			}
 		}
 	}
 }
