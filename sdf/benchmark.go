@@ -1,8 +1,8 @@
 package sdf
 
-import "fmt"
+import "time"
 
-const N_EVALS = 10 // 100000
+const N_EVALS = 10000000
 
 // Benchmark evaluation speed for an SDF2.
 // Return evaluations per second.
@@ -18,8 +18,11 @@ func BenchmarkSDF2(s SDF2) float64 {
 		points[i] = center.Add(size.Random())
 	}
 
-	fmt.Printf("%+v\n", points)
+	start := time.Now()
+	for _, p := range points {
+		s.Evaluate(p)
+	}
+	elapsed := time.Since(start)
 
-	return 0
-
+	return float64(N_EVALS) * float64(time.Second) / float64(elapsed)
 }
