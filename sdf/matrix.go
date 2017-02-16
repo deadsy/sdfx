@@ -34,6 +34,14 @@ type M22 struct {
 
 //-----------------------------------------------------------------------------
 
+func RandomM22(a, b float64) M22 {
+	m := M22{random_range(a, b),
+		random_range(a, b),
+		random_range(a, b),
+		random_range(a, b)}
+	return m
+}
+
 func RandomM33(a, b float64) M33 {
 	m := M33{random_range(a, b),
 		random_range(a, b),
@@ -83,6 +91,12 @@ func Identity2d() M33 {
 		1, 0, 0,
 		0, 1, 0,
 		0, 0, 1}
+}
+
+func Identity() M22 {
+	return M22{
+		1, 0,
+		0, 1}
 }
 
 func Translate3d(v V3) M44 {
@@ -205,6 +219,13 @@ func (a M33) Equals(b M33, tolerance float64) bool {
 		Abs(a.x22-b.x22) < tolerance)
 }
 
+func (a M22) Equals(b M22, tolerance float64) bool {
+	return (Abs(a.x00-b.x00) < tolerance &&
+		Abs(a.x01-b.x01) < tolerance &&
+		Abs(a.x10-b.x10) < tolerance &&
+		Abs(a.x11-b.x11) < tolerance)
+}
+
 //-----------------------------------------------------------------------------
 
 func (a M44) MulPosition(b V3) V3 {
@@ -222,6 +243,8 @@ func (a M22) MulPosition(b V2) V2 {
 	return V2{a.x00*b.X + a.x01*b.Y,
 		a.x10*b.X + a.x11*b.Y}
 }
+
+//-----------------------------------------------------------------------------
 
 func (v V2Set) MulVertices(a M33) {
 	for i, _ := range v {
@@ -269,6 +292,15 @@ func (a M33) Mul(b M33) M33 {
 	m.x02 = a.x00*b.x02 + a.x01*b.x12 + a.x02*b.x22
 	m.x12 = a.x10*b.x02 + a.x11*b.x12 + a.x12*b.x22
 	m.x22 = a.x20*b.x02 + a.x21*b.x12 + a.x22*b.x22
+	return m
+}
+
+func (a M22) Mul(b M22) M22 {
+	m := M22{}
+	m.x00 = a.x00*b.x00 + a.x01*b.x10
+	m.x01 = a.x00*b.x01 + a.x01*b.x11
+	m.x10 = a.x10*b.x00 + a.x11*b.x10
+	m.x11 = a.x10*b.x01 + a.x11*b.x11
 	return m
 }
 
@@ -327,18 +359,14 @@ func (a M44) Determinant() float64 {
 		a.x03*a.x12*a.x20*a.x31 + a.x03*a.x12*a.x21*a.x30)
 }
 
-/*
-func (a M33) Determinant() float64 {
-	return (a.x00*a.x11*a.x22 - a.x00*a.x12*a.x21 -
-		a.x01*a.x10*a.x22 + a.x01*a.x12*a.x20 +
-		a.x02*a.x10*a.x21 - a.x02*a.x11*a.x20)
-}
-*/
-
 func (a M33) Determinant() float64 {
 	return (a.x00*(a.x11*a.x22-a.x21*a.x12) -
 		a.x01*(a.x10*a.x22-a.x20*a.x12) +
 		a.x02*(a.x10*a.x21-a.x20*a.x11))
+}
+
+func (a M22) Determinant() float64 {
+	return a.x00*a.x11 - a.x01*a.x10
 }
 
 //-----------------------------------------------------------------------------
@@ -377,6 +405,16 @@ func (a M33) Inverse() M33 {
 	m.x20 = (a.x10*a.x21 - a.x20*a.x11) * d
 	m.x21 = (a.x20*a.x01 - a.x00*a.x21) * d
 	m.x22 = (a.x00*a.x11 - a.x01*a.x10) * d
+	return m
+}
+
+func (a M22) Inverse() M22 {
+	m := M22{}
+	d := 1 / a.Determinant()
+	m.x00 = a.x11 * d
+	m.x01 = -a.x01 * d
+	m.x10 = -a.x10 * d
+	m.x11 = a.x00 * d
 	return m
 }
 

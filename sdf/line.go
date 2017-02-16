@@ -10,43 +10,43 @@ Used for building 2D polygons SDFs.
 
 package sdf
 
+import "fmt"
+
 //-----------------------------------------------------------------------------
 // 2D Line Segment
 
 type Line2 struct {
-	A, B V2 // line start/end points
-	V    V2 // vector in line direction x = a + tv, where t = [0,1]
-	N    V2 // normal to line
+	segment bool    // is this a line segment
+	length  float64 // segment length
+	p       V2      // line start point
+	v       V2      // normalized line vector
 }
 
-func NewLine2(a, b V2) Line2 {
+// Create a new line given a point and vector
+func NewLine2_PV(p, v V2) Line2 {
 	l := Line2{}
-	l.A = a
-	l.B = b
-	ba := b.Sub(a)
-	v := ba.Normalize()
-	l.N = V2{v.Y, -v.X}
-	l.V = ba.MulScalar(1 / ba.Dot(ba))
+	l.segment = false
+	l.length = 0.0
+	l.p = p
+	l.v = v.Normalize()
 	return l
 }
 
-// return the distance^2 to the line, +ve implies same side as line normal
-func (l *Line2) Distance2(p V2) float64 {
-	pa := p.Sub(l.A)
-	t := pa.Dot(l.V)  // t-parameter of projection onto line
-	dn := pa.Dot(l.N) // distance normal to line
-	var d float64
-	if t < 0 {
-		d = pa.Length2()
-	} else if t > 1 {
-		d = p.Sub(l.B).Length2()
-	} else {
-		d = dn * dn
+// Return the position given the t value
+func (l *Line2) Position(t float64) V2 {
+	return l.p.Add(l.v.MulScalar(t))
+}
+
+// Return the ta and tb parameters for the intersection between lines a and b
+func (a Line2) Intersect(b Line2) (V2, error) {
+	m := M22{a.v.X, -b.v.X, a.v.Y, -b.v.Y}
+
+	if m.Determinant() == 0 {
+		return V2{}, fmt.Errorf("no intersection")
 	}
-	if dn < 0 {
-		d = -d
-	}
-	return d
+
+	p := b.p.Sub(a.p)
+	return m.Inverse().MulPosition(p), nil
 }
 
 //-----------------------------------------------------------------------------

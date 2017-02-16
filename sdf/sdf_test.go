@@ -50,6 +50,14 @@ func Test_Inverse(t *testing.T) {
 			t.Error("FAIL")
 		}
 	}
+
+	for i := 0; i < 100; i++ {
+		c := RandomM22(-7, 7)
+		c_inv := c.Inverse()
+		if c.Mul(c_inv).Equals(Identity(), TOLERANCE) == false {
+			t.Error("FAIL")
+		}
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -115,29 +123,54 @@ func Test_ScaleBox(t *testing.T) {
 //-----------------------------------------------------------------------------
 
 func Test_Line(t *testing.T) {
-	l := NewLine2(V2{0, 1}, V2{0, 2})
-	points := []struct {
-		p V2
-		d float64
+
+	/*
+		  l := NewLine2(V2{0, 1}, V2{0, 2})
+		  points := []struct {
+				p V2
+				d float64
+			}{
+				{V2{0, 1}, 0},
+				{V2{0, 2}, 0},
+				{V2{0, 1.5}, 0},
+				{V2{0, 0}, 1},
+				{V2{0, 3}, 1},
+				{V2{0.5, 1.1}, 0.25},
+				{V2{-0.5, 1.1}, -0.25},
+				{V2{0.1, 1.98}, 0.01},
+				{V2{-0.1, 1.98}, -0.01},
+				{V2{3, 6}, 25},
+				{V2{-3, 6}, -25},
+				{V2{3, -3}, 25},
+				{V2{-3, -3}, -25},
+			}
+			for _, p := range points {
+				d := l.Distance2(p.p)
+				if Abs(d-p.d) > TOLERANCE {
+					fmt.Printf("%+v %f (expected) %f (actual)\n", p.p, p.d, d)
+					t.Error("FAIL")
+				}
+			}
+	*/
+
+	line_tests := []struct {
+		p0, v0 V2
+		p1, v1 V2
+		result V2
+		err    error
 	}{
-		{V2{0, 1}, 0},
-		{V2{0, 2}, 0},
-		{V2{0, 1.5}, 0},
-		{V2{0, 0}, 1},
-		{V2{0, 3}, 1},
-		{V2{0.5, 1.1}, 0.25},
-		{V2{-0.5, 1.1}, -0.25},
-		{V2{0.1, 1.98}, 0.01},
-		{V2{-0.1, 1.98}, -0.01},
-		{V2{3, 6}, 25},
-		{V2{-3, 6}, -25},
-		{V2{3, -3}, 25},
-		{V2{-3, -3}, -25},
+		{V2{0, 0}, V2{0, 1}, V2{1, 0}, V2{-1, 0}, V2{0, 1}, nil},
 	}
-	for _, p := range points {
-		d := l.Distance2(p.p)
-		if Abs(d-p.d) > TOLERANCE {
-			fmt.Printf("%+v %f (expected) %f (actual)\n", p.p, p.d, d)
+
+	for _, test := range line_tests {
+		l0 := NewLine2_PV(test.p0, test.v0)
+		l1 := NewLine2_PV(test.p1, test.v1)
+		result, err := l0.Intersect(l1)
+		if err != nil {
+			t.Error("FAIL")
+		}
+		if !result.Equals(test.result, TOLERANCE) {
+			fmt.Printf("%+v %+v %+v (expected) %+v (actual)\n", l0, l1, test.result, result)
 			t.Error("FAIL")
 		}
 	}

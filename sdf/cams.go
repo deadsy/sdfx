@@ -197,6 +197,23 @@ func MakeCam(cam_type string, lift, duration, max_diameter float64) (SDF2, error
 		distance := base_radius + lift - nose_radius
 		return NewCam1(distance, base_radius, nose_radius), nil
 	} else if cam_type == "three_arc" {
+		// Given the duration we know where the flank arc intesects the base circle.
+		p0 := V2{math.Cos(delta), math.Sin(delta)}.MulScalar(base_radius)
+		// As a tunable we have the flank arcs intersect each other on the
+		// y-axis at a point somewhat above the lift height.
+		k := 1.1
+		p1 := V2{0, k * (base_radius + lift)}
+
+		// Construct the midpoint of p0 and p1
+		pmid := p1.Add(p0).MulScalar(0.5)
+		// Construct the normal at the midpoint
+		u := p1.Sub(p0)
+		n := V2{u.Y, -u.X}
+		// Construct a perpindicular bisector to p0 and p1
+
+		_ = pmid
+		_ = n
+
 		// TODO
 
 	} else {
