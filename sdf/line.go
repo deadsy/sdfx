@@ -54,8 +54,7 @@ func (l Line2) Position(t float64) V2 {
 func (l0 Line2) Intersect(l1 Line2) (float64, float64, error) {
 	m := M22{l0.v.X, -l1.v.X, l0.v.Y, -l1.v.Y}
 	if m.Determinant() == 0 {
-		// TODO - test for many or empty set
-		return 0, 0, fmt.Errorf("empty")
+		return 0, 0, fmt.Errorf("zero/many")
 	}
 	p := l1.a.Sub(l0.a)
 	t := m.Inverse().MulPosition(p)

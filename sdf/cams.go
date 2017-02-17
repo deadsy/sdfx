@@ -163,21 +163,21 @@ func (s *Cam2) BoundingBox() Box2 {
 
 //-----------------------------------------------------------------------------
 
-// Create a cam profile from design parameters.
-// cam_type = flat_flank, three_arc
+// Create a flat flank cam profile from design parameters.
 // lift = follower lift distance from base circle
 // duration = angle over which the follower lifts from the base circle
 // max_diameter = maximum diameter of cam rotation
-func MakeCam(cam_type string, lift, duration, max_diameter float64) (SDF2, error) {
+func MakeFlatFlankCam(lift, duration, max_diameter float64) (SDF2, error) {
 
-	// check the arguments
 	if max_diameter <= 0 {
 		return nil, fmt.Errorf("max_diameter <= 0")
 	}
+
 	if lift <= 0 {
 		return nil, fmt.Errorf("lift <= 0")
 	}
-	if duration <= 0 {
+
+	if duration <= 0 || duration >= PI {
 		return nil, fmt.Errorf("invalid duration")
 	}
 
@@ -187,40 +187,77 @@ func MakeCam(cam_type string, lift, duration, max_diameter float64) (SDF2, error
 	}
 
 	delta := duration / 2.0
+	c := math.Cos(delta)
+	nose_radius := base_radius - (lift*c)/(1-c)
+	if nose_radius <= 0 {
+		return nil, fmt.Errorf("nose_radius <= 0")
+	}
+	distance := base_radius + lift - nose_radius
+	return NewCam1(distance, base_radius, nose_radius), nil
+}
 
-	if cam_type == "flat_flank" {
-		c := math.Cos(delta)
-		nose_radius := base_radius - (lift*c)/(1-c)
-		if nose_radius <= 0 {
-			return nil, fmt.Errorf("nose_radius <= 0")
-		}
-		distance := base_radius + lift - nose_radius
-		return NewCam1(distance, base_radius, nose_radius), nil
-	} else if cam_type == "three_arc" {
-		// Given the duration we know where the flank arc intesects the base circle.
-		p0 := V2{math.Cos(delta), math.Sin(delta)}.MulScalar(base_radius)
-		// As a tunable we have the flank arcs intersect each other on the
-		// y-axis at a point somewhat above the lift height.
-		k := 1.1
-		p1 := V2{0, k * (base_radius + lift)}
+//-----------------------------------------------------------------------------
 
-		// Construct the midpoint of p0 and p1
-		pmid := p1.Add(p0).MulScalar(0.5)
-		// Construct the normal at the midpoint
-		u := p1.Sub(p0)
-		n := V2{u.Y, -u.X}
-		// Construct a perpindicular bisector to p0 and p1
+// Create a three arc cam profile from design parameters.
+// lift = follower lift distance from base circle
+// duration = angle over which the follower lifts from the base circle
+// max_diameter = maximum diameter of cam rotation
+// k = tunable, bigger k = rounder nose, E.g. 1.05
+func MakeThreeArcCam(lift, duration, max_diameter, k float64) (SDF2, error) {
 
-		_ = pmid
-		_ = n
-
-		// TODO
-
-	} else {
-		return nil, fmt.Errorf("unknown cam_type")
+	if max_diameter <= 0 {
+		return nil, fmt.Errorf("max_diameter <= 0")
 	}
 
-	return nil, nil
+	if lift <= 0 {
+		return nil, fmt.Errorf("lift <= 0")
+	}
+
+	if duration <= 0 {
+		return nil, fmt.Errorf("invalid duration")
+	}
+
+	if k <= 1.0 {
+		return nil, fmt.Errorf("invalid k")
+	}
+
+	base_radius := (max_diameter / 2.0) - lift
+	if base_radius <= 0 {
+		return nil, fmt.Errorf("base_radius <= 0")
+	}
+
+	// Given the duration we know where the flank arc intersects the base circle.
+	theta := (PI - duration) / 2.0
+	p0 := V2{math.Cos(theta), math.Sin(theta)}.MulScalar(base_radius)
+	// This gives us a line back to the flank arc center
+	l0 := NewLine2_PV(p0, p0.Negate())
+
+	//The flank arc intersects the y axis above the lift height.
+	p1 := V2{0, k * (base_radius + lift)}
+
+	// The perpendicular bisector of p0 and p1 passes through the flank arc center.
+	p_mid := p1.Add(p0).MulScalar(0.5)
+	u := p1.Sub(p0)
+	l1 := NewLine2_PV(p_mid, V2{u.Y, -u.X})
+
+	// Intersect to find the flank arc center.
+	flank_radius, _, err := l0.Intersect(l1)
+	if err != nil {
+		return nil, err
+	}
+	flank_center := l0.Position(flank_radius)
+
+	// The nose circle is tangential to the flank arcs and the lift line.
+	j := base_radius + lift
+	f := flank_radius
+	cx := flank_center.X
+	cy := flank_center.Y
+	nose_radius := ((cx * cx) + (cy * cy) - (f * f) + (j * j) - (2 * cy * j)) / (2 * (j - f - cy))
+
+	// distance between base and nose circles
+	distance := base_radius + lift - nose_radius
+
+	return NewCam2(distance, base_radius, nose_radius, flank_radius), nil
 }
 
 //-----------------------------------------------------------------------------

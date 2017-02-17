@@ -350,7 +350,7 @@ func test31() {
 }
 
 func test32() {
-	s0, err := sdf.MakeCam("flat_flank", 0.094, sdf.DtoR(2.0*57.5), 0.625)
+	s0, err := sdf.MakeFlatFlankCam(0.094, sdf.DtoR(2.0*57.5), 0.625)
 	if err != nil {
 		panic(err)
 	}
@@ -365,6 +365,15 @@ func test33() {
 	sdf.RenderSTL(s1, "test.stl")
 }
 
+func test34() {
+	s0, err := sdf.MakeThreeArcCam(0.1, sdf.DtoR(2.0*80), 0.7, 1.1)
+	if err != nil {
+		panic(err)
+	}
+	s1 := sdf.NewExtrudeSDF3(s0, 0.1)
+	sdf.RenderSTL(s1, "test.stl")
+}
+
 func main() {
-	test33()
+	test34()
 }

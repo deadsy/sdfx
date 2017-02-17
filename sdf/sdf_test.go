@@ -156,22 +156,25 @@ func Test_Line(t *testing.T) {
 		p1, v1 V2
 		t0     float64
 		t1     float64
-		result string
+		err    string
 	}{
-		{V2{0, 0}, V2{0, 1}, V2{1, 0}, V2{-1, 0}, 0, 1, "single"},
-		{V2{0, 0}, V2{0, 1}, V2{1, 1}, V2{0, 1}, 0, 1, "none"},
-		{V2{0, 0}, V2{0, 1}, V2{0, 0}, V2{0, 1}, 0, 1, "many"},
+		{V2{0, 0}, V2{0, 1}, V2{1, 0}, V2{-1, 0}, 0, 1, ""},
+		{V2{0, 0}, V2{0, 1}, V2{1, 1}, V2{0, 1}, 0, 1, "zero/many"},
+		{V2{0, 0}, V2{0, 1}, V2{0, 0}, V2{0, 1}, 0, 1, "zero/many"},
+		{V2{0, 0}, V2{1, 1}, V2{0, 10}, V2{1, -1}, 5 * math.Sqrt(2), 5 * math.Sqrt(2), ""},
+		{V2{0, 0}, V2{1, 1}, V2{10, 0}, V2{0, 1}, 10 * math.Sqrt(2), 10, ""},
 	}
-
 	for _, test := range line_tests {
 		l0 := NewLine2_PV(test.p0, test.v0)
 		l1 := NewLine2_PV(test.p1, test.v1)
 		t0, t1, err := l0.Intersect(l1)
 		if err != nil {
-			t.Error("FAIL")
-			fmt.Printf("l0: %+v\n", l0)
-			fmt.Printf("l1: %+v\n", l1)
-			fmt.Printf("error: %s\n", err)
+			if err.Error() != test.err {
+				fmt.Printf("l0: %+v\n", l0)
+				fmt.Printf("l1: %+v\n", l1)
+				fmt.Printf("error: %s\n", err)
+				t.Error("FAIL")
+			}
 		} else {
 			if Abs(test.t0-t0) > TOLERANCE || Abs(test.t1-t1) > TOLERANCE {
 				fmt.Printf("l0: %+v\n", l0)
@@ -179,6 +182,22 @@ func Test_Line(t *testing.T) {
 				fmt.Printf("%f %f (expected) %f %f (actual)\n", test.t0, test.t1, t0, t1)
 				t.Error("FAIL")
 			}
+		}
+	}
+
+	for i := 0; i < 10000; i++ {
+		l0 := NewLine2_PV(RandomV2(-10, 10), RandomV2(-10, 10))
+		l1 := NewLine2_PP(RandomV2(-10, 10), RandomV2(-10, 10))
+		t0, t1, err := l0.Intersect(l1)
+		if err != nil {
+			continue
+		}
+		i0 := l0.Position(t0)
+		i1 := l1.Position(t1)
+		if !i0.Equals(i1, TOLERANCE) {
+			fmt.Printf("l0: %+v\n", l0)
+			fmt.Printf("l1: %+v\n", l1)
+			t.Error("FAIL")
 		}
 	}
 }
