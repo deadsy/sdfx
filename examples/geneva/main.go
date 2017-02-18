@@ -6,12 +6,12 @@ import . "github.com/deadsy/sdfx/sdf"
 
 func main() {
 
-	wheel_h := 10.0 // height of wheels
-	hole_r := 3.25  // radius of center hole
-	hub_r := 20.0   // hub radius for driven wheel
-	base_r := 60.0  // radius of base for driver wheel
+	wheel_h := 5.0 // height of wheels
+	hole_r := 3.25 // radius of center hole
+	hub_r := 10.0  // hub radius for driven wheel
+	base_r := 30.0 // radius of base for driver wheel
 
-	s_driver, s_driven, err := MakeGenevaCam(6, 100, 40, 80, 5, 0.5)
+	s_driver, s_driven, err := MakeGenevaCam(6, 50, 20, 40, 2.5, 0.1)
 	if err != nil {
 		panic(err)
 	}
