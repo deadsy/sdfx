@@ -359,7 +359,7 @@ func test32() {
 }
 
 func test33() {
-	s0 := sdf.NewCam2(30, 20, 5, 50000)
+	s0 := sdf.NewThreeArcCam(30, 20, 5, 50000)
 	fmt.Printf("%+v\n", s0)
 	s1 := sdf.NewExtrudeSDF3(s0, 4)
 	sdf.RenderSTL(s1, "test.stl")
@@ -384,6 +384,15 @@ func test35() {
 	sdf.RenderSTL(s1, "test.stl")
 }
 
+func test36() {
+	s_driver, s_driven, err := sdf.MakeGenevaCam(6, 100, 40, 80, 5, 0.5)
+	if err != nil {
+		panic(err)
+	}
+	sdf.RenderSTL(sdf.NewExtrudeSDF3(s_driver, 10), "driver.stl")
+	sdf.RenderSTL(sdf.NewExtrudeSDF3(s_driven, 10), "driven.stl")
+}
+
 func main() {
-	test35()
+	test36()
 }

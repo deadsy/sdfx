@@ -14,9 +14,9 @@ import (
 )
 
 //-----------------------------------------------------------------------------
-// Cam Type 1: Flat Flank Cam.
+// Flat Flank Cams.
 
-type Cam1 struct {
+type FlatFlankCam struct {
 	distance    float64 // center to center circle distance
 	base_radius float64 // radius of base circle
 	nose_radius float64 // radius of nose circle
@@ -33,8 +33,8 @@ type Cam1 struct {
 // distance = circle to circle center distance
 // base_radius = radius of base circle
 // nose_radius = radius of nose circle
-func NewCam1(distance, base_radius, nose_radius float64) SDF2 {
-	s := Cam1{}
+func NewFlatFlankCam(distance, base_radius, nose_radius float64) SDF2 {
+	s := FlatFlankCam{}
 	s.distance = distance
 	s.base_radius = base_radius
 	s.nose_radius = nose_radius
@@ -55,7 +55,7 @@ func NewCam1(distance, base_radius, nose_radius float64) SDF2 {
 }
 
 // Return the minimum distance to the cam.
-func (s *Cam1) Evaluate(p V2) float64 {
+func (s *FlatFlankCam) Evaluate(p V2) float64 {
 	// we have symmetry about the y-axis
 	p0 := V2{Abs(p.X), p.Y}
 	// vector to first point of flank line
@@ -77,14 +77,45 @@ func (s *Cam1) Evaluate(p V2) float64 {
 }
 
 // Return the bounding box for the cam.
-func (s *Cam1) BoundingBox() Box2 {
+func (s *FlatFlankCam) BoundingBox() Box2 {
 	return s.bb
 }
 
-//-----------------------------------------------------------------------------
-// Cam Type 2: Three Arc Cam.
+// Create a flat flank cam profile from design parameters.
+// lift = follower lift distance from base circle
+// duration = angle over which the follower lifts from the base circle
+// max_diameter = maximum diameter of cam rotation
+func MakeFlatFlankCam(lift, duration, max_diameter float64) (SDF2, error) {
 
-type Cam2 struct {
+	if max_diameter <= 0 {
+		return nil, fmt.Errorf("max_diameter <= 0")
+	}
+	if lift <= 0 {
+		return nil, fmt.Errorf("lift <= 0")
+	}
+	if duration <= 0 || duration >= PI {
+		return nil, fmt.Errorf("invalid duration")
+	}
+
+	base_radius := (max_diameter / 2.0) - lift
+	if base_radius <= 0 {
+		return nil, fmt.Errorf("base_radius <= 0")
+	}
+
+	delta := duration / 2.0
+	c := math.Cos(delta)
+	nose_radius := base_radius - (lift*c)/(1-c)
+	if nose_radius <= 0 {
+		return nil, fmt.Errorf("nose_radius <= 0")
+	}
+	distance := base_radius + lift - nose_radius
+	return NewFlatFlankCam(distance, base_radius, nose_radius), nil
+}
+
+//-----------------------------------------------------------------------------
+// Three Arc Cams.
+
+type ThreeArcCam struct {
 	distance     float64 // center to center circle distance
 	base_radius  float64 // radius of base circle
 	nose_radius  float64 // radius of nose circle
@@ -104,12 +135,12 @@ type Cam2 struct {
 // base_radius = radius of major circle
 // nose_radius = radius of minor circle
 // flank_radius = radius of flank arc
-func NewCam2(distance, base_radius, nose_radius, flank_radius float64) SDF2 {
+func NewThreeArcCam(distance, base_radius, nose_radius, flank_radius float64) SDF2 {
 	// check for the minimum size flank radius
 	if flank_radius < (base_radius+distance+nose_radius)/2.0 {
 		panic("flank_radius too small")
 	}
-	s := Cam2{}
+	s := ThreeArcCam{}
 	s.distance = distance
 	s.base_radius = base_radius
 	s.nose_radius = nose_radius
@@ -135,7 +166,7 @@ func NewCam2(distance, base_radius, nose_radius, flank_radius float64) SDF2 {
 }
 
 // Return the minimum distance to the cam.
-func (s *Cam2) Evaluate(p V2) float64 {
+func (s *ThreeArcCam) Evaluate(p V2) float64 {
 	// we have symmetry about the y-axis
 	p0 := V2{Abs(p.X), p.Y}
 	// work out the theta angle wrt the flank center
@@ -157,46 +188,9 @@ func (s *Cam2) Evaluate(p V2) float64 {
 }
 
 // Return the bounding box for the cam.
-func (s *Cam2) BoundingBox() Box2 {
+func (s *ThreeArcCam) BoundingBox() Box2 {
 	return s.bb
 }
-
-//-----------------------------------------------------------------------------
-
-// Create a flat flank cam profile from design parameters.
-// lift = follower lift distance from base circle
-// duration = angle over which the follower lifts from the base circle
-// max_diameter = maximum diameter of cam rotation
-func MakeFlatFlankCam(lift, duration, max_diameter float64) (SDF2, error) {
-
-	if max_diameter <= 0 {
-		return nil, fmt.Errorf("max_diameter <= 0")
-	}
-
-	if lift <= 0 {
-		return nil, fmt.Errorf("lift <= 0")
-	}
-
-	if duration <= 0 || duration >= PI {
-		return nil, fmt.Errorf("invalid duration")
-	}
-
-	base_radius := (max_diameter / 2.0) - lift
-	if base_radius <= 0 {
-		return nil, fmt.Errorf("base_radius <= 0")
-	}
-
-	delta := duration / 2.0
-	c := math.Cos(delta)
-	nose_radius := base_radius - (lift*c)/(1-c)
-	if nose_radius <= 0 {
-		return nil, fmt.Errorf("nose_radius <= 0")
-	}
-	distance := base_radius + lift - nose_radius
-	return NewCam1(distance, base_radius, nose_radius), nil
-}
-
-//-----------------------------------------------------------------------------
 
 // Create a three arc cam profile from design parameters.
 // lift = follower lift distance from base circle
@@ -208,15 +202,12 @@ func MakeThreeArcCam(lift, duration, max_diameter, k float64) (SDF2, error) {
 	if max_diameter <= 0 {
 		return nil, fmt.Errorf("max_diameter <= 0")
 	}
-
 	if lift <= 0 {
 		return nil, fmt.Errorf("lift <= 0")
 	}
-
 	if duration <= 0 {
 		return nil, fmt.Errorf("invalid duration")
 	}
-
 	if k <= 1.0 {
 		return nil, fmt.Errorf("invalid k")
 	}
@@ -256,8 +247,76 @@ func MakeThreeArcCam(lift, duration, max_diameter, k float64) (SDF2, error) {
 
 	// distance between base and nose circles
 	distance := base_radius + lift - nose_radius
+	return NewThreeArcCam(distance, base_radius, nose_radius, flank_radius), nil
+}
 
-	return NewCam2(distance, base_radius, nose_radius, flank_radius), nil
+//-----------------------------------------------------------------------------
+
+// Make 2D profiles for the driver/driven wheels of a geneva cam.
+// num_sectors = number of sectors in the driven wheel
+// center_distance = center to center distance of driver/driven wheels
+// driver_radius = radius of lock portion of driver wheel
+// driven_radius = radius of driven wheel
+// pin_radius = radius of driver pin
+// clearance = pin/slot and wheel/wheel clearance
+func MakeGenevaCam(
+	num_sectors int,
+	center_distance float64,
+	driver_radius float64,
+	driven_radius float64,
+	pin_radius float64,
+	clearance float64,
+) (SDF2, SDF2, error) {
+
+	if num_sectors < 2 {
+		return nil, nil, fmt.Errorf("invalid number of sectors, must be > 2")
+	}
+	if center_distance <= 0 ||
+		driven_radius <= 0 ||
+		driver_radius <= 0 ||
+		pin_radius <= 0 {
+		return nil, nil, fmt.Errorf("invalid dimensions, must be > 0")
+	}
+	if clearance < 0 {
+		return nil, nil, fmt.Errorf("invalid clearance, must be >= 0")
+	}
+	if center_distance > driven_radius+driver_radius {
+		return nil, nil, fmt.Errorf("center distance is too large")
+	}
+
+	// work out the pin offset from the center of the driver wheel
+	theta := TAU / (2.0 * float64(num_sectors))
+	d := center_distance
+	r := driven_radius
+	pin_offset := math.Sqrt((d * d) + (r * r) - (2 * d * r * math.Cos(theta)))
+
+	// driven wheel
+	s_driven := NewCircleSDF2(driven_radius - clearance)
+	// cutouts for the driver wheel
+	s := NewCircleSDF2(driver_radius + clearance)
+	s = NewTransformSDF2(s, Translate2d(V2{center_distance, 0}))
+	s = NewRotateCopySDF2(s, num_sectors)
+	s_driven = NewDifferenceSDF2(s_driven, s)
+	// cutouts for the pin slots
+	slot_length := pin_offset + driven_radius - center_distance
+	s = NewLineSDF2(2*slot_length, pin_radius+clearance)
+	s = NewTransformSDF2(s, Translate2d(V2{driven_radius, 0}))
+	s = NewRotateCopySDF2(s, num_sectors)
+	s = NewTransformSDF2(s, Rotate2d(theta))
+	s_driven = NewDifferenceSDF2(s_driven, s)
+
+	// driver wheel
+	s_driver := NewCircleSDF2(driver_radius - clearance)
+	// cutout for the driven wheel
+	s = NewCircleSDF2(driven_radius + clearance)
+	s = NewTransformSDF2(s, Translate2d(V2{center_distance, 0}))
+	s_driver = NewDifferenceSDF2(s_driver, s)
+	// driver pin
+	s = NewCircleSDF2(pin_radius)
+	s = NewTransformSDF2(s, Translate2d(V2{pin_offset, 0}))
+	s_driver = NewUnionSDF2(s_driver, s)
+
+	return s_driver, s_driven, nil
 }
 
 //-----------------------------------------------------------------------------
