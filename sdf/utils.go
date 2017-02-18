@@ -90,6 +90,13 @@ func Sign(x float64) float64 {
 
 //-----------------------------------------------------------------------------
 
+// Convert Polar to Cartesian Coordinates
+func PolarToXY(r, theta float64) V2 {
+	return V2{math.Cos(theta), math.Sin(theta)}.MulScalar(r)
+}
+
+//-----------------------------------------------------------------------------
+
 // sawtooth function: returns [-period/2, period/2)
 func SawTooth(x, period float64) float64 {
 	x += period / 2

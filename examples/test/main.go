@@ -374,6 +374,16 @@ func test34() {
 	sdf.RenderSTL(s1, "test.stl")
 }
 
+func test35() {
+	r := 7.0
+	d := 20.0
+	s0 := sdf.NewLineSDF2(r, 1.0)
+	s0 = sdf.NewTransformSDF2(s0, sdf.Translate2d(sdf.V2{d, 0}))
+	s0 = sdf.NewRotateCopySDF2(s0, 15)
+	s1 := sdf.NewExtrudeSDF3(s0, 10.0)
+	sdf.RenderSTL(s1, "test.stl")
+}
+
 func main() {
-	test34()
+	test35()
 }

@@ -425,6 +425,43 @@ func (s *RotateSDF2) BoundingBox() Box2 {
 
 //-----------------------------------------------------------------------------
 
+type RotateCopySDF2 struct {
+	sdf   SDF2
+	theta float64
+	bb    Box2
+}
+
+// Rotate and copy an SDF2 TAU radians about the origin.
+// sdf = SDF2 to rotate and copy
+// num = numer of copies
+func NewRotateCopySDF2(sdf SDF2, num int) SDF2 {
+	// check the number of steps
+	if num <= 0 {
+		return nil
+	}
+	s := RotateCopySDF2{}
+	s.sdf = sdf
+	s.theta = TAU / float64(num)
+	// work out the bounding box
+	r_max := sdf.BoundingBox().Max.Length()
+	s.bb = Box2{V2{-r_max, -r_max}, V2{r_max, r_max}}
+	return &s
+}
+
+// Return the minimum distance to the object.
+func (s *RotateCopySDF2) Evaluate(p V2) float64 {
+	// Map p to a point in the first copy sector.
+	pnew := PolarToXY(p.Length(), SawTooth(math.Atan2(p.Y, p.X), s.theta))
+	return s.sdf.Evaluate(pnew)
+}
+
+// Return the bounding box.
+func (s *RotateCopySDF2) BoundingBox() Box2 {
+	return s.bb
+}
+
+//-----------------------------------------------------------------------------
+
 type UnionSDF2 struct {
 	s0  SDF2
 	s1  SDF2
