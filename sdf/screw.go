@@ -22,31 +22,35 @@ import "math"
 // Thread Database - lookup standard screw threads by name
 
 type ThreadParameters struct {
-	name   string  // name of screw thread
-	radius float64 // major radius of screw
-	pitch  float64 // thread to thread distance of screw
-	units  string  // "inch" or "metric"
+	Name       string  // name of screw thread
+	Radius     float64 // major radius of screw
+	Pitch      float64 // thread to thread distance of screw
+	Hex_Radius float64 // hex head radius
+	Hex_Height float64 // hex head height
+	Units      string  // "inch" or "metric"
 }
 
 type ThreadDatabase map[string]*ThreadParameters
 
 var thread_db = Init_ThreadLookup()
 
-func (m ThreadDatabase) UTSAdd(name string, diameter, tpi float64) {
+func (m ThreadDatabase) UTSAdd(name string, diameter, tpi, hex_w, hex_h float64) {
 	t := ThreadParameters{}
-	t.name = name
-	t.radius = diameter / 2.0
-	t.pitch = 1.0 / tpi
-	t.units = "inch"
+	t.Name = name
+	t.Radius = diameter / 2.0
+	t.Pitch = 1.0 / tpi
+	t.Hex_Radius = hex_w / (2.0 * math.Cos(DtoR(30)))
+	t.Hex_Height = hex_h
+	t.Units = "inch"
 	m[name] = &t
 }
 
 func Init_ThreadLookup() ThreadDatabase {
 	m := make(ThreadDatabase)
-	m.UTSAdd("unc_1", 1.0, 8)
-	m.UTSAdd("unf_1", 1.0, 12)
-	m.UTSAdd("unc_1/4", 1.0/4.0, 20)
-	m.UTSAdd("unf_1/4", 1.0/4.0, 28)
+	m.UTSAdd("unc_1", 1.0, 8, 3.0/2.0, 39.0/64.0)
+	m.UTSAdd("unf_1", 1.0, 12, 3.0/2.0, 39.0/64.0)
+	m.UTSAdd("unc_1/4", 1.0/4.0, 20, 7.0/16.0, 5.0/32.0)
+	m.UTSAdd("unf_1/4", 1.0/4.0, 28, 7.0/16.0, 5.0/32.0)
 	return m
 }
 
