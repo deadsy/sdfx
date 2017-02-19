@@ -393,6 +393,13 @@ func test36() {
 	sdf.RenderSTL(sdf.NewExtrudeSDF3(s_driven, 10), 200, "driven.stl")
 }
 
+func test37() {
+	r := 5.0
+	p := 2.0
+	s := sdf.NewScrewSDF3(sdf.AcmeThread(r, p), 50, p, 5)
+	sdf.RenderSTL(s, 400, "screw.stl")
+}
+
 func main() {
-	test36()
+	test37()
 }

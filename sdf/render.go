@@ -144,7 +144,7 @@ func SDF2_RenderPNG(s SDF2, path string) {
 
 //-----------------------------------------------------------------------------
 
-func RenderDXF(path string, vlist []V2) {
+func RenderDXF(vlist V2Set, path string) {
 	d := dxf.NewDrawing()
 
 	for i := 0; i < len(vlist)-1; i++ {
