@@ -396,7 +396,7 @@ func test36() {
 func test37() {
 	r := 5.0
 	p := 2.0
-	s := sdf.NewScrewSDF3(sdf.AcmeThread(r, p), 50, p, 5)
+	s := sdf.NewScrewSDF3(sdf.ISOThread(r, p), 50, p, 1)
 	sdf.RenderSTL(s, 400, "screw.stl")
 }
 

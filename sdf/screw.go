@@ -29,8 +29,8 @@ func AcmeThread(radius, pitch float64) SDF2 {
 	h := radius - 0.5*pitch
 	theta := DtoR(29.0 / 2.0)
 	delta := 0.25 * pitch * math.Tan(theta)
-	x_ofs1 := 0.25*pitch + delta
 	x_ofs0 := 0.25*pitch - delta
+	x_ofs1 := 0.25*pitch + delta
 
 	acme := V2Set{
 		V2{radius, 0},
@@ -44,6 +44,35 @@ func AcmeThread(radius, pitch float64) SDF2 {
 	}
 	//RenderDXF(acme, "acme.dxf")
 	return NewPolySDF2(acme)
+}
+
+// Return the 2d profile for an ISO thread.
+// https://en.wikipedia.org/wiki/ISO_metric_screw_thread
+// radius = radius of thread
+// pitch = thread to thread distance
+func ISOThread(radius, pitch float64) SDF2 {
+
+	theta := DtoR(30.0)
+	h := pitch / (2.0 * math.Tan(theta))
+	r_maj := radius
+	r_root := (1.0 / 6.0) * h
+	r_min := radius - (7.0/8.0)*h + r_root
+	x_ofs0 := (1.0 / 16.0) * pitch
+	x_ofs1 := (3.0 / 8.0) * pitch
+
+	iso := NewSmoother(false)
+	iso.Add(V2{radius, 0})
+	iso.Add(V2{radius, r_min})
+	iso.AddSmooth(V2{x_ofs1, r_min}, 3, r_root)
+	iso.Add(V2{x_ofs0, r_maj})
+	iso.Add(V2{-x_ofs0, r_maj})
+	iso.AddSmooth(V2{-x_ofs1, r_min}, 3, r_root)
+	iso.Add(V2{-radius, r_min})
+	iso.Add(V2{-radius, 0})
+	iso.Smooth()
+
+	//RenderDXF(iso.Vertices(), "iso.dxf")
+	return NewPolySDF2(iso.Vertices())
 }
 
 //-----------------------------------------------------------------------------
@@ -61,13 +90,13 @@ type ScrewSDF3 struct {
 // thread = 2D thread profile
 // length = length of screw
 // pitch = thread to thread distance
-// starts = number of thread starts
+// starts = number of thread starts (< 0 for left hand threads)
 func NewScrewSDF3(thread SDF2, length, pitch float64, starts int) SDF3 {
 	s := ScrewSDF3{}
 	s.thread = thread
 	s.pitch = pitch
 	s.length = length / 2
-	s.lead = float64(starts) * pitch
+	s.lead = -pitch * float64(starts)
 	// Work out the bounding box.
 	// The max-y axis of the sdf2 bounding box is the radius of the thread.
 	bb := s.thread.BoundingBox()
