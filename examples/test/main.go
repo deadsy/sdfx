@@ -400,6 +400,11 @@ func test37() {
 	sdf.RenderSTL(s, 400, "screw.stl")
 }
 
+func test38() {
+	fmt.Printf("%+v\n", sdf.ThreadLookup("unc_1/4"))
+	fmt.Printf("%+v\n", sdf.ThreadLookup("blah"))
+}
+
 func main() {
-	test37()
+	test38()
 }

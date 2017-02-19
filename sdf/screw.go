@@ -19,6 +19,43 @@ package sdf
 import "math"
 
 //-----------------------------------------------------------------------------
+// Thread Database - lookup standard screw threads by name
+
+type ThreadParameters struct {
+	name   string  // name of screw thread
+	radius float64 // major radius of screw
+	pitch  float64 // thread to thread distance of screw
+	units  string  // "inch" or "metric"
+}
+
+type ThreadDatabase map[string]*ThreadParameters
+
+var thread_db = Init_ThreadLookup()
+
+func (m ThreadDatabase) UTSAdd(name string, diameter, tpi float64) {
+	t := ThreadParameters{}
+	t.name = name
+	t.radius = diameter / 2.0
+	t.pitch = 1.0 / tpi
+	t.units = "inch"
+	m[name] = &t
+}
+
+func Init_ThreadLookup() ThreadDatabase {
+	m := make(ThreadDatabase)
+	m.UTSAdd("unc_1", 1.0, 8)
+	m.UTSAdd("unf_1", 1.0, 12)
+	m.UTSAdd("unc_1/4", 1.0/4.0, 20)
+	m.UTSAdd("unf_1/4", 1.0/4.0, 28)
+	return m
+}
+
+// lookup the parameters for a thread by name
+func ThreadLookup(name string) *ThreadParameters {
+	return thread_db[name]
+}
+
+//-----------------------------------------------------------------------------
 // Thread Profiles
 
 // Return a 2d profile for an acme thread.
@@ -46,8 +83,9 @@ func AcmeThread(radius, pitch float64) SDF2 {
 	return NewPolySDF2(acme)
 }
 
-// Return the 2d profile for an ISO thread.
+// Return the 2d profile for an ISO/UTS thread.
 // https://en.wikipedia.org/wiki/ISO_metric_screw_thread
+// https://en.wikipedia.org/wiki/Unified_Thread_Standard
 // radius = radius of thread
 // pitch = thread to thread distance
 func ISOThread(radius, pitch float64) SDF2 {
