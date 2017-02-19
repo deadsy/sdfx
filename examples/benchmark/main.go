@@ -21,10 +21,10 @@ func main() {
 	s := NewCircleSDF2(5)
 	fmt.Printf("circle SDF2 %s\n", fmt_eps(BenchmarkSDF2(s)))
 
-	s = NewCam1(30, 20, 5)
+	s = NewFlatFlankCam(30, 20, 5)
 	fmt.Printf("cam1 SDF2 %s\n", fmt_eps(BenchmarkSDF2(s)))
 
-	s = NewCam2(30, 20, 5, 200)
+	s = NewThreeArcCam(30, 20, 5, 200)
 	fmt.Printf("cam2 SDF2 %s\n", fmt_eps(BenchmarkSDF2(s)))
 
 	s = NewPolySDF2(Nagon(6, 10.0))

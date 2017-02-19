@@ -33,5 +33,5 @@ func main() {
 	rack_3d := NewExtrudeSDF3(rack_2d, h)
 
 	s := NewUnionSDF3(rack_3d, gear_3d)
-	RenderSTL(s, "gear.stl")
+	RenderSTL(s, 200, "gear.stl")
 }

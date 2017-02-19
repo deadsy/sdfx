@@ -291,7 +291,7 @@ func subtractive() SDF3 {
 
 func main() {
 	s := NewDifferenceSDF3(additive(), subtractive())
-	RenderSTL(s, "head.stl")
+	RenderSTL(s, 200, "head.stl")
 }
 
 //-----------------------------------------------------------------------------

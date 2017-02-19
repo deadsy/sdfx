@@ -140,7 +140,7 @@ func wheel_pattern() {
 	wheel := NewUnionSDF3(wheel_3d, web_3d)
 	wheel.(*UnionSDF3).SetMin(PolyMin, wall_thickness)
 
-	RenderSTL(wheel, "wheel.stl")
+	RenderSTL(wheel, 200, "wheel.stl")
 }
 
 //-----------------------------------------------------------------------------
@@ -194,7 +194,7 @@ func core_box() {
 	// remove the core from the box
 	core_box := NewDifferenceSDF3(box_3d, core_3d)
 
-	RenderSTL(core_box, "core_box.stl")
+	RenderSTL(core_box, 200, "core_box.stl")
 }
 
 //-----------------------------------------------------------------------------

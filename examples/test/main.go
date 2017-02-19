@@ -39,7 +39,7 @@ func test5() {
 	s0 = sdf.NewTransformSDF2(s0, sdf.Translate2d(sdf.V2{1, 0}))
 	s1 := sdf.NewSorThetaSDF3(s0, sdf.DtoR(315))
 
-	sdf.RenderSTL(s1, "test.stl")
+	sdf.RenderSTL(s1, 200, "test.stl")
 	//sdf.RenderPNG(s1, true)
 }
 
@@ -80,7 +80,7 @@ func test8() {
 
 func test9() {
 	s := sdf.NewSphereSDF3(10.0)
-	sdf.RenderSTL(s, "test.stl")
+	sdf.RenderSTL(s, 200, "test.stl")
 }
 
 func test10() {
@@ -88,12 +88,12 @@ func test10() {
 	s1 := sdf.NewTransformSDF3(s0, sdf.Rotate3d(sdf.V3{1, 0, 0}, sdf.DtoR(60)))
 	s := sdf.NewUnionSDF3(s0, s1)
 	s.(*sdf.UnionSDF3).SetMin(sdf.PolyMin, 0.1)
-	sdf.RenderSTL(s, "test.stl")
+	sdf.RenderSTL(s, 200, "test.stl")
 }
 
 func test11() {
 	s := sdf.NewCapsuleSDF3(0.3, 1.4)
-	sdf.RenderSTL(s, "test.stl")
+	sdf.RenderSTL(s, 200, "test.stl")
 }
 
 func test12() {
@@ -106,7 +106,7 @@ func test12() {
 	s0 := sdf.NewPolySDF2(points)
 	s0 = sdf.NewTransformSDF2(s0, sdf.Translate2d(sdf.V2{0.8, 0}))
 	s1 := sdf.NewSorThetaSDF3(s0, sdf.DtoR(360))
-	sdf.RenderSTL(s1, "test.stl")
+	sdf.RenderSTL(s1, 200, "test.stl")
 	//sdf.RenderPNG(s1, true)
 }
 
@@ -115,7 +115,7 @@ func test13() {
 	s0 := sdf.NewPolySDF2([]sdf.V2{sdf.V2{k, -k}, sdf.V2{k, k}, sdf.V2{-k, k}, sdf.V2{-k, -k}})
 	s0 = sdf.NewTransformSDF2(s0, sdf.Translate2d(sdf.V2{0.8, 0}))
 	s1 := sdf.NewSorThetaSDF3(s0, sdf.DtoR(270))
-	sdf.RenderSTL(s1, "test.stl")
+	sdf.RenderSTL(s1, 200, "test.stl")
 	//sdf.RenderPNG(s1, true)
 }
 
@@ -142,7 +142,7 @@ func test14() {
 	s0 := sdf.NewPolySDF2(points)
 	s1 := sdf.NewSorThetaSDF3(s0, sdf.DtoR(300))
 
-	sdf.RenderSTL(s1, "test.stl")
+	sdf.RenderSTL(s1, 200, "test.stl")
 }
 
 func test15() {
@@ -168,7 +168,7 @@ func test15() {
 	s1 := sdf.NewSorThetaSDF3(s0, sdf.DtoR(300))
 	s1 = sdf.NewTransformSDF3(s1, sdf.Rotate3d(sdf.V3{0, 0, 1}, sdf.DtoR(30)))
 
-	sdf.RenderSTL(s1, "test.stl")
+	sdf.RenderSTL(s1, 200, "test.stl")
 }
 
 func test16() {
@@ -198,7 +198,7 @@ func test16() {
 	s1 := sdf.NewSorThetaSDF3(s0, sdf.DtoR(300))
 	s1 = sdf.NewTransformSDF3(s1, sdf.Rotate3d(sdf.V3{0, 0, 1}, sdf.DtoR(30)))
 
-	sdf.RenderSTL(s1, "test.stl")
+	sdf.RenderSTL(s1, 200, "test.stl")
 }
 
 func test17() {
@@ -221,7 +221,7 @@ func test17() {
 	s1 := sdf.NewSorThetaSDF3(s0, sdf.DtoR(300))
 	s1 = sdf.NewTransformSDF3(s1, sdf.Rotate3d(sdf.V3{0, 0, 1}, sdf.DtoR(30)))
 
-	sdf.RenderSTL(s1, "test.stl")
+	sdf.RenderSTL(s1, 200, "test.stl")
 }
 
 func test18() {
@@ -252,7 +252,7 @@ func test18() {
 	s1 := sdf.NewSorThetaSDF3(s0, sdf.DtoR(300))
 	s1 = sdf.NewTransformSDF3(s1, sdf.Rotate3d(sdf.V3{0, 0, 1}, sdf.DtoR(30)))
 
-	sdf.RenderSTL(s1, "test.stl")
+	sdf.RenderSTL(s1, 200, "test.stl")
 }
 
 func test19() {
@@ -262,7 +262,7 @@ func test19() {
 	s1 := sdf.NewArraySDF2(s0, sdf.V2i{3, 7}, sdf.V2{k * r, k * r})
 	s1.(*sdf.ArraySDF2).SetMin(sdf.PolyMin, 0.8)
 	s2 := sdf.NewExtrudeSDF3(s1, 1.0)
-	sdf.RenderSTL(s2, "test.stl")
+	sdf.RenderSTL(s2, 200, "test.stl")
 }
 
 func test20() {
@@ -273,7 +273,7 @@ func test20() {
 	s0 = sdf.NewRotateSDF2(s0, 5, sdf.Rotate2d(sdf.DtoR(20)))
 	s0.(*sdf.RotateSDF2).SetMin(sdf.PolyMin, 1.2)
 	s1 := sdf.NewExtrudeSDF3(s0, 10.0)
-	sdf.RenderSTL(s1, "test.stl")
+	sdf.RenderSTL(s1, 200, "test.stl")
 }
 
 func test21() {
@@ -282,7 +282,7 @@ func test21() {
 	s0 := sdf.NewSphereSDF3(r)
 	s1 := sdf.NewArraySDF3(s0, sdf.V3i{3, 7, 5}, sdf.V3{k * r, k * r, k * r})
 	s1.(*sdf.ArraySDF3).SetMin(sdf.PolyMin, 0.8)
-	sdf.RenderSTL(s1, "test.stl")
+	sdf.RenderSTL(s1, 200, "test.stl")
 }
 
 func test22() {
@@ -292,7 +292,7 @@ func test22() {
 	s0 = sdf.NewTransformSDF3(s0, sdf.Translate3d(sdf.V3{d, 0, 0}))
 	s0 = sdf.NewRotateSDF3(s0, 5, sdf.Rotate3d(sdf.V3{0, 0, 1}, sdf.DtoR(20)))
 	s0.(*sdf.RotateSDF3).SetMin(sdf.PolyMin, 1.2)
-	sdf.RenderSTL(s0, "test.stl")
+	sdf.RenderSTL(s0, 200, "test.stl")
 }
 
 func test23() {
@@ -316,37 +316,37 @@ func test25() {
 
 func test26() {
 	s := sdf.NewCylinderSDF3(5, 2, 1)
-	sdf.RenderSTL(s, "test.stl")
+	sdf.RenderSTL(s, 200, "test.stl")
 }
 
 func test27() {
 	r := 5.0
 	posn := []sdf.V2{sdf.V2{2 * r, 2 * r}, sdf.V2{-r, r}, sdf.V2{r, -r}, sdf.V2{-r, -r}, sdf.V2{0, 0}}
 	s := sdf.NewMultiCylinderSDF3(3, 1, posn)
-	sdf.RenderSTL(s, "test.stl")
+	sdf.RenderSTL(s, 200, "test.stl")
 }
 
 func test28() {
 	s := sdf.NewConeSDF3(20, 12, 8, 2)
-	sdf.RenderSTL(s, "test.stl")
+	sdf.RenderSTL(s, 200, "test.stl")
 }
 
 func test29() {
 	s0 := sdf.NewLineSDF2(10, 3)
 	s1 := sdf.NewExtrudeSDF3(s0, 4)
-	sdf.RenderSTL(s1, "test.stl")
+	sdf.RenderSTL(s1, 200, "test.stl")
 }
 
 func test30() {
 	s0 := sdf.NewLineSDF2(10, 3)
 	s0 = sdf.NewCutSDF2(s0, sdf.V2{4, 0}, sdf.V2{1, 1})
 	s1 := sdf.NewExtrudeSDF3(s0, 4)
-	sdf.RenderSTL(s1, "test.stl")
+	sdf.RenderSTL(s1, 200, "test.stl")
 }
 
 func test31() {
 	s := sdf.CounterSunk_Hole3d(30, 2)
-	sdf.RenderSTL(s, "test.stl")
+	sdf.RenderSTL(s, 200, "test.stl")
 }
 
 func test32() {
@@ -355,14 +355,14 @@ func test32() {
 		panic(err)
 	}
 	s1 := sdf.NewExtrudeSDF3(s0, 0.1)
-	sdf.RenderSTL(s1, "test.stl")
+	sdf.RenderSTL(s1, 200, "test.stl")
 }
 
 func test33() {
 	s0 := sdf.NewThreeArcCam(30, 20, 5, 50000)
 	fmt.Printf("%+v\n", s0)
 	s1 := sdf.NewExtrudeSDF3(s0, 4)
-	sdf.RenderSTL(s1, "test.stl")
+	sdf.RenderSTL(s1, 200, "test.stl")
 }
 
 func test34() {
@@ -371,7 +371,7 @@ func test34() {
 		panic(err)
 	}
 	s1 := sdf.NewExtrudeSDF3(s0, 0.1)
-	sdf.RenderSTL(s1, "test.stl")
+	sdf.RenderSTL(s1, 200, "test.stl")
 }
 
 func test35() {
@@ -381,7 +381,7 @@ func test35() {
 	s0 = sdf.NewTransformSDF2(s0, sdf.Translate2d(sdf.V2{d, 0}))
 	s0 = sdf.NewRotateCopySDF2(s0, 15)
 	s1 := sdf.NewExtrudeSDF3(s0, 10.0)
-	sdf.RenderSTL(s1, "test.stl")
+	sdf.RenderSTL(s1, 200, "test.stl")
 }
 
 func test36() {
@@ -389,8 +389,8 @@ func test36() {
 	if err != nil {
 		panic(err)
 	}
-	sdf.RenderSTL(sdf.NewExtrudeSDF3(s_driver, 10), "driver.stl")
-	sdf.RenderSTL(sdf.NewExtrudeSDF3(s_driven, 10), "driven.stl")
+	sdf.RenderSTL(sdf.NewExtrudeSDF3(s_driver, 10), 200, "driver.stl")
+	sdf.RenderSTL(sdf.NewExtrudeSDF3(s_driven, 10), 200, "driven.stl")
 }
 
 func main() {

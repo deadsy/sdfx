@@ -76,5 +76,5 @@ func main() {
 	s = NewUnionSDF3(s, in3)
 	s = NewUnionSDF3(s, ex4)
 
-	RenderSTL(s, "camshaft.stl")
+	RenderSTL(s, 200, "camshaft.stl")
 }

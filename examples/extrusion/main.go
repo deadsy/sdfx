@@ -50,8 +50,8 @@ func extrude2() SDF3 {
 //-----------------------------------------------------------------------------
 
 func main() {
-	RenderSTL(extrude1(), "extrude1.stl")
-	RenderSTL(extrude2(), "extrude2.stl")
+	RenderSTL(extrude1(), 200, "extrude1.stl")
+	RenderSTL(extrude2(), 200, "extrude2.stl")
 }
 
 //-----------------------------------------------------------------------------

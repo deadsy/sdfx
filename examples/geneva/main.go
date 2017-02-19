@@ -6,15 +6,40 @@ import . "github.com/deadsy/sdfx/sdf"
 
 func main() {
 
-	wheel_h := 5.0 // height of wheels
-	hole_r := 3.25 // radius of center hole
-	hub_r := 10.0  // hub radius for driven wheel
-	base_r := 30.0 // radius of base for driver wheel
+	num_sectors := 6
+	center_distance := 50.0
+	driver_radius := 20.0
+	driven_radius := 40.0
+	pin_radius := 2.5
+	clearance := 0.1
 
-	s_driver, s_driven, err := MakeGenevaCam(6, 50, 20, 40, 2.5, 0.1)
+	/*
+		num_sectors := 10
+		center_distance := 45.0
+		driver_radius := 10.0
+		driven_radius := 45.0
+		pin_radius := 2.0
+		clearance := 0.1
+	*/
+
+	s_driver, s_driven, err := MakeGenevaCam(
+		num_sectors,
+		center_distance,
+		driver_radius,
+		driven_radius,
+		pin_radius,
+		clearance,
+	)
+
+	//	s_driver, s_driven, err := MakeGenevaCam(10, 45, 10, 45, 2, 0.1)
 	if err != nil {
 		panic(err)
 	}
+
+	wheel_h := 5.0                // height of wheels
+	hole_r := 3.25                // radius of center hole
+	hub_r := 10.0                 // hub radius for driven wheel
+	base_r := 1.5 * driver_radius // radius of base for driver wheel
 
 	// extrude the driver wheel
 	driver_3d := NewExtrudeSDF3(s_driver, wheel_h)
@@ -37,6 +62,11 @@ func main() {
 	// remove a center hole
 	driven_3d = NewDifferenceSDF3(driven_3d, hole_3d)
 
-	RenderSTL(driver_3d, "driver.stl")
-	RenderSTL(driven_3d, "driven.stl")
+	mesh_cells := 300
+	RenderSTL(driver_3d, mesh_cells, "driver.stl")
+	RenderSTL(driven_3d, mesh_cells, "driven.stl")
+
+	driver_3d = NewTransformSDF3(driver_3d, Translate3d(V3{-0.8 * driven_radius, 0, 0}))
+	driven_3d = NewTransformSDF3(driven_3d, Translate3d(V3{driven_radius, 0, 0}))
+	RenderSTL(NewUnionSDF3(driver_3d, driven_3d), mesh_cells, "geneva.stl")
 }
