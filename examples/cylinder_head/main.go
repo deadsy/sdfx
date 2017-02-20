@@ -48,7 +48,35 @@ var eb_distance = eb_c2c_distance / 2.0
 
 var eb_y_offset = (head_width / 2.0) - eb_distance - eb_side_radius
 var eb_z_offset = dim(1.0 / 16.0)
-var eb_height = dim(1.0 / 8.0)
+var eb_height0 = dim(1.0 / 16.0)
+var eb_height1 = dim(1.0 / 8.0)
+var eb_height = eb_height0 + eb_height1
+
+func exhaust_boss(mode string, x_ofs float64) SDF3 {
+
+	var s0 SDF2
+
+	if mode == "body" {
+		s0 = NewFlange1(eb_distance, eb_main_radius, eb_side_radius)
+	} else if mode == "hole" {
+		s0 = NewCircleSDF2(eb_hole_radius)
+	} else {
+		panic("bad mode")
+	}
+
+	s1 := NewExtrudeSDF3(s0, eb_height)
+	m := RotateZ(DtoR(90))
+	m = RotateY(DtoR(90)).Mul(m)
+	m = Translate3d(V3{x_ofs, eb_y_offset, eb_z_offset}).Mul(m)
+	s1 = NewTransformSDF3(s1, m)
+	return s1
+}
+
+func exhaust_bosses(mode string) SDF3 {
+	x_ofs := 0.5*(head_length+eb_height) - eb_height0
+	return NewUnionSDF3(exhaust_boss(mode, x_ofs),
+		exhaust_boss(mode, -x_ofs))
+}
 
 //-----------------------------------------------------------------------------
 // valve bosses
@@ -190,7 +218,8 @@ func head_wall_inner_2d() SDF2 {
 }
 
 func head_envelope() SDF3 {
-	return NewExtrudeSDF3(head_wall_outer_2d(), head_height)
+	s0 := NewBoxSDF2(V2{head_length + 2*eb_height1, head_width}, 0)
+	return NewExtrudeSDF3(s0, head_height)
 }
 
 func head_wall() SDF3 {
@@ -268,6 +297,9 @@ func additive() SDF3 {
 	s = NewUnionSDF3(s, manifolds("body"))
 	s.(*UnionSDF3).SetMin(PolyMin, general_round)
 
+	s = NewUnionSDF3(s, exhaust_bosses("body"))
+	s.(*UnionSDF3).SetMin(PolyMin, general_round)
+
 	// cleanup the blending artifacts on the outside
 	s = NewIntersectionSDF3(s, head_envelope())
 	return s
@@ -283,6 +315,7 @@ func subtractive() SDF3 {
 		s = NewUnionSDF3(s, head_stud_holes())
 		s = NewUnionSDF3(s, valve_sets("hole"))
 		s = NewUnionSDF3(s, manifolds("hole"))
+		s = NewUnionSDF3(s, exhaust_bosses("hole"))
 	}
 	return s
 }
@@ -291,7 +324,7 @@ func subtractive() SDF3 {
 
 func main() {
 	s := NewDifferenceSDF3(additive(), subtractive())
-	RenderSTL(s, 200, "head.stl")
+	RenderSTL(s, 400, "head.stl")
 }
 
 //-----------------------------------------------------------------------------
