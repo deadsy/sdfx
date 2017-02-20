@@ -57,21 +57,21 @@ func NewFlatFlankCam(distance, base_radius, nose_radius float64) SDF2 {
 // Return the minimum distance to the cam.
 func (s *FlatFlankCam) Evaluate(p V2) float64 {
 	// we have symmetry about the y-axis
-	p0 := V2{Abs(p.X), p.Y}
+	p = V2{Abs(p.X), p.Y}
 	// vector to first point of flank line
-	v := p0.Sub(s.a)
+	v := p.Sub(s.a)
 	// work out the t-parameter of the projection onto the flank line
 	t := v.Dot(s.u)
 	var d float64
 	if t < 0 {
 		// the nearest point is on the major circle
-		d = p0.Length() - s.base_radius
+		d = p.Length() - s.base_radius
 	} else if t <= s.l {
 		// the nearest point is on the flank line
 		d = v.Dot(V2{s.u.Y, -s.u.X})
 	} else {
 		// the nearest point is on the minor circle
-		d = p0.Sub(V2{0, s.distance}).Length() - s.nose_radius
+		d = p.Sub(V2{0, s.distance}).Length() - s.nose_radius
 	}
 	return d
 }

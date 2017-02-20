@@ -405,6 +405,13 @@ func test38() {
 	fmt.Printf("%+v\n", sdf.ThreadLookup("blah"))
 }
 
+func test39() {
+	s0 := sdf.NewFlange1(30, 20, 10)
+	fmt.Printf("%+v\n", s0)
+	s1 := sdf.NewExtrudeSDF3(s0, 5)
+	sdf.RenderSTL(s1, 200, "test.stl")
+}
+
 func main() {
-	test38()
+	test39()
 }
