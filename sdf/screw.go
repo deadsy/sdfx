@@ -22,41 +22,126 @@ import "math"
 // Thread Database - lookup standard screw threads by name
 
 type ThreadParameters struct {
-	Name       string  // name of screw thread
-	Radius     float64 // major radius of screw
-	Pitch      float64 // thread to thread distance of screw
-	Hex_Radius float64 // hex head radius
-	Hex_Height float64 // hex head height
-	Units      string  // "inch" or "metric"
+	Name   string  // name of screw thread
+	Radius float64 // major radius of screw
+	Pitch  float64 // thread to thread distance of screw
+	Units  string  // "inch" or "mm"
 }
 
 type ThreadDatabase map[string]*ThreadParameters
 
 var thread_db = Init_ThreadLookup()
 
-func (m ThreadDatabase) UTSAdd(name string, diameter, tpi, hex_w, hex_h float64) {
+// Unified Thread Standard
+// name = thread name
+// diameter = screw major diameter
+// tpi = threads per inch
+func (m ThreadDatabase) UTSAdd(name string, diameter, tpi float64) {
 	t := ThreadParameters{}
 	t.Name = name
 	t.Radius = diameter / 2.0
 	t.Pitch = 1.0 / tpi
-	t.Hex_Radius = hex_w / (2.0 * math.Cos(DtoR(30)))
-	t.Hex_Height = hex_h
 	t.Units = "inch"
+	m[name] = &t
+}
+
+// ISO Thread Standard
+// name = thread name
+// diameter = screw major diameter
+// pitch = thread pitch
+func (m ThreadDatabase) ISOAdd(name string, diameter, pitch float64) {
+	t := ThreadParameters{}
+	t.Name = name
+	t.Radius = diameter / 2.0
+	t.Pitch = pitch
+	t.Units = "mm"
 	m[name] = &t
 }
 
 func Init_ThreadLookup() ThreadDatabase {
 	m := make(ThreadDatabase)
-	m.UTSAdd("unc_1", 1.0, 8, 3.0/2.0, 39.0/64.0)
-	m.UTSAdd("unf_1", 1.0, 12, 3.0/2.0, 39.0/64.0)
-	m.UTSAdd("unc_1/4", 1.0/4.0, 20, 7.0/16.0, 5.0/32.0)
-	m.UTSAdd("unf_1/4", 1.0/4.0, 28, 7.0/16.0, 5.0/32.0)
+	m.UTSAdd("unc_1", 1.0, 8)
+	m.UTSAdd("unf_1", 1.0, 12)
+	m.UTSAdd("unc_1/4", 1.0/4.0, 20)
+	m.UTSAdd("unf_1/4", 1.0/4.0, 28)
+	m.UTSAdd("unc_1/2", 1.0/2.0, 13)
+	m.UTSAdd("unf_1/2", 1.0/2.0, 20)
+
+	m.ISOAdd("m6c", 6, 1)
+	m.ISOAdd("m6f", 6, 0.75)
+
 	return m
 }
 
 // lookup the parameters for a thread by name
 func ThreadLookup(name string) *ThreadParameters {
 	return thread_db[name]
+}
+
+// Hex Head Radius (empirical)
+func (t *ThreadParameters) Hex_Radius() float64 {
+	screw_d := t.Radius * 2.0
+	hex_w := screw_d * 1.6
+	hex_r := hex_w / (2.0 * math.Cos(DtoR(30)))
+	return hex_r
+}
+
+// Hex Head Height (empirical)
+func (t *ThreadParameters) Hex_Height() float64 {
+	hex_r := t.Hex_Radius()
+	hex_h := 2.0 * hex_r * (5.0 / 12.0)
+	return hex_h
+}
+
+//-----------------------------------------------------------------------------
+
+// Create a Hex Head Screw/Bolt
+// name = thread name
+// total_length = threaded length + shank length
+// shank length = non threaded length
+func Hex_Screw(name string, total_length, shank_length float64) SDF3 {
+	t := ThreadLookup(name)
+	if t == nil {
+		return nil
+	}
+	if total_length < 0 {
+		return nil
+	}
+	if shank_length < 0 {
+		return nil
+	}
+	thread_length := total_length - shank_length
+	if thread_length < 0 {
+		thread_length = 0
+	}
+
+	// hex head
+	hex_r := t.Hex_Radius()
+	hex_h := t.Hex_Height()
+	z_ofs := 0.5 * (total_length + shank_length + hex_h)
+	round := hex_r * 0.08
+	hex_2d := NewPolySDF2(Nagon(6, hex_r-round))
+	hex_2d = NewOffsetSDF2(hex_2d, round)
+	hex_3d := NewExtrudeSDF3(hex_2d, hex_h)
+	// round off the edges
+	sphere_3d := NewSphereSDF3(hex_r * 1.55)
+	sphere_3d = NewTransformSDF3(sphere_3d, Translate3d(V3{0, 0, -hex_r * 0.9}))
+	hex_3d = NewIntersectionSDF3(hex_3d, sphere_3d)
+	// add a rounded cylinder
+	hex_3d = NewUnionSDF3(hex_3d, NewCylinderSDF3(hex_h*1.05, hex_r*0.8, round))
+	hex_3d = NewTransformSDF3(hex_3d, Translate3d(V3{0, 0, z_ofs}))
+
+	// shank
+	z_ofs = 0.5 * total_length
+	shank_3d := NewCylinderSDF3(shank_length, t.Radius, 0)
+	shank_3d = NewTransformSDF3(shank_3d, Translate3d(V3{0, 0, z_ofs}))
+
+	// thread
+	screw_3d := NewScrewSDF3(ISOThread(t.Radius, t.Pitch), thread_length, t.Pitch, 1)
+
+	s := NewUnionSDF3(hex_3d, screw_3d)
+	s = NewUnionSDF3(s, shank_3d)
+	return s
 }
 
 //-----------------------------------------------------------------------------
