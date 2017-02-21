@@ -74,8 +74,73 @@ func exhaust_boss(mode string, x_ofs float64) SDF3 {
 
 func exhaust_bosses(mode string) SDF3 {
 	x_ofs := 0.5*(head_length+eb_height) - eb_height0
-	return NewUnionSDF3(exhaust_boss(mode, x_ofs),
-		exhaust_boss(mode, -x_ofs))
+	return NewUnionSDF3(exhaust_boss(mode, x_ofs), exhaust_boss(mode, -x_ofs))
+}
+
+//-----------------------------------------------------------------------------
+// spark plug bosses
+
+var sp2sp_distance = dim(1.0 + (5.0 / 8.0))
+var sp_theta = DtoR(30)
+
+var sp_boss_r1 = dim(21.0 / 64.0)
+var sp_boss_r2 = dim(15.0 / 32.0)
+var sp_boss_h1 = dim(0.79)
+var sp_boss_h2 = dim(0.94)
+var sp_boss_h3 = dim(2)
+
+var sp_hole_d = dim(21.0 / 64.0)
+var sp_hole_r = sp_hole_d / 2.0
+var sp_hole_h = dim(1.0)
+
+var sp_cb_h1 = dim(1.0)
+var sp_cb_h2 = dim(2.0)
+var sp_cb_r = dim(5.0 / 16.0)
+
+var sp_hyp = sp_hole_h + sp_cb_r*math.Tan(sp_theta)
+var sp_y_ofs = sp_hyp*math.Cos(sp_theta) - head_width/2
+var sp_z_ofs = -sp_hyp * math.Sin(sp_theta)
+
+func sparkplug(mode string, x_ofs float64) SDF3 {
+	var vlist []V2
+	if mode == "boss" {
+		boss := NewSmoother(false)
+		boss.Add(V2{0, 0})
+		boss.Add(V2{sp_boss_r1, 0})
+		boss.AddSmooth(V2{sp_boss_r1, sp_boss_h1}, 3, sp_boss_r1*0.3)
+		boss.AddSmooth(V2{sp_boss_r2, sp_boss_h2}, 3, sp_boss_r2*0.3)
+		boss.Add(V2{sp_boss_r2, sp_boss_h3})
+		boss.Add(V2{0, sp_boss_h3})
+		boss.Smooth()
+		vlist = boss.Vertices()
+	} else if mode == "hole" {
+		vlist = []V2{
+			V2{0, 0},
+			V2{sp_hole_r, 0},
+			V2{sp_hole_r, sp_hole_h},
+			V2{0, sp_hole_h},
+		}
+	} else if mode == "counterbore" {
+		vlist = []V2{
+			V2{0, sp_cb_h1},
+			V2{sp_cb_r, sp_cb_h1},
+			V2{sp_cb_r, sp_cb_h2},
+			V2{0, sp_cb_h2},
+		}
+	} else {
+		panic("bad mode")
+	}
+	s0 := NewPolySDF2(vlist)
+	s := NewSorSDF3(s0)
+	m := RotateX(PI/2 - sp_theta)
+	m = Translate3d(V3{x_ofs, sp_y_ofs, sp_z_ofs}).Mul(m)
+	s = NewTransformSDF3(s, m)
+	return s
+}
+
+func sparkplugs(mode string) SDF3 {
+	x_ofs := 0.5 * sp2sp_distance
+	return NewUnionSDF3(sparkplug(mode, x_ofs), sparkplug(mode, -x_ofs))
 }
 
 //-----------------------------------------------------------------------------
@@ -260,9 +325,7 @@ func manifold_set(r float64) SDF3 {
 }
 
 func manifolds(mode string) SDF3 {
-
 	var r float64
-
 	if mode == "body" {
 		r = manifold_radius
 	} else if mode == "hole" {
@@ -270,14 +333,12 @@ func manifolds(mode string) SDF3 {
 	} else {
 		panic("bad mode")
 	}
-
 	s0 := manifold_set(r)
 	s1 := NewTransformSDF3(s0, MirrorYZ())
 	s := NewUnionSDF3(s0, s1)
 	if mode == "body" {
 		s.(*UnionSDF3).SetMin(PolyMin, general_round)
 	}
-
 	return s
 }
 
@@ -292,6 +353,9 @@ func additive() SDF3 {
 	s.(*UnionSDF3).SetMin(PolyMin, general_round)
 
 	s = NewUnionSDF3(s, valve_sets("boss"))
+	s.(*UnionSDF3).SetMin(PolyMin, general_round)
+
+	s = NewUnionSDF3(s, sparkplugs("boss"))
 	s.(*UnionSDF3).SetMin(PolyMin, general_round)
 
 	s = NewUnionSDF3(s, manifolds("body"))
@@ -310,10 +374,13 @@ func additive() SDF3 {
 func subtractive() SDF3 {
 	var s SDF3
 	if casting {
+		s = NewUnionSDF3(s, sparkplugs("counterbore"))
 	} else {
 		s = NewUnionSDF3(s, cylinder_heads("chamber"))
 		s = NewUnionSDF3(s, head_stud_holes())
 		s = NewUnionSDF3(s, valve_sets("hole"))
+		s = NewUnionSDF3(s, sparkplugs("hole"))
+		s = NewUnionSDF3(s, sparkplugs("counterbore"))
 		s = NewUnionSDF3(s, manifolds("hole"))
 		s = NewUnionSDF3(s, exhaust_bosses("hole"))
 	}
