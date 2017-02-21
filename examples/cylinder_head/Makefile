@@ -3,3 +3,4 @@ all:
 clean:
 	go clean
 	-rm *.stl
+	-rm *.dxf
