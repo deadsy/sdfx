@@ -412,6 +412,17 @@ func test39() {
 	sdf.RenderSTL(s1, 200, "test.stl")
 }
 
+func test40() {
+	d := 30.0
+	wall := 5.0
+	s0 := sdf.NewBoxSDF3(sdf.V3{d, d, d}, wall/2)
+	s1 := sdf.NewBoxSDF3(sdf.V3{d - wall, d - wall, d}, wall/2)
+	s1 = sdf.NewTransformSDF3(s1, sdf.Translate3d(sdf.V3{0, 0, wall / 2}))
+	s := sdf.NewDifferenceSDF3(s0, s1)
+	s.(*sdf.DifferenceSDF3).SetMax(sdf.PolyMax, 2)
+	sdf.RenderSTL(s, 200, "test.stl")
+}
+
 func main() {
-	test39()
+	test40()
 }
