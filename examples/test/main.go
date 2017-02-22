@@ -423,6 +423,24 @@ func test40() {
 	sdf.RenderSTL(s, 200, "test.stl")
 }
 
+func test41() {
+
+	s0 := sdf.NewSphereSDF3(10.0)
+
+	s1 := sdf.Slice2d(s0, sdf.V3{0, 0, 0}, sdf.V3{1, 0, 0})
+	fmt.Printf("%+v\n", s1)
+
+	s1 = sdf.Slice2d(s0, sdf.V3{0, 0, 0}, sdf.V3{0, 1, 0})
+	fmt.Printf("%+v\n", s1)
+
+	s1 = sdf.Slice2d(s0, sdf.V3{0, 0, 0}, sdf.V3{0, 0, 1})
+	fmt.Printf("%+v\n", s1)
+
+	s1 = sdf.Slice2d(s0, sdf.V3{0, 0, 0}, sdf.V3{1, 1, 0})
+	fmt.Printf("%+v\n", s1)
+
+}
+
 func main() {
-	test40()
+	test41()
 }

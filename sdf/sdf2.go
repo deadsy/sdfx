@@ -489,6 +489,63 @@ func (s *RotateCopySDF2) BoundingBox() Box2 {
 
 //-----------------------------------------------------------------------------
 
+type SliceSDF2 struct {
+	sdf SDF3 // the sdf3 being sliced
+	a   V3   // 3d point for 2d origin
+	u   V3   // vector for the 2d x-axis
+	v   V3   // vector for the 2d y-axis
+	bb  Box2 // bounding box
+}
+
+// Create an SDF2 from a plane sliced through an SDF3.
+// sdf = SDF3 to be sliced
+// a = point on plane
+// n = normal to plane
+func Slice2d(sdf SDF3, a, n V3) SDF2 {
+	s := SliceSDF2{}
+	s.sdf = sdf
+	s.a = a
+	// work out the x/y vectors on the plane.
+	if n.X == 0 {
+		s.u = V3{1, 0, 0}
+	} else if n.Y == 0 {
+		s.u = V3{0, 1, 0}
+	} else if n.Z == 0 {
+		s.u = V3{0, 0, 1}
+	} else {
+		s.u = V3{n.Y, -n.X, 0}
+	}
+	s.v = n.Cross(s.u)
+	s.u = s.u.Normalize()
+	s.v = s.v.Normalize()
+	// work out the bounding box
+	v3 := sdf.BoundingBox().Vertices()
+	v2 := make(V2Set, len(v3))
+	n = n.Normalize()
+	for i, v := range v3 {
+		// project the 3d bounding box vertex onto the plane
+		p := v.Sub(n.MulScalar(n.Dot(v.Sub(s.a))))
+		// work out the 3d point in terms of the 2d unit vectors
+		pa := p.Sub(s.a)
+		v2[i] = V2{pa.Dot(s.u), pa.Dot(s.v)}
+	}
+	s.bb = Box2{v2.Min(), v2.Max()}
+	return &s
+}
+
+// Return the minimum distance to the object.
+func (s *SliceSDF2) Evaluate(p V2) float64 {
+	pnew := s.a.Add(s.u.MulScalar(p.X)).Add(s.v.MulScalar(p.Y))
+	return s.sdf.Evaluate(pnew)
+}
+
+// Return the bounding box.
+func (s *SliceSDF2) BoundingBox() Box2 {
+	return s.bb
+}
+
+//-----------------------------------------------------------------------------
+
 type UnionSDF2 struct {
 	s0  SDF2
 	s1  SDF2
