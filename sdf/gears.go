@@ -155,7 +155,7 @@ type GearRack struct {
 // pressure_angle = gear pressure angle (radians)
 // backlash = backlash expressed as units of pitch circumference
 // base_height = height of rack base
-func NewGearRack(
+func GearRack2D(
 	number_teeth float64,
 	gear_module float64,
 	pressure_angle float64,

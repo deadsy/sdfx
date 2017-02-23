@@ -23,7 +23,7 @@ func main() {
 	m = Translate3d(V3{0, 0.39, 0}).Mul(m)
 	gear_3d = Transform3D(gear_3d, m)
 
-	rack_2d := NewGearRack(
+	rack_2d := GearRack2D(
 		11,     // number_teeth
 		module, // gear_module
 		pa,     // pressure_angle
