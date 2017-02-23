@@ -252,20 +252,14 @@ func MakeThreeArcCam(lift, duration, max_diameter, k float64) (SDF2, error) {
 
 //-----------------------------------------------------------------------------
 
-// Make 2D profiles for the driver/driven wheels of a geneva cam.
-// num_sectors = number of sectors in the driven wheel
-// center_distance = center to center distance of driver/driven wheels
-// driver_radius = radius of lock portion of driver wheel
-// driven_radius = radius of driven wheel
-// pin_radius = radius of driver pin
-// clearance = pin/slot and wheel/wheel clearance
+// MakeGenevaCAM makes 2D profiles for the driver/driven wheels of a geneva cam.
 func MakeGenevaCam(
-	num_sectors int,
-	center_distance float64,
-	driver_radius float64,
-	driven_radius float64,
-	pin_radius float64,
-	clearance float64,
+	num_sectors int,         // number of sectors in the driven wheel
+	center_distance float64, // center to center distance of driver/driven wheels
+	driver_radius float64,   // radius of lock portion of driver wheel
+	driven_radius float64,   // radius of driven wheel
+	pin_radius float64,      // radius of driver pin
+	clearance float64,       // pin/slot and wheel/wheel clearance
 ) (SDF2, SDF2, error) {
 
 	if num_sectors < 2 {
