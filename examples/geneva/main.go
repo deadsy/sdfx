@@ -45,22 +45,22 @@ func main() {
 	driver_3d := Extrude3D(s_driver, wheel_h)
 	driver_3d = Transform3D(driver_3d, Translate3d(V3{0, 0, wheel_h / 2}))
 	// add a base
-	base_3d := NewCylinderSDF3(wheel_h, base_r, 0)
+	base_3d := Cylinder3D(wheel_h, base_r, 0)
 	base_3d = Transform3D(base_3d, Translate3d(V3{0, 0, -wheel_h / 2}))
 	driver_3d = Union3D(driver_3d, base_3d)
 	// remove a center hole
-	hole_3d := NewCylinderSDF3(2*wheel_h, hole_r, 0)
-	driver_3d = NewDifferenceSDF3(driver_3d, hole_3d)
+	hole_3d := Cylinder3D(2*wheel_h, hole_r, 0)
+	driver_3d = Difference3D(driver_3d, hole_3d)
 
 	// extrude the driven wheel
 	driven_3d := Extrude3D(s_driven, wheel_h)
 	driven_3d = Transform3D(driven_3d, Translate3d(V3{0, 0, -wheel_h / 2}))
 	// add a hub
-	hub_3d := NewCylinderSDF3(wheel_h, hub_r, 0)
+	hub_3d := Cylinder3D(wheel_h, hub_r, 0)
 	hub_3d = Transform3D(hub_3d, Translate3d(V3{0, 0, wheel_h / 2}))
 	driven_3d = Union3D(driven_3d, hub_3d)
 	// remove a center hole
-	driven_3d = NewDifferenceSDF3(driven_3d, hole_3d)
+	driven_3d = Difference3D(driven_3d, hole_3d)
 
 	mesh_cells := 300
 	RenderSTL(driver_3d, mesh_cells, "driver.stl")

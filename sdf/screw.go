@@ -121,23 +121,23 @@ func Hex_Screw(name string, total_length, shank_length float64) SDF3 {
 	z_ofs := 0.5 * (total_length + shank_length + hex_h)
 	round := hex_r * 0.08
 	hex_2d := Polygon2D(Nagon(6, hex_r-round))
-	hex_2d = NewOffsetSDF2(hex_2d, round)
+	hex_2d = Offset2D(hex_2d, round)
 	hex_3d := Extrude3D(hex_2d, hex_h)
 	// round off the edges
-	sphere_3d := NewSphereSDF3(hex_r * 1.55)
+	sphere_3d := Sphere3D(hex_r * 1.55)
 	sphere_3d = Transform3D(sphere_3d, Translate3d(V3{0, 0, -hex_r * 0.9}))
-	hex_3d = NewIntersectionSDF3(hex_3d, sphere_3d)
+	hex_3d = Intersection3D(hex_3d, sphere_3d)
 	// add a rounded cylinder
-	hex_3d = Union3D(hex_3d, NewCylinderSDF3(hex_h*1.05, hex_r*0.8, round))
+	hex_3d = Union3D(hex_3d, Cylinder3D(hex_h*1.05, hex_r*0.8, round))
 	hex_3d = Transform3D(hex_3d, Translate3d(V3{0, 0, z_ofs}))
 
 	// shank
 	z_ofs = 0.5 * total_length
-	shank_3d := NewCylinderSDF3(shank_length, t.Radius, 0)
+	shank_3d := Cylinder3D(shank_length, t.Radius, 0)
 	shank_3d = Transform3D(shank_3d, Translate3d(V3{0, 0, z_ofs}))
 
 	// thread
-	screw_3d := NewScrewSDF3(ISOThread(t.Radius, t.Pitch), thread_length, t.Pitch, 1)
+	screw_3d := Screw3D(ISOThread(t.Radius, t.Pitch), thread_length, t.Pitch, 1)
 
 	s := Union3D(hex_3d, screw_3d)
 	s = Union3D(s, shank_3d)
@@ -218,7 +218,7 @@ type ScrewSDF3 struct {
 // length = length of screw
 // pitch = thread to thread distance
 // starts = number of thread starts (< 0 for left hand threads)
-func NewScrewSDF3(thread SDF2, length, pitch float64, starts int) SDF3 {
+func Screw3D(thread SDF2, length, pitch float64, starts int) SDF3 {
 	s := ScrewSDF3{}
 	s.thread = thread
 	s.pitch = pitch

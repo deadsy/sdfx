@@ -62,7 +62,7 @@ type SorSDF3 struct {
 }
 
 // Return an SDF3 for a solid of revolution.
-func NewSorThetaSDF3(sdf SDF2, theta float64) SDF3 {
+func RevolveTheta3D(sdf SDF2, theta float64) SDF3 {
 	s := SorSDF3{}
 	s.sdf = sdf
 	// normalize theta
@@ -97,7 +97,7 @@ func NewSorThetaSDF3(sdf SDF2, theta float64) SDF3 {
 
 // Return an SDF3 for a solid of revolution.
 func Revolve3D(sdf SDF2) SDF3 {
-	return NewSorThetaSDF3(sdf, 0)
+	return RevolveTheta3D(sdf, 0)
 }
 
 // Return the minimum distance to a solid of revolution.
@@ -146,7 +146,7 @@ func Extrude3D(sdf SDF2, height float64) SDF3 {
 }
 
 // Twist Extrude - rotate by twist radians over the height of the extrusion
-func NewTwistExtrudeSDF3(sdf SDF2, height, twist float64) SDF3 {
+func TwistExtrude3D(sdf SDF2, height, twist float64) SDF3 {
 	s := ExtrudeSDF3{}
 	s.sdf = sdf
 	s.height = height / 2
@@ -159,7 +159,7 @@ func NewTwistExtrudeSDF3(sdf SDF2, height, twist float64) SDF3 {
 }
 
 // Scale Extrude - scale over the height of the extrusion
-func NewScaleExtrudeSDF3(sdf SDF2, height float64, scale V2) SDF3 {
+func ScaleExtrude3D(sdf SDF2, height float64, scale V2) SDF3 {
 	s := ExtrudeSDF3{}
 	s.sdf = sdf
 	s.height = height / 2
@@ -172,7 +172,7 @@ func NewScaleExtrudeSDF3(sdf SDF2, height float64, scale V2) SDF3 {
 }
 
 // Scale + Twist Extrude - scale and then twist over the height of the extrusion
-func NewScaleTwistExtrudeSDF3(sdf SDF2, height, twist float64, scale V2) SDF3 {
+func ScaleTwistExtrude3D(sdf SDF2, height, twist float64, scale V2) SDF3 {
 	s := ExtrudeSDF3{}
 	s.sdf = sdf
 	s.height = height / 2
@@ -214,7 +214,7 @@ type BoxSDF3 struct {
 }
 
 // Return an SDF3 for a box (rounded corners with round > 0).
-func NewBoxSDF3(size V3, round float64) SDF3 {
+func Box3D(size V3, round float64) SDF3 {
 	size = size.MulScalar(0.5)
 	s := BoxSDF3{}
 	s.size = size.SubScalar(round)
@@ -243,7 +243,7 @@ type SphereSDF3 struct {
 }
 
 // Return an SDF3 for a sphere.
-func NewSphereSDF3(radius float64) SDF3 {
+func Sphere3D(radius float64) SDF3 {
 	s := SphereSDF3{}
 	s.radius = radius
 	d := V3{radius, radius, radius}
@@ -273,7 +273,7 @@ type CylinderSDF3 struct {
 }
 
 // Return an SDF3 for a cylinder (rounded edges with round > 0).
-func NewCylinderSDF3(height, radius, round float64) SDF3 {
+func Cylinder3D(height, radius, round float64) SDF3 {
 	s := CylinderSDF3{}
 	s.height = (height / 2) - round
 	s.radius = radius - round
@@ -284,8 +284,8 @@ func NewCylinderSDF3(height, radius, round float64) SDF3 {
 }
 
 // Return an SDF3 for a capsule.
-func NewCapsuleSDF3(radius, height float64) SDF3 {
-	return NewCylinderSDF3(radius, height, radius)
+func Capsule3D(radius, height float64) SDF3 {
+	return Cylinder3D(radius, height, radius)
 }
 
 // Return the minimum distance to a cylinder.
@@ -312,7 +312,7 @@ type MultiCylinderSDF3 struct {
 }
 
 // Return an SDF3 for multiple cylinders.
-func NewMultiCylinderSDF3(height, radius float64, positions V2Set) SDF3 {
+func MultiCylinder3D(height, radius float64, positions V2Set) SDF3 {
 	s := MultiCylinderSDF3{}
 	s.height = height / 2
 	s.radius = radius
@@ -355,7 +355,7 @@ type ConeSDF3 struct {
 }
 
 // Return a new trucated cone (round > 0 gives rounded edges)
-func NewConeSDF3(height, r0, r1, round float64) SDF3 {
+func Cone3D(height, r0, r1, round float64) SDF3 {
 	s := ConeSDF3{}
 	s.height = (height / 2) - round
 	s.round = round
@@ -493,7 +493,7 @@ type DifferenceSDF3 struct {
 }
 
 // Return the difference of two SDF3 objects, s0 - s1.
-func NewDifferenceSDF3(s0, s1 SDF3) SDF3 {
+func Difference3D(s0, s1 SDF3) SDF3 {
 	if s1 == nil {
 		return s0
 	}
@@ -536,7 +536,7 @@ type IntersectionSDF3 struct {
 }
 
 // Return the intersection of two SDF3 objects, s0 with s1.
-func NewIntersectionSDF3(s0, s1 SDF3) SDF3 {
+func Intersection3D(s0, s1 SDF3) SDF3 {
 	if s0 == nil || s1 == nil {
 		return nil
 	}
@@ -577,7 +577,7 @@ type CutSDF3 struct {
 
 // Cut the SDF3 along a plane passing through a with normal n.
 // The SDF3 on the positive side of the normal remains.
-func NewCutSDF3(sdf SDF3, a, n V3) SDF3 {
+func Cut3D(sdf SDF3, a, n V3) SDF3 {
 	s := CutSDF3{}
 	s.sdf = sdf
 	s.a = a
@@ -609,7 +609,7 @@ type ArraySDF3 struct {
 	bb   Box3
 }
 
-func NewArraySDF3(sdf SDF3, num V3i, step V3) SDF3 {
+func Array3D(sdf SDF3, num V3i, step V3) SDF3 {
 	// check the number of steps
 	if num[0] <= 0 || num[1] <= 0 || num[2] <= 0 {
 		return nil
@@ -660,7 +660,7 @@ type RotateSDF3 struct {
 	bb   Box3
 }
 
-func NewRotateSDF3(sdf SDF3, num int, step M44) SDF3 {
+func Rotate3D(sdf SDF3, num int, step M44) SDF3 {
 	// check the number of steps
 	if num <= 0 {
 		return nil

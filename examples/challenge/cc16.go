@@ -23,11 +23,11 @@ func cc16a() SDF3 {
 	slot_r := 0.38 / 2.0
 
 	base_2d := Box2D(V2{base_w, base_d}, base_radius)
-	slot := NewLineSDF2(slot_l, slot_r)
-	slot0 := NewTransformSDF2(slot, Translate2d(V2{base_w / 2, 0}))
-	slot1 := NewTransformSDF2(slot, Translate2d(V2{-base_w / 2, 0}))
-	slots := NewUnionSDF2(slot0, slot1)
-	base_2d = NewDifferenceSDF2(base_2d, slots)
+	slot := Line2D(slot_l, slot_r)
+	slot0 := Transform2D(slot, Translate2d(V2{base_w / 2, 0}))
+	slot1 := Transform2D(slot, Translate2d(V2{-base_w / 2, 0}))
+	slots := Union2D(slot0, slot1)
+	base_2d = Difference2D(base_2d, slots)
 	base_3d := Extrude3D(base_2d, base_h)
 
 	hole_h := 0.75
@@ -40,13 +40,13 @@ func cc16a() SDF3 {
 	cb_radius := 1.25 / 2.0
 	cb_depth := 0.12
 
-	block_2d := NewLineSDF2(block_l, block_radius)
-	block_2d = NewCutSDF2(block_2d, V2{0, 0}, V2{0, 1})
+	block_2d := Line2D(block_l, block_radius)
+	block_2d = Cut2D(block_2d, V2{0, 0}, V2{0, 1})
 	block_3d := Extrude3D(block_2d, block_w)
 
 	cb_3d := CounterBored_Hole3d(block_w, hole_radius, cb_radius, cb_depth)
 	cb_3d = Transform3D(cb_3d, Translate3d(V3{block_l / 2, 0, 0}))
-	block_3d = NewDifferenceSDF3(block_3d, cb_3d)
+	block_3d = Difference3D(block_3d, cb_3d)
 
 	m := RotateX(DtoR(-90))
 	m = RotateY(DtoR(-90)).Mul(m)
@@ -72,8 +72,8 @@ func cc16b() SDF3 {
 	base_2d := Box2D(V2{base_w, 2 * base_d}, base_radius)
 
 	// remove the edge and re-center on y-axis
-	base_2d = NewCutSDF2(base_2d, V2{0, 0}, V2{-1, 0})
-	base_2d = NewTransformSDF2(base_2d, Translate2d(V2{0, -base_d / 2}))
+	base_2d = Cut2D(base_2d, V2{0, 0}, V2{-1, 0})
+	base_2d = Transform2D(base_2d, Translate2d(V2{0, -base_d / 2}))
 
 	// cut out the base holes
 	base_hole_r := 14.0 / 2.0
@@ -83,17 +83,17 @@ func cc16b() SDF3 {
 		V2{base_hole_xofs, base_hole_yofs},
 		V2{-base_hole_xofs, base_hole_yofs},
 	}
-	holes_2d := NewMultiCircleSDF2(base_hole_r, holes)
-	base_2d = NewDifferenceSDF2(base_2d, holes_2d)
+	holes_2d := MultiCircle2D(base_hole_r, holes)
+	base_2d = Difference2D(base_2d, holes_2d)
 
 	// cut out the slotted hole
 	slot_l := 20.0
 	slot_r := 9.0
-	slot_2d := NewLineSDF2(slot_l, slot_r)
+	slot_2d := Line2D(slot_l, slot_r)
 	m := Rotate2d(DtoR(90))
 	m = Translate2d(V2{0, slot_l / 2}).Mul(m)
-	slot_2d = NewTransformSDF2(slot_2d, m)
-	base_2d = NewDifferenceSDF2(base_2d, slot_2d)
+	slot_2d = Transform2D(slot_2d, m)
+	base_2d = Difference2D(base_2d, slot_2d)
 
 	// Extrude the base to 3d
 	base_3d := Extrude3D(base_2d, base_h)
@@ -101,11 +101,11 @@ func cc16b() SDF3 {
 	// cut out the rails
 	rail_w := 15.0 // rails have square cross section
 	rail_zofs := (base_h - rail_w) / 2.0
-	rail_3d := NewBoxSDF3(V3{rail_w, base_d, rail_w}, 0)
+	rail_3d := Box3D(V3{rail_w, base_d, rail_w}, 0)
 	rail0_3d := Transform3D(rail_3d, Translate3d(V3{base_hole_xofs, 0, -rail_zofs}))
 	rail1_3d := Transform3D(rail_3d, Translate3d(V3{-base_hole_xofs, 0, -rail_zofs}))
-	base_3d = NewDifferenceSDF3(base_3d, rail0_3d)
-	base_3d = NewDifferenceSDF3(base_3d, rail1_3d)
+	base_3d = Difference3D(base_3d, rail0_3d)
+	base_3d = Difference3D(base_3d, rail1_3d)
 
 	// cut out the surface recess
 	recess_w := 40.0
@@ -123,7 +123,7 @@ func cc16b() SDF3 {
 	q = RotateZ(DtoR(-90)).Mul(q)
 	q = Translate3d(V3{0, recess_w, recess_zofs}).Mul(q)
 	recess_3d = Transform3D(recess_3d, q)
-	base_3d = NewDifferenceSDF3(base_3d, recess_3d)
+	base_3d = Difference3D(base_3d, recess_3d)
 
 	// Tool Support
 	support_h := 109.0 - base_h
@@ -157,10 +157,10 @@ func cc16b() SDF3 {
 	hole_3d := Chamfered_Hole3d(support_w, hole_r, chamfer_d)
 	q = Translate3d(V3{0, hole_h, 0})
 	hole_3d = Transform3D(hole_3d, q)
-	support_3d = NewDifferenceSDF3(support_3d, hole_3d)
+	support_3d = Difference3D(support_3d, hole_3d)
 
 	// cut the sloped face of the support
-	support_3d = NewCutSDF3(support_3d, V3{0, support_h, -support_w / 2}, V3{0, math.Cos(support_theta), math.Sin(support_theta)})
+	support_3d = Cut3D(support_3d, V3{0, support_h, -support_w / 2}, V3{0, math.Cos(support_theta), math.Sin(support_theta)})
 
 	// position the support
 	support_yofs := (base_d - support_w) / 2.0

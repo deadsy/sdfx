@@ -130,9 +130,9 @@ func wheel_pattern() {
 	var wheel_3d SDF3
 
 	if pie_print {
-		wheel_3d = NewSorThetaSDF3(wheel_2d, DtoR(60))
+		wheel_3d = RevolveTheta3D(wheel_2d, DtoR(60))
 	} else {
-		web_3d = NewRotateSDF3(web_3d, 6, Rotate3d(V3{0, 0, 1}, DtoR(60)))
+		web_3d = Rotate3D(web_3d, 6, Rotate3d(V3{0, 0, 1}, DtoR(60)))
 		wheel_3d = Revolve3D(wheel_2d)
 	}
 
@@ -169,7 +169,7 @@ func core_box() {
 	w := 4.2 * shaft_radius
 	d := 1.2 * shaft_radius
 	h := (core_height + shaft_length) * 1.1
-	box_3d := NewBoxSDF3(V3{h, w, d}, 0)
+	box_3d := Box3D(V3{h, w, d}, 0)
 
 	// holes in the box
 	dy := w * 0.37
@@ -180,10 +180,10 @@ func core_box() {
 		V2{-dx, dy},
 		V2{dx, -dy},
 		V2{-dx, -dy}}
-	holes_3d := NewMultiCylinderSDF3(d, hole_radius, positions)
+	holes_3d := MultiCylinder3D(d, hole_radius, positions)
 
 	// Drill the holes
-	box_3d = NewDifferenceSDF3(box_3d, holes_3d)
+	box_3d = Difference3D(box_3d, holes_3d)
 
 	// build the core
 	core_2d := core_profile()
@@ -192,7 +192,7 @@ func core_box() {
 	core_3d = Transform3D(core_3d, m)
 
 	// remove the core from the box
-	core_box := NewDifferenceSDF3(box_3d, core_3d)
+	core_box := Difference3D(box_3d, core_3d)
 
 	RenderSTL(core_box, 200, "core_box.stl")
 }

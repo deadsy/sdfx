@@ -33,7 +33,7 @@ type FlatFlankCam struct {
 // distance = circle to circle center distance
 // base_radius = radius of base circle
 // nose_radius = radius of nose circle
-func NewFlatFlankCam(distance, base_radius, nose_radius float64) SDF2 {
+func FlatFlankCam2D(distance, base_radius, nose_radius float64) SDF2 {
 	s := FlatFlankCam{}
 	s.distance = distance
 	s.base_radius = base_radius
@@ -109,7 +109,7 @@ func MakeFlatFlankCam(lift, duration, max_diameter float64) (SDF2, error) {
 		return nil, fmt.Errorf("nose_radius <= 0")
 	}
 	distance := base_radius + lift - nose_radius
-	return NewFlatFlankCam(distance, base_radius, nose_radius), nil
+	return FlatFlankCam2D(distance, base_radius, nose_radius), nil
 }
 
 //-----------------------------------------------------------------------------
@@ -135,7 +135,7 @@ type ThreeArcCam struct {
 // base_radius = radius of major circle
 // nose_radius = radius of minor circle
 // flank_radius = radius of flank arc
-func NewThreeArcCam(distance, base_radius, nose_radius, flank_radius float64) SDF2 {
+func ThreeArcCam2D(distance, base_radius, nose_radius, flank_radius float64) SDF2 {
 	// check for the minimum size flank radius
 	if flank_radius < (base_radius+distance+nose_radius)/2.0 {
 		panic("flank_radius too small")
@@ -247,7 +247,7 @@ func MakeThreeArcCam(lift, duration, max_diameter, k float64) (SDF2, error) {
 
 	// distance between base and nose circles
 	distance := base_radius + lift - nose_radius
-	return NewThreeArcCam(distance, base_radius, nose_radius, flank_radius), nil
+	return ThreeArcCam2D(distance, base_radius, nose_radius, flank_radius), nil
 }
 
 //-----------------------------------------------------------------------------
@@ -294,27 +294,27 @@ func MakeGenevaCam(
 	s_driven := Circle2D(driven_radius - clearance)
 	// cutouts for the driver wheel
 	s := Circle2D(driver_radius + clearance)
-	s = NewTransformSDF2(s, Translate2d(V2{center_distance, 0}))
-	s = NewRotateCopySDF2(s, num_sectors)
-	s_driven = NewDifferenceSDF2(s_driven, s)
+	s = Transform2D(s, Translate2d(V2{center_distance, 0}))
+	s = RotateCopy2D(s, num_sectors)
+	s_driven = Difference2D(s_driven, s)
 	// cutouts for the pin slots
 	slot_length := pin_offset + driven_radius - center_distance
-	s = NewLineSDF2(2*slot_length, pin_radius+clearance)
-	s = NewTransformSDF2(s, Translate2d(V2{driven_radius, 0}))
-	s = NewRotateCopySDF2(s, num_sectors)
-	s = NewTransformSDF2(s, Rotate2d(theta))
-	s_driven = NewDifferenceSDF2(s_driven, s)
+	s = Line2D(2*slot_length, pin_radius+clearance)
+	s = Transform2D(s, Translate2d(V2{driven_radius, 0}))
+	s = RotateCopy2D(s, num_sectors)
+	s = Transform2D(s, Rotate2d(theta))
+	s_driven = Difference2D(s_driven, s)
 
 	// driver wheel
 	s_driver := Circle2D(driver_radius - clearance)
 	// cutout for the driven wheel
 	s = Circle2D(driven_radius + clearance)
-	s = NewTransformSDF2(s, Translate2d(V2{center_distance, 0}))
-	s_driver = NewDifferenceSDF2(s_driver, s)
+	s = Transform2D(s, Translate2d(V2{center_distance, 0}))
+	s_driver = Difference2D(s_driver, s)
 	// driver pin
 	s = Circle2D(pin_radius)
-	s = NewTransformSDF2(s, Translate2d(V2{pin_offset, 0}))
-	s_driver = NewUnionSDF2(s_driver, s)
+	s = Transform2D(s, Translate2d(V2{pin_offset, 0}))
+	s_driver = Union2D(s_driver, s)
 
 	return s_driver, s_driven, nil
 }

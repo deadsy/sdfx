@@ -67,7 +67,7 @@ type MultiCircleSDF2 struct {
 }
 
 // Return an SDF2 for multiple circles.
-func NewMultiCircleSDF2(radius float64, positions V2Set) SDF2 {
+func MultiCircle2D(radius float64, positions V2Set) SDF2 {
 	s := MultiCircleSDF2{}
 	s.radius = radius
 	s.positions = positions
@@ -128,7 +128,7 @@ type LineSDF2 struct {
 }
 
 // Return a line from (-l/2,0) to (l/2,0)
-func NewLineSDF2(l, round float64) SDF2 {
+func Line2D(l, round float64) SDF2 {
 	s := LineSDF2{}
 	s.l = l / 2
 	s.round = round
@@ -159,7 +159,7 @@ type OffsetSDF2 struct {
 }
 
 // Offset an SDF2 - add a constant to the distance function
-func NewOffsetSDF2(sdf SDF2, offset float64) SDF2 {
+func Offset2D(sdf SDF2, offset float64) SDF2 {
 	s := OffsetSDF2{}
 	s.sdf = sdf
 	s.offset = offset
@@ -189,7 +189,7 @@ type CutSDF2 struct {
 
 // Cut the SDF2 along a line from a in direction v.
 // The SDF2 to the right of the line remains.
-func NewCutSDF2(sdf SDF2, a, v V2) SDF2 {
+func Cut2D(sdf SDF2, a, v V2) SDF2 {
 	s := CutSDF2{}
 	s.sdf = sdf
 	s.a = a
@@ -323,7 +323,7 @@ type TransformSDF2 struct {
 	bb      Box2
 }
 
-func NewTransformSDF2(sdf SDF2, matrix M33) SDF2 {
+func Transform2D(sdf SDF2, matrix M33) SDF2 {
 	s := TransformSDF2{}
 	s.sdf = sdf
 	s.matrix = matrix
@@ -355,7 +355,7 @@ type ArraySDF2 struct {
 	bb   Box2
 }
 
-func NewArraySDF2(sdf SDF2, num V2i, step V2) SDF2 {
+func Array2D(sdf SDF2, num V2i, step V2) SDF2 {
 	// check the number of steps
 	if num[0] <= 0 || num[1] <= 0 {
 		return nil
@@ -404,7 +404,7 @@ type RotateSDF2 struct {
 	bb   Box2
 }
 
-func NewRotateSDF2(sdf SDF2, num int, step M33) SDF2 {
+func Rotate2D(sdf SDF2, num int, step M33) SDF2 {
 	// check the number of steps
 	if num <= 0 {
 		return nil
@@ -461,7 +461,7 @@ type RotateCopySDF2 struct {
 // Rotate and copy an SDF2 TAU radians about the origin.
 // sdf = SDF2 to rotate and copy
 // num = numer of copies
-func NewRotateCopySDF2(sdf SDF2, num int) SDF2 {
+func RotateCopy2D(sdf SDF2, num int) SDF2 {
 	// check the number of steps
 	if num <= 0 {
 		return nil
@@ -557,7 +557,7 @@ type UnionSDF2 struct {
 	bb  Box2
 }
 
-func NewUnionSDF2(s0, s1 SDF2) SDF2 {
+func Union2D(s0, s1 SDF2) SDF2 {
 	if s0 == nil {
 		return s1
 	}
@@ -600,7 +600,7 @@ type DifferenceSDF2 struct {
 }
 
 // Return the difference of two SDF2 objects, s0 - s1.
-func NewDifferenceSDF2(s0, s1 SDF2) SDF2 {
+func Difference2D(s0, s1 SDF2) SDF2 {
 	if s1 == nil {
 		return s0
 	}

@@ -16,8 +16,8 @@ package sdf
 // cb_r = counter bore radius
 // cb_d = counter bore depth
 func CounterBored_Hole3d(l, r, cb_r, cb_d float64) SDF3 {
-	s0 := NewCylinderSDF3(l, r, 0)
-	s1 := NewCylinderSDF3(cb_d, cb_r, 0)
+	s0 := Cylinder3D(l, r, 0)
+	s1 := Cylinder3D(cb_d, cb_r, 0)
 	s1 = Transform3D(s1, Translate3d(V3{0, 0, (l - cb_d) / 2}))
 	return Union3D(s0, s1)
 }
@@ -27,8 +27,8 @@ func CounterBored_Hole3d(l, r, cb_r, cb_d float64) SDF3 {
 // r = hole radius
 // ch_r = chamfer radius
 func Chamfered_Hole3d(l, r, ch_r float64) SDF3 {
-	s0 := NewCylinderSDF3(l, r, 0)
-	s1 := NewConeSDF3(ch_r, r, r+ch_r, 0)
+	s0 := Cylinder3D(l, r, 0)
+	s1 := Cone3D(ch_r, r, r+ch_r, 0)
 	s1 = Transform3D(s1, Translate3d(V3{0, 0, (l - ch_r) / 2}))
 	return Union3D(s0, s1)
 }

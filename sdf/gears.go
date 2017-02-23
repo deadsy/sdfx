@@ -132,11 +132,11 @@ func InvoluteGear(
 		facets,
 	)
 
-	gear := NewRotateSDF2(tooth, number_teeth, Rotate2d(TAU/float64(number_teeth)))
+	gear := Rotate2D(tooth, number_teeth, Rotate2d(TAU/float64(number_teeth)))
 	root := Circle2D(root_radius)
 	ring := Circle2D(ring_radius)
 
-	return NewDifferenceSDF2(NewUnionSDF2(gear, root), ring)
+	return Difference2D(Union2D(gear, root), ring)
 }
 
 //-----------------------------------------------------------------------------

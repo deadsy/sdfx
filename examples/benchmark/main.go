@@ -21,10 +21,10 @@ func main() {
 	s := Circle2D(5)
 	fmt.Printf("circle SDF2 %s\n", fmt_eps(BenchmarkSDF2(s)))
 
-	s = NewFlatFlankCam(30, 20, 5)
+	s = FlatFlankCam2D(30, 20, 5)
 	fmt.Printf("cam1 SDF2 %s\n", fmt_eps(BenchmarkSDF2(s)))
 
-	s = NewThreeArcCam(30, 20, 5, 200)
+	s = ThreeArcCam2D(30, 20, 5, 200)
 	fmt.Printf("cam2 SDF2 %s\n", fmt_eps(BenchmarkSDF2(s)))
 
 	s = Polygon2D(Nagon(6, 10.0))
