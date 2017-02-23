@@ -93,7 +93,7 @@ func wheel_profile() SDF2 {
 	s.Smooth()
 
 	//RenderDXF("wheel.dxf", s.Vertices())
-	return NewPolySDF2(s.Vertices())
+	return Polygon2D(s.Vertices())
 }
 
 // build 2d web profile
@@ -111,7 +111,7 @@ func web_profile() SDF2 {
 	s.Smooth()
 
 	//RenderDXF("web.dxf", s.Vertices())
-	return NewPolySDF2(s.Vertices())
+	return Polygon2D(s.Vertices())
 }
 
 // build the wheel pattern
@@ -119,11 +119,11 @@ func wheel_pattern() {
 
 	// build a reinforcing webs
 	web_2d := web_profile()
-	web_3d := NewExtrudeSDF3(web_2d, web_length)
+	web_3d := Extrude3D(web_2d, web_length)
 	m := Translate3d(V3{0, plate_thickness, hub_radius + web_length/2})
 	m = RotateX(DtoR(90)).Mul(m)
 	m = RotateZ(DtoR(120)).Mul(m)
-	web_3d = NewTransformSDF3(web_3d, m)
+	web_3d = Transform3D(web_3d, m)
 
 	// build the wheel profile
 	wheel_2d := wheel_profile()
@@ -133,11 +133,11 @@ func wheel_pattern() {
 		wheel_3d = NewSorThetaSDF3(wheel_2d, DtoR(60))
 	} else {
 		web_3d = NewRotateSDF3(web_3d, 6, Rotate3d(V3{0, 0, 1}, DtoR(60)))
-		wheel_3d = NewSorSDF3(wheel_2d)
+		wheel_3d = Revolve3D(wheel_2d)
 	}
 
 	// add the webs to the wheel with some blending
-	wheel := NewUnionSDF3(wheel_3d, web_3d)
+	wheel := Union3D(wheel_3d, web_3d)
 	wheel.(*UnionSDF3).SetMin(PolyMin, wall_thickness)
 
 	RenderSTL(wheel, 200, "wheel.stl")
@@ -159,7 +159,7 @@ func core_profile() SDF2 {
 	s.Smooth()
 
 	//RenderDXF("core.dxf", s.Vertices())
-	return NewPolySDF2(s.Vertices())
+	return Polygon2D(s.Vertices())
 }
 
 // build the core box
@@ -187,9 +187,9 @@ func core_box() {
 
 	// build the core
 	core_2d := core_profile()
-	core_3d := NewSorSDF3(core_2d)
+	core_3d := Revolve3D(core_2d)
 	m := Translate3d(V3{h / 2, 0, d / 2}).Mul(RotateY(DtoR(-90)))
-	core_3d = NewTransformSDF3(core_3d, m)
+	core_3d = Transform3D(core_3d, m)
 
 	// remove the core from the box
 	core_box := NewDifferenceSDF3(box_3d, core_3d)

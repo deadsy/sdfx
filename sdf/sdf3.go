@@ -96,7 +96,7 @@ func NewSorThetaSDF3(sdf SDF2, theta float64) SDF3 {
 }
 
 // Return an SDF3 for a solid of revolution.
-func NewSorSDF3(sdf SDF2) SDF3 {
+func Revolve3D(sdf SDF2) SDF3 {
 	return NewSorThetaSDF3(sdf, 0)
 }
 
@@ -134,7 +134,7 @@ type ExtrudeSDF3 struct {
 }
 
 // Linear Extrude
-func NewExtrudeSDF3(sdf SDF2, height float64) SDF3 {
+func Extrude3D(sdf SDF2, height float64) SDF3 {
 	s := ExtrudeSDF3{}
 	s.sdf = sdf
 	s.height = height / 2
@@ -421,7 +421,7 @@ type TransformSDF3 struct {
 	bb      Box3
 }
 
-func NewTransformSDF3(sdf SDF3, matrix M44) SDF3 {
+func Transform3D(sdf SDF3, matrix M44) SDF3 {
 	s := TransformSDF3{}
 	s.sdf = sdf
 	s.matrix = matrix
@@ -450,7 +450,7 @@ type UnionSDF3 struct {
 }
 
 // Return the union of two SDF3 objects.
-func NewUnionSDF3(s0, s1 SDF3) SDF3 {
+func Union3D(s0, s1 SDF3) SDF3 {
 	if s0 == nil {
 		return s1
 	}

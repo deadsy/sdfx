@@ -34,8 +34,8 @@ func main() {
 		V2{-r3, 0},
 	}
 
-	shaft_2d := NewPolySDF2(shaft.RtoA())
-	shaft_3d := NewSorSDF3(shaft_2d)
+	shaft_2d := Polygon2D(shaft.RtoA())
+	shaft_3d := Revolve3D(shaft_2d)
 
 	// make the cams
 	valve_diameter := 0.25
@@ -47,34 +47,34 @@ func main() {
 	inlet_theta := DtoR(-110)
 
 	inlet_2d, _ := MakeThreeArcCam(lift, DtoR(115), cam_diameter, k)
-	inlet_3d := NewExtrudeSDF3(inlet_2d, cam_width)
+	inlet_3d := Extrude3D(inlet_2d, cam_width)
 	exhaust_2d, _ := MakeThreeArcCam(lift, DtoR(125), cam_diameter, k)
-	exhaust_3d := NewExtrudeSDF3(exhaust_2d, cam_width)
+	exhaust_3d := Extrude3D(exhaust_2d, cam_width)
 
 	z_ofs := (13.0 / 16.0) + (3.0 / 32.0) + (cam_width / 2.0)
 	m := Translate3d(V3{0, 0, z_ofs})
 	m = RotateZ(0).Mul(m)
-	ex4 := NewTransformSDF3(exhaust_3d, m)
+	ex4 := Transform3D(exhaust_3d, m)
 
 	z_ofs += (5.0 / 16.0) + cam_width
 	m = Translate3d(V3{0, 0, z_ofs})
 	m = RotateZ(inlet_theta).Mul(m)
-	in3 := NewTransformSDF3(inlet_3d, m)
+	in3 := Transform3D(inlet_3d, m)
 
 	z_ofs += (11.0 / 16.0) + cam_width
 	m = Translate3d(V3{0, 0, z_ofs})
 	m = RotateZ(inlet_theta + PI).Mul(m)
-	in2 := NewTransformSDF3(inlet_3d, m)
+	in2 := Transform3D(inlet_3d, m)
 
 	z_ofs += (5.0 / 16.0) + cam_width
 	m = Translate3d(V3{0, 0, z_ofs})
 	m = RotateZ(PI).Mul(m)
-	ex1 := NewTransformSDF3(exhaust_3d, m)
+	ex1 := Transform3D(exhaust_3d, m)
 
-	s := NewUnionSDF3(shaft_3d, ex1)
-	s = NewUnionSDF3(s, in2)
-	s = NewUnionSDF3(s, in3)
-	s = NewUnionSDF3(s, ex4)
+	s := Union3D(shaft_3d, ex1)
+	s = Union3D(s, in2)
+	s = Union3D(s, in3)
+	s = Union3D(s, ex4)
 
 	RenderSTL(s, 200, "camshaft.stl")
 }

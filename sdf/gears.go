@@ -84,7 +84,7 @@ func InvoluteGearTooth(
 	// add the origin to make the polygon a tooth wedge
 	v[2*(facets+1)] = V2{0, 0}
 
-	return NewPolySDF2(v)
+	return Polygon2D(v)
 }
 
 //-----------------------------------------------------------------------------
@@ -190,7 +190,7 @@ func NewGearRack(
 		V2{-pitch, 0},
 	}
 
-	s.tooth = NewPolySDF2(tooth)
+	s.tooth = Polygon2D(tooth)
 	s.pitch = pitch
 	s.length = pitch * number_teeth / 2.0
 	s.bb = Box2{V2{-s.length, 0}, V2{s.length, tooth_height}}

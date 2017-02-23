@@ -27,12 +27,12 @@ func main() {
 	s = NewThreeArcCam(30, 20, 5, 200)
 	fmt.Printf("cam2 SDF2 %s\n", fmt_eps(BenchmarkSDF2(s)))
 
-	s = NewPolySDF2(Nagon(6, 10.0))
+	s = Polygon2D(Nagon(6, 10.0))
 	fmt.Printf("poly6 SDF2 %s\n", fmt_eps(BenchmarkSDF2(s)))
 
-	s = NewPolySDF2(Nagon(12, 10.0))
+	s = Polygon2D(Nagon(12, 10.0))
 	fmt.Printf("poly12 SDF2 %s\n", fmt_eps(BenchmarkSDF2(s)))
 
-	s = NewPolySDF2(Nagon(18, 10.0))
+	s = Polygon2D(Nagon(18, 10.0))
 	fmt.Printf("poly18 SDF2 %s\n", fmt_eps(BenchmarkSDF2(s)))
 }

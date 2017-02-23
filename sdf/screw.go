@@ -120,27 +120,27 @@ func Hex_Screw(name string, total_length, shank_length float64) SDF3 {
 	hex_h := t.Hex_Height()
 	z_ofs := 0.5 * (total_length + shank_length + hex_h)
 	round := hex_r * 0.08
-	hex_2d := NewPolySDF2(Nagon(6, hex_r-round))
+	hex_2d := Polygon2D(Nagon(6, hex_r-round))
 	hex_2d = NewOffsetSDF2(hex_2d, round)
-	hex_3d := NewExtrudeSDF3(hex_2d, hex_h)
+	hex_3d := Extrude3D(hex_2d, hex_h)
 	// round off the edges
 	sphere_3d := NewSphereSDF3(hex_r * 1.55)
-	sphere_3d = NewTransformSDF3(sphere_3d, Translate3d(V3{0, 0, -hex_r * 0.9}))
+	sphere_3d = Transform3D(sphere_3d, Translate3d(V3{0, 0, -hex_r * 0.9}))
 	hex_3d = NewIntersectionSDF3(hex_3d, sphere_3d)
 	// add a rounded cylinder
-	hex_3d = NewUnionSDF3(hex_3d, NewCylinderSDF3(hex_h*1.05, hex_r*0.8, round))
-	hex_3d = NewTransformSDF3(hex_3d, Translate3d(V3{0, 0, z_ofs}))
+	hex_3d = Union3D(hex_3d, NewCylinderSDF3(hex_h*1.05, hex_r*0.8, round))
+	hex_3d = Transform3D(hex_3d, Translate3d(V3{0, 0, z_ofs}))
 
 	// shank
 	z_ofs = 0.5 * total_length
 	shank_3d := NewCylinderSDF3(shank_length, t.Radius, 0)
-	shank_3d = NewTransformSDF3(shank_3d, Translate3d(V3{0, 0, z_ofs}))
+	shank_3d = Transform3D(shank_3d, Translate3d(V3{0, 0, z_ofs}))
 
 	// thread
 	screw_3d := NewScrewSDF3(ISOThread(t.Radius, t.Pitch), thread_length, t.Pitch, 1)
 
-	s := NewUnionSDF3(hex_3d, screw_3d)
-	s = NewUnionSDF3(s, shank_3d)
+	s := Union3D(hex_3d, screw_3d)
+	s = Union3D(s, shank_3d)
 	return s
 }
 
@@ -169,7 +169,7 @@ func AcmeThread(radius, pitch float64) SDF2 {
 		V2{-radius, 0},
 	}
 	//RenderDXF(acme, "acme.dxf")
-	return NewPolySDF2(acme)
+	return Polygon2D(acme)
 }
 
 // Return the 2d profile for an ISO/UTS thread.
@@ -199,7 +199,7 @@ func ISOThread(radius, pitch float64) SDF2 {
 	iso.Smooth()
 
 	//RenderDXF(iso.Vertices(), "iso.dxf")
-	return NewPolySDF2(iso.Vertices())
+	return Polygon2D(iso.Vertices())
 }
 
 //-----------------------------------------------------------------------------

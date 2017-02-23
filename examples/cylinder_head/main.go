@@ -64,17 +64,17 @@ func exhaust_boss(mode string, x_ofs float64) SDF3 {
 		panic("bad mode")
 	}
 
-	s1 := NewExtrudeSDF3(s0, eb_height)
+	s1 := Extrude3D(s0, eb_height)
 	m := RotateZ(DtoR(90))
 	m = RotateY(DtoR(90)).Mul(m)
 	m = Translate3d(V3{x_ofs, eb_y_offset, eb_z_offset}).Mul(m)
-	s1 = NewTransformSDF3(s1, m)
+	s1 = Transform3D(s1, m)
 	return s1
 }
 
 func exhaust_bosses(mode string) SDF3 {
 	x_ofs := 0.5*(head_length+eb_height) - eb_height0
-	return NewUnionSDF3(exhaust_boss(mode, x_ofs), exhaust_boss(mode, -x_ofs))
+	return Union3D(exhaust_boss(mode, x_ofs), exhaust_boss(mode, -x_ofs))
 }
 
 //-----------------------------------------------------------------------------
@@ -130,17 +130,17 @@ func sparkplug(mode string, x_ofs float64) SDF3 {
 	} else {
 		panic("bad mode")
 	}
-	s0 := NewPolySDF2(vlist)
-	s := NewSorSDF3(s0)
+	s0 := Polygon2D(vlist)
+	s := Revolve3D(s0)
 	m := RotateX(PI/2 - sp_theta)
 	m = Translate3d(V3{x_ofs, sp_y_ofs, sp_z_ofs}).Mul(m)
-	s = NewTransformSDF3(s, m)
+	s = Transform3D(s, m)
 	return s
 }
 
 func sparkplugs(mode string) SDF3 {
 	x_ofs := 0.5 * sp2sp_distance
-	return NewUnionSDF3(sparkplug(mode, x_ofs), sparkplug(mode, -x_ofs))
+	return Union3D(sparkplug(mode, x_ofs), sparkplug(mode, -x_ofs))
 }
 
 //-----------------------------------------------------------------------------
@@ -170,19 +170,19 @@ func valve(d float64, mode string) SDF3 {
 	}
 
 	z_ofs := cylinder_height / 2
-	return NewTransformSDF3(s, Translate3d(V3{d, valve_y_offset, z_ofs}))
+	return Transform3D(s, Translate3d(V3{d, valve_y_offset, z_ofs}))
 }
 
 func valve_set(d float64, mode string) SDF3 {
 	delta := v2v_distance / 2
-	s := NewUnionSDF3(valve(-delta, mode), valve(delta, mode))
+	s := Union3D(valve(-delta, mode), valve(delta, mode))
 	s.(*UnionSDF3).SetMin(PolyMin, general_round)
-	return NewTransformSDF3(s, Translate3d(V3{d, 0, 0}))
+	return Transform3D(s, Translate3d(V3{d, 0, 0}))
 }
 
 func valve_sets(mode string) SDF3 {
 	delta := c2c_distance / 2
-	return NewUnionSDF3(valve_set(-delta, mode), valve_set(delta, mode))
+	return Union3D(valve_set(-delta, mode), valve_set(delta, mode))
 }
 
 //-----------------------------------------------------------------------------
@@ -206,11 +206,11 @@ func cylinder_head(d float64, mode string) SDF3 {
 		z_ofs := (head_height - dome_height) / 2
 		extra_z := general_round * 2
 		s = NewCylinderSDF3(dome_height+extra_z, dome_radius, general_round)
-		s = NewTransformSDF3(s, Translate3d(V3{d, 0, -z_ofs - extra_z}))
+		s = Transform3D(s, Translate3d(V3{d, 0, -z_ofs - extra_z}))
 	} else if mode == "chamber" {
 		z_ofs := (head_height - cylinder_height) / 2
 		s = NewCylinderSDF3(cylinder_height, cylinder_radius, 0)
-		s = NewTransformSDF3(s, Translate3d(V3{d, 0, -z_ofs}))
+		s = Transform3D(s, Translate3d(V3{d, 0, -z_ofs}))
 	} else {
 		panic("bad mode")
 	}
@@ -219,7 +219,7 @@ func cylinder_head(d float64, mode string) SDF3 {
 
 func cylinder_heads(mode string) SDF3 {
 	x_ofs := c2c_distance / 2
-	s := NewUnionSDF3(cylinder_head(-x_ofs, mode), cylinder_head(x_ofs, mode))
+	s := Union3D(cylinder_head(-x_ofs, mode), cylinder_head(x_ofs, mode))
 	if mode == "dome" {
 		s.(*UnionSDF3).SetMin(PolyMin, general_round)
 	}
@@ -228,8 +228,8 @@ func cylinder_heads(mode string) SDF3 {
 
 func head_base() SDF3 {
 	z_ofs := (head_height - dome_height) / 2
-	s := NewExtrudeSDF3(head_wall_inner_2d(), dome_height)
-	return NewTransformSDF3(s, Translate3d(V3{0, 0, -z_ofs}))
+	s := Extrude3D(head_wall_inner_2d(), dome_height)
+	return Transform3D(s, Translate3d(V3{0, 0, -z_ofs}))
 }
 
 //-----------------------------------------------------------------------------
@@ -256,7 +256,7 @@ var stud_locations = []V2{
 
 func head_stud_holes() SDF3 {
 	s := NewMultiCircleSDF2(stud_hole_radius, stud_locations)
-	return NewExtrudeSDF3(s, head_height)
+	return Extrude3D(s, head_height)
 }
 
 //-----------------------------------------------------------------------------
@@ -269,13 +269,13 @@ var head_corner_round = dim((5.0 / 32.0) / 1.25)
 var head_wall_thickness = dim(0.154)
 
 func head_wall_outer_2d() SDF2 {
-	return NewBoxSDF2(V2{head_length, head_width}, head_corner_round)
+	return Box2D(V2{head_length, head_width}, head_corner_round)
 }
 
 func head_wall_inner_2d() SDF2 {
 	l := head_length - (2 * head_wall_thickness)
 	w := head_width - (2 * head_wall_thickness)
-	s0 := NewBoxSDF2(V2{l, w}, 0)
+	s0 := Box2D(V2{l, w}, 0)
 	s1 := NewMultiCircleSDF2(stud_boss_radius, stud_locations)
 	s := NewDifferenceSDF2(s0, s1)
 	s.(*DifferenceSDF2).SetMax(PolyMax, general_round)
@@ -283,14 +283,14 @@ func head_wall_inner_2d() SDF2 {
 }
 
 func head_envelope() SDF3 {
-	s0 := NewBoxSDF2(V2{head_length + 2*eb_height1, head_width}, 0)
-	return NewExtrudeSDF3(s0, head_height)
+	s0 := Box2D(V2{head_length + 2*eb_height1, head_width}, 0)
+	return Extrude3D(s0, head_height)
 }
 
 func head_wall() SDF3 {
 	s := head_wall_outer_2d()
 	s = NewDifferenceSDF2(s, head_wall_inner_2d())
-	return NewExtrudeSDF3(s, head_height)
+	return Extrude3D(s, head_height)
 }
 
 //-----------------------------------------------------------------------------
@@ -312,16 +312,16 @@ func manifold_set(r float64) SDF3 {
 	m = RotateX(DtoR(-90)).Mul(m)
 	m = RotateZ(DtoR(exhaust_theta)).Mul(m)
 	m = Translate3d(V3{exhaust_x_offset, valve_y_offset, eb_z_offset}).Mul(m)
-	s_ex = NewTransformSDF3(s_ex, m)
+	s_ex = Transform3D(s_ex, m)
 
 	s_in := NewCylinderSDF3(h, r, 0)
 	m = Translate3d(V3{0, 0, h / 2})
 	m = RotateX(DtoR(-90)).Mul(m)
 	m = RotateZ(DtoR(inlet_theta)).Mul(m)
 	m = Translate3d(V3{inlet_x_offset, valve_y_offset, eb_z_offset}).Mul(m)
-	s_in = NewTransformSDF3(s_in, m)
+	s_in = Transform3D(s_in, m)
 
-	return NewUnionSDF3(s_ex, s_in)
+	return Union3D(s_ex, s_in)
 }
 
 func manifolds(mode string) SDF3 {
@@ -334,8 +334,8 @@ func manifolds(mode string) SDF3 {
 		panic("bad mode")
 	}
 	s0 := manifold_set(r)
-	s1 := NewTransformSDF3(s0, MirrorYZ())
-	s := NewUnionSDF3(s0, s1)
+	s1 := Transform3D(s0, MirrorYZ())
+	s := Union3D(s0, s1)
 	if mode == "body" {
 		s.(*UnionSDF3).SetMin(PolyMin, general_round)
 	}
@@ -346,22 +346,22 @@ func manifolds(mode string) SDF3 {
 
 func additive() SDF3 {
 	var s SDF3
-	s = NewUnionSDF3(s, head_wall())
-	//s = NewUnionSDF3(s, head_base())
+	s = Union3D(s, head_wall())
+	//s = Union3D(s, head_base())
 
-	s = NewUnionSDF3(s, cylinder_heads("dome"))
+	s = Union3D(s, cylinder_heads("dome"))
 	s.(*UnionSDF3).SetMin(PolyMin, general_round)
 
-	s = NewUnionSDF3(s, valve_sets("boss"))
+	s = Union3D(s, valve_sets("boss"))
 	s.(*UnionSDF3).SetMin(PolyMin, general_round)
 
-	s = NewUnionSDF3(s, sparkplugs("boss"))
+	s = Union3D(s, sparkplugs("boss"))
 	s.(*UnionSDF3).SetMin(PolyMin, general_round)
 
-	s = NewUnionSDF3(s, manifolds("body"))
+	s = Union3D(s, manifolds("body"))
 	s.(*UnionSDF3).SetMin(PolyMin, general_round)
 
-	s = NewUnionSDF3(s, exhaust_bosses("body"))
+	s = Union3D(s, exhaust_bosses("body"))
 	s.(*UnionSDF3).SetMin(PolyMin, general_round)
 
 	// cleanup the blending artifacts on the outside
@@ -374,15 +374,15 @@ func additive() SDF3 {
 func subtractive() SDF3 {
 	var s SDF3
 	if casting {
-		s = NewUnionSDF3(s, sparkplugs("counterbore"))
+		s = Union3D(s, sparkplugs("counterbore"))
 	} else {
-		s = NewUnionSDF3(s, cylinder_heads("chamber"))
-		s = NewUnionSDF3(s, head_stud_holes())
-		s = NewUnionSDF3(s, valve_sets("hole"))
-		s = NewUnionSDF3(s, sparkplugs("hole"))
-		s = NewUnionSDF3(s, sparkplugs("counterbore"))
-		s = NewUnionSDF3(s, manifolds("hole"))
-		s = NewUnionSDF3(s, exhaust_bosses("hole"))
+		s = Union3D(s, cylinder_heads("chamber"))
+		s = Union3D(s, head_stud_holes())
+		s = Union3D(s, valve_sets("hole"))
+		s = Union3D(s, sparkplugs("hole"))
+		s = Union3D(s, sparkplugs("counterbore"))
+		s = Union3D(s, manifolds("hole"))
+		s = Union3D(s, exhaust_bosses("hole"))
 	}
 	return s
 }

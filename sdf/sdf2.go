@@ -101,7 +101,7 @@ type BoxSDF2 struct {
 	bb    Box2
 }
 
-func NewBoxSDF2(size V2, round float64) SDF2 {
+func Box2D(size V2, round float64) SDF2 {
 	size = size.MulScalar(0.5)
 	s := BoxSDF2{}
 	s.size = size.SubScalar(round)
@@ -218,7 +218,7 @@ type PolySDF2 struct {
 	bb     Box2      // bounding box
 }
 
-func NewPolySDF2(vertex []V2) SDF2 {
+func Polygon2D(vertex []V2) SDF2 {
 	s := PolySDF2{}
 
 	n := len(vertex)
