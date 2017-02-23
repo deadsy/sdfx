@@ -41,7 +41,7 @@ type CircleSDF2 struct {
 	bb     Box2
 }
 
-func NewCircleSDF2(radius float64) SDF2 {
+func Circle2D(radius float64) SDF2 {
 	s := CircleSDF2{}
 	s.radius = radius
 	d := V2{radius, radius}
@@ -501,7 +501,7 @@ type SliceSDF2 struct {
 // sdf = SDF3 to be sliced
 // a = point on plane
 // n = normal to plane
-func Slice2d(sdf SDF3, a, n V3) SDF2 {
+func Slice2D(sdf SDF3, a, n V3) SDF2 {
 	s := SliceSDF2{}
 	s.sdf = sdf
 	s.a = a
@@ -519,14 +519,17 @@ func Slice2d(sdf SDF3, a, n V3) SDF2 {
 	s.u = s.u.Normalize()
 	s.v = s.v.Normalize()
 	// work out the bounding box
+	// TODO: This is bigger than it needs to be. We could consider intersection
+	// between the plane and the edges of the 3d bounding box for a smaller 2d
+	// bounding box in some circumstances.
 	v3 := sdf.BoundingBox().Vertices()
 	v2 := make(V2Set, len(v3))
 	n = n.Normalize()
 	for i, v := range v3 {
 		// project the 3d bounding box vertex onto the plane
-		p := v.Sub(n.MulScalar(n.Dot(v.Sub(s.a))))
+		va := v.Sub(s.a)
+		pa := va.Sub(n.MulScalar(n.Dot(va)))
 		// work out the 3d point in terms of the 2d unit vectors
-		pa := p.Sub(s.a)
 		v2[i] = V2{pa.Dot(s.u), pa.Dot(s.v)}
 	}
 	s.bb = Box2{v2.Min(), v2.Max()}

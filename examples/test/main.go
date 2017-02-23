@@ -20,7 +20,7 @@ func test2() {
 }
 
 func test3() {
-	s0 := sdf.NewCircleSDF2(0.1)
+	s0 := sdf.Circle2D(0.1)
 	s0 = sdf.NewTransformSDF2(s0, sdf.Translate2d(sdf.V2{1, 0}))
 	s1 := sdf.NewSorSDF3(s0)
 	sdf.RenderPNG(s1, true)
@@ -258,7 +258,7 @@ func test18() {
 func test19() {
 	r := 2.0
 	k := 1.9
-	s0 := sdf.NewCircleSDF2(r)
+	s0 := sdf.Circle2D(r)
 	s1 := sdf.NewArraySDF2(s0, sdf.V2i{3, 7}, sdf.V2{k * r, k * r})
 	s1.(*sdf.ArraySDF2).SetMin(sdf.PolyMin, 0.8)
 	s2 := sdf.NewExtrudeSDF3(s1, 1.0)
@@ -268,7 +268,7 @@ func test19() {
 func test20() {
 	r := 4.0
 	d := 20.0
-	s0 := sdf.NewCircleSDF2(r)
+	s0 := sdf.Circle2D(r)
 	s0 = sdf.NewTransformSDF2(s0, sdf.Translate2d(sdf.V2{d, 0}))
 	s0 = sdf.NewRotateSDF2(s0, 5, sdf.Rotate2d(sdf.DtoR(20)))
 	s0.(*sdf.RotateSDF2).SetMin(sdf.PolyMin, 1.2)
@@ -296,7 +296,7 @@ func test22() {
 }
 
 func test23() {
-	s0 := sdf.NewCircleSDF2(4.0)
+	s0 := sdf.Circle2D(4.0)
 	sdf.SDF2_RenderPNG(s0, "test.png")
 }
 
@@ -306,7 +306,7 @@ func test24() {
 }
 
 func test25() {
-	s0 := sdf.NewCircleSDF2(0.0)
+	s0 := sdf.Circle2D(0.0)
 	var s1 sdf.SDF2
 	for i := 0; i < 50; i++ {
 		s1 = sdf.NewUnionSDF2(s1, sdf.NewTransformSDF2(s0, sdf.Translate2d(sdf.RandomV2(-10, 10))))
@@ -424,21 +424,10 @@ func test40() {
 }
 
 func test41() {
-
-	s0 := sdf.NewSphereSDF3(10.0)
-
-	s1 := sdf.Slice2d(s0, sdf.V3{0, 0, 0}, sdf.V3{1, 0, 0})
-	fmt.Printf("%+v\n", s1)
-
-	s1 = sdf.Slice2d(s0, sdf.V3{0, 0, 0}, sdf.V3{0, 1, 0})
-	fmt.Printf("%+v\n", s1)
-
-	s1 = sdf.Slice2d(s0, sdf.V3{0, 0, 0}, sdf.V3{0, 0, 1})
-	fmt.Printf("%+v\n", s1)
-
-	s1 = sdf.Slice2d(s0, sdf.V3{0, 0, 0}, sdf.V3{1, 1, 0})
-	fmt.Printf("%+v\n", s1)
-
+	s0 := sdf.NewCylinderSDF3(20.0, 5.0, 0)
+	s1 := sdf.Slice2D(s0, sdf.V3{0, 0, 0}, sdf.V3{0, 1, 1})
+	s2 := sdf.NewSorSDF3(s1)
+	sdf.RenderSTL(s2, 200, "test.stl")
 }
 
 func main() {

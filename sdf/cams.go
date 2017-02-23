@@ -291,9 +291,9 @@ func MakeGenevaCam(
 	pin_offset := math.Sqrt((d * d) + (r * r) - (2 * d * r * math.Cos(theta)))
 
 	// driven wheel
-	s_driven := NewCircleSDF2(driven_radius - clearance)
+	s_driven := Circle2D(driven_radius - clearance)
 	// cutouts for the driver wheel
-	s := NewCircleSDF2(driver_radius + clearance)
+	s := Circle2D(driver_radius + clearance)
 	s = NewTransformSDF2(s, Translate2d(V2{center_distance, 0}))
 	s = NewRotateCopySDF2(s, num_sectors)
 	s_driven = NewDifferenceSDF2(s_driven, s)
@@ -306,13 +306,13 @@ func MakeGenevaCam(
 	s_driven = NewDifferenceSDF2(s_driven, s)
 
 	// driver wheel
-	s_driver := NewCircleSDF2(driver_radius - clearance)
+	s_driver := Circle2D(driver_radius - clearance)
 	// cutout for the driven wheel
-	s = NewCircleSDF2(driven_radius + clearance)
+	s = Circle2D(driven_radius + clearance)
 	s = NewTransformSDF2(s, Translate2d(V2{center_distance, 0}))
 	s_driver = NewDifferenceSDF2(s_driver, s)
 	// driver pin
-	s = NewCircleSDF2(pin_radius)
+	s = Circle2D(pin_radius)
 	s = NewTransformSDF2(s, Translate2d(V2{pin_offset, 0}))
 	s_driver = NewUnionSDF2(s_driver, s)
 

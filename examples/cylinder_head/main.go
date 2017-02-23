@@ -59,7 +59,7 @@ func exhaust_boss(mode string, x_ofs float64) SDF3 {
 	if mode == "body" {
 		s0 = NewFlange1(eb_distance, eb_main_radius, eb_side_radius)
 	} else if mode == "hole" {
-		s0 = NewCircleSDF2(eb_hole_radius)
+		s0 = Circle2D(eb_hole_radius)
 	} else {
 		panic("bad mode")
 	}

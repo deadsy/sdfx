@@ -18,7 +18,7 @@ func fmt_eps(eps float64) string {
 }
 
 func main() {
-	s := NewCircleSDF2(5)
+	s := Circle2D(5)
 	fmt.Printf("circle SDF2 %s\n", fmt_eps(BenchmarkSDF2(s)))
 
 	s = NewFlatFlankCam(30, 20, 5)
