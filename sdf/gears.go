@@ -131,14 +131,15 @@ func InvoluteGear(
 // 2D Involute Gear
 
 type InvoluteGearSDF2 struct {
-	base_radius  float64 // base radius for the involute
-	outer_radius float64 // radius for outside of gear
-	root_radius  float64 // radius for root of gear tooth
-	ring_radius  float64 // radius of inner gear ring
-	tooth_angle  float64 // angle subtended by a single gear tooth
-	flank_angle  float64 // angle subtended by one gear tooth flank (involute portion)
-	top_angle    float64 // half angle subtended by top of gear tooth
-	bb           Box2    // bounding box
+	base_radius     float64 // base radius for the involute
+	outer_radius    float64 // radius for outside of gear
+	root_radius     float64 // radius for root of gear tooth
+	ring_radius     float64 // radius of inner gear ring
+	tooth_angle     float64 // angle subtended by a single gear tooth
+	involute_start  float64 // involute start angle (at root radius)
+	involute_stop   float64 // involute stop angle (at outer radius)
+	involute_offset float64 // angle needed to rotate involute onto x-axis
+	bb              Box2    // bounding box
 }
 
 // InvoluteGear2D returns the 2D profile for an involute gear.
@@ -168,31 +169,34 @@ func InvoluteGear2D(
 	// radius of inner gear ring
 	s.ring_radius = s.root_radius - ring_width
 
-	// work out the angle for the flank of the gear tooth (involute portion)
-	theta0 := involute_angle(s.base_radius, Max(s.base_radius, s.root_radius))
-	theta1 := involute_angle(s.base_radius, s.outer_radius)
-	s.flank_angle = theta1 - theta0
+	// work out the start/stop angles for involute portion of the gear tooth
+	s.involute_start = involute_angle(s.base_radius, Max(s.base_radius, s.root_radius))
+	s.involute_stop = involute_angle(s.base_radius, s.outer_radius)
 
-	// work out the angle for the top of the gear tooth
-	backlash_angle := PI * backlash / pitch_radius
-	s.top_angle = ((s.tooth_angle / 2) - s.flank_angle - backlash_angle) / 2
+	// TODO workout offset angle
 
 	return &s
 }
 
 // Evaluate returns the minimum distance to the involute gear.
 func (s *InvoluteGearSDF2) Evaluate(p V2) float64 {
-	// work out the polar coordinates
+	// work out the polar coordinates of p
 	p_theta := math.Atan2(p.Y, p.X)
 	p_distance := p.Length()
-	// map the angle back to the 0th tooth (on the x-axis)
-	// the tooth is symmetrical about the x-axis, so only consider the 1st quadrant
-	p_theta = Abs(SawTooth(p_theta, s.tooth_angle))
+	// map the angle back to the 0th tooth (about the x-axis)
+	p_theta = SawTooth(p_theta, s.tooth_angle)
+	// the tooth is symmetrical about the x-axis, only consider the 4th quadrant (+x,-y)
+	p_theta = -Abs(p_theta)
+	// rotate the tooth so the involute (r,0) point is on the x-axis
+	p_theta += s.involute_offset
 
 	// work out the involute angle for the closest point on the involute
-	i_theta := math.Acos(s.base_radius/p_distance) + p_theta
+	theta := math.Acos(s.base_radius/p_distance) + p_theta
 
-	_ = i_theta
+	if theta <= s.involute_start {
+	} else if theta >= s.involute_stop {
+	} else {
+	}
 
 	// distance between circle tangent and point
 
