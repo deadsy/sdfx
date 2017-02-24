@@ -14,9 +14,9 @@ import (
 )
 
 //-----------------------------------------------------------------------------
-// Flat Flank Cams.
+// Flat Flank Cams
 
-type FlatFlankCam struct {
+type FlatFlankCamSDF2 struct {
 	distance    float64 // center to center circle distance
 	base_radius float64 // radius of base circle
 	nose_radius float64 // radius of nose circle
@@ -26,15 +26,16 @@ type FlatFlankCam struct {
 	bb          Box2    // bounding box
 }
 
-// Create a 2D cam profile.
-// The profile is made from 2 circles and straight line flanks.
+// FlatFlankCam2D creates a 2D cam profile.
+// The profile is made from a base circle, a smaller nose circle and flat flanks.
 // The base circle is centered on the origin.
 // The nose circle is located on the positive y axis.
-// distance = circle to circle center distance
-// base_radius = radius of base circle
-// nose_radius = radius of nose circle
-func FlatFlankCam2D(distance, base_radius, nose_radius float64) SDF2 {
-	s := FlatFlankCam{}
+func FlatFlankCam2D(
+	distance float64, // circle to circle center distance
+	base_radius float64, // radius of base circle
+	nose_radius float64, // radius of nose circle
+) SDF2 {
+	s := FlatFlankCamSDF2{}
 	s.distance = distance
 	s.base_radius = base_radius
 	s.nose_radius = nose_radius
@@ -54,8 +55,8 @@ func FlatFlankCam2D(distance, base_radius, nose_radius float64) SDF2 {
 	return &s
 }
 
-// Return the minimum distance to the cam.
-func (s *FlatFlankCam) Evaluate(p V2) float64 {
+// Evaluate returns the minimum distance to the cam.
+func (s *FlatFlankCamSDF2) Evaluate(p V2) float64 {
 	// we have symmetry about the y-axis
 	p = V2{Abs(p.X), p.Y}
 	// vector to first point of flank line
@@ -76,16 +77,17 @@ func (s *FlatFlankCam) Evaluate(p V2) float64 {
 	return d
 }
 
-// Return the bounding box for the cam.
-func (s *FlatFlankCam) BoundingBox() Box2 {
+// BoundingBox returns the bounding box for the cam.
+func (s *FlatFlankCamSDF2) BoundingBox() Box2 {
 	return s.bb
 }
 
-// Create a flat flank cam profile from design parameters.
-// lift = follower lift distance from base circle
-// duration = angle over which the follower lifts from the base circle
-// max_diameter = maximum diameter of cam rotation
-func MakeFlatFlankCam(lift, duration, max_diameter float64) (SDF2, error) {
+// MakeFlatFlankCam makes a flat flank cam profile from design parameters.
+func MakeFlatFlankCam(
+	lift float64, // follower lift distance from base circle
+	duration float64, // angle over which the follower lifts from the base circle
+	max_diameter float64, // maximum diameter of cam rotation
+) (SDF2, error) {
 
 	if max_diameter <= 0 {
 		return nil, fmt.Errorf("max_diameter <= 0")
@@ -113,9 +115,9 @@ func MakeFlatFlankCam(lift, duration, max_diameter float64) (SDF2, error) {
 }
 
 //-----------------------------------------------------------------------------
-// Three Arc Cams.
+// Three Arc Cams
 
-type ThreeArcCam struct {
+type ThreeArcCamSDF2 struct {
 	distance     float64 // center to center circle distance
 	base_radius  float64 // radius of base circle
 	nose_radius  float64 // radius of nose circle
@@ -126,21 +128,22 @@ type ThreeArcCam struct {
 	bb           Box2    // bounding box
 }
 
-// Create a 2D cam profile.
-// The profile is made from 2 circles and circular flank arcs.
+// ThreeArcCam2D creates a 2D cam profile.
+// The profile is made from a base circle, a smaller nose circle and circular flank arcs.
 // The base circle is centered on the origin.
 // The nose circle is located on the positive y axis.
 // The flank arcs are tangential to the base and nose circles.
-// distance = circle to circle center distance
-// base_radius = radius of major circle
-// nose_radius = radius of minor circle
-// flank_radius = radius of flank arc
-func ThreeArcCam2D(distance, base_radius, nose_radius, flank_radius float64) SDF2 {
+func ThreeArcCam2D(
+	distance float64, // circle to circle center distance
+	base_radius float64, // radius of base circle
+	nose_radius float64, // radius of nose circle
+	flank_radius float64, // radius of flank arc
+) SDF2 {
 	// check for the minimum size flank radius
 	if flank_radius < (base_radius+distance+nose_radius)/2.0 {
 		panic("flank_radius too small")
 	}
-	s := ThreeArcCam{}
+	s := ThreeArcCamSDF2{}
 	s.distance = distance
 	s.base_radius = base_radius
 	s.nose_radius = nose_radius
@@ -165,8 +168,8 @@ func ThreeArcCam2D(distance, base_radius, nose_radius, flank_radius float64) SDF
 	return &s
 }
 
-// Return the minimum distance to the cam.
-func (s *ThreeArcCam) Evaluate(p V2) float64 {
+// Evaluate returns the minimum distance to the cam.
+func (s *ThreeArcCamSDF2) Evaluate(p V2) float64 {
 	// we have symmetry about the y-axis
 	p0 := V2{Abs(p.X), p.Y}
 	// work out the theta angle wrt the flank center
@@ -187,17 +190,18 @@ func (s *ThreeArcCam) Evaluate(p V2) float64 {
 	return d
 }
 
-// Return the bounding box for the cam.
-func (s *ThreeArcCam) BoundingBox() Box2 {
+// BoundingBox returns the bounding box for the cam.
+func (s *ThreeArcCamSDF2) BoundingBox() Box2 {
 	return s.bb
 }
 
-// Create a three arc cam profile from design parameters.
-// lift = follower lift distance from base circle
-// duration = angle over which the follower lifts from the base circle
-// max_diameter = maximum diameter of cam rotation
-// k = tunable, bigger k = rounder nose, E.g. 1.05
-func MakeThreeArcCam(lift, duration, max_diameter, k float64) (SDF2, error) {
+// MakeThreeArcCam makes a three arc cam profile from design parameters.
+func MakeThreeArcCam(
+	lift float64, // follower lift distance from base circle
+	duration float64, // angle over which the follower lifts from the base circle
+	max_diameter float64, // maximum diameter of cam rotation
+	k float64, // tunable, bigger k = rounder nose, E.g. 1.05
+) (SDF2, error) {
 
 	if max_diameter <= 0 {
 		return nil, fmt.Errorf("max_diameter <= 0")
@@ -254,12 +258,12 @@ func MakeThreeArcCam(lift, duration, max_diameter, k float64) (SDF2, error) {
 
 // MakeGenevaCAM makes 2D profiles for the driver/driven wheels of a geneva cam.
 func MakeGenevaCam(
-	num_sectors int,         // number of sectors in the driven wheel
+	num_sectors int, // number of sectors in the driven wheel
 	center_distance float64, // center to center distance of driver/driven wheels
-	driver_radius float64,   // radius of lock portion of driver wheel
-	driven_radius float64,   // radius of driven wheel
-	pin_radius float64,      // radius of driver pin
-	clearance float64,       // pin/slot and wheel/wheel clearance
+	driver_radius float64, // radius of lock portion of driver wheel
+	driven_radius float64, // radius of driven wheel
+	pin_radius float64, // radius of driver pin
+	clearance float64, // pin/slot and wheel/wheel clearance
 ) (SDF2, SDF2, error) {
 
 	if num_sectors < 2 {
