@@ -12,10 +12,11 @@ import "math"
 
 //-----------------------------------------------------------------------------
 
-// return the involute coordinate
-// r = base radius
-// theta = involute angle
-func involute(r, theta float64) V2 {
+// return the involute coordinate for a given angle
+func involute(
+	r float64, // base radius
+	theta float64, // involute angle
+) V2 {
 	c := math.Cos(theta)
 	s := math.Sin(theta)
 	return V2{
@@ -24,32 +25,26 @@ func involute(r, theta float64) V2 {
 	}
 }
 
-// return the involute angle
-// r = base radius
-// d = involute radial distance
-func involute_angle(r, d float64) float64 {
+// return the involute angle for a given radial distance
+func involute_angle(
+	r float64, // base radius
+	d float64, // involute radial distance
+) float64 {
 	x := d / r
 	return math.Sqrt(x*x - 1)
 }
 
 //-----------------------------------------------------------------------------
 
-// Generate an SDF2 polygon for a single involute tooth
-// number_teeth = number of gear teeth
-// gear_module = pitch circle diameter / number of gear teeth
-// root_radius = radius at tooth root
-// base_radius = radius at the base of the involute
-// outer_radius = radius at the outside of the tooth
-// backlash = backlash expressed as units of pitch circumference
-// facets = number of facets for involute flank
+// InvoluteGearTooth returns a 2D profile for a single involute tooth.
 func InvoluteGearTooth(
-	number_teeth int,
-	gear_module float64,
-	root_radius float64,
-	base_radius float64,
-	outer_radius float64,
-	backlash float64,
-	facets int,
+	number_teeth int, // number of gear teeth
+	gear_module float64, // pitch circle diameter / number of gear teeth
+	root_radius float64, // radius at tooth root
+	base_radius float64, // radius at the base of the involute
+	outer_radius float64, // radius at the outside of the tooth
+	backlash float64, // backlash expressed as units of pitch circumference
+	facets int, // number of facets for involute flank
 ) SDF2 {
 
 	pitch_radius := float64(number_teeth) * gear_module / 2.0
@@ -89,22 +84,15 @@ func InvoluteGearTooth(
 
 //-----------------------------------------------------------------------------
 
-// Generate an SDF2 polygon for an involute gear
-// number_teeth = number of gear teeth
-// gear_module = pitch circle diameter / number of gear teeth
-// pressure_angle = gear pressure angle (radians)
-// backlash = backlash expressed as units of pitch circumference
-// clearance = additional root clearance
-// ring_width = width of ring wall (from root circle)
-// facets = number of facets for involute flank
+// InvoluteGear returns an 2D polygon for an involute gear.
 func InvoluteGear(
-	number_teeth int,
-	gear_module float64,
-	pressure_angle float64,
-	backlash float64,
-	clearance float64,
-	ring_width float64,
-	facets int,
+	number_teeth int, // number of gear teeth
+	gear_module float64, // pitch circle diameter / number of gear teeth
+	pressure_angle float64, // gear pressure angle (radians)
+	backlash float64, // backlash expressed as units of pitch circumference
+	clearance float64, // additional root clearance
+	ring_width float64, // width of ring wall (from root circle)
+	facets int, // number of facets for involute flank
 ) SDF2 {
 
 	// pitch radius
@@ -140,29 +128,101 @@ func InvoluteGear(
 }
 
 //-----------------------------------------------------------------------------
+// 2D Involute Gear
+
+type InvoluteGearSDF2 struct {
+	base_radius  float64 // base radius for the involute
+	outer_radius float64 // radius for outside of gear
+	root_radius  float64 // radius for root of gear tooth
+	ring_radius  float64 // radius of inner gear ring
+	tooth_angle  float64 // angle subtended by a single gear tooth
+	flank_angle  float64 // angle subtended by one gear tooth flank (involute portion)
+	top_angle    float64 // half angle subtended by top of gear tooth
+	bb           Box2    // bounding box
+}
+
+// InvoluteGear2D returns the 2D profile for an involute gear.
+func InvoluteGear2D(
+	number_teeth int, // number of gear teeth
+	gear_module float64, // pitch circle diameter / number of gear teeth
+	pressure_angle float64, // gear pressure angle (radians)
+	backlash float64, // backlash expressed as distance at pitch circumference
+	clearance float64, // additional root clearance
+	ring_width float64, // width of ring wall (from root circle)
+) SDF2 {
+	s := InvoluteGearSDF2{}
+	// tooth angle
+	s.tooth_angle = TAU / float64(number_teeth)
+	// radius at gear pitch line
+	pitch_radius := float64(number_teeth) * gear_module / 2.0
+	// radius for base circle of involute
+	s.base_radius = pitch_radius * math.Cos(pressure_angle)
+	// addendum: radial distance from pitch circle to outside circle
+	addendum := gear_module * 1.0
+	// dedendum: radial distance from pitch circle to root circle
+	dedendum := addendum + clearance
+	// radius for outside of gear
+	s.outer_radius = pitch_radius + addendum
+	// radius for root of gear tooth
+	s.root_radius = pitch_radius - dedendum
+	// radius of inner gear ring
+	s.ring_radius = s.root_radius - ring_width
+
+	// work out the angle for the flank of the gear tooth (involute portion)
+	theta0 := involute_angle(s.base_radius, Max(s.base_radius, s.root_radius))
+	theta1 := involute_angle(s.base_radius, s.outer_radius)
+	s.flank_angle = theta1 - theta0
+
+	// work out the angle for the top of the gear tooth
+	backlash_angle := PI * backlash / pitch_radius
+	s.top_angle = ((s.tooth_angle / 2) - s.flank_angle - backlash_angle) / 2
+
+	return &s
+}
+
+// Evaluate returns the minimum distance to the involute gear.
+func (s *InvoluteGearSDF2) Evaluate(p V2) float64 {
+	// work out the polar coordinates
+	p_theta := math.Atan2(p.Y, p.X)
+	p_distance := p.Length()
+	// map the angle back to the 0th tooth (on the x-axis)
+	// the tooth is symmetrical about the x-axis, so only consider the 1st quadrant
+	p_theta = Abs(SawTooth(p_theta, s.tooth_angle))
+
+	// work out the involute angle for the closest point on the involute
+	i_theta := math.Acos(s.base_radius/p_distance) + p_theta
+
+	_ = i_theta
+
+	// distance between circle tangent and point
+
+	return 0
+}
+
+// BoundingBox returns the bounding box for the involute gear.
+func (s *InvoluteGearSDF2) BoundingBox() Box2 {
+	return s.bb
+}
+
+//-----------------------------------------------------------------------------
 // 2D Gear Rack
 
-type GearRack struct {
+type GearRackSDF2 struct {
 	tooth  SDF2    // polygon for rack tooth
 	pitch  float64 // tooth to tooth pitch
 	length float64 // half the total rack length
 	bb     Box2    // bounding box
 }
 
-// Create a 2D gear rack.
-// number_teeth = number of rack teeth
-// gear_module = pitch circle diameter / number of gear teeth
-// pressure_angle = gear pressure angle (radians)
-// backlash = backlash expressed as units of pitch circumference
-// base_height = height of rack base
+// GearRack2D returns the 2D profile for a gear rack.
 func GearRack2D(
-	number_teeth float64,
-	gear_module float64,
-	pressure_angle float64,
-	backlash float64,
-	base_height float64,
+	number_teeth float64, // number of rack teeth
+	gear_module float64, // pitch circle diameter / number of gear teeth
+	pressure_angle float64, // gear pressure angle (radians)
+	backlash float64, // backlash expressed as units of pitch circumference
+	base_height float64, // height of rack base
 ) SDF2 {
-	s := GearRack{}
+	s := GearRackSDF2{}
 
 	// addendum: distance from pitch line to top of tooth
 	addendum := gear_module * 1.0
@@ -197,8 +257,8 @@ func GearRack2D(
 	return &s
 }
 
-// Return the minimum distance to the gear rack.
-func (s *GearRack) Evaluate(p V2) float64 {
+// Evaluate returns the minimum distance to the gear rack.
+func (s *GearRackSDF2) Evaluate(p V2) float64 {
 	// map p.X back to the [0,half_pitch) domain
 	p0 := V2{Abs(SawTooth(p.X, s.pitch)), p.Y}
 	// get the tooth profile distance
@@ -209,8 +269,8 @@ func (s *GearRack) Evaluate(p V2) float64 {
 	return Max(d0, d1)
 }
 
-// Return the bounding box for the gear rack.
-func (s *GearRack) BoundingBox() Box2 {
+// BoundingBox returns the bounding box for the gear rack.
+func (s *GearRackSDF2) BoundingBox() Box2 {
 	return s.bb
 }
 
