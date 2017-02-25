@@ -22,53 +22,60 @@ import "math"
 // Thread Database - lookup standard screw threads by name
 
 type ThreadParameters struct {
-	Name   string  // name of screw thread
-	Radius float64 // major radius of screw
-	Pitch  float64 // thread to thread distance of screw
-	Units  string  // "inch" or "mm"
+	Name          string  // name of screw thread
+	Radius        float64 // major radius of screw
+	Pitch         float64 // thread to thread distance of screw
+	Hex_Flat2Flat float64 // hex head flat to flat distance
+	Units         string  // "inch" or "mm"
 }
 
 type ThreadDatabase map[string]*ThreadParameters
 
 var thread_db = Init_ThreadLookup()
 
-// Unified Thread Standard
-// name = thread name
-// diameter = screw major diameter
-// tpi = threads per inch
-func (m ThreadDatabase) UTSAdd(name string, diameter, tpi float64) {
+// UTSAdd adds a Unified Thread Standard to the thread database.
+func (m ThreadDatabase) UTSAdd(
+	name string, // thread name
+	diameter float64, // screw major diameter
+	tpi float64, // threads per inch
+	hex_f2f float64, // hex head flat to flat distance
+) {
 	t := ThreadParameters{}
 	t.Name = name
 	t.Radius = diameter / 2.0
 	t.Pitch = 1.0 / tpi
+	t.Hex_Flat2Flat = hex_f2f
 	t.Units = "inch"
 	m[name] = &t
 }
 
-// ISO Thread Standard
-// name = thread name
-// diameter = screw major diameter
-// pitch = thread pitch
-func (m ThreadDatabase) ISOAdd(name string, diameter, pitch float64) {
+// ISOAdd adds an ISO Thread Standard to the thread database.
+func (m ThreadDatabase) ISOAdd(
+	name string, // thread name
+	diameter float64, // screw major diamater
+	pitch float64, // thread pitch
+	hex_f2f float64, // hex head flat to flat distance
+) {
 	t := ThreadParameters{}
 	t.Name = name
 	t.Radius = diameter / 2.0
 	t.Pitch = pitch
+	t.Hex_Flat2Flat = hex_f2f
 	t.Units = "mm"
 	m[name] = &t
 }
 
 func Init_ThreadLookup() ThreadDatabase {
 	m := make(ThreadDatabase)
-	m.UTSAdd("unc_1", 1.0, 8)
-	m.UTSAdd("unf_1", 1.0, 12)
-	m.UTSAdd("unc_1/4", 1.0/4.0, 20)
-	m.UTSAdd("unf_1/4", 1.0/4.0, 28)
-	m.UTSAdd("unc_1/2", 1.0/2.0, 13)
-	m.UTSAdd("unf_1/2", 1.0/2.0, 20)
+	m.UTSAdd("unc_1", 1.0, 8, 3.0/2.0)
+	m.UTSAdd("unf_1", 1.0, 12, 3.0/2.0)
+	m.UTSAdd("unc_1/4", 1.0/4.0, 20, 7.0/16.0)
+	m.UTSAdd("unf_1/4", 1.0/4.0, 28, 7.0/16.0)
+	m.UTSAdd("unc_1/2", 1.0/2.0, 13, 3.0/4.0)
+	m.UTSAdd("unf_1/2", 1.0/2.0, 20, 3.0/4.0)
 
-	m.ISOAdd("m6c", 6, 1)
-	m.ISOAdd("m6f", 6, 0.75)
+	m.ISOAdd("m6c", 6, 1, 10)
+	m.ISOAdd("m6f", 6, 0.75, 10)
 
 	return m
 }
@@ -78,12 +85,9 @@ func ThreadLookup(name string) *ThreadParameters {
 	return thread_db[name]
 }
 
-// Hex Head Radius (empirical)
+// Hex Head Radius
 func (t *ThreadParameters) Hex_Radius() float64 {
-	screw_d := t.Radius * 2.0
-	hex_w := screw_d * 1.6
-	hex_r := hex_w / (2.0 * math.Cos(DtoR(30)))
-	return hex_r
+	return t.Hex_Flat2Flat / (2.0 * math.Cos(DtoR(30)))
 }
 
 // Hex Head Height (empirical)
