@@ -395,7 +395,7 @@ func (s *ArraySDF2) BoundingBox() Box2 {
 
 //-----------------------------------------------------------------------------
 
-type RotateSDF2 struct {
+type RotateUnionSDF2 struct {
 	sdf  SDF2
 	num  int
 	step M33
@@ -404,12 +404,12 @@ type RotateSDF2 struct {
 	bb   Box2
 }
 
-func Rotate2D(sdf SDF2, num int, step M33) SDF2 {
+func RotateUnion2D(sdf SDF2, num int, step M33) SDF2 {
 	// check the number of steps
 	if num <= 0 {
 		return nil
 	}
-	s := RotateSDF2{}
+	s := RotateUnionSDF2{}
 	s.sdf = sdf
 	s.num = num
 	s.step = step.Inverse()
@@ -428,7 +428,7 @@ func Rotate2D(sdf SDF2, num int, step M33) SDF2 {
 }
 
 // Return the minimum distance to the object.
-func (s *RotateSDF2) Evaluate(p V2) float64 {
+func (s *RotateUnionSDF2) Evaluate(p V2) float64 {
 	d := math.MaxFloat64
 	rot := Identity2d()
 	for i := 0; i < s.num; i++ {
@@ -440,13 +440,13 @@ func (s *RotateSDF2) Evaluate(p V2) float64 {
 }
 
 // Set the minimum function to control blending.
-func (s *RotateSDF2) SetMin(min MinFunc, k float64) {
+func (s *RotateUnionSDF2) SetMin(min MinFunc, k float64) {
 	s.min = min
 	s.k = k
 }
 
 // Return the bounding box.
-func (s *RotateSDF2) BoundingBox() Box2 {
+func (s *RotateUnionSDF2) BoundingBox() Box2 {
 	return s.bb
 }
 

@@ -4,119 +4,119 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/deadsy/sdfx/sdf"
+	. "github.com/deadsy/sdfx/sdf"
 )
 
 func test1() {
-	s0 := sdf.Box2D(sdf.V2{0.8, 1.2}, 0.05)
-	s1 := sdf.RevolveTheta3D(s0, sdf.DtoR(225))
-	sdf.RenderPNG(s1, true)
+	s0 := Box2D(V2{0.8, 1.2}, 0.05)
+	s1 := RevolveTheta3D(s0, DtoR(225))
+	RenderPNG(s1, true)
 }
 
 func test2() {
-	s0 := sdf.Box2D(sdf.V2{0.8, 1.2}, 0.1)
-	s1 := sdf.Extrude3D(s0, 0.3)
-	sdf.RenderPNG(s1, true)
+	s0 := Box2D(V2{0.8, 1.2}, 0.1)
+	s1 := Extrude3D(s0, 0.3)
+	RenderPNG(s1, true)
 }
 
 func test3() {
-	s0 := sdf.Circle2D(0.1)
-	s0 = sdf.Transform2D(s0, sdf.Translate2d(sdf.V2{1, 0}))
-	s1 := sdf.Revolve3D(s0)
-	sdf.RenderPNG(s1, true)
+	s0 := Circle2D(0.1)
+	s0 = Transform2D(s0, Translate2d(V2{1, 0}))
+	s1 := Revolve3D(s0)
+	RenderPNG(s1, true)
 }
 
 func test4() {
-	s0 := sdf.Box2D(sdf.V2{0.2, 0.4}, 0.05)
-	s0 = sdf.Transform2D(s0, sdf.Translate2d(sdf.V2{1, 0}))
-	s1 := sdf.RevolveTheta3D(s0, sdf.DtoR(270))
-	sdf.RenderPNG(s1, true)
+	s0 := Box2D(V2{0.2, 0.4}, 0.05)
+	s0 = Transform2D(s0, Translate2d(V2{1, 0}))
+	s1 := RevolveTheta3D(s0, DtoR(270))
+	RenderPNG(s1, true)
 }
 
 func test5() {
-	s0 := sdf.Box2D(sdf.V2{0.2, 0.4}, 0.05)
-	s0 = sdf.Transform2D(s0, sdf.Rotate2d(sdf.DtoR(45)))
-	s0 = sdf.Transform2D(s0, sdf.Translate2d(sdf.V2{1, 0}))
-	s1 := sdf.RevolveTheta3D(s0, sdf.DtoR(315))
+	s0 := Box2D(V2{0.2, 0.4}, 0.05)
+	s0 = Transform2D(s0, Rotate2d(DtoR(45)))
+	s0 = Transform2D(s0, Translate2d(V2{1, 0}))
+	s1 := RevolveTheta3D(s0, DtoR(315))
 
-	sdf.RenderSTL(s1, 200, "test.stl")
-	//sdf.RenderPNG(s1, true)
+	RenderSTL(s1, 200, "test.stl")
+	//RenderPNG(s1, true)
 }
 
 func test6() {
-	s0 := sdf.Sphere3D(0.5)
+	s0 := Sphere3D(0.5)
 	d := 0.4
-	s1 := sdf.Transform3D(s0, sdf.Translate3d(sdf.V3{0, d, 0}))
-	s2 := sdf.Transform3D(s0, sdf.Translate3d(sdf.V3{0, -d, 0}))
-	s3 := sdf.Union3D(s1, s2)
-	s3.(*sdf.UnionSDF3).SetMin(sdf.PolyMin, 0.1)
-	sdf.RenderPNG(s3, true)
+	s1 := Transform3D(s0, Translate3d(V3{0, d, 0}))
+	s2 := Transform3D(s0, Translate3d(V3{0, -d, 0}))
+	s3 := Union3D(s1, s2)
+	s3.(*UnionSDF3).SetMin(PolyMin, 0.1)
+	RenderPNG(s3, true)
 }
 
 func test7() {
-	s0 := sdf.Box3D(sdf.V3{0.8, 0.8, 0.05}, 0)
-	s1 := sdf.Transform3D(s0, sdf.Rotate3d(sdf.V3{1, 0, 0}, sdf.DtoR(60)))
-	s2 := sdf.Union3D(s0, s1)
-	s2.(*sdf.UnionSDF3).SetMin(sdf.PolyMin, 0.1)
-	s3 := sdf.Transform3D(s2, sdf.Rotate3d(sdf.V3{0, 0, 1}, sdf.DtoR(-30)))
-	sdf.RenderPNG(s3, true)
+	s0 := Box3D(V3{0.8, 0.8, 0.05}, 0)
+	s1 := Transform3D(s0, Rotate3d(V3{1, 0, 0}, DtoR(60)))
+	s2 := Union3D(s0, s1)
+	s2.(*UnionSDF3).SetMin(PolyMin, 0.1)
+	s3 := Transform3D(s2, Rotate3d(V3{0, 0, 1}, DtoR(-30)))
+	RenderPNG(s3, true)
 }
 
 func test8() {
-	a := sdf.V3{0, 0, 0}
-	b := sdf.V3{1, 0, 0}
-	c := sdf.V3{0, 1, 0}
-	d := sdf.V3{0, 0, 1}
-	t1 := sdf.NewTriangle(a, b, d)
-	t2 := sdf.NewTriangle(a, c, b)
-	t3 := sdf.NewTriangle(a, d, c)
-	t4 := sdf.NewTriangle(b, c, d)
-	m := sdf.NewMesh([]*sdf.Triangle{t1, t2, t3, t4})
-	err := sdf.SaveSTL("test.stl", m)
+	a := V3{0, 0, 0}
+	b := V3{1, 0, 0}
+	c := V3{0, 1, 0}
+	d := V3{0, 0, 1}
+	t1 := NewTriangle(a, b, d)
+	t2 := NewTriangle(a, c, b)
+	t3 := NewTriangle(a, d, c)
+	t4 := NewTriangle(b, c, d)
+	m := NewMesh([]*Triangle{t1, t2, t3, t4})
+	err := SaveSTL("test.stl", m)
 	if err != nil {
 		fmt.Printf("%s", err)
 	}
 }
 
 func test9() {
-	s := sdf.Sphere3D(10.0)
-	sdf.RenderSTL(s, 200, "test.stl")
+	s := Sphere3D(10.0)
+	RenderSTL(s, 200, "test.stl")
 }
 
 func test10() {
-	s0 := sdf.Box3D(sdf.V3{0.8, 0.8, 0.05}, 0)
-	s1 := sdf.Transform3D(s0, sdf.Rotate3d(sdf.V3{1, 0, 0}, sdf.DtoR(60)))
-	s := sdf.Union3D(s0, s1)
-	s.(*sdf.UnionSDF3).SetMin(sdf.PolyMin, 0.1)
-	sdf.RenderSTL(s, 200, "test.stl")
+	s0 := Box3D(V3{0.8, 0.8, 0.05}, 0)
+	s1 := Transform3D(s0, Rotate3d(V3{1, 0, 0}, DtoR(60)))
+	s := Union3D(s0, s1)
+	s.(*UnionSDF3).SetMin(PolyMin, 0.1)
+	RenderSTL(s, 200, "test.stl")
 }
 
 func test11() {
-	s := sdf.Capsule3D(0.3, 1.4)
-	sdf.RenderSTL(s, 200, "test.stl")
+	s := Capsule3D(0.3, 1.4)
+	RenderSTL(s, 200, "test.stl")
 }
 
 func test12() {
 	k := 0.1
-	points := []sdf.V2{
-		sdf.V2{0, -k},
-		sdf.V2{k, k},
-		sdf.V2{-k, k},
+	points := []V2{
+		V2{0, -k},
+		V2{k, k},
+		V2{-k, k},
 	}
-	s0 := sdf.Polygon2D(points)
-	s0 = sdf.Transform2D(s0, sdf.Translate2d(sdf.V2{0.8, 0}))
-	s1 := sdf.RevolveTheta3D(s0, sdf.DtoR(360))
-	sdf.RenderSTL(s1, 200, "test.stl")
-	//sdf.RenderPNG(s1, true)
+	s0 := Polygon2D(points)
+	s0 = Transform2D(s0, Translate2d(V2{0.8, 0}))
+	s1 := RevolveTheta3D(s0, DtoR(360))
+	RenderSTL(s1, 200, "test.stl")
+	//RenderPNG(s1, true)
 }
 
 func test13() {
 	k := 0.4
-	s0 := sdf.Polygon2D([]sdf.V2{sdf.V2{k, -k}, sdf.V2{k, k}, sdf.V2{-k, k}, sdf.V2{-k, -k}})
-	s0 = sdf.Transform2D(s0, sdf.Translate2d(sdf.V2{0.8, 0}))
-	s1 := sdf.RevolveTheta3D(s0, sdf.DtoR(270))
-	sdf.RenderSTL(s1, 200, "test.stl")
-	//sdf.RenderPNG(s1, true)
+	s0 := Polygon2D([]V2{V2{k, -k}, V2{k, k}, V2{-k, k}, V2{-k, -k}})
+	s0 = Transform2D(s0, Translate2d(V2{0.8, 0}))
+	s1 := RevolveTheta3D(s0, DtoR(270))
+	RenderSTL(s1, 200, "test.stl")
+	//RenderPNG(s1, true)
 }
 
 func test14() {
@@ -126,23 +126,23 @@ func test14() {
 	b := 0.7
 	// rotation
 	theta := 30.0
-	c := math.Cos(sdf.DtoR(theta))
-	s := math.Sin(sdf.DtoR(theta))
+	c := math.Cos(DtoR(theta))
+	s := math.Sin(DtoR(theta))
 	// translate
 	j := 10.0
 	k := 2.0
 
-	points := []sdf.V2{
-		sdf.V2{j + c*a - s*b, k + s*a + c*b},
-		sdf.V2{j - c*a - s*b, k - s*a + c*b},
-		sdf.V2{j - c*a + s*b, k - s*a - c*b},
-		sdf.V2{j + c*a + s*b, k + s*a - c*b},
+	points := []V2{
+		V2{j + c*a - s*b, k + s*a + c*b},
+		V2{j - c*a - s*b, k - s*a + c*b},
+		V2{j - c*a + s*b, k - s*a - c*b},
+		V2{j + c*a + s*b, k + s*a - c*b},
 	}
 
-	s0 := sdf.Polygon2D(points)
-	s1 := sdf.RevolveTheta3D(s0, sdf.DtoR(300))
+	s0 := Polygon2D(points)
+	s1 := RevolveTheta3D(s0, DtoR(300))
 
-	sdf.RenderSTL(s1, 200, "test.stl")
+	RenderSTL(s1, 200, "test.stl")
 }
 
 func test15() {
@@ -155,20 +155,20 @@ func test15() {
 	j := 3.0
 	k := 0.0
 
-	points := []sdf.V2{
-		sdf.V2{0, -b},
-		sdf.V2{a, b},
-		sdf.V2{-a, b},
+	points := []V2{
+		V2{0, -b},
+		V2{a, b},
+		V2{-a, b},
 	}
 
-	s0 := sdf.Polygon2D(points)
-	s0 = sdf.Transform2D(s0, sdf.Rotate2d(sdf.DtoR(theta)))
-	s0 = sdf.Transform2D(s0, sdf.Translate2d(sdf.V2{j, k}))
+	s0 := Polygon2D(points)
+	s0 = Transform2D(s0, Rotate2d(DtoR(theta)))
+	s0 = Transform2D(s0, Translate2d(V2{j, k}))
 
-	s1 := sdf.RevolveTheta3D(s0, sdf.DtoR(300))
-	s1 = sdf.Transform3D(s1, sdf.Rotate3d(sdf.V3{0, 0, 1}, sdf.DtoR(30)))
+	s1 := RevolveTheta3D(s0, DtoR(300))
+	s1 = Transform3D(s1, Rotate3d(V3{0, 0, 1}, DtoR(30)))
 
-	sdf.RenderSTL(s1, 200, "test.stl")
+	RenderSTL(s1, 200, "test.stl")
 }
 
 func test16() {
@@ -184,21 +184,21 @@ func test16() {
 	j := 4.0
 	k := 0.0
 
-	points := []sdf.V2{
-		sdf.V2{b0, -c},
-		sdf.V2{a0, c},
-		sdf.V2{-a1, c},
-		sdf.V2{-b1, -c},
+	points := []V2{
+		V2{b0, -c},
+		V2{a0, c},
+		V2{-a1, c},
+		V2{-b1, -c},
 	}
 
-	s0 := sdf.Polygon2D(points)
-	s0 = sdf.Transform2D(s0, sdf.Rotate2d(sdf.DtoR(theta)))
-	s0 = sdf.Transform2D(s0, sdf.Translate2d(sdf.V2{j, k}))
+	s0 := Polygon2D(points)
+	s0 = Transform2D(s0, Rotate2d(DtoR(theta)))
+	s0 = Transform2D(s0, Translate2d(V2{j, k}))
 
-	s1 := sdf.RevolveTheta3D(s0, sdf.DtoR(300))
-	s1 = sdf.Transform3D(s1, sdf.Rotate3d(sdf.V3{0, 0, 1}, sdf.DtoR(30)))
+	s1 := RevolveTheta3D(s0, DtoR(300))
+	s1 = Transform3D(s1, Rotate3d(V3{0, 0, 1}, DtoR(30)))
 
-	sdf.RenderSTL(s1, 200, "test.stl")
+	RenderSTL(s1, 200, "test.stl")
 }
 
 func test17() {
@@ -209,19 +209,19 @@ func test17() {
 	j := 3.0
 	k := 0.0
 
-	points := []sdf.V2{
-		sdf.V2{a, 0},
-		sdf.V2{-a, b},
-		sdf.V2{-a, -b},
+	points := []V2{
+		V2{a, 0},
+		V2{-a, b},
+		V2{-a, -b},
 	}
 
-	s0 := sdf.Polygon2D(points)
-	s0 = sdf.Transform2D(s0, sdf.Translate2d(sdf.V2{j, k}))
+	s0 := Polygon2D(points)
+	s0 = Transform2D(s0, Translate2d(V2{j, k}))
 
-	s1 := sdf.RevolveTheta3D(s0, sdf.DtoR(300))
-	s1 = sdf.Transform3D(s1, sdf.Rotate3d(sdf.V3{0, 0, 1}, sdf.DtoR(30)))
+	s1 := RevolveTheta3D(s0, DtoR(300))
+	s1 = Transform3D(s1, Rotate3d(V3{0, 0, 1}, DtoR(30)))
 
-	sdf.RenderSTL(s1, 200, "test.stl")
+	RenderSTL(s1, 200, "test.stl")
 }
 
 func test18() {
@@ -237,197 +237,197 @@ func test18() {
 	h3 := 3.5
 	h4 := 1.0
 
-	points := []sdf.V2{
-		sdf.V2{0, 0},
-		sdf.V2{r0, 0},
-		sdf.V2{r0, h0},
-		sdf.V2{r1, h1},
-		sdf.V2{r2, h2},
-		sdf.V2{r3, h3},
-		sdf.V2{r3, h4},
-		sdf.V2{0, h4},
+	points := []V2{
+		V2{0, 0},
+		V2{r0, 0},
+		V2{r0, h0},
+		V2{r1, h1},
+		V2{r2, h2},
+		V2{r3, h3},
+		V2{r3, h4},
+		V2{0, h4},
 	}
 
-	s0 := sdf.Polygon2D(points)
-	s1 := sdf.RevolveTheta3D(s0, sdf.DtoR(300))
-	s1 = sdf.Transform3D(s1, sdf.Rotate3d(sdf.V3{0, 0, 1}, sdf.DtoR(30)))
+	s0 := Polygon2D(points)
+	s1 := RevolveTheta3D(s0, DtoR(300))
+	s1 = Transform3D(s1, Rotate3d(V3{0, 0, 1}, DtoR(30)))
 
-	sdf.RenderSTL(s1, 200, "test.stl")
+	RenderSTL(s1, 200, "test.stl")
 }
 
 func test19() {
 	r := 2.0
 	k := 1.9
-	s0 := sdf.Circle2D(r)
-	s1 := sdf.Array2D(s0, sdf.V2i{3, 7}, sdf.V2{k * r, k * r})
-	s1.(*sdf.ArraySDF2).SetMin(sdf.PolyMin, 0.8)
-	s2 := sdf.Extrude3D(s1, 1.0)
-	sdf.RenderSTL(s2, 200, "test.stl")
+	s0 := Circle2D(r)
+	s1 := Array2D(s0, V2i{3, 7}, V2{k * r, k * r})
+	s1.(*ArraySDF2).SetMin(PolyMin, 0.8)
+	s2 := Extrude3D(s1, 1.0)
+	RenderSTL(s2, 200, "test.stl")
 }
 
 func test20() {
 	r := 4.0
 	d := 20.0
-	s0 := sdf.Circle2D(r)
-	s0 = sdf.Transform2D(s0, sdf.Translate2d(sdf.V2{d, 0}))
-	s0 = sdf.Rotate2D(s0, 5, sdf.Rotate2d(sdf.DtoR(20)))
-	s0.(*sdf.RotateSDF2).SetMin(sdf.PolyMin, 1.2)
-	s1 := sdf.Extrude3D(s0, 10.0)
-	sdf.RenderSTL(s1, 200, "test.stl")
+	s0 := Circle2D(r)
+	s0 = Transform2D(s0, Translate2d(V2{d, 0}))
+	s0 = RotateUnion2D(s0, 5, Rotate2d(DtoR(20)))
+	s0.(*RotateUnionSDF2).SetMin(PolyMin, 1.2)
+	s1 := Extrude3D(s0, 10.0)
+	RenderSTL(s1, 200, "test.stl")
 }
 
 func test21() {
 	r := 2.0
 	k := 1.9
-	s0 := sdf.Sphere3D(r)
-	s1 := sdf.Array3D(s0, sdf.V3i{3, 7, 5}, sdf.V3{k * r, k * r, k * r})
-	s1.(*sdf.ArraySDF3).SetMin(sdf.PolyMin, 0.8)
-	sdf.RenderSTL(s1, 200, "test.stl")
+	s0 := Sphere3D(r)
+	s1 := Array3D(s0, V3i{3, 7, 5}, V3{k * r, k * r, k * r})
+	s1.(*ArraySDF3).SetMin(PolyMin, 0.8)
+	RenderSTL(s1, 200, "test.stl")
 }
 
 func test22() {
 	r := 4.0
 	d := 20.0
-	s0 := sdf.Sphere3D(r)
-	s0 = sdf.Transform3D(s0, sdf.Translate3d(sdf.V3{d, 0, 0}))
-	s0 = sdf.Rotate3D(s0, 5, sdf.Rotate3d(sdf.V3{0, 0, 1}, sdf.DtoR(20)))
-	s0.(*sdf.RotateSDF3).SetMin(sdf.PolyMin, 1.2)
-	sdf.RenderSTL(s0, 200, "test.stl")
+	s0 := Sphere3D(r)
+	s0 = Transform3D(s0, Translate3d(V3{d, 0, 0}))
+	s0 = RotateUnion3D(s0, 5, Rotate3d(V3{0, 0, 1}, DtoR(20)))
+	s0.(*RotateUnionSDF3).SetMin(PolyMin, 1.2)
+	RenderSTL(s0, 200, "test.stl")
 }
 
 func test23() {
-	s0 := sdf.Circle2D(4.0)
-	sdf.SDF2_RenderPNG(s0, "test.png")
+	s0 := Circle2D(4.0)
+	SDF2_RenderPNG(s0, "test.png")
 }
 
 func test24() {
-	s0 := sdf.Box2D(sdf.V2{50, 70}, 4)
-	sdf.SDF2_RenderPNG(s0, "test.png")
+	s0 := Box2D(V2{50, 70}, 4)
+	SDF2_RenderPNG(s0, "test.png")
 }
 
 func test25() {
-	s0 := sdf.Circle2D(0.0)
-	var s1 sdf.SDF2
+	s0 := Circle2D(0.0)
+	var s1 SDF2
 	for i := 0; i < 50; i++ {
-		s1 = sdf.Union2D(s1, sdf.Transform2D(s0, sdf.Translate2d(sdf.RandomV2(-10, 10))))
+		s1 = Union2D(s1, Transform2D(s0, Translate2d(RandomV2(-10, 10))))
 	}
-	sdf.SDF2_RenderPNG(s1, "test.png")
+	SDF2_RenderPNG(s1, "test.png")
 }
 
 func test26() {
-	s := sdf.Cylinder3D(5, 2, 1)
-	sdf.RenderSTL(s, 200, "test.stl")
+	s := Cylinder3D(5, 2, 1)
+	RenderSTL(s, 200, "test.stl")
 }
 
 func test27() {
 	r := 5.0
-	posn := []sdf.V2{sdf.V2{2 * r, 2 * r}, sdf.V2{-r, r}, sdf.V2{r, -r}, sdf.V2{-r, -r}, sdf.V2{0, 0}}
-	s := sdf.MultiCylinder3D(3, 1, posn)
-	sdf.RenderSTL(s, 200, "test.stl")
+	posn := []V2{V2{2 * r, 2 * r}, V2{-r, r}, V2{r, -r}, V2{-r, -r}, V2{0, 0}}
+	s := MultiCylinder3D(3, 1, posn)
+	RenderSTL(s, 200, "test.stl")
 }
 
 func test28() {
-	s := sdf.Cone3D(20, 12, 8, 2)
-	sdf.RenderSTL(s, 200, "test.stl")
+	s := Cone3D(20, 12, 8, 2)
+	RenderSTL(s, 200, "test.stl")
 }
 
 func test29() {
-	s0 := sdf.Line2D(10, 3)
-	s1 := sdf.Extrude3D(s0, 4)
-	sdf.RenderSTL(s1, 200, "test.stl")
+	s0 := Line2D(10, 3)
+	s1 := Extrude3D(s0, 4)
+	RenderSTL(s1, 200, "test.stl")
 }
 
 func test30() {
-	s0 := sdf.Line2D(10, 3)
-	s0 = sdf.Cut2D(s0, sdf.V2{4, 0}, sdf.V2{1, 1})
-	s1 := sdf.Extrude3D(s0, 4)
-	sdf.RenderSTL(s1, 200, "test.stl")
+	s0 := Line2D(10, 3)
+	s0 = Cut2D(s0, V2{4, 0}, V2{1, 1})
+	s1 := Extrude3D(s0, 4)
+	RenderSTL(s1, 200, "test.stl")
 }
 
 func test31() {
-	s := sdf.CounterSunk_Hole3d(30, 2)
-	sdf.RenderSTL(s, 200, "test.stl")
+	s := CounterSunk_Hole3d(30, 2)
+	RenderSTL(s, 200, "test.stl")
 }
 
 func test32() {
-	s0, err := sdf.MakeFlatFlankCam(0.094, sdf.DtoR(2.0*57.5), 0.625)
+	s0, err := MakeFlatFlankCam(0.094, DtoR(2.0*57.5), 0.625)
 	if err != nil {
 		panic(err)
 	}
-	s1 := sdf.Extrude3D(s0, 0.1)
-	sdf.RenderSTL(s1, 200, "test.stl")
+	s1 := Extrude3D(s0, 0.1)
+	RenderSTL(s1, 200, "test.stl")
 }
 
 func test33() {
-	s0 := sdf.ThreeArcCam2D(30, 20, 5, 50000)
+	s0 := ThreeArcCam2D(30, 20, 5, 50000)
 	fmt.Printf("%+v\n", s0)
-	s1 := sdf.Extrude3D(s0, 4)
-	sdf.RenderSTL(s1, 200, "test.stl")
+	s1 := Extrude3D(s0, 4)
+	RenderSTL(s1, 200, "test.stl")
 }
 
 func test34() {
-	s0, err := sdf.MakeThreeArcCam(0.1, sdf.DtoR(2.0*80), 0.7, 1.1)
+	s0, err := MakeThreeArcCam(0.1, DtoR(2.0*80), 0.7, 1.1)
 	if err != nil {
 		panic(err)
 	}
-	s1 := sdf.Extrude3D(s0, 0.1)
-	sdf.RenderSTL(s1, 200, "test.stl")
+	s1 := Extrude3D(s0, 0.1)
+	RenderSTL(s1, 200, "test.stl")
 }
 
 func test35() {
 	r := 7.0
 	d := 20.0
-	s0 := sdf.Line2D(r, 1.0)
-	s0 = sdf.Transform2D(s0, sdf.Translate2d(sdf.V2{d, 0}))
-	s0 = sdf.RotateCopy2D(s0, 15)
-	s1 := sdf.Extrude3D(s0, 10.0)
-	sdf.RenderSTL(s1, 200, "test.stl")
+	s0 := Line2D(r, 1.0)
+	s0 = Transform2D(s0, Translate2d(V2{d, 0}))
+	s0 = RotateCopy2D(s0, 15)
+	s1 := Extrude3D(s0, 10.0)
+	RenderSTL(s1, 200, "test.stl")
 }
 
 func test36() {
-	s_driver, s_driven, err := sdf.MakeGenevaCam(6, 100, 40, 80, 5, 0.5)
+	s_driver, s_driven, err := MakeGenevaCam(6, 100, 40, 80, 5, 0.5)
 	if err != nil {
 		panic(err)
 	}
-	sdf.RenderSTL(sdf.Extrude3D(s_driver, 10), 200, "driver.stl")
-	sdf.RenderSTL(sdf.Extrude3D(s_driven, 10), 200, "driven.stl")
+	RenderSTL(Extrude3D(s_driver, 10), 200, "driver.stl")
+	RenderSTL(Extrude3D(s_driven, 10), 200, "driven.stl")
 }
 
 func test37() {
 	r := 5.0
 	p := 2.0
-	s := sdf.Screw3D(sdf.ISOThread(r, p), 50, p, 1)
-	sdf.RenderSTL(s, 400, "screw.stl")
+	s := Screw3D(ISOThread(r, p), 50, p, 1)
+	RenderSTL(s, 400, "screw.stl")
 }
 
 func test38() {
-	fmt.Printf("%+v\n", sdf.ThreadLookup("unc_1/4"))
-	fmt.Printf("%+v\n", sdf.ThreadLookup("blah"))
+	fmt.Printf("%+v\n", ThreadLookup("unc_1/4"))
+	fmt.Printf("%+v\n", ThreadLookup("blah"))
 }
 
 func test39() {
-	s0 := sdf.NewFlange1(30, 20, 10)
+	s0 := NewFlange1(30, 20, 10)
 	fmt.Printf("%+v\n", s0)
-	s1 := sdf.Extrude3D(s0, 5)
-	sdf.RenderSTL(s1, 200, "test.stl")
+	s1 := Extrude3D(s0, 5)
+	RenderSTL(s1, 200, "test.stl")
 }
 
 func test40() {
 	d := 30.0
 	wall := 5.0
-	s0 := sdf.Box3D(sdf.V3{d, d, d}, wall/2)
-	s1 := sdf.Box3D(sdf.V3{d - wall, d - wall, d}, wall/2)
-	s1 = sdf.Transform3D(s1, sdf.Translate3d(sdf.V3{0, 0, wall / 2}))
-	s := sdf.Difference3D(s0, s1)
-	s.(*sdf.DifferenceSDF3).SetMax(sdf.PolyMax, 2)
-	sdf.RenderSTL(s, 200, "test.stl")
+	s0 := Box3D(V3{d, d, d}, wall/2)
+	s1 := Box3D(V3{d - wall, d - wall, d}, wall/2)
+	s1 = Transform3D(s1, Translate3d(V3{0, 0, wall / 2}))
+	s := Difference3D(s0, s1)
+	s.(*DifferenceSDF3).SetMax(PolyMax, 2)
+	RenderSTL(s, 200, "test.stl")
 }
 
 func test41() {
-	s0 := sdf.Cylinder3D(20.0, 5.0, 0)
-	s1 := sdf.Slice2D(s0, sdf.V3{0, 0, 0}, sdf.V3{0, 1, 1})
-	s2 := sdf.Revolve3D(s1)
-	sdf.RenderSTL(s2, 200, "test.stl")
+	s0 := Cylinder3D(20.0, 5.0, 0)
+	s1 := Slice2D(s0, V3{0, 0, 0}, V3{0, 1, 1})
+	s2 := Revolve3D(s1)
+	RenderSTL(s2, 200, "test.stl")
 }
 
 func main() {

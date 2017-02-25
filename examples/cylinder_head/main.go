@@ -19,7 +19,7 @@ import (
 //-----------------------------------------------------------------------------
 
 // overall build controls
-const casting = false // add allowances, remove machined features
+const casting = true // add allowances, remove machined features
 
 //-----------------------------------------------------------------------------
 // scaling
@@ -46,8 +46,10 @@ var eb_hole_radius = dim(3.0 / 16.0)
 var eb_c2c_distance = dim(13.0 / 16.0)
 var eb_distance = eb_c2c_distance / 2.0
 
+var eb_x_offset = 0.5*(head_length+eb_height) - eb_height0
 var eb_y_offset = (head_width / 2.0) - eb_distance - eb_side_radius
 var eb_z_offset = dim(1.0 / 16.0)
+
 var eb_height0 = dim(1.0 / 16.0)
 var eb_height1 = dim(1.0 / 8.0)
 var eb_height = eb_height0 + eb_height1
@@ -73,8 +75,7 @@ func exhaust_boss(mode string, x_ofs float64) SDF3 {
 }
 
 func exhaust_bosses(mode string) SDF3 {
-	x_ofs := 0.5*(head_length+eb_height) - eb_height0
-	return Union3D(exhaust_boss(mode, x_ofs), exhaust_boss(mode, -x_ofs))
+	return Union3D(exhaust_boss(mode, eb_x_offset), exhaust_boss(mode, -eb_x_offset))
 }
 
 //-----------------------------------------------------------------------------
@@ -121,12 +122,13 @@ func sparkplug(mode string, x_ofs float64) SDF3 {
 			V2{0, sp_hole_h},
 		}
 	} else if mode == "counterbore" {
-		vlist = []V2{
-			V2{0, sp_cb_h1},
-			V2{sp_cb_r, sp_cb_h1},
-			V2{sp_cb_r, sp_cb_h2},
-			V2{0, sp_cb_h2},
-		}
+		p := NewSmoother(false)
+		p.Add(V2{0, sp_cb_h1})
+		p.AddSmooth(V2{sp_cb_r, sp_cb_h1}, 3, sp_cb_r/6.0)
+		p.Add(V2{sp_cb_r, sp_cb_h2})
+		p.Add(V2{0, sp_cb_h2})
+		p.Smooth()
+		vlist = p.Vertices()
 	} else {
 		panic("bad mode")
 	}
@@ -344,6 +346,14 @@ func manifolds(mode string) SDF3 {
 
 //-----------------------------------------------------------------------------
 
+func allowances(s SDF3) SDF3 {
+	//eb0_2d := Slice2D(s, V3{eb_x_offset, 0, 0}, V3{1, 0, 0})
+	//return Extrude3D(eb0_2d, 10.0)
+	return nil
+}
+
+//-----------------------------------------------------------------------------
+
 func additive() SDF3 {
 	var s SDF3
 	s = Union3D(s, head_wall())
@@ -364,8 +374,15 @@ func additive() SDF3 {
 	s = Union3D(s, exhaust_bosses("body"))
 	s.(*UnionSDF3).SetMin(PolyMin, general_round)
 
+	s = Difference3D(s, sparkplugs("counterbore"))
+
 	// cleanup the blending artifacts on the outside
 	s = Intersection3D(s, head_envelope())
+
+	if casting == true {
+		s = Union3D(s, allowances(s))
+	}
+
 	return s
 }
 
@@ -373,14 +390,11 @@ func additive() SDF3 {
 
 func subtractive() SDF3 {
 	var s SDF3
-	if casting {
-		s = Union3D(s, sparkplugs("counterbore"))
-	} else {
+	if casting == false {
 		s = Union3D(s, cylinder_heads("chamber"))
 		s = Union3D(s, head_stud_holes())
 		s = Union3D(s, valve_sets("hole"))
 		s = Union3D(s, sparkplugs("hole"))
-		s = Union3D(s, sparkplugs("counterbore"))
 		s = Union3D(s, manifolds("hole"))
 		s = Union3D(s, exhaust_bosses("hole"))
 	}

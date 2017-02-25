@@ -132,7 +132,9 @@ func wheel_pattern() {
 	if pie_print {
 		wheel_3d = RevolveTheta3D(wheel_2d, DtoR(60))
 	} else {
-		web_3d = Rotate3D(web_3d, 6, Rotate3d(V3{0, 0, 1}, DtoR(60)))
+		web_3d = RotateUnion3D(web_3d, 6, RotateZ(DtoR(60)))
+		// TODO - this should work - but gives strange results
+		//web_3d = RotateCopy3D(web_3d, 6)
 		wheel_3d = Revolve3D(wheel_2d)
 	}
 

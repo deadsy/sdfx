@@ -120,7 +120,7 @@ func InvoluteGear(
 		facets,
 	)
 
-	gear := Rotate2D(tooth, number_teeth, Rotate2d(TAU/float64(number_teeth)))
+	gear := RotateCopy2D(tooth, number_teeth)
 	root := Circle2D(root_radius)
 	ring := Circle2D(ring_radius)
 

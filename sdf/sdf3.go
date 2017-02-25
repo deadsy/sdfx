@@ -651,7 +651,7 @@ func (s *ArraySDF3) BoundingBox() Box3 {
 
 //-----------------------------------------------------------------------------
 
-type RotateSDF3 struct {
+type RotateUnionSDF3 struct {
 	sdf  SDF3
 	num  int
 	step M44
@@ -660,12 +660,12 @@ type RotateSDF3 struct {
 	bb   Box3
 }
 
-func Rotate3D(sdf SDF3, num int, step M44) SDF3 {
+func RotateUnion3D(sdf SDF3, num int, step M44) SDF3 {
 	// check the number of steps
 	if num <= 0 {
 		return nil
 	}
-	s := RotateSDF3{}
+	s := RotateUnionSDF3{}
 	s.sdf = sdf
 	s.num = num
 	s.step = step.Inverse()
@@ -684,7 +684,7 @@ func Rotate3D(sdf SDF3, num int, step M44) SDF3 {
 }
 
 // Return the minimum distance to the object.
-func (s *RotateSDF3) Evaluate(p V3) float64 {
+func (s *RotateUnionSDF3) Evaluate(p V3) float64 {
 	d := math.MaxFloat64
 	rot := Identity3d()
 	for i := 0; i < s.num; i++ {
@@ -696,13 +696,13 @@ func (s *RotateSDF3) Evaluate(p V3) float64 {
 }
 
 // Set the minimum function to control blending.
-func (s *RotateSDF3) SetMin(min MinFunc, k float64) {
+func (s *RotateUnionSDF3) SetMin(min MinFunc, k float64) {
 	s.min = min
 	s.k = k
 }
 
 // Return the bounding box.
-func (s *RotateSDF3) BoundingBox() Box3 {
+func (s *RotateUnionSDF3) BoundingBox() Box3 {
 	return s.bb
 }
 
@@ -731,7 +731,8 @@ func RotateCopy3D(
 	zmax := bb.Max.Z
 	zmin := bb.Min.Z
 	rmax := 0.0
-	// find the bounding box vertex with the greatest distance from the origin
+	// find the bounding box vertex with the greatest distance from the z-axis
+	// TODO - revisit - should go by real vertices
 	for _, v := range bb.Vertices() {
 		l := V2{v.X, v.Y}.Length()
 		if l > rmax {
