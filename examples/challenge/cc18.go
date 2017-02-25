@@ -86,3 +86,50 @@ func cc18b() SDF3 {
 }
 
 //-----------------------------------------------------------------------------
+// CAD Challenge #18 Part C
+// https://www.reddit.com/r/cad/comments/5vwdnc/cad_challenge_18/
+
+func cc18c() SDF3 {
+
+	// build the tabs
+	tab_3d := Box3D(V3{43, 12, 20}, 0)
+	tab_3d = Transform3D(tab_3d, Translate3d(V3{43.0 / 2.0, 0, 0}))
+	// tab hole
+	tab_hole_3d := Cylinder3D(12, 7.0/2.0, 0)
+	m := RotateX(DtoR(90))
+	m = Translate3d(V3{35, 0, 0}).Mul(m)
+	tab_hole_3d = Transform3D(tab_hole_3d, m)
+	tab_3d = Difference3D(tab_3d, tab_hole_3d)
+	// rotate and copy 3 times
+	tab_3d = RotateCopy3D(tab_3d, 3)
+
+	// Build the ecntral body
+	body_3d := Cylinder3D(20, 26.3, 0)
+	body_3d = Union3D(body_3d, tab_3d)
+	body_3d.(*UnionSDF3).SetMin(PolyMin, 2.0)
+	// clean up the top and bottom face
+	body_3d = Cut3D(body_3d, V3{0, 0, -10}, V3{0, 0, 1})
+	body_3d = Cut3D(body_3d, V3{0, 0, 10}, V3{0, 0, -1})
+
+	// build the central sleeve
+	r_outer := 42.3 / 2.0
+	p := []V2{
+		V2{0, 0},
+		V2{r_outer, 0},
+		V2{r_outer, 29},
+		V2{r_outer - 1.0, 30},
+		V2{0, 30},
+	}
+	sleeve_3d := Revolve3D(Polygon2D(p))
+	sleeve_3d = Transform3D(sleeve_3d, Translate3d(V3{0, 0, -10}))
+	body_3d = Union3D(body_3d, sleeve_3d)
+
+	// Remove the central hole
+	sleeve_hole_3d := Cylinder3D(30, 36.5/2.0, 0)
+	sleeve_hole_3d = Transform3D(sleeve_hole_3d, Translate3d(V3{0, 0, 5}))
+	body_3d = Difference3D(body_3d, sleeve_hole_3d)
+
+	return body_3d
+}
+
+//-----------------------------------------------------------------------------

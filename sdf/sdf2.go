@@ -470,8 +470,16 @@ func RotateCopy2D(sdf SDF2, num int) SDF2 {
 	s.sdf = sdf
 	s.theta = TAU / float64(num)
 	// work out the bounding box
-	r_max := sdf.BoundingBox().Max.Length()
-	s.bb = Box2{V2{-r_max, -r_max}, V2{r_max, r_max}}
+	bb := sdf.BoundingBox()
+	rmax := 0.0
+	// find the bounding box vertex with the greatest distance from the origin
+	for _, v := range bb.Vertices() {
+		l := v.Length()
+		if l > rmax {
+			rmax = l
+		}
+	}
+	s.bb = Box2{V2{-rmax, -rmax}, V2{rmax, rmax}}
 	return &s
 }
 

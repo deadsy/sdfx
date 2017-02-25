@@ -707,3 +707,52 @@ func (s *RotateSDF3) BoundingBox() Box3 {
 }
 
 //-----------------------------------------------------------------------------
+
+type RotateCopySDF3 struct {
+	sdf   SDF3
+	theta float64
+	bb    Box3
+}
+
+// RotateCopy3D rotate and creates N copies of an SDF3 about the z-axis.
+func RotateCopy3D(
+	sdf SDF3, // SDF3 to rotate and copy
+	num int, // number of copies
+) SDF3 {
+	// check the number of steps
+	if num <= 0 {
+		return nil
+	}
+	s := RotateCopySDF3{}
+	s.sdf = sdf
+	s.theta = TAU / float64(num)
+	// work out the bounding box
+	bb := sdf.BoundingBox()
+	zmax := bb.Max.Z
+	zmin := bb.Min.Z
+	rmax := 0.0
+	// find the bounding box vertex with the greatest distance from the origin
+	for _, v := range bb.Vertices() {
+		l := V2{v.X, v.Y}.Length()
+		if l > rmax {
+			rmax = l
+		}
+	}
+	s.bb = Box3{V3{-rmax, -rmax, zmin}, V3{rmax, rmax, zmax}}
+	return &s
+}
+
+// Evaluate returns the minimum distance to the SDF3.
+func (s *RotateCopySDF3) Evaluate(p V3) float64 {
+	// Map p to a point in the first copy sector.
+	p2 := V2{p.X, p.Y}
+	p2 = PolarToXY(p2.Length(), SawTooth(math.Atan2(p2.Y, p2.X), s.theta))
+	return s.sdf.Evaluate(V3{p2.X, p2.Y, p.Z})
+}
+
+// BoundingBox returns the bounding box of the SDF3.
+func (s *RotateCopySDF3) BoundingBox() Box3 {
+	return s.bb
+}
+
+//-----------------------------------------------------------------------------
