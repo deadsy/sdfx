@@ -11,15 +11,17 @@ import . "github.com/deadsy/sdfx/sdf"
 func cc18b() SDF3 {
 
 	// build the vertical pipe
-	// V2{0,0}
-	// V2{6,0}
-	// V2{0,19}
-	// V2{2,0}
-	// V2{0,2}
-	// V2{-2,0}
-	// V2{0,-1}
-	// V2{-6,0}
-
+	p := NewSmoother(false)
+	p.Add(V2{0, 0})
+	p.Add(V2{6, 0})
+	p.AddSmooth(V2{6, 19}, 5, 0.5)
+	p.Add(V2{8, 19})
+	p.Add(V2{8, 21})
+	p.Add(V2{6, 21})
+	p.Add(V2{6, 20})
+	p.Add(V2{0, 20})
+	p.Smooth()
+	vpipe_3d := Revolve3D(Polygon2D(p.Vertices()))
 	// bolt circle for the top flange
 	top_holes_3d := MakeBoltCircle3D(
 		2.0,       // hole_depth
@@ -27,9 +29,23 @@ func cc18b() SDF3 {
 		14.50/2.0, // circle_radius
 		6,         // num_holes
 	)
+	m := RotateZ(DtoR(30))
+	m = Translate3d(V3{0, 0, 1.0 + 19.0}).Mul(m)
+	top_holes_3d = Transform3D(top_holes_3d, m)
+	vpipe_3d = Difference3D(vpipe_3d, top_holes_3d)
 
 	// build the horizontal pipe
-
+	p = NewSmoother(false)
+	p.Add(V2{0, 0})
+	p.Add(V2{5, 0})
+	p.AddSmooth(V2{5, 12}, 5, 0.5)
+	p.Add(V2{8, 12})
+	p.Add(V2{8, 14})
+	p.Add(V2{6, 14})
+	p.Add(V2{6, 14.35})
+	p.Add(V2{0, 14.35})
+	p.Smooth()
+	hpipe_3d := Revolve3D(Polygon2D(p.Vertices()))
 	// bolt circle for the side flanges
 	side_holes_3d := MakeBoltCircle3D(
 		2.0,      // hole_depth
@@ -37,6 +53,15 @@ func cc18b() SDF3 {
 		14.0/2.0, // circle_radius
 		4,        // num_holes
 	)
+	m = RotateZ(DtoR(45))
+	m = Translate3d(V3{0, 0, 1.0 + 12.0}).Mul(m)
+	side_holes_3d = Transform3D(side_holes_3d, m)
+	hpipe_3d = Difference3D(hpipe_3d, side_holes_3d)
+	hpipe_3d = Union3D(Transform3D(hpipe_3d, RotateY(DtoR(90))), Transform3D(hpipe_3d, RotateY(DtoR(-90))))
+	hpipe_3d = Transform3D(hpipe_3d, Translate3d(V3{0, 0, 9}))
+
+	s := Union3D(hpipe_3d, vpipe_3d)
+	s.(*UnionSDF3).SetMin(PolyMin, 1.0)
 
 	// vertical blind hole
 	vertical_hole_3d := Cylinder3D(
@@ -44,6 +69,8 @@ func cc18b() SDF3 {
 		9.0/2.0, // radius
 		0.0,     // round
 	)
+	m = Translate3d(V3{0, 0, 19.0/2.0 + 1})
+	vertical_hole_3d = Transform3D(vertical_hole_3d, m)
 
 	// horizontal through hole
 	horizontal_hole_3d := Cylinder3D(
@@ -51,13 +78,11 @@ func cc18b() SDF3 {
 		9.0/2.0, // radius
 		0.0,     // round
 	)
+	m = RotateY(DtoR(90))
+	m = Translate3d(V3{0, 0, 9}).Mul(m)
+	horizontal_hole_3d = Transform3D(horizontal_hole_3d, m)
 
-	_ = top_holes_3d
-	_ = side_holes_3d
-	_ = vertical_hole_3d
-	_ = horizontal_hole_3d
-
-	return nil
+	return Difference3D(s, Union3D(vertical_hole_3d, horizontal_hole_3d))
 }
 
 //-----------------------------------------------------------------------------
