@@ -122,19 +122,19 @@ func wheel_pattern() {
 	web_3d := Extrude3D(web_2d, web_length)
 	m := Translate3d(V3{0, plate_thickness, hub_radius + web_length/2})
 	m = RotateX(DtoR(90)).Mul(m)
-	m = RotateZ(DtoR(120)).Mul(m)
-	web_3d = Transform3D(web_3d, m)
 
 	// build the wheel profile
 	wheel_2d := wheel_profile()
 	var wheel_3d SDF3
 
 	if pie_print {
+		m = RotateZ(DtoR(120)).Mul(m)
+		web_3d = Transform3D(web_3d, m)
 		wheel_3d = RevolveTheta3D(wheel_2d, DtoR(60))
 	} else {
-		web_3d = RotateUnion3D(web_3d, 6, RotateZ(DtoR(60)))
-		// TODO - this should work - but gives strange results
-		//web_3d = RotateCopy3D(web_3d, 6)
+		m = RotateZ(DtoR(90)).Mul(m)
+		web_3d = Transform3D(web_3d, m)
+		web_3d = RotateCopy3D(web_3d, 6)
 		wheel_3d = Revolve3D(wheel_2d)
 	}
 
