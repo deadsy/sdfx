@@ -1,149 +1,216 @@
 //-----------------------------------------------------------------------------
+/*
 
+Polygon Building Code
+
+*/
 //-----------------------------------------------------------------------------
 
 package sdf
 
 import (
+	"fmt"
 	"math"
+
+	"github.com/yofu/dxf"
 )
 
 //-----------------------------------------------------------------------------
 
-// Smoothable 2d polygon vertex
-type SmoothV2 struct {
-	Vertex V2      // vertex coordinates
-	Facets int     // number of polygon facets to create when smoothing
-	Radius float64 // radius of smoothing (0 == none)
+type Polygon struct {
+	closed bool // is the polygon closed or open?
+	vlist  []PV // list of polygon vertices
 }
 
-// Set of smoothable 2d polygon vertices
-type Smoother struct {
-	VList  []SmoothV2 // vertex list
-	Closed bool       // is the set of points closed?
+// polygon vertex
+type PV struct {
+	prev   *PV     // previous vertex
+	empty  bool    // is there a line segment for this vertex?
+	vertex V2      // vertex coordinates
+	facets int     // number of polygon facets to create when smoothing
+	radius float64 // radius of smoothing (0 == none)
 }
 
 //-----------------------------------------------------------------------------
+// Operations on Polygon Vertices
 
-// Return the next vertex on the list
-func (s *Smoother) next_vertex(i int) *SmoothV2 {
-	if i == len(s.VList)-1 {
-		if s.Closed {
-			return &s.VList[0]
+// Rel positions the polygon vertex relative to the prior vertex.
+func (v *PV) Rel() *PV {
+	if v.prev != nil {
+		v.vertex = v.vertex.Add(v.prev.vertex)
+	}
+	return v
+}
+
+// Polar treats the polygon vertex values as polar coordinates (r, theta).
+func (v *PV) Polar() *PV {
+	v.vertex = PolarToXY(v.vertex.X, v.vertex.Y)
+	return v
+}
+
+// Break treats this vertex as a break in the polygon.
+func (v *PV) Break() *PV {
+	v.empty = true
+	return v
+}
+
+// Smooth marks the polygon vertex for smoothing.
+func (v *PV) Smooth(radius float64, facets int) *PV {
+	v.radius = radius
+	v.facets = facets
+	return v
+}
+
+//-----------------------------------------------------------------------------
+// Operations on Polygons
+
+// next_vertex return the next vertex in the polygon
+func (p *Polygon) next_vertex(i int) *PV {
+	if i == len(p.vlist)-1 {
+		if p.closed {
+			return &p.vlist[0]
 		} else {
 			return nil
 		}
 	}
-	return &s.VList[i+1]
+	return &p.vlist[i+1]
 }
 
-// Return the previous vertex on list
-func (s *Smoother) prev_vertex(i int) *SmoothV2 {
+// prev_vertex returns the previous vertex in the polygon
+func (p *Polygon) prev_vertex(i int) *PV {
 	if i == 0 {
-		if s.Closed {
-			return &s.VList[len(s.VList)-1]
+		if p.closed {
+			return &p.vlist[len(p.vlist)-1]
 		} else {
 			return nil
 		}
 	}
-	return &s.VList[i-1]
+	return &p.vlist[i-1]
 }
 
-// Smooth the i-th vertex, return true if we smoothed it
-func (s *Smoother) smooth_vertex(i int) bool {
+// smooth_vertex smoothes the i-th vertex, return true if we smoothed it
+func (p *Polygon) smooth_vertex(i int) bool {
 
-	p := s.VList[i]
-	if p.Radius == 0 {
+	v := p.vlist[i]
+	if v.radius == 0 {
 		// fixed point
 		return false
 	}
 
 	// get the next and previous points
-	pn := s.next_vertex(i)
-	pp := s.prev_vertex(i)
-	if pp == nil || pn == nil {
+	vn := p.next_vertex(i)
+	vp := p.prev_vertex(i)
+	if vp == nil || vn == nil {
 		// can't smooth the endpoints of an open polygon
 		return false
 	}
 
 	// work out the angle
-	v0 := pp.Vertex.Sub(p.Vertex).Normalize()
-	v1 := pn.Vertex.Sub(p.Vertex).Normalize()
+	v0 := vp.vertex.Sub(v.vertex).Normalize()
+	v1 := vn.vertex.Sub(v.vertex).Normalize()
 	theta := math.Acos(v0.Dot(v1))
 
 	// distance from vertex to circle tangent
-	d1 := p.Radius / math.Tan(theta/2.0)
-	if d1 > pp.Vertex.Sub(p.Vertex).Length() || d1 > pn.Vertex.Sub(p.Vertex).Length() {
+	d1 := v.radius / math.Tan(theta/2.0)
+	if d1 > vp.vertex.Sub(v.vertex).Length() || d1 > vn.vertex.Sub(v.vertex).Length() {
 		// unable to smooth - radius is too large
 		return false
 	}
 
 	// tangent points
-	p0 := p.Vertex.Add(v0.MulScalar(d1))
+	p0 := v.vertex.Add(v0.MulScalar(d1))
 
 	// distance from vertex to circle center
-	d2 := p.Radius / math.Sin(theta/2.0)
+	d2 := v.radius / math.Sin(theta/2.0)
 	// center of circle
 	vc := v0.Add(v1).Normalize()
-	c := p.Vertex.Add(vc.MulScalar(d2))
+	c := v.vertex.Add(vc.MulScalar(d2))
 
 	// rotation angle
-	dtheta := Sign(v1.Cross(v0)) * (PI - theta) / float64(p.Facets)
+	dtheta := Sign(v1.Cross(v0)) * (PI - theta) / float64(v.facets)
 	// rotation matrix
 	rm := Rotate(dtheta)
 	// radius vector
 	rv := p0.Sub(c)
 
 	// work out the new points
-	points := make([]SmoothV2, p.Facets+1)
+	points := make([]PV, v.facets+1)
 	for j, _ := range points {
-		points[j] = SmoothV2{c.Add(rv), 0, 0}
+		points[j] = PV{vertex: c.Add(rv)}
 		rv = rm.MulPosition(rv)
 	}
 
 	// replace the old point with the new points
-	s.VList = append(s.VList[:i], append(points, s.VList[i+1:]...)...)
+	p.vlist = append(p.vlist[:i], append(points, p.vlist[i+1:]...)...)
+
 	return true
 }
 
-//-----------------------------------------------------------------------------
-
-func NewSmoother(closed bool) *Smoother {
-	return &Smoother{nil, closed}
-}
-
-// Add a non-smoothable vertex to the list
-func (s *Smoother) Add(p V2) {
-	s.VList = append(s.VList, SmoothV2{p, 0, 0})
-}
-
-// Add a smoothable vertex to the list
-func (s *Smoother) AddSmooth(p V2, facets int, radius float64) {
-	s.VList = append(s.VList, SmoothV2{p, facets, radius})
-}
-
-// Smooth the vertex list
-func (s *Smoother) Smooth() {
-	// smooth the points
+// Smooth does vertex smoothing on a polygon.
+func (p *Polygon) Smooth() {
 	done := false
 	for done == false {
 		done = true
-		for i, _ := range s.VList {
-			if s.smooth_vertex(i) {
+		for i, _ := range p.vlist {
+			if p.smooth_vertex(i) {
 				done = false
 			}
 		}
 	}
 }
 
-// Return a list of the smoother vertices
-func (s *Smoother) Vertices() []V2 {
-	// return the vertex list
-	vlist := make([]V2, len(s.VList))
-	for i, _ := range vlist {
-		vlist[i] = s.VList[i].Vertex
+// Close closes the polygon.
+func (p *Polygon) Close() {
+	if p.vlist != nil {
+		v_first := p.vlist[0]
+		v_last := p.vlist[len(p.vlist)-1]
+		if !v_first.vertex.Equals(v_last.vertex, 0) {
+			p.vlist = append(p.vlist, v_first)
+		}
 	}
-	return vlist
+	p.closed = true
+}
+
+// NewPolygon returns an empty polygon.
+func NewPolygon() *Polygon {
+	return &Polygon{}
+}
+
+// Add adds a polygon vertex to a polygon.
+func (p *Polygon) Add(x, y float64) *PV {
+	v := PV{}
+	v.vertex.X = x
+	v.vertex.Y = y
+	if p.vlist != nil {
+		v.prev = &p.vlist[len(p.vlist)-1]
+	}
+	p.vlist = append(p.vlist, v)
+	return &p.vlist[len(p.vlist)-1]
+}
+
+// Vertices returns the vertices of the polygon.
+func (p *Polygon) Vertices() []V2 {
+	v := make([]V2, len(p.vlist))
+	for i, pv := range p.vlist {
+		v[i] = pv.vertex
+	}
+	return v
+}
+
+// Render outputs a polygon as a 2D DXF file.
+func (p *Polygon) Render(path string) {
+	d := dxf.NewDrawing()
+	for i := 0; i < len(p.vlist)-1; i++ {
+		if !p.vlist[i+1].empty {
+			p0 := p.vlist[i].vertex
+			p1 := p.vlist[i+1].vertex
+			d.Line(p0.X, p0.Y, 0, p1.X, p1.Y, 0)
+		}
+	}
+	err := d.SaveAs(path)
+	if err != nil {
+		fmt.Printf("%s\n", err)
+	}
 }
 
 //-----------------------------------------------------------------------------

@@ -65,34 +65,34 @@ func wheel_profile() SDF2 {
 	draft2 := wall_height * math.Tan(draft_angle)
 	draft3 := core_height * math.Tan(core_draft_angle)
 
-	s := NewSmoother(false)
+	s := NewPolygon()
 
 	if core_print {
-		s.Add(V2{0, 0})
-		s.Add(V2{wheel_radius + draft2, 0})
-		s.AddSmooth(V2{wheel_radius, wall_height}, 5, 1.0)
-		s.AddSmooth(V2{wheel_radius - wall_thickness, wall_height}, 5, 1.0)
-		s.AddSmooth(V2{wheel_radius - wall_thickness - draft1, plate_thickness}, 5, 2.0)
-		s.AddSmooth(V2{hub_radius + draft0, plate_thickness}, 5, 2.0)
-		s.AddSmooth(V2{hub_radius, hub_height}, 5, 2.0)
-		s.Add(V2{shaft_radius, hub_height})
-		s.Add(V2{shaft_radius - draft3, hub_height + core_height})
-		s.Add(V2{0, hub_height + core_height})
+		s.Add(0, 0)
+		s.Add(wheel_radius+draft2, 0)
+		s.Add(wheel_radius, wall_height).Smooth(1.0, 5)
+		s.Add(wheel_radius-wall_thickness, wall_height).Smooth(1.0, 5)
+		s.Add(wheel_radius-wall_thickness-draft1, plate_thickness).Smooth(2.0, 5)
+		s.Add(hub_radius+draft0, plate_thickness).Smooth(2.0, 5)
+		s.Add(hub_radius, hub_height).Smooth(2.0, 5)
+		s.Add(shaft_radius, hub_height)
+		s.Add(shaft_radius-draft3, hub_height+core_height)
+		s.Add(0, hub_height+core_height)
 	} else {
-		s.Add(V2{0, 0})
-		s.Add(V2{wheel_radius + draft2, 0})
-		s.AddSmooth(V2{wheel_radius, wall_height}, 5, 1.0)
-		s.AddSmooth(V2{wheel_radius - wall_thickness, wall_height}, 5, 1.0)
-		s.AddSmooth(V2{wheel_radius - wall_thickness - draft1, plate_thickness}, 5, 2.0)
-		s.AddSmooth(V2{hub_radius + draft0, plate_thickness}, 5, 2.0)
-		s.AddSmooth(V2{hub_radius, hub_height}, 5, 2.0)
-		s.Add(V2{shaft_radius, hub_height})
-		s.Add(V2{shaft_radius, hub_height - shaft_length})
-		s.Add(V2{0, hub_height - shaft_length})
+		s.Add(0, 0)
+		s.Add(wheel_radius+draft2, 0)
+		s.Add(wheel_radius, wall_height).Smooth(1.0, 5)
+		s.Add(wheel_radius-wall_thickness, wall_height).Smooth(1.0, 5)
+		s.Add(wheel_radius-wall_thickness-draft1, plate_thickness).Smooth(2.0, 5)
+		s.Add(hub_radius+draft0, plate_thickness).Smooth(2.0, 5)
+		s.Add(hub_radius, hub_height).Smooth(2.0, 5)
+		s.Add(shaft_radius, hub_height)
+		s.Add(shaft_radius, hub_height-shaft_length)
+		s.Add(0, hub_height-shaft_length)
 	}
 	s.Smooth()
 
-	//RenderDXF("wheel.dxf", s.Vertices())
+	//s.Render("wheel.dxf")
 	return Polygon2D(s.Vertices())
 }
 
@@ -103,14 +103,14 @@ func web_profile() SDF2 {
 	x0 := web_width + draft
 	x1 := web_width
 
-	s := NewSmoother(false)
-	s.Add(V2{-x0, 0})
-	s.AddSmooth(V2{-x1, web_height}, 3, 1.0)
-	s.AddSmooth(V2{x1, web_height}, 3, 1.0)
-	s.Add(V2{x0, 0})
+	s := NewPolygon()
+	s.Add(-x0, 0)
+	s.Add(-x1, web_height).Smooth(1.0, 3)
+	s.Add(x1, web_height).Smooth(1.0, 3)
+	s.Add(x0, 0)
 	s.Smooth()
 
-	//RenderDXF("web.dxf", s.Vertices())
+	//s.Render("web.dxf")
 	return Polygon2D(s.Vertices())
 }
 
@@ -152,15 +152,15 @@ func core_profile() SDF2 {
 
 	draft := core_height * math.Tan(core_draft_angle)
 
-	s := NewSmoother(false)
-	s.Add(V2{0, 0})
-	s.Add(V2{shaft_radius - draft, 0})
-	s.Add(V2{shaft_radius, core_height})
-	s.AddSmooth(V2{shaft_radius, core_height + shaft_length}, 3, 2.0)
-	s.Add(V2{0, core_height + shaft_length})
+	s := NewPolygon()
+	s.Add(0, 0)
+	s.Add(shaft_radius-draft, 0)
+	s.Add(shaft_radius, core_height)
+	s.Add(shaft_radius, core_height+shaft_length).Smooth(2.0, 3)
+	s.Add(0, core_height+shaft_length)
 	s.Smooth()
 
-	//RenderDXF("core.dxf", s.Vertices())
+	//s.Render("core.dxf")
 	return Polygon2D(s.Vertices())
 }
 

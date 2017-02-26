@@ -1,25 +1,58 @@
 //-----------------------------------------------------------------------------
+/*
+CAD Challenge #18
+https://www.reddit.com/r/cad/comments/5vwdnc/cad_challenge_18/
+*/
+//-----------------------------------------------------------------------------
 
 package main
 
 import . "github.com/deadsy/sdfx/sdf"
 
 //-----------------------------------------------------------------------------
-// CAD Challenge #18 Part B
-// https://www.reddit.com/r/cad/comments/5vwdnc/cad_challenge_18/
+// Part A
+
+func cc18a() {
+	p := NewPolygon()
+	// start at the top left corner
+	p.Add(0, 0).Smooth(20, 5)
+	p.Add(175, DtoR(-15)).Polar().Rel()
+	p.Add(130, 0).Rel()
+	p.Add(0, -25).Rel()
+	p.Add(80, 0).Rel()
+	p.Add(0, 25).Rel()
+	p.Add(75, 0).Rel()
+	p.Add(0, -75).Rel()
+	p.Add(115, DtoR(-105)).Polar().Rel()
+	p.Add(-50, 0).Rel()
+	p.Add(150, DtoR(-195)).Polar().Rel() // Arc
+	p.Add(100, DtoR(-150)).Polar().Rel()
+	p.Add(-60, 0).Rel()
+	p.Add(-10, 0).Rel().Break()
+	p.Add(-30, 0).Rel()
+	p.Add(0, 135).Rel()
+	p.Add(-60, 0).Rel()
+	// back to the the start with a closed polygon
+	p.Close()
+	p.Smooth()
+	p.Render("cc18a.dxf")
+}
+
+//-----------------------------------------------------------------------------
+// Part B
 
 func cc18b() SDF3 {
 
 	// build the vertical pipe
-	p := NewSmoother(false)
-	p.Add(V2{0, 0})
-	p.Add(V2{6, 0})
-	p.AddSmooth(V2{6, 19}, 5, 0.5)
-	p.Add(V2{8, 19})
-	p.Add(V2{8, 21})
-	p.Add(V2{6, 21})
-	p.Add(V2{6, 20})
-	p.Add(V2{0, 20})
+	p := NewPolygon()
+	p.Add(0, 0)
+	p.Add(6, 0)
+	p.Add(6, 19).Smooth(0.5, 5)
+	p.Add(8, 19)
+	p.Add(8, 21)
+	p.Add(6, 21)
+	p.Add(6, 20)
+	p.Add(0, 20)
 	p.Smooth()
 	vpipe_3d := Revolve3D(Polygon2D(p.Vertices()))
 	// bolt circle for the top flange
@@ -35,15 +68,15 @@ func cc18b() SDF3 {
 	vpipe_3d = Difference3D(vpipe_3d, top_holes_3d)
 
 	// build the horizontal pipe
-	p = NewSmoother(false)
-	p.Add(V2{0, 0})
-	p.Add(V2{5, 0})
-	p.AddSmooth(V2{5, 12}, 5, 0.5)
-	p.Add(V2{8, 12})
-	p.Add(V2{8, 14})
-	p.Add(V2{6, 14})
-	p.Add(V2{6, 14.35})
-	p.Add(V2{0, 14.35})
+	p = NewPolygon()
+	p.Add(0, 0)
+	p.Add(5, 0)
+	p.Add(5, 12).Smooth(0.5, 5)
+	p.Add(8, 12)
+	p.Add(8, 14)
+	p.Add(6, 14)
+	p.Add(6, 14.35)
+	p.Add(0, 14.35)
 	p.Smooth()
 	hpipe_3d := Revolve3D(Polygon2D(p.Vertices()))
 	// bolt circle for the side flanges
@@ -86,8 +119,7 @@ func cc18b() SDF3 {
 }
 
 //-----------------------------------------------------------------------------
-// CAD Challenge #18 Part C
-// https://www.reddit.com/r/cad/comments/5vwdnc/cad_challenge_18/
+// Part C
 
 func cc18c() SDF3 {
 

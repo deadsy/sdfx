@@ -191,18 +191,18 @@ func ISOThread(radius, pitch float64) SDF2 {
 	x_ofs0 := (1.0 / 16.0) * pitch
 	x_ofs1 := (3.0 / 8.0) * pitch
 
-	iso := NewSmoother(false)
-	iso.Add(V2{radius, 0})
-	iso.Add(V2{radius, r_min})
-	iso.AddSmooth(V2{x_ofs1, r_min}, 3, r_root)
-	iso.Add(V2{x_ofs0, r_maj})
-	iso.Add(V2{-x_ofs0, r_maj})
-	iso.AddSmooth(V2{-x_ofs1, r_min}, 3, r_root)
-	iso.Add(V2{-radius, r_min})
-	iso.Add(V2{-radius, 0})
+	iso := NewPolygon()
+	iso.Add(radius, 0)
+	iso.Add(radius, r_min)
+	iso.Add(x_ofs1, r_min).Smooth(r_root, 3)
+	iso.Add(x_ofs0, r_maj)
+	iso.Add(-x_ofs0, r_maj)
+	iso.Add(-x_ofs1, r_min).Smooth(r_root, 3)
+	iso.Add(-radius, r_min)
+	iso.Add(-radius, 0)
 	iso.Smooth()
 
-	//RenderDXF(iso.Vertices(), "iso.dxf")
+	//iso.Render("iso.dxf")
 	return Polygon2D(iso.Vertices())
 }
 
