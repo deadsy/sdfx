@@ -25,7 +25,7 @@ type Polygon struct {
 // polygon vertex
 type PV struct {
 	prev   *PV     // previous vertex
-	empty  bool    // is there a line segment for this vertex?
+	hidden bool    // hide this line segment in the dxf render
 	vertex V2      // vertex coordinates
 	facets int     // number of polygon facets to create when smoothing
 	radius float64 // radius of smoothing (0 == none)
@@ -48,9 +48,9 @@ func (v *PV) Polar() *PV {
 	return v
 }
 
-// Break treats this vertex as a break in the polygon.
-func (v *PV) Break() *PV {
-	v.empty = true
+// Hidden hides the line segment for this vertex in the dxf render.
+func (v *PV) Hidden() *PV {
+	v.hidden = true
 	return v
 }
 
@@ -161,13 +161,6 @@ func (p *Polygon) Smooth() {
 
 // Close closes the polygon.
 func (p *Polygon) Close() {
-	if p.vlist != nil {
-		v_first := p.vlist[0]
-		v_last := p.vlist[len(p.vlist)-1]
-		if !v_first.vertex.Equals(v_last.vertex, 0) {
-			p.vlist = append(p.vlist, v_first)
-		}
-	}
 	p.closed = true
 }
 
@@ -198,19 +191,31 @@ func (p *Polygon) Vertices() []V2 {
 }
 
 // Render outputs a polygon as a 2D DXF file.
-func (p *Polygon) Render(path string) {
+func (p *Polygon) Render(path string) error {
+	if p.vlist == nil {
+		return fmt.Errorf("no vertices")
+	}
 	d := dxf.NewDrawing()
 	for i := 0; i < len(p.vlist)-1; i++ {
-		if !p.vlist[i+1].empty {
+		if !p.vlist[i+1].hidden {
 			p0 := p.vlist[i].vertex
 			p1 := p.vlist[i+1].vertex
 			d.Line(p0.X, p0.Y, 0, p1.X, p1.Y, 0)
 		}
 	}
+	// close the polygon if needed
+	if p.closed {
+		p0 := p.vlist[len(p.vlist)-1].vertex
+		p1 := p.vlist[0].vertex
+		if !p0.Equals(p1, 0) {
+			d.Line(p0.X, p0.Y, 0, p1.X, p1.Y, 0)
+		}
+	}
 	err := d.SaveAs(path)
 	if err != nil {
-		fmt.Printf("%s\n", err)
+		return err
 	}
+	return nil
 }
 
 //-----------------------------------------------------------------------------

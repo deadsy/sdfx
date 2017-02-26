@@ -15,7 +15,7 @@ import . "github.com/deadsy/sdfx/sdf"
 func cc18a() {
 	p := NewPolygon()
 	// start at the top left corner
-	p.Add(0, 0).Smooth(20, 5)
+	p.Add(0, 0)
 	p.Add(175, DtoR(-15)).Polar().Rel()
 	p.Add(130, 0).Rel()
 	p.Add(0, -25).Rel()
@@ -28,13 +28,12 @@ func cc18a() {
 	p.Add(150, DtoR(-195)).Polar().Rel() // Arc
 	p.Add(100, DtoR(-150)).Polar().Rel()
 	p.Add(-60, 0).Rel()
-	p.Add(-10, 0).Rel().Break()
+	p.Add(-10, 0).Rel().Hidden()
 	p.Add(-30, 0).Rel()
 	p.Add(0, 135).Rel()
 	p.Add(-60, 0).Rel()
 	// back to the the start with a closed polygon
 	p.Close()
-	p.Smooth()
 	p.Render("cc18a.dxf")
 }
 
