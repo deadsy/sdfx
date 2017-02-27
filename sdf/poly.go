@@ -25,11 +25,20 @@ type Polygon struct {
 // polygon vertex
 type PV struct {
 	prev   *PV     // previous vertex
-	hidden bool    // hide this line segment in the dxf render
+	vtype  PVType  // type of polygon vertex
 	vertex V2      // vertex coordinates
 	facets int     // number of polygon facets to create when smoothing
 	radius float64 // radius of smoothing (0 == none)
 }
+
+type PVType int
+
+const (
+	NORMAL PVType = iota // normal vertex
+	HIDE                 // hide the line segment in rendering
+	SMOOTH               // smooth the vertex
+	ARC                  // replace the line segment with an arc
+)
 
 //-----------------------------------------------------------------------------
 // Operations on Polygon Vertices
@@ -48,9 +57,9 @@ func (v *PV) Polar() *PV {
 	return v
 }
 
-// Hidden hides the line segment for this vertex in the dxf render.
-func (v *PV) Hidden() *PV {
-	v.hidden = true
+// Hide hides the line segment for this vertex in the dxf render.
+func (v *PV) Hide() *PV {
+	v.vtype = HIDE
 	return v
 }
 
@@ -58,8 +67,78 @@ func (v *PV) Hidden() *PV {
 func (v *PV) Smooth(radius float64, facets int) *PV {
 	v.radius = radius
 	v.facets = facets
+	v.vtype = SMOOTH
 	return v
 }
+
+// Arc replaces a line segment with a circular arc.
+func (v *PV) Arc(radius float64, facets int) *PV {
+	v.radius = radius
+	v.facets = facets
+	v.vtype = ARC
+	return v
+}
+
+/*
+
+// Arc replaces a line segment with a circular arc.
+func (v *PV) Arc(radius float64, facets int) *PV {
+
+	// The sign of the radius indicates which side of the chord the arc is on.
+	side := Sign(radius)
+	radius = Abs(radius)
+
+	// two points on the chord
+	a := v.prev.vertex
+	b := v.vertex
+
+	// Normal to chord
+	ba := b.Sub(a).Normalize()
+	n := V2{ba.Y, -ba.X}.MulScalar(side)
+
+	// midpoint
+	mid := a.Add(b).MulScalar(0.5)
+
+	fmt.Printf("mid %+v\n", mid)
+
+	// distance from a to midpoint
+	d_mid := mid.Sub(a).Length()
+
+	fmt.Printf("d_mid %+v\n", d_mid)
+
+	// distance from midpoint to center of arc
+	d_center := math.Sqrt((radius * radius) - (d_mid * d_mid))
+
+	fmt.Printf("d_center %+v\n", d_center)
+
+	// center of arc
+	c := mid.Add(n.MulScalar(d_center))
+
+	fmt.Printf("%+v\n", c)
+
+	// work out the angle
+	ac := a.Sub(c).Normalize()
+	bc := b.Sub(c).Normalize()
+	dtheta := math.Acos(ac.Dot(bc)) / float64(facets)
+
+	fmt.Printf("%+v\n", dtheta)
+
+	// rotation matrix
+	m := Rotate(dtheta)
+	// radius vector
+	rv := ac
+
+	// work out the new vertices
+	vlist := make([]PV, facets+1)
+	for i, _ := range vlist {
+		vlist[i] = PV{vertex: c.Add(rv)}
+		rv = m.MulPosition(rv)
+	}
+
+	return v
+}
+
+*/
 
 //-----------------------------------------------------------------------------
 // Operations on Polygons
@@ -174,6 +253,7 @@ func (p *Polygon) Add(x, y float64) *PV {
 	v := PV{}
 	v.vertex.X = x
 	v.vertex.Y = y
+	v.vtype = NORMAL
 	if p.vlist != nil {
 		v.prev = &p.vlist[len(p.vlist)-1]
 	}
@@ -197,7 +277,7 @@ func (p *Polygon) Render(path string) error {
 	}
 	d := dxf.NewDrawing()
 	for i := 0; i < len(p.vlist)-1; i++ {
-		if !p.vlist[i+1].hidden {
+		if p.vlist[i+1].vtype != HIDE {
 			p0 := p.vlist[i].vertex
 			p1 := p.vlist[i+1].vertex
 			d.Line(p0.X, p0.Y, 0, p1.X, p1.Y, 0)

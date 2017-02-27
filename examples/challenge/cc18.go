@@ -25,10 +25,10 @@ func cc18a() {
 	p.Add(0, -75).Rel()
 	p.Add(115, DtoR(-105)).Polar().Rel()
 	p.Add(-50, 0).Rel()
-	p.Add(150, DtoR(-195)).Polar().Rel() // Arc
+	p.Add(150, DtoR(-195)).Polar().Rel().Arc(120, 10)
 	p.Add(100, DtoR(-150)).Polar().Rel()
 	p.Add(-60, 0).Rel()
-	p.Add(-10, 0).Rel().Hidden()
+	p.Add(-10, 0).Rel().Hide()
 	p.Add(-30, 0).Rel()
 	p.Add(0, 135).Rel()
 	p.Add(-60, 0).Rel()
