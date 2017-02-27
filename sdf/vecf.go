@@ -289,19 +289,6 @@ func (a V2Set) Max() V2 {
 
 //-----------------------------------------------------------------------------
 
-// convert relative vectors to absolute vectors
-func (r V2Set) RtoA() V2Set {
-	a := make([]V2, len(r))
-	x := V2{}
-	for i, v := range r {
-		x = x.Add(v)
-		a[i] = x
-	}
-	return a
-}
-
-//-----------------------------------------------------------------------------
-
 // return vector length
 func (a V3) Length() float64 {
 	return math.Sqrt(a.X*a.X + a.Y*a.Y + a.Z*a.Z)

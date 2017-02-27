@@ -21,20 +21,19 @@ func main() {
 	r3 := r2 - l3*math.Tan(DtoR(10.0))
 	l4 := 1.0 / 4.0
 
-	shaft := V2Set{
-		V2{0, 0},
-		V2{r0, 0},
-		V2{0, l0},
-		V2{r1 - r0, 0},
-		V2{0, l1},
-		V2{r2 - r1, 0},
-		V2{0, l2},
-		V2{r3 - r2, l3},
-		V2{0, l4},
-		V2{-r3, 0},
-	}
+	p := NewPolygon()
+	p.Add(0, 0)
+	p.Add(r0, 0).Rel()
+	p.Add(0, l0).Rel()
+	p.Add(r1-r0, 0).Rel()
+	p.Add(0, l1).Rel()
+	p.Add(r2-r1, 0).Rel()
+	p.Add(0, l2).Rel()
+	p.Add(r3-r2, l3).Rel()
+	p.Add(0, l4).Rel()
+	p.Add(-r3, 0).Rel()
 
-	shaft_2d := Polygon2D(shaft.RtoA())
+	shaft_2d := Polygon2D(p.Vertices())
 	shaft_3d := Revolve3D(shaft_2d)
 
 	// make the cams
