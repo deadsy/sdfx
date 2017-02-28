@@ -162,18 +162,18 @@ func AcmeThread(radius, pitch float64) SDF2 {
 	x_ofs0 := 0.25*pitch - delta
 	x_ofs1 := 0.25*pitch + delta
 
-	acme := V2Set{
-		V2{radius, 0},
-		V2{radius, h},
-		V2{x_ofs1, h},
-		V2{x_ofs0, radius},
-		V2{-x_ofs0, radius},
-		V2{-x_ofs1, h},
-		V2{-radius, h},
-		V2{-radius, 0},
-	}
-	//RenderDXF(acme, "acme.dxf")
-	return Polygon2D(acme)
+	acme := NewPolygon()
+	acme.Add(radius, 0)
+	acme.Add(radius, h)
+	acme.Add(x_ofs1, h)
+	acme.Add(x_ofs0, radius)
+	acme.Add(-x_ofs0, radius)
+	acme.Add(-x_ofs1, h)
+	acme.Add(-radius, h)
+	acme.Add(-radius, 0)
+
+	//acme.Render("acme.dxf")
+	return Polygon2D(acme.Vertices())
 }
 
 // Return the 2d profile for an ISO/UTS thread.
@@ -200,7 +200,6 @@ func ISOThread(radius, pitch float64) SDF2 {
 	iso.Add(-x_ofs1, r_min).Smooth(r_root, 3)
 	iso.Add(-radius, r_min)
 	iso.Add(-radius, 0)
-	iso.Smooth()
 
 	//iso.Render("iso.dxf")
 	return Polygon2D(iso.Vertices())

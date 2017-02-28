@@ -12,7 +12,6 @@ import (
 	"os"
 
 	"github.com/deadsy/pt/pt"
-	"github.com/yofu/dxf"
 )
 
 //-----------------------------------------------------------------------------
@@ -140,23 +139,6 @@ func SDF2_RenderPNG(s SDF2, path string) {
 	}
 	defer outpng.Close()
 	png.Encode(outpng, img)
-}
-
-//-----------------------------------------------------------------------------
-
-func RenderDXF(vlist V2Set, path string) {
-	d := dxf.NewDrawing()
-
-	for i := 0; i < len(vlist)-1; i++ {
-		p0 := vlist[i]
-		p1 := vlist[i+1]
-		d.Line(p0.X, p0.Y, 0, p1.X, p1.Y, 0)
-	}
-
-	err := d.SaveAs(path)
-	if err != nil {
-		fmt.Printf("%s\n", err)
-	}
 }
 
 //-----------------------------------------------------------------------------

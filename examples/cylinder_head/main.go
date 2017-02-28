@@ -112,7 +112,6 @@ func sparkplug(mode string, x_ofs float64) SDF3 {
 		boss.Add(sp_boss_r2, sp_boss_h2).Smooth(sp_boss_r2*0.3, 3)
 		boss.Add(sp_boss_r2, sp_boss_h3)
 		boss.Add(0, sp_boss_h3)
-		boss.Smooth()
 		vlist = boss.Vertices()
 	} else if mode == "hole" {
 		vlist = []V2{
@@ -127,7 +126,6 @@ func sparkplug(mode string, x_ofs float64) SDF3 {
 		p.Add(sp_cb_r, sp_cb_h1).Smooth(sp_cb_r/6.0, 3)
 		p.Add(sp_cb_r, sp_cb_h2)
 		p.Add(0, sp_cb_h2)
-		p.Smooth()
 		vlist = p.Vertices()
 	} else {
 		panic("bad mode")

@@ -143,8 +143,7 @@ func cc16b() SDF3 {
 	support.Add(-base_hole_xofs, 0).Smooth(5.0, facets)
 	support.Add(-base_w/2, 0)
 	support.Add(-base_w/2, -1)
-	support.Smooth()
-	//RenderDXF("support.dxf", support.Vertices())
+	//support.Render("support.dxf")
 	support_2d := Polygon2D(support.Vertices())
 
 	// extrude the support to 3d
@@ -184,8 +183,7 @@ func cc16b() SDF3 {
 	gusset.Add(0, 0).Smooth(20.0, facets)
 	gusset.Add(-gusset_l, gusset_l)
 	gusset.Add(-gusset_l, 0)
-	gusset.Smooth()
-	//RenderDXF("gusset.dxf", gusset.Vertices())
+	//gusset.Render("gusset.dxf")
 	gusset_2d := Polygon2D(gusset.Vertices())
 
 	// extrude the gusset to 3d

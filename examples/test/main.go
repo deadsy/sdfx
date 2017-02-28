@@ -430,6 +430,15 @@ func test41() {
 	RenderSTL(s2, 200, "test.stl")
 }
 
+func test42() {
+	p := NewPolygon()
+	p.Add(0, 0)
+	p.Add(1, 1).Rel()
+	p.Add(1, 0).Rel().Arc(-2, 4)
+	p.Add(1, -1).Rel()
+	p.Render("test.dxf")
+}
+
 func main() {
-	test41()
+	test42()
 }

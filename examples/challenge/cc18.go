@@ -25,7 +25,7 @@ func cc18a() {
 	p.Add(0, -75).Rel()
 	p.Add(115, DtoR(-105)).Polar().Rel()
 	p.Add(-50, 0).Rel()
-	p.Add(150, DtoR(-195)).Polar().Rel().Arc(120, 10)
+	p.Add(150, DtoR(-195)).Polar().Rel().Arc(-120, 15)
 	p.Add(100, DtoR(-150)).Polar().Rel()
 	p.Add(-60, 0).Rel()
 	p.Add(-10, 0).Rel().Hide()
@@ -52,7 +52,6 @@ func cc18b() SDF3 {
 	p.Add(6, 21)
 	p.Add(6, 20)
 	p.Add(0, 20)
-	p.Smooth()
 	vpipe_3d := Revolve3D(Polygon2D(p.Vertices()))
 	// bolt circle for the top flange
 	top_holes_3d := MakeBoltCircle3D(
@@ -76,7 +75,6 @@ func cc18b() SDF3 {
 	p.Add(6, 14)
 	p.Add(6, 14.35)
 	p.Add(0, 14.35)
-	p.Smooth()
 	hpipe_3d := Revolve3D(Polygon2D(p.Vertices()))
 	// bolt circle for the side flanges
 	side_holes_3d := MakeBoltCircle3D(
