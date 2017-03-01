@@ -13,7 +13,7 @@ import "math"
 //-----------------------------------------------------------------------------
 
 // return the involute coordinate for a given angle
-func involute(
+func involute_xy(
 	r float64, // base radius
 	theta float64, // involute angle
 ) V2 {
@@ -26,7 +26,7 @@ func involute(
 }
 
 // return the involute angle for a given radial distance
-func involute_angle(
+func involute_theta(
 	r float64, // base radius
 	d float64, // involute radial distance
 ) float64 {
@@ -50,14 +50,14 @@ func InvoluteGearTooth(
 	pitch_radius := float64(number_teeth) * gear_module / 2.0
 
 	// work out the angular extent of the tooth on the base radius
-	pitch_point := involute(base_radius, involute_angle(base_radius, pitch_radius))
+	pitch_point := involute_xy(base_radius, involute_theta(base_radius, pitch_radius))
 	face_angle := math.Atan2(pitch_point.Y, pitch_point.X)
 	backlash_angle := backlash / (2.0 * pitch_radius)
 	center_angle := PI/(2.0*float64(number_teeth)) + face_angle - backlash_angle
 
 	// work out the angles over which the involute will be used
-	start_angle := involute_angle(base_radius, Max(base_radius, root_radius))
-	stop_angle := involute_angle(base_radius, outer_radius)
+	start_angle := involute_theta(base_radius, Max(base_radius, root_radius))
+	stop_angle := involute_theta(base_radius, outer_radius)
 	dtheta := (stop_angle - start_angle) / float64(facets)
 
 	v := make([]V2, 2*(facets+1)+1)
@@ -66,7 +66,7 @@ func InvoluteGearTooth(
 	m := Rotate(-center_angle)
 	angle := start_angle
 	for i := 0; i <= facets; i++ {
-		v[i] = m.MulPosition(involute(base_radius, angle))
+		v[i] = m.MulPosition(involute_xy(base_radius, angle))
 		angle += dtheta
 	}
 
@@ -89,7 +89,7 @@ func InvoluteGear(
 	number_teeth int, // number of gear teeth
 	gear_module float64, // pitch circle diameter / number of gear teeth
 	pressure_angle float64, // gear pressure angle (radians)
-	backlash float64, // backlash expressed as units of pitch circumference
+	backlash float64, // backlash expressed as per-tooth distance at pitch circumference
 	clearance float64, // additional root clearance
 	ring_width float64, // width of ring wall (from root circle)
 	facets int, // number of facets for involute flank
@@ -131,15 +131,15 @@ func InvoluteGear(
 // 2D Involute Gear
 
 type InvoluteGearSDF2 struct {
-	base_radius     float64 // base radius for the involute
-	outer_radius    float64 // radius for outside of gear
-	root_radius     float64 // radius for root of gear tooth
-	ring_radius     float64 // radius of inner gear ring
-	tooth_angle     float64 // angle subtended by a single gear tooth
-	involute_start  float64 // involute start angle (at root radius)
-	involute_stop   float64 // involute stop angle (at outer radius)
-	involute_offset float64 // angle needed to rotate involute onto x-axis
-	bb              Box2    // bounding box
+	base_radius    float64 // base radius for the involute
+	outer_radius   float64 // radius for outside of gear
+	root_radius    float64 // radius for root of gear tooth
+	ring_radius    float64 // radius of inner gear ring
+	tooth_angle    float64 // angle subtended by a single gear tooth
+	involute_base  float64 // involute base angle (at base radius)
+	involute_start float64 // involute start angle (at root radius)
+	involute_stop  float64 // involute stop angle (at outer radius)
+	bb             Box2    // bounding box
 }
 
 // InvoluteGear2D returns the 2D profile for an involute gear.
@@ -147,13 +147,15 @@ func InvoluteGear2D(
 	number_teeth int, // number of gear teeth
 	gear_module float64, // pitch circle diameter / number of gear teeth
 	pressure_angle float64, // gear pressure angle (radians)
-	backlash float64, // backlash expressed as distance at pitch circumference
+	backlash float64, // backlash expressed as per-tooth distance at pitch circumference
 	clearance float64, // additional root clearance
 	ring_width float64, // width of ring wall (from root circle)
 ) SDF2 {
 	s := InvoluteGearSDF2{}
+
 	// tooth angle
 	s.tooth_angle = TAU / float64(number_teeth)
+
 	// radius at gear pitch line
 	pitch_radius := float64(number_teeth) * gear_module / 2.0
 	// radius for base circle of involute
@@ -165,15 +167,23 @@ func InvoluteGear2D(
 	// radius for outside of gear
 	s.outer_radius = pitch_radius + addendum
 	// radius for root of gear tooth
-	s.root_radius = pitch_radius - dedendum
+	s.root_radius = Max(s.base_radius, pitch_radius-dedendum)
 	// radius of inner gear ring
 	s.ring_radius = s.root_radius - ring_width
 
-	// work out the start/stop angles for involute portion of the gear tooth
-	s.involute_start = involute_angle(s.base_radius, Max(s.base_radius, s.root_radius))
-	s.involute_stop = involute_angle(s.base_radius, s.outer_radius)
+	// involute angles at various radii
+	outer_angle := involute_theta(s.base_radius, s.outer_radius)
+	pitch_angle := involute_theta(s.base_radius, pitch_radius)
+	root_angle := involute_theta(s.base_radius, s.root_radius)
 
-	// TODO workout offset angle
+	// work out the half angle subtended by the top land of the tooth at the outer radius
+	backlash_angle := backlash / (2.0 * pitch_radius)
+	top_angle := s.tooth_angle/4.0 - (outer_angle - pitch_angle) - backlash_angle
+
+	// store the base, start and stop angles for the involute portion of the tooth
+	s.involute_base = top_angle + outer_angle
+	s.involute_start = top_angle + outer_angle - root_angle
+	s.involute_stop = top_angle
 
 	return &s
 }
@@ -185,20 +195,10 @@ func (s *InvoluteGearSDF2) Evaluate(p V2) float64 {
 	p_distance := p.Length()
 	// map the angle back to the 0th tooth (about the x-axis)
 	p_theta = SawTooth(p_theta, s.tooth_angle)
-	// the tooth is symmetrical about the x-axis, only consider the 4th quadrant (+x,-y)
-	p_theta = -Abs(p_theta)
-	// rotate the tooth so the involute (r,0) point is on the x-axis
-	p_theta += s.involute_offset
+	// the tooth is symmetrical about the x-axis, only consider the 1st quadrant (+x,+y)
+	p_theta = Abs(p_theta)
 
-	// work out the involute angle for the closest point on the involute
-	theta := math.Acos(s.base_radius/p_distance) + p_theta
-
-	if theta <= s.involute_start {
-	} else if theta >= s.involute_stop {
-	} else {
-	}
-
-	// distance between circle tangent and point
+	_ = p_distance
 
 	return 0
 }
