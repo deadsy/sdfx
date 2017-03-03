@@ -24,9 +24,37 @@ type SDF3 interface {
 //-----------------------------------------------------------------------------
 // Basic SDF Functions
 
+/*
 func sdf_box3d(p, s V3) float64 {
 	d := p.Abs().Sub(s)
 	return d.Max(V3{0, 0, 0}).Length() + Min(d.MaxComponent(), 0)
+}
+*/
+
+func sdf_box3d(p, s V3) float64 {
+	d := p.Abs().Sub(s)
+	if d.X > 0 && d.Y > 0 && d.Z > 0 {
+		return d.Length()
+	}
+	if d.X > 0 && d.Y > 0 {
+		return V2{d.X, d.Y}.Length()
+	}
+	if d.X > 0 && d.Z > 0 {
+		return V2{d.X, d.Z}.Length()
+	}
+	if d.Y > 0 && d.Z > 0 {
+		return V2{d.Y, d.Z}.Length()
+	}
+	if d.X > 0 {
+		return d.X
+	}
+	if d.Y > 0 {
+		return d.Y
+	}
+	if d.Z > 0 {
+		return d.Z
+	}
+	return d.MaxComponent()
 }
 
 //-----------------------------------------------------------------------------

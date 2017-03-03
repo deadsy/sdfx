@@ -96,6 +96,12 @@ func (v V2) Random() V2 {
 		random_range(-v.Y/2, v.Y/2)}
 }
 
+func (v V3) Random() V3 {
+	return V3{random_range(-v.X/2, v.X/2),
+		random_range(-v.Y/2, v.Y/2),
+		random_range(-v.Z/2, v.Z/2)}
+}
+
 //-----------------------------------------------------------------------------
 
 func (a V3) Dot(b V3) float64 {
