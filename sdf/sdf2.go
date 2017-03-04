@@ -559,6 +559,7 @@ type UnionSDF2 struct {
 	bb  Box2
 }
 
+// Union2D returns the union of multiple SDF2 objects.
 func Union2D(sdf ...SDF2) SDF2 {
 	s := UnionSDF2{}
 	// strip out any nils
@@ -582,11 +583,7 @@ func Union2D(sdf ...SDF2) SDF2 {
 	return &s
 }
 
-// set the minimum function to control blending
-func (s *UnionSDF2) SetMin(min MinFunc) {
-	s.min = min
-}
-
+// Return the minimum distance to the SDF2 union.
 func (s *UnionSDF2) Evaluate(p V2) float64 {
 	var d float64
 	for i, x := range s.sdf {
@@ -599,6 +596,12 @@ func (s *UnionSDF2) Evaluate(p V2) float64 {
 	return d
 }
 
+// Set the minimum function to control blending.
+func (s *UnionSDF2) SetMin(min MinFunc) {
+	s.min = min
+}
+
+// Return the bounding box.
 func (s *UnionSDF2) BoundingBox() Box2 {
 	return s.bb
 }

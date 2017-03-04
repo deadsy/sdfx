@@ -32,7 +32,7 @@ func extrude1() SDF3 {
 	s_combo = Transform3D(s_combo, Translate3d(V3{0, 1.5 * d, 0}))
 
 	// return a union of them all
-	return Union3D(s_linear, Union3D(s_fwd, Union3D(s_rev, s_combo)))
+	return Union3D(s_linear, s_fwd, s_rev, s_combo)
 }
 
 func extrude2() SDF3 {

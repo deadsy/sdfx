@@ -143,9 +143,7 @@ func Hex_Screw(name string, total_length, shank_length float64) SDF3 {
 	// thread
 	screw_3d := Screw3D(ISOThread(t.Radius, t.Pitch), thread_length, t.Pitch, 1)
 
-	s := Union3D(hex_3d, screw_3d)
-	s = Union3D(s, shank_3d)
-	return s
+	return Union3D(hex_3d, screw_3d, shank_3d)
 }
 
 //-----------------------------------------------------------------------------

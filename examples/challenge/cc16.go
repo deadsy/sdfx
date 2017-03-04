@@ -199,7 +199,7 @@ func cc16b() SDF3 {
 	gusset1_3d := Transform3D(gusset_3d, Translate3d(V3{-gusset_xofs, 0, 0}))
 	gusset_3d = Union3D(gusset0_3d, gusset1_3d)
 
-	return Union3D(base_3d, Union3D(support_3d, gusset_3d))
+	return Union3D(base_3d, support_3d, gusset_3d)
 }
 
 //-----------------------------------------------------------------------------

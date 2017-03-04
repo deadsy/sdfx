@@ -470,31 +470,46 @@ func (s *TransformSDF3) BoundingBox() Box3 {
 // Union of SDF3s
 
 type UnionSDF3 struct {
-	s0  SDF3
-	s1  SDF3
+	sdf []SDF3
 	min MinFunc
 	bb  Box3
 }
 
-// Return the union of two SDF3 objects.
-func Union3D(s0, s1 SDF3) SDF3 {
-	if s0 == nil {
-		return s1
-	}
-	if s1 == nil {
-		return s0
-	}
+// Union3D returns the union of multiple SDF3 objects.
+func Union3D(sdf ...SDF3) SDF3 {
 	s := UnionSDF3{}
-	s.s0 = s0
-	s.s1 = s1
+	// strip out any nils
+	s.sdf = make([]SDF3, 0, len(sdf))
+	for _, x := range sdf {
+		if x != nil {
+			s.sdf = append(s.sdf, x)
+		}
+	}
+	if len(s.sdf) == 1 {
+		// only one sdf - not really a union
+		return s.sdf[0]
+	}
+	// work out the bounding box
+	bb := s.sdf[0].BoundingBox()
+	for _, x := range s.sdf {
+		bb = bb.Extend(x.BoundingBox())
+	}
+	s.bb = bb
 	s.min = Min
-	s.bb = s0.BoundingBox().Extend(s1.BoundingBox())
 	return &s
 }
 
-// Return the minimum distance to the object.
+// Return the minimum distance to the SDF3 union.
 func (s *UnionSDF3) Evaluate(p V3) float64 {
-	return s.min(s.s0.Evaluate(p), s.s1.Evaluate(p))
+	var d float64
+	for i, x := range s.sdf {
+		if i == 0 {
+			d = x.Evaluate(p)
+		} else {
+			d = s.min(d, x.Evaluate(p))
+		}
+	}
+	return d
 }
 
 // Set the minimum function to control blending.

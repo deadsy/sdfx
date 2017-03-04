@@ -353,23 +353,15 @@ func allowances(s SDF3) SDF3 {
 //-----------------------------------------------------------------------------
 
 func additive() SDF3 {
-	var s SDF3
-	s = Union3D(s, head_wall())
-	//s = Union3D(s, head_base())
-
-	s = Union3D(s, cylinder_heads("dome"))
-	s.(*UnionSDF3).SetMin(PolyMin(general_round))
-
-	s = Union3D(s, valve_sets("boss"))
-	s.(*UnionSDF3).SetMin(PolyMin(general_round))
-
-	s = Union3D(s, sparkplugs("boss"))
-	s.(*UnionSDF3).SetMin(PolyMin(general_round))
-
-	s = Union3D(s, manifolds("body"))
-	s.(*UnionSDF3).SetMin(PolyMin(general_round))
-
-	s = Union3D(s, exhaust_bosses("body"))
+	s := Union3D(
+		head_wall(),
+		//head_base(),
+		cylinder_heads("dome"),
+		valve_sets("boss"),
+		sparkplugs("boss"),
+		manifolds("body"),
+		exhaust_bosses("body"),
+	)
 	s.(*UnionSDF3).SetMin(PolyMin(general_round))
 
 	s = Difference3D(s, sparkplugs("counterbore"))
@@ -389,12 +381,13 @@ func additive() SDF3 {
 func subtractive() SDF3 {
 	var s SDF3
 	if casting == false {
-		s = Union3D(s, cylinder_heads("chamber"))
-		s = Union3D(s, head_stud_holes())
-		s = Union3D(s, valve_sets("hole"))
-		s = Union3D(s, sparkplugs("hole"))
-		s = Union3D(s, manifolds("hole"))
-		s = Union3D(s, exhaust_bosses("hole"))
+		s = Union3D(cylinder_heads("chamber"),
+			head_stud_holes(),
+			valve_sets("hole"),
+			sparkplugs("hole"),
+			manifolds("hole"),
+			exhaust_bosses("hole"),
+		)
 	}
 	return s
 }
