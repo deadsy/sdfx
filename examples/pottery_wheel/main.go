@@ -138,7 +138,7 @@ func wheel_pattern() {
 
 	// add the webs to the wheel with some blending
 	wheel := Union3D(wheel_3d, web_3d)
-	wheel.(*UnionSDF3).SetMin(PolyMin, wall_thickness)
+	wheel.(*UnionSDF3).SetMin(PolyMin(wall_thickness))
 
 	RenderSTL(wheel, 200, "wheel.stl")
 }

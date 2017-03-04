@@ -351,7 +351,6 @@ type ArraySDF2 struct {
 	num  V2i
 	step V2
 	min  MinFunc
-	k    float64
 	bb   Box2
 }
 
@@ -364,7 +363,7 @@ func Array2D(sdf SDF2, num V2i, step V2) SDF2 {
 	s.sdf = sdf
 	s.num = num
 	s.step = step
-	s.min = NormalMin
+	s.min = Min
 	// work out the bounding box
 	bb0 := sdf.BoundingBox()
 	bb1 := bb0.Translate(step.Mul(num.SubScalar(1).ToV2()))
@@ -373,9 +372,8 @@ func Array2D(sdf SDF2, num V2i, step V2) SDF2 {
 }
 
 // set the minimum function to control blending
-func (s *ArraySDF2) SetMin(min MinFunc, k float64) {
+func (s *ArraySDF2) SetMin(min MinFunc) {
 	s.min = min
-	s.k = k
 }
 
 func (s *ArraySDF2) Evaluate(p V2) float64 {
@@ -383,7 +381,7 @@ func (s *ArraySDF2) Evaluate(p V2) float64 {
 	for j := 0; j < s.num[0]; j++ {
 		for k := 0; k < s.num[1]; k++ {
 			x := p.Sub(V2{float64(j) * s.step.X, float64(k) * s.step.Y})
-			d = s.min(d, s.sdf.Evaluate(x), s.k)
+			d = s.min(d, s.sdf.Evaluate(x))
 		}
 	}
 	return d
@@ -400,7 +398,6 @@ type RotateUnionSDF2 struct {
 	num  int
 	step M33
 	min  MinFunc
-	k    float64
 	bb   Box2
 }
 
@@ -413,7 +410,7 @@ func RotateUnion2D(sdf SDF2, num int, step M33) SDF2 {
 	s.sdf = sdf
 	s.num = num
 	s.step = step.Inverse()
-	s.min = NormalMin
+	s.min = Min
 	// work out the bounding box
 	v := sdf.BoundingBox().Vertices()
 	bb_min := v[0]
@@ -433,16 +430,15 @@ func (s *RotateUnionSDF2) Evaluate(p V2) float64 {
 	rot := Identity2d()
 	for i := 0; i < s.num; i++ {
 		x := rot.MulPosition(p)
-		d = s.min(d, s.sdf.Evaluate(x), s.k)
+		d = s.min(d, s.sdf.Evaluate(x))
 		rot = rot.Mul(s.step)
 	}
 	return d
 }
 
 // Set the minimum function to control blending.
-func (s *RotateUnionSDF2) SetMin(min MinFunc, k float64) {
+func (s *RotateUnionSDF2) SetMin(min MinFunc) {
 	s.min = min
-	s.k = k
 }
 
 // Return the bounding box.
@@ -561,7 +557,6 @@ type UnionSDF2 struct {
 	s0  SDF2
 	s1  SDF2
 	min MinFunc
-	k   float64
 	bb  Box2
 }
 
@@ -575,21 +570,18 @@ func Union2D(s0, s1 SDF2) SDF2 {
 	s := UnionSDF2{}
 	s.s0 = s0
 	s.s1 = s1
-	s.min = NormalMin
+	s.min = Min
 	s.bb = s0.BoundingBox().Extend(s1.BoundingBox())
 	return &s
 }
 
 // set the minimum function to control blending
-func (s *UnionSDF2) SetMin(min MinFunc, k float64) {
+func (s *UnionSDF2) SetMin(min MinFunc) {
 	s.min = min
-	s.k = k
 }
 
 func (s *UnionSDF2) Evaluate(p V2) float64 {
-	a := s.s0.Evaluate(p)
-	b := s.s1.Evaluate(p)
-	return s.min(a, b, s.k)
+	return s.min(s.s0.Evaluate(p), s.s1.Evaluate(p))
 }
 
 func (s *UnionSDF2) BoundingBox() Box2 {
@@ -603,7 +595,6 @@ type DifferenceSDF2 struct {
 	s0  SDF2
 	s1  SDF2
 	max MaxFunc
-	k   float64
 	bb  Box2
 }
 
@@ -618,20 +609,19 @@ func Difference2D(s0, s1 SDF2) SDF2 {
 	s := DifferenceSDF2{}
 	s.s0 = s0
 	s.s1 = s1
-	s.max = NormalMax
+	s.max = Max
 	s.bb = s0.BoundingBox()
 	return &s
 }
 
 // Return the minimum distance to the object.
 func (s *DifferenceSDF2) Evaluate(p V2) float64 {
-	return s.max(s.s0.Evaluate(p), -s.s1.Evaluate(p), s.k)
+	return s.max(s.s0.Evaluate(p), -s.s1.Evaluate(p))
 }
 
 // Set the maximum function to control blending.
-func (s *DifferenceSDF2) SetMax(max MaxFunc, k float64) {
+func (s *DifferenceSDF2) SetMax(max MaxFunc) {
 	s.max = max
-	s.k = k
 }
 
 // Return the bounding box.

@@ -473,7 +473,6 @@ type UnionSDF3 struct {
 	s0  SDF3
 	s1  SDF3
 	min MinFunc
-	k   float64
 	bb  Box3
 }
 
@@ -488,20 +487,19 @@ func Union3D(s0, s1 SDF3) SDF3 {
 	s := UnionSDF3{}
 	s.s0 = s0
 	s.s1 = s1
-	s.min = NormalMin
+	s.min = Min
 	s.bb = s0.BoundingBox().Extend(s1.BoundingBox())
 	return &s
 }
 
 // Return the minimum distance to the object.
 func (s *UnionSDF3) Evaluate(p V3) float64 {
-	return s.min(s.s0.Evaluate(p), s.s1.Evaluate(p), s.k)
+	return s.min(s.s0.Evaluate(p), s.s1.Evaluate(p))
 }
 
 // Set the minimum function to control blending.
-func (s *UnionSDF3) SetMin(min MinFunc, k float64) {
+func (s *UnionSDF3) SetMin(min MinFunc) {
 	s.min = min
-	s.k = k
 }
 
 // Return the bounding box.
@@ -516,7 +514,6 @@ type DifferenceSDF3 struct {
 	s0  SDF3
 	s1  SDF3
 	max MaxFunc
-	k   float64
 	bb  Box3
 }
 
@@ -531,20 +528,19 @@ func Difference3D(s0, s1 SDF3) SDF3 {
 	s := DifferenceSDF3{}
 	s.s0 = s0
 	s.s1 = s1
-	s.max = NormalMax
+	s.max = Max
 	s.bb = s0.BoundingBox()
 	return &s
 }
 
 // Return the minimum distance to the object.
 func (s *DifferenceSDF3) Evaluate(p V3) float64 {
-	return s.max(s.s0.Evaluate(p), -s.s1.Evaluate(p), s.k)
+	return s.max(s.s0.Evaluate(p), -s.s1.Evaluate(p))
 }
 
 // Set the maximum function to control blending.
-func (s *DifferenceSDF3) SetMax(max MaxFunc, k float64) {
+func (s *DifferenceSDF3) SetMax(max MaxFunc) {
 	s.max = max
-	s.k = k
 }
 
 // Return the bounding box.
@@ -559,7 +555,6 @@ type IntersectionSDF3 struct {
 	s0  SDF3
 	s1  SDF3
 	max MaxFunc
-	k   float64
 	bb  Box3
 }
 
@@ -571,7 +566,7 @@ func Intersection3D(s0, s1 SDF3) SDF3 {
 	s := IntersectionSDF3{}
 	s.s0 = s0
 	s.s1 = s1
-	s.max = NormalMax
+	s.max = Max
 	// TODO fix bounding box
 	s.bb = s0.BoundingBox()
 	return &s
@@ -579,13 +574,12 @@ func Intersection3D(s0, s1 SDF3) SDF3 {
 
 // Return the minimum distance to the object.
 func (s *IntersectionSDF3) Evaluate(p V3) float64 {
-	return s.max(s.s0.Evaluate(p), s.s1.Evaluate(p), s.k)
+	return s.max(s.s0.Evaluate(p), s.s1.Evaluate(p))
 }
 
 // Set the maximum function to control blending.
-func (s *IntersectionSDF3) SetMax(max MaxFunc, k float64) {
+func (s *IntersectionSDF3) SetMax(max MaxFunc) {
 	s.max = max
-	s.k = k
 }
 
 // Return the bounding box.
@@ -633,7 +627,6 @@ type ArraySDF3 struct {
 	num  V3i
 	step V3
 	min  MinFunc
-	k    float64
 	bb   Box3
 }
 
@@ -646,7 +639,7 @@ func Array3D(sdf SDF3, num V3i, step V3) SDF3 {
 	s.sdf = sdf
 	s.num = num
 	s.step = step
-	s.min = NormalMin
+	s.min = Min
 	// work out the bounding box
 	bb0 := sdf.BoundingBox()
 	bb1 := bb0.Translate(step.Mul(num.SubScalar(1).ToV3()))
@@ -655,9 +648,8 @@ func Array3D(sdf SDF3, num V3i, step V3) SDF3 {
 }
 
 // set the minimum function to control blending
-func (s *ArraySDF3) SetMin(min MinFunc, k float64) {
+func (s *ArraySDF3) SetMin(min MinFunc) {
 	s.min = min
-	s.k = k
 }
 
 func (s *ArraySDF3) Evaluate(p V3) float64 {
@@ -666,7 +658,7 @@ func (s *ArraySDF3) Evaluate(p V3) float64 {
 		for k := 0; k < s.num[1]; k++ {
 			for l := 0; l < s.num[2]; l++ {
 				x := p.Sub(V3{float64(j) * s.step.X, float64(k) * s.step.Y, float64(l) * s.step.Z})
-				d = s.min(d, s.sdf.Evaluate(x), s.k)
+				d = s.min(d, s.sdf.Evaluate(x))
 			}
 		}
 	}
@@ -684,7 +676,6 @@ type RotateUnionSDF3 struct {
 	num  int
 	step M44
 	min  MinFunc
-	k    float64
 	bb   Box3
 }
 
@@ -697,7 +688,7 @@ func RotateUnion3D(sdf SDF3, num int, step M44) SDF3 {
 	s.sdf = sdf
 	s.num = num
 	s.step = step.Inverse()
-	s.min = NormalMin
+	s.min = Min
 	// work out the bounding box
 	v := sdf.BoundingBox().Vertices()
 	bb_min := v[0]
@@ -717,16 +708,15 @@ func (s *RotateUnionSDF3) Evaluate(p V3) float64 {
 	rot := Identity3d()
 	for i := 0; i < s.num; i++ {
 		x := rot.MulPosition(p)
-		d = s.min(d, s.sdf.Evaluate(x), s.k)
+		d = s.min(d, s.sdf.Evaluate(x))
 		rot = rot.Mul(s.step)
 	}
 	return d
 }
 
 // Set the minimum function to control blending.
-func (s *RotateUnionSDF3) SetMin(min MinFunc, k float64) {
+func (s *RotateUnionSDF3) SetMin(min MinFunc) {
 	s.min = min
-	s.k = k
 }
 
 // Return the bounding box.

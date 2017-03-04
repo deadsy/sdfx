@@ -19,7 +19,7 @@ import (
 //-----------------------------------------------------------------------------
 
 // overall build controls
-const casting = true // add allowances, remove machined features
+const casting = false // add allowances, remove machined features
 
 //-----------------------------------------------------------------------------
 // scaling
@@ -176,7 +176,7 @@ func valve(d float64, mode string) SDF3 {
 func valve_set(d float64, mode string) SDF3 {
 	delta := v2v_distance / 2
 	s := Union3D(valve(-delta, mode), valve(delta, mode))
-	s.(*UnionSDF3).SetMin(PolyMin, general_round)
+	s.(*UnionSDF3).SetMin(PolyMin(general_round))
 	return Transform3D(s, Translate3d(V3{d, 0, 0}))
 }
 
@@ -221,7 +221,7 @@ func cylinder_heads(mode string) SDF3 {
 	x_ofs := c2c_distance / 2
 	s := Union3D(cylinder_head(-x_ofs, mode), cylinder_head(x_ofs, mode))
 	if mode == "dome" {
-		s.(*UnionSDF3).SetMin(PolyMin, general_round)
+		s.(*UnionSDF3).SetMin(PolyMin(general_round))
 	}
 	return s
 }
@@ -278,7 +278,7 @@ func head_wall_inner_2d() SDF2 {
 	s0 := Box2D(V2{l, w}, 0)
 	s1 := MultiCircle2D(stud_boss_radius, stud_locations)
 	s := Difference2D(s0, s1)
-	s.(*DifferenceSDF2).SetMax(PolyMax, general_round)
+	s.(*DifferenceSDF2).SetMax(PolyMax(general_round))
 	return s
 }
 
@@ -337,7 +337,7 @@ func manifolds(mode string) SDF3 {
 	s1 := Transform3D(s0, MirrorYZ())
 	s := Union3D(s0, s1)
 	if mode == "body" {
-		s.(*UnionSDF3).SetMin(PolyMin, general_round)
+		s.(*UnionSDF3).SetMin(PolyMin(general_round))
 	}
 	return s
 }
@@ -358,19 +358,19 @@ func additive() SDF3 {
 	//s = Union3D(s, head_base())
 
 	s = Union3D(s, cylinder_heads("dome"))
-	s.(*UnionSDF3).SetMin(PolyMin, general_round)
+	s.(*UnionSDF3).SetMin(PolyMin(general_round))
 
 	s = Union3D(s, valve_sets("boss"))
-	s.(*UnionSDF3).SetMin(PolyMin, general_round)
+	s.(*UnionSDF3).SetMin(PolyMin(general_round))
 
 	s = Union3D(s, sparkplugs("boss"))
-	s.(*UnionSDF3).SetMin(PolyMin, general_round)
+	s.(*UnionSDF3).SetMin(PolyMin(general_round))
 
 	s = Union3D(s, manifolds("body"))
-	s.(*UnionSDF3).SetMin(PolyMin, general_round)
+	s.(*UnionSDF3).SetMin(PolyMin(general_round))
 
 	s = Union3D(s, exhaust_bosses("body"))
-	s.(*UnionSDF3).SetMin(PolyMin, general_round)
+	s.(*UnionSDF3).SetMin(PolyMin(general_round))
 
 	s = Difference3D(s, sparkplugs("counterbore"))
 
@@ -403,7 +403,7 @@ func subtractive() SDF3 {
 
 func main() {
 	s := Difference3D(additive(), subtractive())
-	RenderSTL(s, 400, "head.stl")
+	RenderSTL(s, 300, "head.stl")
 }
 
 //-----------------------------------------------------------------------------

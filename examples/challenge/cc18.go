@@ -91,7 +91,7 @@ func cc18b() SDF3 {
 	hpipe_3d = Transform3D(hpipe_3d, Translate3d(V3{0, 0, 9}))
 
 	s := Union3D(hpipe_3d, vpipe_3d)
-	s.(*UnionSDF3).SetMin(PolyMin, 1.0)
+	s.(*UnionSDF3).SetMin(PolyMin(1.0))
 
 	// vertical blind hole
 	vertical_hole_3d := Cylinder3D(
@@ -135,7 +135,7 @@ func cc18c() SDF3 {
 	// Build the ecntral body
 	body_3d := Cylinder3D(20, 26.3, 0)
 	body_3d = Union3D(body_3d, tab_3d)
-	body_3d.(*UnionSDF3).SetMin(PolyMin, 2.0)
+	body_3d.(*UnionSDF3).SetMin(PolyMin(2.0))
 	// clean up the top and bottom face
 	body_3d = Cut3D(body_3d, V3{0, 0, -10}, V3{0, 0, 1})
 	body_3d = Cut3D(body_3d, V3{0, 0, 10}, V3{0, 0, -1})

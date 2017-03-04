@@ -49,7 +49,7 @@ func test6() {
 	s1 := Transform3D(s0, Translate3d(V3{0, d, 0}))
 	s2 := Transform3D(s0, Translate3d(V3{0, -d, 0}))
 	s3 := Union3D(s1, s2)
-	s3.(*UnionSDF3).SetMin(PolyMin, 0.1)
+	s3.(*UnionSDF3).SetMin(PolyMin(0.1))
 	RenderPNG(s3, true)
 }
 
@@ -57,7 +57,7 @@ func test7() {
 	s0 := Box3D(V3{0.8, 0.8, 0.05}, 0)
 	s1 := Transform3D(s0, Rotate3d(V3{1, 0, 0}, DtoR(60)))
 	s2 := Union3D(s0, s1)
-	s2.(*UnionSDF3).SetMin(PolyMin, 0.1)
+	s2.(*UnionSDF3).SetMin(PolyMin(0.1))
 	s3 := Transform3D(s2, Rotate3d(V3{0, 0, 1}, DtoR(-30)))
 	RenderPNG(s3, true)
 }
@@ -87,7 +87,7 @@ func test10() {
 	s0 := Box3D(V3{0.8, 0.8, 0.05}, 0)
 	s1 := Transform3D(s0, Rotate3d(V3{1, 0, 0}, DtoR(60)))
 	s := Union3D(s0, s1)
-	s.(*UnionSDF3).SetMin(PolyMin, 0.1)
+	s.(*UnionSDF3).SetMin(PolyMin(0.1))
 	RenderSTL(s, 200, "test.stl")
 }
 
@@ -260,7 +260,7 @@ func test19() {
 	k := 1.9
 	s0 := Circle2D(r)
 	s1 := Array2D(s0, V2i{3, 7}, V2{k * r, k * r})
-	s1.(*ArraySDF2).SetMin(PolyMin, 0.8)
+	s1.(*ArraySDF2).SetMin(PolyMin(0.8))
 	s2 := Extrude3D(s1, 1.0)
 	RenderSTL(s2, 200, "test.stl")
 }
@@ -271,7 +271,7 @@ func test20() {
 	s0 := Circle2D(r)
 	s0 = Transform2D(s0, Translate2d(V2{d, 0}))
 	s0 = RotateUnion2D(s0, 5, Rotate2d(DtoR(20)))
-	s0.(*RotateUnionSDF2).SetMin(PolyMin, 1.2)
+	s0.(*RotateUnionSDF2).SetMin(PolyMin(1.2))
 	s1 := Extrude3D(s0, 10.0)
 	RenderSTL(s1, 200, "test.stl")
 }
@@ -281,7 +281,7 @@ func test21() {
 	k := 1.9
 	s0 := Sphere3D(r)
 	s1 := Array3D(s0, V3i{3, 7, 5}, V3{k * r, k * r, k * r})
-	s1.(*ArraySDF3).SetMin(PolyMin, 0.8)
+	s1.(*ArraySDF3).SetMin(PolyMin(0.8))
 	RenderSTL(s1, 200, "test.stl")
 }
 
@@ -291,7 +291,7 @@ func test22() {
 	s0 := Sphere3D(r)
 	s0 = Transform3D(s0, Translate3d(V3{d, 0, 0}))
 	s0 = RotateUnion3D(s0, 5, Rotate3d(V3{0, 0, 1}, DtoR(20)))
-	s0.(*RotateUnionSDF3).SetMin(PolyMin, 1.2)
+	s0.(*RotateUnionSDF3).SetMin(PolyMin(1.2))
 	RenderSTL(s0, 200, "test.stl")
 }
 
@@ -419,7 +419,7 @@ func test40() {
 	s1 := Box3D(V3{d - wall, d - wall, d}, wall/2)
 	s1 = Transform3D(s1, Translate3d(V3{0, 0, wall / 2}))
 	s := Difference3D(s0, s1)
-	s.(*DifferenceSDF3).SetMax(PolyMax, 2)
+	s.(*DifferenceSDF3).SetMax(PolyMax(2))
 	RenderSTL(s, 200, "test.stl")
 }
 
