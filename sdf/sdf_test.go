@@ -450,3 +450,76 @@ func Test_TriDiagonal(t *testing.T) {
 }
 
 //-----------------------------------------------------------------------------
+
+func Test_CubicSpline(t *testing.T) {
+
+	data := []V2{
+		V2{-1.5, -1.2},
+		V2{-0.2, 0},
+		V2{1, 0.5},
+		V2{5, 1},
+		V2{10, 2.2},
+		V2{12, 3.2},
+		V2{16, -1.2},
+		V2{18, -3.2},
+	}
+	cs := NewCubicSpline(data)
+	n := len(cs)
+
+	if n != len(data)-1 {
+		t.Error("FAIL")
+	}
+
+	// check for agreement with the input data
+	for i, s := range cs {
+		// Check the x0 value
+		if Abs(s.x0-data[i].X) > TOLERANCE {
+			t.Error("FAIL")
+		}
+		// Check the x1 value
+		x1 := s.x0 + 1.0/s.k
+		if Abs(x1-data[i+1].X) > TOLERANCE {
+			t.Error("FAIL")
+		}
+		// Check the y0 value
+		if Abs(s.Interpolate(s.x0)-data[i].Y) > TOLERANCE {
+			t.Error("FAIL")
+		}
+		// Check the y1 value
+		if Abs(s.Interpolate(x1)-data[i+1].Y) > TOLERANCE {
+			t.Error("FAIL")
+		}
+	}
+
+	// check for continuity of 1st,2nd derivatives
+	s := cs[0]
+	yd1 := s.b + 2*s.c + 3*s.d
+	ydd1 := 2*s.c + 6*s.d
+	for i := 1; i < n; i++ {
+		s = cs[i]
+		yd0 := s.b
+		ydd0 := 2 * s.c
+		if Abs(yd1-yd0) > TOLERANCE {
+			t.Error("FAIL")
+		}
+		if Abs(ydd1-ydd0) > TOLERANCE {
+			t.Error("FAIL")
+		}
+		yd1 = s.b + 2*s.c + 3*s.d
+		ydd1 = 2*s.c + 6*s.d
+	}
+
+	// check for 2nd derivative == 0 at endpoints
+	s = cs[0]
+	ydd := 2 * s.c
+	if Abs(ydd) > TOLERANCE {
+		t.Error("FAIL")
+	}
+	s = cs[n-1]
+	ydd = 2*s.c + 6*s.d
+	if Abs(ydd) > TOLERANCE {
+		t.Error("FAIL")
+	}
+}
+
+//-----------------------------------------------------------------------------

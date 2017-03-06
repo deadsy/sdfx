@@ -439,18 +439,6 @@ func test42() {
 	p.Render("test.dxf")
 }
 
-func test43() {
-	points := []V2{
-		V2{-1.5, -1.2},
-		V2{-0.2, 0},
-		V2{1, 0.5},
-		V2{5, 1},
-		V2{10, 1.2},
-	}
-	cs := NewCubicSpline(points)
-	cs.Dump()
-}
-
 func main() {
-	test43()
+	test42()
 }
