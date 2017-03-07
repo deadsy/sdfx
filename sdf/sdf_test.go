@@ -464,7 +464,7 @@ func Test_CubicSpline(t *testing.T) {
 		V2{18, -3.2},
 	}
 	cs := NewCubicSpline(data)
-	n := len(cs)
+	n := len(cs.spline)
 
 	if n != len(data)-1 {
 		t.Error("FAIL")
@@ -479,7 +479,7 @@ func Test_CubicSpline(t *testing.T) {
 	}
 
 	// check for agreement with the input data
-	for i, s := range cs {
+	for i, s := range cs.spline {
 		// Check the x0 value
 		if Abs(s.x0-data[i].X) > TOLERANCE {
 			t.Error("FAIL")
@@ -500,11 +500,11 @@ func Test_CubicSpline(t *testing.T) {
 	}
 
 	// check for continuity of 1st,2nd derivatives
-	s := cs[0]
+	s := cs.spline[0]
 	yd1 := s.b + 2*s.c + 3*s.d
 	ydd1 := 2*s.c + 6*s.d
 	for i := 1; i < n; i++ {
-		s = cs[i]
+		s = cs.spline[i]
 		yd0 := s.b
 		ydd0 := 2 * s.c
 		if Abs(yd1-yd0) > TOLERANCE {
@@ -518,12 +518,12 @@ func Test_CubicSpline(t *testing.T) {
 	}
 
 	// check for 2nd derivative == 0 at endpoints
-	s = cs[0]
+	s = cs.spline[0]
 	ydd := 2 * s.c
 	if Abs(ydd) > TOLERANCE {
 		t.Error("FAIL")
 	}
-	s = cs[n-1]
+	s = cs.spline[n-1]
 	ydd = 2*s.c + 6*s.d
 	if Abs(ydd) > TOLERANCE {
 		t.Error("FAIL")
