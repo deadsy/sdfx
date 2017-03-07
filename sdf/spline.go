@@ -51,13 +51,15 @@ func TriDiagonal(m []V3, d []float64) []float64 {
 // 2nd derivatives == 0 at the endpoints.
 // See: http://mathworld.wolfram.com/CubicSpline.html
 
-type CubicSpline struct {
-	x0, k      float64
+type CubicSpline []CS
+
+type CS struct {
+	x0, x1, k  float64
 	a, b, c, d float64
 }
 
 // NewCubicSpline returns n-1 cubic splines for n data points.
-func NewCubicSpline(data []V2) []CubicSpline {
+func NewCubicSpline(data []V2) CubicSpline {
 	// Build and solve the tridiagonal matrix
 	n := len(data)
 	m := make([]V3, n)
@@ -75,7 +77,7 @@ func NewCubicSpline(data []V2) []CubicSpline {
 	x := TriDiagonal(m, d)
 	// The solution data are the first derivatives.
 	// Reformat as the cubic polynomial constants.
-	s := make([]CubicSpline, n-1)
+	s := make([]CS, n-1)
 	for i := 0; i < n-1; i++ {
 		x0 := data[i].X
 		x1 := data[i+1].X
@@ -84,6 +86,7 @@ func NewCubicSpline(data []V2) []CubicSpline {
 		D0 := x[i]
 		D1 := x[i+1]
 		s[i].x0 = x0
+		s[i].x1 = x1
 		s[i].k = 1.0 / (x1 - x0)
 		s[i].a = y0
 		s[i].b = D0
@@ -95,9 +98,37 @@ func NewCubicSpline(data []V2) []CubicSpline {
 
 //-----------------------------------------------------------------------------
 
-func (s *CubicSpline) Interpolate(x float64) float64 {
+func (s *CS) Interpolate(x float64) float64 {
 	t := s.k * (x - s.x0)
 	return s.a + t*(s.b+t*(s.c+s.d*t))
+}
+
+func (s CubicSpline) Interpolate(x float64) float64 {
+	// sanity checking
+	n := len(s)
+	if n == 0 {
+		panic("no splines")
+	}
+	// check that x is within the range of the original data points
+	if x < s[0].x0 {
+		panic("x < minimum value")
+	}
+	if x > s[n-1].x1 {
+		panic("x > maximum value")
+	}
+	// do a binary search of the spline intervals
+	lo := 0
+	hi := n
+	for hi-lo > 1 {
+		mid := (lo + hi) >> 1
+		if s[mid].x0 < x {
+			lo = mid
+		} else {
+			hi = mid
+		}
+	}
+	// return the interpolation on the spline
+	return s[lo].Interpolate(x)
 }
 
 //-----------------------------------------------------------------------------

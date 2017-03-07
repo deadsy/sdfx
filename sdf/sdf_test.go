@@ -471,6 +471,14 @@ func Test_CubicSpline(t *testing.T) {
 	}
 
 	// check for agreement with the input data
+	for _, v := range data {
+		y := cs.Interpolate(v.X)
+		if Abs(y-v.Y) > TOLERANCE {
+			t.Error("FAIL")
+		}
+	}
+
+	// check for agreement with the input data
 	for i, s := range cs {
 		// Check the x0 value
 		if Abs(s.x0-data[i].X) > TOLERANCE {
@@ -520,6 +528,7 @@ func Test_CubicSpline(t *testing.T) {
 	if Abs(ydd) > TOLERANCE {
 		t.Error("FAIL")
 	}
+
 }
 
 //-----------------------------------------------------------------------------
