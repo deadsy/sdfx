@@ -153,9 +153,26 @@ func (s CubicSpline) FirstDerivative(x float64) float64 {
 }
 
 //-----------------------------------------------------------------------------
-// WIP - distance minimisation
 
-const N_SAMPLES = 10000
+const N_SAMPLES = 50
+
+// Return a 2D polygon approximating the cubic spline.
+func (s *CubicSpline) Polygonize() SDF2 {
+	p := NewPolygon()
+	p.Add(s.xmin, 0)
+	p.Add(s.xmax, 0)
+	dx := (s.xmax - s.xmin) / float64(N_SAMPLES-1)
+	x := s.xmax
+	for i := 0; i < N_SAMPLES; i++ {
+		p.Add(x, s.Interpolate(x))
+		x -= dx
+	}
+	p.Render("spline.dxf")
+	return Polygon2D(p.Vertices())
+}
+
+//-----------------------------------------------------------------------------
+// WIP - distance minimisation
 
 // return distance squared between point and spline
 func (s *CubicSpline) Dist2(x float64, p V2) float64 {
