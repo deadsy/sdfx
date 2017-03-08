@@ -8,6 +8,11 @@ Splines
 
 package sdf
 
+import (
+	"fmt"
+	"math"
+)
+
 //-----------------------------------------------------------------------------
 
 // Solve the tridiagonal matrix equation m.x = d, return x
@@ -106,8 +111,14 @@ func (s *CS) Interpolate(x float64) float64 {
 	return s.a + t*(s.b+t*(s.c+s.d*t))
 }
 
-// Interpolate a function value on a set of cubic splines.
-func (s CubicSpline) Interpolate(x float64) float64 {
+// Return the first derivate for a single spline
+func (s *CS) FirstDerivative(x float64) float64 {
+	t := s.k * (x - s.x0)
+	return s.b + t*(2*s.c+3*s.d*t)
+}
+
+// Return the spline index for a given value of x.
+func (s CubicSpline) Index(x float64) *CS {
 	// sanity checking
 	n := len(s.spline)
 	if n == 0 {
@@ -128,8 +139,53 @@ func (s CubicSpline) Interpolate(x float64) float64 {
 			hi = mid
 		}
 	}
-	// return the interpolation on the spline
-	return s.spline[lo].Interpolate(x)
+	return &s.spline[lo]
+}
+
+// Interpolate a function value on a set of cubic splines.
+func (s CubicSpline) Interpolate(x float64) float64 {
+	return s.Index(x).Interpolate(x)
+}
+
+// Return the first derivate for a set of cubic splines.
+func (s CubicSpline) FirstDerivative(x float64) float64 {
+	return s.Index(x).FirstDerivative(x)
+}
+
+//-----------------------------------------------------------------------------
+// WIP - distance minimisation
+
+const N_SAMPLES = 10000
+
+// return distance squared between point and spline
+func (s *CubicSpline) Dist2(x float64, p V2) float64 {
+	dx := x - p.X
+	dy := s.Interpolate(x) - p.Y
+	return dx*dx + dy*dy
+}
+
+// Dumb search for the minimum point/spline distance
+func (s *CubicSpline) Min1(p V2) {
+	delta := (s.xmax - s.xmin) / float64(N_SAMPLES)
+	x := s.xmin
+
+	dmin2 := s.Dist2(s.xmin, p)
+	xmin := s.xmin
+
+	for i := 0; i < N_SAMPLES; i++ {
+		d2 := s.Dist2(x, p)
+		if d2 < dmin2 {
+			dmin2 = d2
+			xmin = x
+		}
+		x += delta
+	}
+
+	fmt.Printf("xmin %f dmin %f\n", xmin, math.Sqrt(dmin2))
+	m0 := V2{p.X - xmin, p.Y - s.Interpolate(xmin)}
+	m1 := V2{1, s.FirstDerivative(xmin)}
+	fmt.Printf("m0 %v m1 %v m0.m1 %f\n", m0, m1, m0.Dot(m1))
+
 }
 
 //-----------------------------------------------------------------------------
