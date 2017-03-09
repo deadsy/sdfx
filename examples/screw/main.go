@@ -1,5 +1,9 @@
 //-----------------------------------------------------------------------------
+/*
 
+Nuts and Bolts
+
+*/
 //-----------------------------------------------------------------------------
 
 package main
@@ -8,7 +12,7 @@ import . "github.com/deadsy/sdfx/sdf"
 
 //-----------------------------------------------------------------------------
 
-// Create a Hex Head Screw/Bolt
+// Create a Hex Head Screw
 // name = thread name
 // total_length = threaded length + shank length
 // shank length = non threaded length
@@ -57,6 +61,44 @@ func Hex_Screw(name string, total_length, shank_length float64) SDF3 {
 
 //-----------------------------------------------------------------------------
 
+// Return a Hex Nut
+func Hex_Nut(
+	name string, // name of thread
+	tolerance float64, // add to internal thread radius
+	height float64, // height of nut
+) SDF3 {
+
+	t := ThreadLookup(name)
+	if t == nil {
+		return nil
+	}
+
+	if height < 0 {
+		return nil
+	}
+
+	// hex head
+	hex_r := t.Hex_Radius()
+	round := hex_r * 0.08
+	hex_2d := Polygon2D(Nagon(6, hex_r-round))
+	hex_2d = Offset2D(hex_2d, round)
+	hex_3d := Extrude3D(hex_2d, height)
+
+	// round off the edges
+	sphere_3d := Sphere3D(hex_r * 1.55)
+	sphere_3d = Transform3D(sphere_3d, Translate3d(V3{0, 0, -hex_r * 0.9}))
+	hex_3d = Intersection3D(hex_3d, sphere_3d)
+	sphere_3d = Transform3D(sphere_3d, Translate3d(V3{0, 0, 2 * hex_r * 0.9}))
+	hex_3d = Intersection3D(hex_3d, sphere_3d)
+
+	// internal thread
+	thread_3d := Screw3D(ISOThread(t.Radius+tolerance, t.Pitch, "internal"), height, t.Pitch, 1)
+
+	return Difference3D(hex_3d, thread_3d)
+}
+
+//-----------------------------------------------------------------------------
+
 func main() {
 
 	x_ofs := 1.5
@@ -70,10 +112,10 @@ func main() {
 	s2 := Hex_Screw("unc_1", 2.0, 0.5)
 	s2 = Transform3D(s2, Translate3d(V3{x_ofs, 0, 0}))
 
-	s := Union3D(s0, s1)
-	s = Union3D(s, s2)
+	//s3 := Hex_Nut("unc_1/4", 0, 7.0/32.0)
+	//RenderSTL(s3, 400, "nut.stl")
 
-	RenderSTL(s, 400, "screw.stl")
+	RenderSTL(Union3D(s0, s1, s2), 400, "screw.stl")
 }
 
 //-----------------------------------------------------------------------------

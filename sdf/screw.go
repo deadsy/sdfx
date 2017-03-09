@@ -240,11 +240,12 @@ type ScrewSDF3 struct {
 }
 
 // Return a screw SDF3
-// thread = 2D thread profile
-// length = length of screw
-// pitch = thread to thread distance
-// starts = number of thread starts (< 0 for left hand threads)
-func Screw3D(thread SDF2, length, pitch float64, starts int) SDF3 {
+func Screw3D(
+	thread SDF2, // 2D thread profile
+	length float64, // length of screw
+	pitch float64, // thread to thread distance
+	starts int, // number of thread starts (< 0 for left hand threads)
+) SDF3 {
 	s := ScrewSDF3{}
 	s.thread = thread
 	s.pitch = pitch
