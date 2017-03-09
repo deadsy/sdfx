@@ -3,13 +3,17 @@
 
 Screws
 
-Screws are made by taking a 2d thread profile, rotating it about the z-axis and
+Screws are made by taking a 2D thread profile, rotating it about the z-axis and
 spiralling it upwards as we move along z.
 
-The 2d thread profiles are a polygon of a single thread centered on the y-axis with
+The 2D thread profiles are a polygon of a single thread centered on the y-axis with
 the x-axis as the screw axis. Most thread profiles are symmetric about the y-axis
 but a few aren't (E.g. buttress threads) so in general we build the profile of
 an entire pitch period.
+
+This code doesn't deal with thread tolerancing. If you want threads to fit properly
+the radius of the thread will need to be tweaked (+/-) to give internal/external thread
+clearance.
 
 */
 //-----------------------------------------------------------------------------
@@ -23,7 +27,7 @@ import "math"
 
 type ThreadParameters struct {
 	Name          string  // name of screw thread
-	Radius        float64 // major radius of screw
+	Radius        float64 // nominal major radius of screw
 	Pitch         float64 // thread to thread distance of screw
 	Hex_Flat2Flat float64 // hex head flat to flat distance
 	Units         string  // "inch" or "mm"
@@ -67,16 +71,72 @@ func (m ThreadDatabase) ISOAdd(
 
 func Init_ThreadLookup() ThreadDatabase {
 	m := make(ThreadDatabase)
-	m.UTSAdd("unc_1", 1.0, 8, 3.0/2.0)
-	m.UTSAdd("unf_1", 1.0, 12, 3.0/2.0)
+	// UTS Coarse
 	m.UTSAdd("unc_1/4", 1.0/4.0, 20, 7.0/16.0)
-	m.UTSAdd("unf_1/4", 1.0/4.0, 28, 7.0/16.0)
+	m.UTSAdd("unc_5/16", 5.0/16.0, 18, 1.0/2.0)
+	m.UTSAdd("unc_3/8", 3.0/8.0, 16, 9.0/16.0)
+	m.UTSAdd("unc_7/16", 7.0/16.0, 14, 5.0/8.0)
 	m.UTSAdd("unc_1/2", 1.0/2.0, 13, 3.0/4.0)
+	m.UTSAdd("unc_9/16", 9.0/16.0, 12, 13.0/16.0)
+	m.UTSAdd("unc_5/8", 5.0/8.0, 11, 15.0/16.0)
+	m.UTSAdd("unc_3/4", 3.0/4.0, 10, 9.0/8.0)
+	m.UTSAdd("unc_7/8", 7.0/8.0, 9, 21.0/16.0)
+	m.UTSAdd("unc_1", 1.0, 8, 3.0/2.0)
+	// UTS Fine
+	m.UTSAdd("unf_1/4", 1.0/4.0, 28, 7.0/16.0)
+	m.UTSAdd("unf_5/16", 5.0/16.0, 24, 1.0/2.0)
+	m.UTSAdd("unf_3/8", 3.0/8.0, 24, 9.0/16.0)
+	m.UTSAdd("unf_7/16", 7.0/16.0, 20, 5.0/8.0)
 	m.UTSAdd("unf_1/2", 1.0/2.0, 20, 3.0/4.0)
-
-	m.ISOAdd("m6c", 6, 1, 10)
-	m.ISOAdd("m6f", 6, 0.75, 10)
-
+	m.UTSAdd("unf_9/16", 9.0/16.0, 18, 13.0/16.0)
+	m.UTSAdd("unf_5/8", 5.0/8.0, 18, 15.0/16.0)
+	m.UTSAdd("unf_3/4", 3.0/4.0, 16, 9.0/8.0)
+	m.UTSAdd("unf_7/8", 7.0/8.0, 14, 21.0/16.0)
+	m.UTSAdd("unf_1", 1.0, 12, 3.0/2.0)
+	// ISO Coarse
+	m.ISOAdd("M1x0.25", 1, 0.25, -1)
+	m.ISOAdd("M1.2x0.25", 1.2, 0.25, -1)
+	m.ISOAdd("M1.6x0.35", 1.6, 0.35, 3.2)
+	m.ISOAdd("M2x0.4", 2, 0.4, 4)
+	m.ISOAdd("M2.5x0.45", 2.5, 0.45, 5)
+	m.ISOAdd("M3x0.5", 3, 0.5, 6)
+	m.ISOAdd("M4x0.7", 4, 0.7, 7)
+	m.ISOAdd("M5x0.8", 5, 0.8, 8)
+	m.ISOAdd("M6x1", 6, 1, 10)
+	m.ISOAdd("M8x1.25", 8, 1.25, 13)
+	m.ISOAdd("M10x1.5", 10, 1.5, 17)
+	m.ISOAdd("M12x1.75", 12, 1.75, 19)
+	m.ISOAdd("M16x2", 16, 2, 24)
+	m.ISOAdd("M20x2.5", 20, 2.5, 30)
+	m.ISOAdd("M24x3", 24, 3, 36)
+	m.ISOAdd("M30x3.5", 30, 3.5, 46)
+	m.ISOAdd("M36x4", 36, 4, 55)
+	m.ISOAdd("M42x4.5", 42, 4.5, 65)
+	m.ISOAdd("M48x5", 48, 5, 75)
+	m.ISOAdd("M56x5.5", 56, 5.5, 85)
+	m.ISOAdd("M64x6", 64, 6, 95)
+	// ISO Fine
+	m.ISOAdd("M1x0.2", 1, 0.2, -1)
+	m.ISOAdd("M1.2x0.2", 1.2, 0.2, -1)
+	m.ISOAdd("M1.6x0.2", 1.6, 0.2, 3.2)
+	m.ISOAdd("M2x0.25", 2, 0.25, 4)
+	m.ISOAdd("M2.5x0.35", 2.5, 0.35, 5)
+	m.ISOAdd("M3x0.35", 3, 0.35, 6)
+	m.ISOAdd("M4x0.5", 4, 0.5, 7)
+	m.ISOAdd("M5x0.5", 5, 0.5, 8)
+	m.ISOAdd("M6x0.75", 6, 0.75, 10)
+	m.ISOAdd("M8x1", 8, 1, 13)
+	m.ISOAdd("M10x1.25", 10, 1.25, 17)
+	m.ISOAdd("M12x1.5", 12, 1.5, 19)
+	m.ISOAdd("M16x1.5", 16, 1.5, 24)
+	m.ISOAdd("M20x2", 20, 2, 30)
+	m.ISOAdd("M24x2", 24, 2, 36)
+	m.ISOAdd("M30x2", 30, 2, 46)
+	m.ISOAdd("M36x3", 36, 3, 55)
+	m.ISOAdd("M42x3", 42, 3, 65)
+	m.ISOAdd("M48x3", 48, 3, 75)
+	m.ISOAdd("M56x4", 56, 4, 85)
+	m.ISOAdd("M64x4", 64, 4, 95)
 	return m
 }
 
@@ -95,55 +155,6 @@ func (t *ThreadParameters) Hex_Height() float64 {
 	hex_r := t.Hex_Radius()
 	hex_h := 2.0 * hex_r * (5.0 / 12.0)
 	return hex_h
-}
-
-//-----------------------------------------------------------------------------
-
-// Create a Hex Head Screw/Bolt
-// name = thread name
-// total_length = threaded length + shank length
-// shank length = non threaded length
-func Hex_Screw(name string, total_length, shank_length float64) SDF3 {
-	t := ThreadLookup(name)
-	if t == nil {
-		return nil
-	}
-	if total_length < 0 {
-		return nil
-	}
-	if shank_length < 0 {
-		return nil
-	}
-	thread_length := total_length - shank_length
-	if thread_length < 0 {
-		thread_length = 0
-	}
-
-	// hex head
-	hex_r := t.Hex_Radius()
-	hex_h := t.Hex_Height()
-	z_ofs := 0.5 * (total_length + shank_length + hex_h)
-	round := hex_r * 0.08
-	hex_2d := Polygon2D(Nagon(6, hex_r-round))
-	hex_2d = Offset2D(hex_2d, round)
-	hex_3d := Extrude3D(hex_2d, hex_h)
-	// round off the edges
-	sphere_3d := Sphere3D(hex_r * 1.55)
-	sphere_3d = Transform3D(sphere_3d, Translate3d(V3{0, 0, -hex_r * 0.9}))
-	hex_3d = Intersection3D(hex_3d, sphere_3d)
-	// add a rounded cylinder
-	hex_3d = Union3D(hex_3d, Cylinder3D(hex_h*1.05, hex_r*0.8, round))
-	hex_3d = Transform3D(hex_3d, Translate3d(V3{0, 0, z_ofs}))
-
-	// shank
-	z_ofs = 0.5 * total_length
-	shank_3d := Cylinder3D(shank_length, t.Radius, 0)
-	shank_3d = Transform3D(shank_3d, Translate3d(V3{0, 0, z_ofs}))
-
-	// thread
-	screw_3d := Screw3D(ISOThread(t.Radius, t.Pitch), thread_length, t.Pitch, 1)
-
-	return Union3D(hex_3d, screw_3d, shank_3d)
 }
 
 //-----------------------------------------------------------------------------
@@ -179,26 +190,40 @@ func AcmeThread(radius, pitch float64) SDF2 {
 // https://en.wikipedia.org/wiki/Unified_Thread_Standard
 // radius = radius of thread
 // pitch = thread to thread distance
-func ISOThread(radius, pitch float64) SDF2 {
+// mode = internal/external thread
+func ISOThread(radius, pitch float64, mode string) SDF2 {
 
 	theta := DtoR(30.0)
 	h := pitch / (2.0 * math.Tan(theta))
-	r_maj := radius
-	r_root := (1.0 / 6.0) * h
-	r_min := radius - (7.0/8.0)*h + r_root
-	x_ofs0 := (1.0 / 16.0) * pitch
-	x_ofs1 := (3.0 / 8.0) * pitch
+	r_major := radius
+	r0 := r_major - (7.0/8.0)*h
 
 	iso := NewPolygon()
-	iso.Add(radius, 0)
-	iso.Add(radius, r_min)
-	iso.Add(x_ofs1, r_min).Smooth(r_root, 3)
-	iso.Add(x_ofs0, r_maj)
-	iso.Add(-x_ofs0, r_maj)
-	iso.Add(-x_ofs1, r_min).Smooth(r_root, 3)
-	iso.Add(-radius, r_min)
-	iso.Add(-radius, 0)
-
+	if mode == "external" {
+		r_root := (pitch / 8.0) / math.Cos(theta)
+		x_ofs := (1.0 / 16.0) * pitch
+		iso.Add(pitch, 0)
+		iso.Add(pitch, r0+h)
+		iso.Add(pitch/2.0, r0).Smooth(r_root, 5)
+		iso.Add(x_ofs, r_major)
+		iso.Add(-x_ofs, r_major)
+		iso.Add(-pitch/2.0, r0).Smooth(r_root, 5)
+		iso.Add(-pitch, r0+h)
+		iso.Add(-pitch, 0)
+	} else if mode == "internal" {
+		r_minor := r0 + (1.0/4.0)*h
+		r_crest := (pitch / 16.0) / math.Cos(theta)
+		x_ofs := (1.0 / 8.0) * pitch
+		iso.Add(pitch, 0)
+		iso.Add(pitch, r_minor)
+		iso.Add(pitch/2-x_ofs, r_minor)
+		iso.Add(0, r0+h).Smooth(r_crest, 5)
+		iso.Add(-pitch/2+x_ofs, r_minor)
+		iso.Add(-pitch, r_minor)
+		iso.Add(-pitch, 0)
+	} else {
+		panic("bad mode")
+	}
 	//iso.Render("iso.dxf")
 	return Polygon2D(iso.Vertices())
 }

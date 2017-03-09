@@ -396,7 +396,7 @@ func test36() {
 func test37() {
 	r := 5.0
 	p := 2.0
-	s := Screw3D(ISOThread(r, p), 50, p, 1)
+	s := Screw3D(ISOThread(r, p, "external"), 50, p, 1)
 	RenderSTL(s, 400, "screw.stl")
 }
 
