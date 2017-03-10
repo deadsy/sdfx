@@ -7,7 +7,7 @@ DIRS = benchmark \
        gears \
        geneva \
        pottery_wheel \
-       screw \
+       nutsandbolts \
        smin \
        test \
        voronoi \
