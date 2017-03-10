@@ -367,7 +367,7 @@ func additive() SDF3 {
 	s = Difference3D(s, sparkplugs("counterbore"))
 
 	// cleanup the blending artifacts on the outside
-	s = Intersection3D(s, head_envelope())
+	s = Intersect3D(s, head_envelope())
 
 	if casting == true {
 		s = Union3D(s, allowances(s))

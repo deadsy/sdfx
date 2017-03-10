@@ -2,8 +2,8 @@
 
 # find and replace
 
-old=( NewGearRack )
-new=( GearRack2D )
+old=( Intersect3D )
+new=( Intersect3D )
 
 total=${#old[*]}
 

@@ -574,7 +574,7 @@ type IntersectionSDF3 struct {
 }
 
 // Return the intersection of two SDF3 objects, s0 with s1.
-func Intersection3D(s0, s1 SDF3) SDF3 {
+func Intersect3D(s0, s1 SDF3) SDF3 {
 	if s0 == nil || s1 == nil {
 		return nil
 	}
