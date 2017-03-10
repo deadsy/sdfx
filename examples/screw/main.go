@@ -34,10 +34,10 @@ func hex_body(
 		sphere_3d := Sphere3D(top_round)
 		z_ofs := h/2 - math.Sqrt(top_round*top_round-d*d)
 		if rounded >= 1 {
-			hex_3d = Intersect3D(hex_3d, Transform3D(sphere_3d, Translate3d(V3{0, 0, z_ofs})))
+			hex_3d = Intersect3D(hex_3d, Transform3D(sphere_3d, Translate3d(V3{0, 0, -z_ofs})))
 		}
 		if rounded == 2 {
-			hex_3d = Intersect3D(hex_3d, Transform3D(sphere_3d, Translate3d(V3{0, 0, -z_ofs})))
+			hex_3d = Intersect3D(hex_3d, Transform3D(sphere_3d, Translate3d(V3{0, 0, z_ofs})))
 		}
 	}
 	return hex_3d
@@ -76,25 +76,23 @@ func Hex_Bolt(
 	// add a rounded cylinder
 	hex_3d = Union3D(hex_3d, Cylinder3D(hex_h*1.05, hex_r*0.8, hex_r*0.08))
 
-	z_ofs := 0.5 * (total_length + shank_length + hex_h)
-	hex_3d = Transform3D(hex_3d, Translate3d(V3{0, 0, z_ofs}))
-
 	// shank
-	z_ofs = 0.5 * total_length
-	shank_3d := Cylinder3D(shank_length, t.Radius, 0)
-	shank_3d = Transform3D(shank_3d, Translate3d(V3{0, 0, z_ofs}))
+	shank_ofs := (shank_length + hex_h) / 2
+	shank_3d := Transform3D(Cylinder3D(shank_length, t.Radius, 0), Translate3d(V3{0, 0, shank_ofs}))
 
 	// thread
 	r := t.Radius - tolerance
 	l := thread_length
+	screw_ofs := (l+hex_h)/2 + shank_length
 	screw_3d := Screw3D(ISOThread(r, t.Pitch, "external"), l, t.Pitch, 1)
 	// chamfer the thread
 	p := NewPolygon()
 	p.Add(0, -l/2)
-	p.Add(r, -l/2).Chamfer(r / 2)
-	p.Add(r, l/2)
+	p.Add(r, -l/2)
+	p.Add(r, l/2).Chamfer(r / 2)
 	p.Add(0, l/2)
 	screw_3d = Intersect3D(screw_3d, Revolve3D(Polygon2D(p.Vertices())))
+	screw_3d = Transform3D(screw_3d, Translate3d(V3{0, 0, screw_ofs}))
 
 	return Union3D(hex_3d, screw_3d, shank_3d)
 }
