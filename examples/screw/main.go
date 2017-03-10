@@ -8,15 +8,51 @@ Nuts and Bolts
 
 package main
 
-import . "github.com/deadsy/sdfx/sdf"
+import (
+	"math"
+
+	. "github.com/deadsy/sdfx/sdf"
+)
 
 //-----------------------------------------------------------------------------
 
-// Create a Hex Head Screw
-// name = thread name
-// total_length = threaded length + shank length
-// shank length = non threaded length
-func Hex_Screw(name string, total_length, shank_length float64) SDF3 {
+// Return a hex body for a nut or bolt head.
+func hex_body(
+	r float64, // radius
+	h float64, // height
+	rounded int, // number of sides to round 0,1,2
+) SDF3 {
+	// basic hex body
+	corner_round := r * 0.08
+	hex_2d := Polygon2D(Nagon(6, r-corner_round))
+	hex_2d = Offset2D(hex_2d, corner_round)
+	hex_3d := Extrude3D(hex_2d, h)
+  // round out the top and/or bottom as required
+	if rounded != 0 {
+		top_round := r * 1.6
+		d := r * math.Cos(DtoR(30))
+		sphere_3d := Sphere3D(top_round)
+		z_ofs := h/2 - math.Sqrt(top_round*top_round-d*d)
+		if rounded >= 1 {
+			hex_3d = Intersection3D(hex_3d, Transform3D(sphere_3d, Translate3d(V3{0, 0, z_ofs})))
+		}
+		if rounded == 2 {
+			hex_3d = Intersection3D(hex_3d, Transform3D(sphere_3d, Translate3d(V3{0, 0, -z_ofs})))
+		}
+	}
+	return hex_3d
+}
+
+//-----------------------------------------------------------------------------
+
+// Return a Hex Head Bolt
+func Hex_Bolt(
+	name string, // name of thread
+	tolerance float64, // subtract from external thread radius
+	total_length float64, // threaded length + shank length
+	shank_length float64, //  non threaded length
+) SDF3 {
+
 	t := ThreadLookup(name)
 	if t == nil {
 		return nil
@@ -35,17 +71,12 @@ func Hex_Screw(name string, total_length, shank_length float64) SDF3 {
 	// hex head
 	hex_r := t.Hex_Radius()
 	hex_h := t.Hex_Height()
-	z_ofs := 0.5 * (total_length + shank_length + hex_h)
-	round := hex_r * 0.08
-	hex_2d := Polygon2D(Nagon(6, hex_r-round))
-	hex_2d = Offset2D(hex_2d, round)
-	hex_3d := Extrude3D(hex_2d, hex_h)
-	// round off the edges
-	sphere_3d := Sphere3D(hex_r * 1.55)
-	sphere_3d = Transform3D(sphere_3d, Translate3d(V3{0, 0, -hex_r * 0.9}))
-	hex_3d = Intersection3D(hex_3d, sphere_3d)
+	hex_3d := hex_body(hex_r, hex_h, 1)
+
 	// add a rounded cylinder
-	hex_3d = Union3D(hex_3d, Cylinder3D(hex_h*1.05, hex_r*0.8, round))
+	hex_3d = Union3D(hex_3d, Cylinder3D(hex_h*1.05, hex_r*0.8, hex_r*0.08))
+
+	z_ofs := 0.5 * (total_length + shank_length + hex_h)
 	hex_3d = Transform3D(hex_3d, Translate3d(V3{0, 0, z_ofs}))
 
 	// shank
@@ -54,7 +85,7 @@ func Hex_Screw(name string, total_length, shank_length float64) SDF3 {
 	shank_3d = Transform3D(shank_3d, Translate3d(V3{0, 0, z_ofs}))
 
 	// thread
-	screw_3d := Screw3D(ISOThread(t.Radius, t.Pitch, "external"), thread_length, t.Pitch, 1)
+	screw_3d := Screw3D(ISOThread(t.Radius-tolerance, t.Pitch, "external"), thread_length, t.Pitch, 1)
 
 	return Union3D(hex_3d, screw_3d, shank_3d)
 }
@@ -72,24 +103,12 @@ func Hex_Nut(
 	if t == nil {
 		return nil
 	}
-
 	if height < 0 {
 		return nil
 	}
 
-	// hex head
-	hex_r := t.Hex_Radius()
-	round := hex_r * 0.08
-	hex_2d := Polygon2D(Nagon(6, hex_r-round))
-	hex_2d = Offset2D(hex_2d, round)
-	hex_3d := Extrude3D(hex_2d, height)
-
-	// round off the edges
-	sphere_3d := Sphere3D(hex_r * 1.55)
-	sphere_3d = Transform3D(sphere_3d, Translate3d(V3{0, 0, -hex_r * 0.9}))
-	hex_3d = Intersection3D(hex_3d, sphere_3d)
-	sphere_3d = Transform3D(sphere_3d, Translate3d(V3{0, 0, 2 * hex_r * 0.9}))
-	hex_3d = Intersection3D(hex_3d, sphere_3d)
+	// hex nut body
+	hex_3d := hex_body(t.Hex_Radius(), height, 2)
 
 	// internal thread
 	thread_3d := Screw3D(ISOThread(t.Radius+tolerance, t.Pitch, "internal"), height, t.Pitch, 1)
@@ -103,13 +122,13 @@ func main() {
 
 	x_ofs := 1.5
 
-	s0 := Hex_Screw("unc_1/4", 2.0, 0.5)
+	s0 := Hex_Bolt("unc_1/4", 0, 2, 0.5)
 	s0 = Transform3D(s0, Translate3d(V3{-0.6 * x_ofs, 0, 0}))
 
-	s1 := Hex_Screw("unc_1/2", 2.0, 0.5)
+	s1 := Hex_Bolt("unc_1/2", 0, 2.0, 0.5)
 	s1 = Transform3D(s1, Translate3d(V3{0, 0, 0}))
 
-	s2 := Hex_Screw("unc_1", 2.0, 0.5)
+	s2 := Hex_Bolt("unc_1", 0, 2.0, 0.5)
 	s2 = Transform3D(s2, Translate3d(V3{x_ofs, 0, 0}))
 
 	//s3 := Hex_Nut("unc_1/4", 0, 7.0/32.0)
