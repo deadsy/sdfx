@@ -27,7 +27,7 @@ func hex_body(
 	hex_2d := Polygon2D(Nagon(6, r-corner_round))
 	hex_2d = Offset2D(hex_2d, corner_round)
 	hex_3d := Extrude3D(hex_2d, h)
-  // round out the top and/or bottom as required
+	// round out the top and/or bottom as required
 	if rounded != 0 {
 		top_round := r * 1.6
 		d := r * math.Cos(DtoR(30))
@@ -85,7 +85,16 @@ func Hex_Bolt(
 	shank_3d = Transform3D(shank_3d, Translate3d(V3{0, 0, z_ofs}))
 
 	// thread
-	screw_3d := Screw3D(ISOThread(t.Radius-tolerance, t.Pitch, "external"), thread_length, t.Pitch, 1)
+	r := t.Radius - tolerance
+	l := thread_length
+	screw_3d := Screw3D(ISOThread(r, t.Pitch, "external"), l, t.Pitch, 1)
+	// chamfer the thread
+	p := NewPolygon()
+	p.Add(0, -l/2)
+	p.Add(r, -l/2).Chamfer(r / 2)
+	p.Add(r, l/2)
+	p.Add(0, l/2)
+	screw_3d = Intersection3D(screw_3d, Revolve3D(Polygon2D(p.Vertices())))
 
 	return Union3D(hex_3d, screw_3d, shank_3d)
 }
