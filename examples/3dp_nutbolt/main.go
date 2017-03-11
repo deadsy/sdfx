@@ -12,9 +12,11 @@ import . "github.com/deadsy/sdfx/sdf"
 
 //-----------------------------------------------------------------------------
 
-const MM_TOLERANCE = 0.4
+// const MM_TOLERANCE = 0.4 // a bit loose
+// const MM_TOLERANCE = 0.2 // very tight
+const MM_TOLERANCE = 0.3
 const INCH_TOLERANCE = MM_TOLERANCE / MM_PER_INCH
-const QUALITY = 400 // stl mesh size
+const QUALITY = 300 // stl mesh size
 
 //-----------------------------------------------------------------------------
 
@@ -45,7 +47,7 @@ func Bolt(
 	if style == "hex" {
 		head_3d = HexHead3D(head_r, head_h, "b")
 	} else if style == "knurl" {
-		head_3d = KnurledHead3D(head_r, head_h, head_r*0.15)
+		head_3d = KnurledHead3D(head_r, head_h, head_r*0.25)
 	} else {
 		panic("unknown style")
 	}
@@ -91,7 +93,7 @@ func Nut(
 	if style == "hex" {
 		nut_3d = HexHead3D(nut_r, nut_h, "tb")
 	} else if style == "knurl" {
-		nut_3d = KnurledHead3D(nut_r, nut_h, nut_r*0.15)
+		nut_3d = KnurledHead3D(nut_r, nut_h, nut_r*0.25)
 	} else {
 		panic("unknown style")
 	}
@@ -106,11 +108,11 @@ func Nut(
 
 func inch() {
 	// bolt
-	bolt_3d := Bolt("unc_1", "knurl", INCH_TOLERANCE, 2.0, 0.5)
+	bolt_3d := Bolt("unc_1/2", "knurl", INCH_TOLERANCE, 2.0, 0)
 	bolt_3d = Scale3D(bolt_3d, MM_PER_INCH)
 	RenderSTL(bolt_3d, QUALITY, "bolt.stl")
 	// nut
-	nut_3d := Nut("unc_1", "knurl", INCH_TOLERANCE)
+	nut_3d := Nut("unc_1/2", "knurl", INCH_TOLERANCE)
 	nut_3d = Scale3D(nut_3d, MM_PER_INCH)
 	RenderSTL(nut_3d, QUALITY, "nut.stl")
 }
@@ -129,8 +131,8 @@ func metric() {
 //-----------------------------------------------------------------------------
 
 func main() {
-	//inch()
-	metric()
+	inch()
+	//metric()
 }
 
 //-----------------------------------------------------------------------------
