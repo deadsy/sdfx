@@ -345,7 +345,7 @@ func test30() {
 }
 
 func test31() {
-	s := CounterSunk_Hole3d(30, 2)
+	s := CounterSunk_Hole3D(30, 2)
 	RenderSTL(s, 200, "test.stl")
 }
 

@@ -6,6 +6,7 @@ DIRS = benchmark \
        extrusion \
        gears \
        geneva \
+       knurled \
        pottery_wheel \
        nutsandbolts \
        smin \

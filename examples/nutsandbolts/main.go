@@ -8,40 +8,7 @@ Nuts and Bolts
 
 package main
 
-import (
-	"math"
-
-	. "github.com/deadsy/sdfx/sdf"
-)
-
-//-----------------------------------------------------------------------------
-
-// Return a hex body for a nut or bolt head.
-func hex_body(
-	r float64, // radius
-	h float64, // height
-	rounded int, // number of sides to round 0,1,2
-) SDF3 {
-	// basic hex body
-	corner_round := r * 0.08
-	hex_2d := Polygon2D(Nagon(6, r-corner_round))
-	hex_2d = Offset2D(hex_2d, corner_round)
-	hex_3d := Extrude3D(hex_2d, h)
-	// round out the top and/or bottom as required
-	if rounded != 0 {
-		top_round := r * 1.6
-		d := r * math.Cos(DtoR(30))
-		sphere_3d := Sphere3D(top_round)
-		z_ofs := h/2 - math.Sqrt(top_round*top_round-d*d)
-		if rounded >= 1 {
-			hex_3d = Intersect3D(hex_3d, Transform3D(sphere_3d, Translate3d(V3{0, 0, -z_ofs})))
-		}
-		if rounded == 2 {
-			hex_3d = Intersect3D(hex_3d, Transform3D(sphere_3d, Translate3d(V3{0, 0, z_ofs})))
-		}
-	}
-	return hex_3d
-}
+import . "github.com/deadsy/sdfx/sdf"
 
 //-----------------------------------------------------------------------------
 
@@ -71,7 +38,7 @@ func Hex_Bolt(
 	// hex head
 	hex_r := t.Hex_Radius()
 	hex_h := t.Hex_Height()
-	hex_3d := hex_body(hex_r, hex_h, 1)
+	hex_3d := Hex3D(hex_r, hex_h, "b")
 
 	// add a rounded cylinder
 	hex_3d = Union3D(hex_3d, Cylinder3D(hex_h*1.05, hex_r*0.8, hex_r*0.08))
@@ -117,7 +84,7 @@ func Hex_Nut(
 	}
 
 	// hex nut body
-	hex_3d := hex_body(t.Hex_Radius(), height, 2)
+	hex_3d := Hex3D(t.Hex_Radius(), height, "tb")
 
 	// internal thread
 	thread_3d := Screw3D(ISOThread(t.Radius+tolerance, t.Pitch, "internal"), height, t.Pitch, 1)
