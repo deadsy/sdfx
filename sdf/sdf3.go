@@ -466,6 +466,10 @@ func (s *TransformSDF3) BoundingBox() Box3 {
 	return s.bb
 }
 
+func Scale3D(sdf SDF3, k float64) SDF3 {
+	return Transform3D(sdf, Scale3d(V3{k, k, k}))
+}
+
 //-----------------------------------------------------------------------------
 // Union of SDF3s
 

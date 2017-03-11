@@ -21,9 +21,7 @@ func Hex_Bolt(
 ) SDF3 {
 
 	t := ThreadLookup(name)
-	if t == nil {
-		return nil
-	}
+
 	if total_length < 0 {
 		return nil
 	}
@@ -38,7 +36,7 @@ func Hex_Bolt(
 	// hex head
 	hex_r := t.Hex_Radius()
 	hex_h := t.Hex_Height()
-	hex_3d := Hex3D(hex_r, hex_h, "b")
+	hex_3d := HexHead3D(hex_r, hex_h, "b")
 
 	// add a rounded cylinder
 	hex_3d = Union3D(hex_3d, Cylinder3D(hex_h*1.05, hex_r*0.8, hex_r*0.08))
@@ -76,15 +74,13 @@ func Hex_Nut(
 ) SDF3 {
 
 	t := ThreadLookup(name)
-	if t == nil {
-		return nil
-	}
+
 	if height < 0 {
 		return nil
 	}
 
 	// hex nut body
-	hex_3d := Hex3D(t.Hex_Radius(), height, "tb")
+	hex_3d := HexHead3D(t.Hex_Radius(), height, "tb")
 
 	// internal thread
 	thread_3d := Screw3D(ISOThread(t.Radius+tolerance, t.Pitch, "internal"), height, t.Pitch, 1)

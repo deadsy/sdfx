@@ -47,8 +47,8 @@ func CounterSunk_Hole3D(
 
 //-----------------------------------------------------------------------------
 
-// Return a hex body for a nut or bolt head.
-func Hex3D(
+// Return a rounded hex head for a nut or bolt.
+func HexHead3D(
 	r float64, // radius
 	h float64, // height
 	round string, // (t)top, (b)bottom, (tb)top/bottom
@@ -72,6 +72,21 @@ func Hex3D(
 		}
 	}
 	return hex_3d
+}
+
+// Return a cylindrical knurled head.
+func KnurledHead3D(
+	r float64, // radius
+	h float64, // height
+	pitch float64, // knurl pitch
+) SDF3 {
+	theta := DtoR(45)
+	cylinder_round := r * 0.05
+	// TODO: knurl_h is not correct
+	pitch_h := pitch * math.Tan(theta)
+	knurl_h := pitch_h * math.Floor((h-2*cylinder_round)/pitch_h)
+	knurl_3d := Knurl3D(knurl_h, r, pitch, pitch*0.3, theta)
+	return Union3D(Cylinder3D(h, r, cylinder_round), knurl_3d)
 }
 
 //-----------------------------------------------------------------------------

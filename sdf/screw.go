@@ -142,11 +142,18 @@ func Init_ThreadLookup() ThreadDatabase {
 
 // lookup the parameters for a thread by name
 func ThreadLookup(name string) *ThreadParameters {
-	return thread_db[name]
+	t, ok := thread_db[name]
+	if !ok {
+		panic("thread name not found")
+	}
+	return t
 }
 
 // Hex Head Radius
 func (t *ThreadParameters) Hex_Radius() float64 {
+	if t.Hex_Flat2Flat < 0 {
+		panic("no hex head flat to flat distance defined for this thread")
+	}
 	return t.Hex_Flat2Flat / (2.0 * math.Cos(DtoR(30)))
 }
 

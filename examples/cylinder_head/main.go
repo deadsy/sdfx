@@ -24,7 +24,6 @@ const casting = false // add allowances, remove machined features
 //-----------------------------------------------------------------------------
 // scaling
 
-const MM_PER_INCH = 25.4
 const desired_scale = 1.25
 const al_shrink = 1.0 / 0.99   // ~1%
 const pla_shrink = 1.0 / 0.998 //~0.2%
