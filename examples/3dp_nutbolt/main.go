@@ -12,12 +12,20 @@ import . "github.com/deadsy/sdfx/sdf"
 
 //-----------------------------------------------------------------------------
 
+// Tolerance: Measured in mm. Typically 0.0 to 0.4. Larger is looser.
+// Smaller is tighter. Heuristically it could be set to some fraction
+// of an FDM nozzle size. It's worth experimenting to find out a good
+// value for the specific application and printer.
 // const MM_TOLERANCE = 0.4 // a bit loose
 // const MM_TOLERANCE = 0.2 // very tight
-// const MM_TOLERANCE = 0.3 // ok plastic to plastic fit
-const MM_TOLERANCE = 0.28
+// const MM_TOLERANCE = 0.3 // good plastic to plastic fit
+const MM_TOLERANCE = 0.3
 const INCH_TOLERANCE = MM_TOLERANCE / MM_PER_INCH
-const QUALITY = 300 // stl mesh size
+
+// Quality: The long axis of the model is rendered with N STL cells. A larger
+// value will take longer to generate, give a better model resolution and a
+// larger STL file size.
+const QUALITY = 200
 
 //-----------------------------------------------------------------------------
 
@@ -109,11 +117,11 @@ func Nut(
 
 func inch() {
 	// bolt
-	bolt_3d := Bolt("unc_1/4", "knurl", INCH_TOLERANCE, 2.0, 0.5)
+	bolt_3d := Bolt("unc_5/8", "knurl", INCH_TOLERANCE, 2.0, 0.5)
 	bolt_3d = Scale3D(bolt_3d, MM_PER_INCH)
 	RenderSTL(bolt_3d, QUALITY, "bolt.stl")
 	// nut
-	nut_3d := Nut("unc_1/4", "knurl", INCH_TOLERANCE)
+	nut_3d := Nut("unc_5/8", "knurl", INCH_TOLERANCE)
 	nut_3d = Scale3D(nut_3d, MM_PER_INCH)
 	RenderSTL(nut_3d, QUALITY, "nut.stl")
 }
@@ -122,18 +130,18 @@ func inch() {
 
 func metric() {
 	// bolt
-	bolt_3d := Bolt("M16x2", "knurl", MM_TOLERANCE, 50, 10)
+	bolt_3d := Bolt("M16x2", "hex", MM_TOLERANCE, 50, 10)
 	RenderSTL(bolt_3d, QUALITY, "bolt.stl")
 	// nut
-	nut_3d := Nut("M16x2", "knurl", MM_TOLERANCE)
+	nut_3d := Nut("M16x2", "hex", MM_TOLERANCE)
 	RenderSTL(nut_3d, QUALITY, "nut.stl")
 }
 
 //-----------------------------------------------------------------------------
 
 func main() {
-	inch()
-	//metric()
+	//inch()
+	metric()
 }
 
 //-----------------------------------------------------------------------------

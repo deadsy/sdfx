@@ -82,9 +82,7 @@ func KnurledHead3D(
 ) SDF3 {
 	theta := DtoR(45)
 	cylinder_round := r * 0.05
-	// TODO: knurl_h is not correct
-	pitch_h := pitch * math.Tan(theta)
-	knurl_h := pitch_h * math.Floor((h-2*cylinder_round)/pitch_h)
+	knurl_h := pitch * math.Floor((h-cylinder_round)/pitch)
 	knurl_3d := Knurl3D(knurl_h, r, pitch, pitch*0.3, theta)
 	return Union3D(Cylinder3D(h, r, cylinder_round), knurl_3d)
 }
