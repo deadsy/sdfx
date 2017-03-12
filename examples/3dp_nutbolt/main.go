@@ -14,7 +14,8 @@ import . "github.com/deadsy/sdfx/sdf"
 
 // const MM_TOLERANCE = 0.4 // a bit loose
 // const MM_TOLERANCE = 0.2 // very tight
-const MM_TOLERANCE = 0.3
+// const MM_TOLERANCE = 0.3 // ok plastic to plastic fit
+const MM_TOLERANCE = 0.28
 const INCH_TOLERANCE = MM_TOLERANCE / MM_PER_INCH
 const QUALITY = 300 // stl mesh size
 
@@ -108,11 +109,11 @@ func Nut(
 
 func inch() {
 	// bolt
-	bolt_3d := Bolt("unc_1/2", "knurl", INCH_TOLERANCE, 2.0, 0)
+	bolt_3d := Bolt("unc_1/4", "knurl", INCH_TOLERANCE, 2.0, 0.5)
 	bolt_3d = Scale3D(bolt_3d, MM_PER_INCH)
 	RenderSTL(bolt_3d, QUALITY, "bolt.stl")
 	// nut
-	nut_3d := Nut("unc_1/2", "knurl", INCH_TOLERANCE)
+	nut_3d := Nut("unc_1/4", "knurl", INCH_TOLERANCE)
 	nut_3d = Scale3D(nut_3d, MM_PER_INCH)
 	RenderSTL(nut_3d, QUALITY, "nut.stl")
 }
