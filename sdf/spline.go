@@ -104,21 +104,32 @@ func NewCubicSpline(data []V2) CubicSpline {
 }
 
 //-----------------------------------------------------------------------------
+// Operations on individual splines
 
-// Interpolate a function value on a single cubic spline.
-func (s *CS) Interpolate(x float64) float64 {
-	t := s.k * (x - s.x0)
+// Convert an x value to a t value.
+func (s *CS) XtoT(x float64) float64 {
+	return s.k * (x - s.x0)
+}
+
+// Return the function value for a given t value.
+func (s *CS) Function(t float64) float64 {
 	return s.a + t*(s.b+t*(s.c+s.d*t))
 }
 
-// Return the first derivate for a single spline
-func (s *CS) FirstDerivative(x float64) float64 {
-	t := s.k * (x - s.x0)
+// Return the first derivative for a given t value.
+func (s *CS) FirstDerivative(t float64) float64 {
 	return s.b + t*(2*s.c+3*s.d*t)
 }
 
+// Return the second derivative for a given t value.
+func (s *CS) SecondDerivative(t float64) float64 {
+	return 2*s.c + 6*s.d*t
+}
+
+//-----------------------------------------------------------------------------
+
 // Return the spline used for a given value of x.
-func (s CubicSpline) Index(x float64) *CS {
+func (s CubicSpline) Find(x float64) *CS {
 	// sanity checking
 	n := len(s.spline)
 	if n == 0 {
@@ -144,17 +155,19 @@ func (s CubicSpline) Index(x float64) *CS {
 
 // Interpolate a function value on a set of cubic splines.
 func (s CubicSpline) Interpolate(x float64) float64 {
-	return s.Index(x).Interpolate(x)
+	cs := s.Find(x)
+	return cs.Function(cs.XtoT(x))
 }
 
 // Return the first derivate for a set of cubic splines.
 func (s CubicSpline) FirstDerivative(x float64) float64 {
-	return s.Index(x).FirstDerivative(x)
+	cs := s.Find(x)
+	return cs.FirstDerivative(cs.XtoT(x)) * cs.k
 }
 
 //-----------------------------------------------------------------------------
 
-const N_SAMPLES = 100
+const N_SAMPLES = 1000
 
 // Return a 2D polygon approximating the cubic spline.
 func (s *CubicSpline) Polygonize() SDF2 {
