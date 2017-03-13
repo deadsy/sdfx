@@ -117,7 +117,7 @@ func (s *CS) FirstDerivative(x float64) float64 {
 	return s.b + t*(2*s.c+3*s.d*t)
 }
 
-// Return the spline index for a given value of x.
+// Return the spline used for a given value of x.
 func (s CubicSpline) Index(x float64) *CS {
 	// sanity checking
 	n := len(s.spline)
@@ -154,7 +154,7 @@ func (s CubicSpline) FirstDerivative(x float64) float64 {
 
 //-----------------------------------------------------------------------------
 
-const N_SAMPLES = 50
+const N_SAMPLES = 100
 
 // Return a 2D polygon approximating the cubic spline.
 func (s *CubicSpline) Polygonize() SDF2 {
@@ -198,11 +198,11 @@ func (s *CubicSpline) Min1(p V2) {
 		x += delta
 	}
 
-	fmt.Printf("xmin %f dmin %f\n", xmin, math.Sqrt(dmin2))
-	m0 := V2{p.X - xmin, p.Y - s.Interpolate(xmin)}
-	m1 := V2{1, s.FirstDerivative(xmin)}
+	ymin := s.Interpolate(xmin)
+	fmt.Printf("xmin %f ymin %f dmin %f\n", xmin, ymin, math.Sqrt(dmin2))
+	m0 := V2{p.X - xmin, p.Y - ymin}     // right
+	m1 := V2{1, s.FirstDerivative(xmin)} // wrong
 	fmt.Printf("m0 %v m1 %v m0.m1 %f\n", m0, m1, m0.Dot(m1))
-
 }
 
 //-----------------------------------------------------------------------------

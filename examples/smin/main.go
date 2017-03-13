@@ -16,7 +16,7 @@ func test1() {
 
 	s := NewCubicSpline(data)
 	s.Polygonize()
-	s.Min1(V2{5, 7})
+	s.Min1(V2{2, 4})
 }
 
 func test2() {
@@ -39,6 +39,6 @@ func test2() {
 
 func main() {
 
-	test2()
+	test1()
 
 }
