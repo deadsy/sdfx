@@ -153,16 +153,10 @@ func (s CubicSpline) Find(x float64) *CS {
 	return &s.spline[lo]
 }
 
-// Interpolate a function value on a set of cubic splines.
-func (s CubicSpline) Interpolate(x float64) float64 {
+// Return the function value on a set of cubic splines.
+func (s CubicSpline) Function(x float64) float64 {
 	cs := s.Find(x)
 	return cs.Function(cs.XtoT(x))
-}
-
-// Return the first derivate for a set of cubic splines.
-func (s CubicSpline) FirstDerivative(x float64) float64 {
-	cs := s.Find(x)
-	return cs.FirstDerivative(cs.XtoT(x)) * cs.k
 }
 
 //-----------------------------------------------------------------------------
@@ -177,7 +171,7 @@ func (s *CubicSpline) Polygonize() SDF2 {
 	dx := (s.xmax - s.xmin) / float64(N_SAMPLES-1)
 	x := s.xmax
 	for i := 0; i < N_SAMPLES; i++ {
-		p.Add(x, s.Interpolate(x))
+		p.Add(x, s.Function(x))
 		x -= dx
 	}
 	p.Render("spline.dxf")
@@ -188,20 +182,20 @@ func (s *CubicSpline) Polygonize() SDF2 {
 // WIP - distance minimisation
 
 // return distance squared between point and spline
-func (s *CubicSpline) Dist2(x float64, p V2) float64 {
+func (ss *CubicSpline) Dist2(x float64, p V2) float64 {
 	dx := x - p.X
-	dy := s.Interpolate(x) - p.Y
+	dy := ss.Function(x) - p.Y
 	return dx*dx + dy*dy
 }
 
 // Dumb search for the minimum point/spline distance
-func (s *CubicSpline) Min1(p V2) {
+func (s *CubicSpline) Min1(p V2) float64 {
 	delta := (s.xmax - s.xmin) / float64(N_SAMPLES)
 	x := s.xmin
 
-	dmin2 := s.Dist2(s.xmin, p)
 	xmin := s.xmin
 
+	dmin2 := s.Dist2(s.xmin, p)
 	for i := 0; i < N_SAMPLES; i++ {
 		d2 := s.Dist2(x, p)
 		if d2 < dmin2 {
@@ -211,14 +205,23 @@ func (s *CubicSpline) Min1(p V2) {
 		x += delta
 	}
 
-	ymin := s.Interpolate(xmin)
-	fmt.Printf("xmin %f ymin %f dmin %f\n", xmin, ymin, math.Sqrt(dmin2))
-	m0 := V2{p.X - xmin, p.Y - ymin}
-	m1 := V2{1, s.FirstDerivative(xmin)}
-	fmt.Printf("m0 %v m1 %v m0.m1 %f\n", m0, m1, m0.Dot(m1))
+	dmin := math.Sqrt(dmin2)
+	fmt.Printf("dumb %v to %v %f\n", p, V2{xmin, s.Function(xmin)}, dmin)
+	return dmin
 }
 
 //-----------------------------------------------------------------------------
+
+func (s *CS) D0(t0, y0, t float64) float64 {
+	y := s.Function(t)
+	return (t0-t)*(t0-t) + (y0-y)*(y0-y)
+}
+
+func (s *CS) D1(t0, y0, t float64) float64 {
+	y := s.Function(t)
+	y1 := s.FirstDerivative(t)
+	return 2 * (t - t0 + y1*(y-y0))
+}
 
 // Return a new t estimate for minimum distance using the Newton Raphson method.
 func (s *CS) NR_Iterate(t0, y0, t float64) float64 {
@@ -227,13 +230,29 @@ func (s *CS) NR_Iterate(t0, y0, t float64) float64 {
 	y1 := s.FirstDerivative(t)
 	y2 := s.SecondDerivative(t)
 
-	d0 := (t0-t)*(t0-t) + (y0-y)*(y0-y)
-	d1 := 2 * (t - t0 + y*y1 - y0*y1)
-	d2 := 2 * (1 - y0*y2 + y1*y1 + y*y2)
+	//d0 := (t0-t)*(t0-t) + (y0-y)*(y0-y)
+	d1 := 2 * (t - t0 + y1*(y-y0))
+	d2 := 2 * (1 - y1*y1 + y2*(y-y0))
 
-	_ = d0
-	_ = d1
-	_ = d2
+	return t - d1/d2
+}
+
+// Newton Raphson search for the minimum point/spline distance
+func (ss *CubicSpline) Min2(p V2) float64 {
+
+	x := 2.0
+	s := ss.Find(x)
+	t := s.XtoT(x)
+	t0 := s.XtoT(p.X)
+	y0 := p.Y
+
+	h := 0.001
+
+	d := s.D0(t0, y0, t-(h/2))
+	dh := s.D0(t0, y0, t+(h/2))
+
+	fmt.Printf("est d1 %f\n", (dh-d)/h)
+	fmt.Printf("d1 %f\n", s.D1(t0, y0, t))
 
 	return 0
 }
