@@ -111,6 +111,11 @@ func (s *CS) XtoT(x float64) float64 {
 	return s.k * (x - s.x0)
 }
 
+// Convert a t value to an x value.
+func (s *CS) TtoX(t float64) float64 {
+	return s.x0 + (t / s.k)
+}
+
 // Return the function value for a given t value.
 func (s *CS) Function(t float64) float64 {
 	return s.a + t*(s.b+t*(s.c+s.d*t))
@@ -213,48 +218,62 @@ func (s *CubicSpline) Min1(p V2) float64 {
 //-----------------------------------------------------------------------------
 
 func (s *CS) D0(t0, y0, t float64) float64 {
-	y := s.Function(t)
-	return (t0-t)*(t0-t) + (y0-y)*(y0-y)
+	dy := s.Function(t) - y0
+	dt := t - t0
+	return dt*dt + dy*dy
 }
 
 func (s *CS) D1(t0, y0, t float64) float64 {
-	y := s.Function(t)
+	dy := s.Function(t) - y0
+	dt := t - t0
 	y1 := s.FirstDerivative(t)
-	return 2 * (t - t0 + y1*(y-y0))
+	return 2 * (dt + y1*dy)
+}
+
+func (s *CS) D2(t0, y0, t float64) float64 {
+	dy := s.Function(t) - y0
+	y1 := s.FirstDerivative(t)
+	y2 := s.SecondDerivative(t)
+	return 2 * (1 + y1*y1 + y2*dy)
 }
 
 // Return a new t estimate for minimum distance using the Newton Raphson method.
 func (s *CS) NR_Iterate(t0, y0, t float64) float64 {
 
-	y := s.Function(t)
+	// We are minimising the distance squared function.
+	// We are looking for the zeroes of the first derivative of this function.
+	dy := s.Function(t) - y0
+	dt := t - t0
 	y1 := s.FirstDerivative(t)
 	y2 := s.SecondDerivative(t)
 
-	//d0 := (t0-t)*(t0-t) + (y0-y)*(y0-y)
-	d1 := 2 * (t - t0 + y1*(y-y0))
-	d2 := 2 * (1 - y1*y1 + y2*(y-y0))
+	// d0 := dt * dt + dy * dy // distance2
+	// d1 := 2 * (dt + y1*dy) // first derivative
+	// d2 := 2 * (1 + y1*y1 + y2*dy) // second derivative
+	// tnew = t - d1 / d2
 
-	return t - d1/d2
+	return t - (dt+y1*dy)/(1+y1*y1+y2*dy)
 }
 
 // Newton Raphson search for the minimum point/spline distance
 func (ss *CubicSpline) Min2(p V2) float64 {
 
-	x := 2.0
-	s := ss.Find(x)
-	t := s.XtoT(x)
+	s := ss.Find(p.X)
 	t0 := s.XtoT(p.X)
 	y0 := p.Y
 
-	h := 0.001
+	t := t0
 
-	d := s.D0(t0, y0, t-(h/2))
-	dh := s.D0(t0, y0, t+(h/2))
+	for i := 0; i < 10; i++ {
+		fmt.Printf("t %f x %f\n", t, s.TtoX(t))
+		t = s.NR_Iterate(t0, y0, t)
+	}
 
-	fmt.Printf("est d1 %f\n", (dh-d)/h)
+	t_test := s.XtoT(3.839999999999962)
+	fmt.Printf("d1_test %f\n", s.D1(t0, y0, t_test))
+
 	fmt.Printf("d1 %f\n", s.D1(t0, y0, t))
-
-	return 0
+	return s.D0(t0, y0, t)
 }
 
 //-----------------------------------------------------------------------------

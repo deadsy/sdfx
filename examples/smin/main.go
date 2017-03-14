@@ -25,16 +25,12 @@ func test1() {
 	}
 
 	p := V2{3, 4}
-
 	s := NewCubicSpline(data)
 	s_2d := s.Polygonize()
 
-	s.Min1(p)
-
-	dmin := s_2d.Evaluate(p)
-	fmt.Printf("poly: dmin %f\n", dmin)
-
-	s.Min2(p)
+	fmt.Printf("dumb: dmin %f\n", s.Min1(p))
+	fmt.Printf("poly: dmin %f\n", s_2d.Evaluate(p))
+	fmt.Printf("nr: dmin %f\n", s.Min2(p))
 }
 
 //-----------------------------------------------------------------------------
