@@ -213,9 +213,29 @@ func (s *CubicSpline) Min1(p V2) {
 
 	ymin := s.Interpolate(xmin)
 	fmt.Printf("xmin %f ymin %f dmin %f\n", xmin, ymin, math.Sqrt(dmin2))
-	m0 := V2{p.X - xmin, p.Y - ymin}     // right
-	m1 := V2{1, s.FirstDerivative(xmin)} // wrong
+	m0 := V2{p.X - xmin, p.Y - ymin}
+	m1 := V2{1, s.FirstDerivative(xmin)}
 	fmt.Printf("m0 %v m1 %v m0.m1 %f\n", m0, m1, m0.Dot(m1))
+}
+
+//-----------------------------------------------------------------------------
+
+// Return a new t estimate for minimum distance using the Newton Raphson method.
+func (s *CS) NR_Iterate(t0, y0, t float64) float64 {
+
+	y := s.Function(t)
+	y1 := s.FirstDerivative(t)
+	y2 := s.SecondDerivative(t)
+
+	d0 := (t0-t)*(t0-t) + (y0-y)*(y0-y)
+	d1 := 2 * (t - t0 + y*y1 - y0*y1)
+	d2 := 2 * (1 - y0*y2 + y1*y1 + y*y2)
+
+	_ = d0
+	_ = d1
+	_ = d2
+
+	return 0
 }
 
 //-----------------------------------------------------------------------------
