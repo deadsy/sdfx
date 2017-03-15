@@ -265,15 +265,12 @@ func (ss *CubicSpline) Min2(p V2) float64 {
 	t := t0
 
 	for i := 0; i < 10; i++ {
-		fmt.Printf("t %f x %f\n", t, s.TtoX(t))
+		fmt.Printf("t %f x %f y %f\n", t, s.TtoX(t), s.Function(t))
 		t = s.NR_Iterate(t0, y0, t)
 	}
 
-	t_test := s.XtoT(3.839999999999962)
-	fmt.Printf("d1_test %f\n", s.D1(t0, y0, t_test))
-
-	fmt.Printf("d1 %f\n", s.D1(t0, y0, t))
-	return s.D0(t0, y0, t)
+	xmin := s.TtoX(t)
+	return math.Sqrt(ss.Dist2(xmin, p))
 }
 
 //-----------------------------------------------------------------------------
