@@ -106,29 +106,22 @@ func NewCubicSpline(data []V2) CubicSpline {
 //-----------------------------------------------------------------------------
 // Operations on individual splines
 
-// Convert an x value to a t value.
-func (s *CS) XtoT(x float64) float64 {
-	return s.k * (x - s.x0)
-}
-
-// Convert a t value to an x value.
-func (s *CS) TtoX(t float64) float64 {
-	return s.x0 + (t / s.k)
-}
-
-// Return the function value for a given t value.
-func (s *CS) Function(t float64) float64 {
+// Return the function value for a given x value.
+func (s *CS) Function(x float64) float64 {
+	t := s.k * (x - s.x0)
 	return s.a + t*(s.b+t*(s.c+s.d*t))
 }
 
-// Return the first derivative for a given t value.
-func (s *CS) FirstDerivative(t float64) float64 {
-	return s.b + t*(2*s.c+3*s.d*t)
+// Return the first derivative for a given x value.
+func (s *CS) FirstDerivative(x float64) float64 {
+	t := s.k * (x - s.x0)
+	return s.k * (s.b + t*(2*s.c+3*s.d*t))
 }
 
-// Return the second derivative for a given t value.
-func (s *CS) SecondDerivative(t float64) float64 {
-	return 2*s.c + 6*s.d*t
+// Return the second derivative for a given x value.
+func (s *CS) SecondDerivative(x float64) float64 {
+	t := s.k * (x - s.x0)
+	return s.k * s.k * (2*s.c + 6*s.d*t)
 }
 
 //-----------------------------------------------------------------------------
@@ -159,9 +152,9 @@ func (s CubicSpline) Find(x float64) *CS {
 }
 
 // Return the function value on a set of cubic splines.
-func (s CubicSpline) Function(x float64) float64 {
-	cs := s.Find(x)
-	return cs.Function(cs.XtoT(x))
+func (ss CubicSpline) Function(x float64) float64 {
+	s := ss.Find(x)
+	return s.Function(x)
 }
 
 //-----------------------------------------------------------------------------
@@ -217,60 +210,56 @@ func (s *CubicSpline) Min1(p V2) float64 {
 
 //-----------------------------------------------------------------------------
 
-func (s *CS) D0(t0, y0, t float64) float64 {
-	dy := s.Function(t) - y0
-	dt := t - t0
-	return dt*dt + dy*dy
+func (s *CS) D0(x0, y0, x float64) float64 {
+	dx := x - x0
+	dy := s.Function(x) - y0
+	return dx*dx + dy*dy
 }
 
-func (s *CS) D1(t0, y0, t float64) float64 {
-	dy := s.Function(t) - y0
-	dt := t - t0
-	y1 := s.FirstDerivative(t)
-	return 2 * (dt + y1*dy)
+func (s *CS) D1(x0, y0, x float64) float64 {
+	dx := x - x0
+	dy := s.Function(x) - y0
+	y1 := s.FirstDerivative(x)
+	return 2 * (dx + y1*dy)
 }
 
-func (s *CS) D2(t0, y0, t float64) float64 {
-	dy := s.Function(t) - y0
-	y1 := s.FirstDerivative(t)
-	y2 := s.SecondDerivative(t)
+func (s *CS) D2(x0, y0, x float64) float64 {
+	dy := s.Function(x) - y0
+	y1 := s.FirstDerivative(x)
+	y2 := s.SecondDerivative(x)
 	return 2 * (1 + y1*y1 + y2*dy)
 }
 
 // Return a new t estimate for minimum distance using the Newton Raphson method.
-func (s *CS) NR_Iterate(t0, y0, t float64) float64 {
+func (s *CS) NR_Iterate(x0, y0, x float64) float64 {
 
 	// We are minimising the distance squared function.
 	// We are looking for the zeroes of the first derivative of this function.
-	dy := s.Function(t) - y0
-	dt := t - t0
-	y1 := s.FirstDerivative(t)
-	y2 := s.SecondDerivative(t)
+	dy := s.Function(x) - y0
+	dx := x - x0
+	y1 := s.FirstDerivative(x)
+	y2 := s.SecondDerivative(x)
 
-	// d0 := dt * dt + dy * dy // distance2
-	// d1 := 2 * (dt + y1*dy) // first derivative
+	// d0 := dx * dx + dy * dy // distance2
+	// d1 := 2 * (dx + y1*dy) // first derivative
 	// d2 := 2 * (1 + y1*y1 + y2*dy) // second derivative
-	// tnew = t - d1 / d2
+	// xnew = x - d1 / d2
 
-	return t - (dt+y1*dy)/(1+y1*y1+y2*dy)
+	return x - (dx+y1*dy)/(1+y1*y1+y2*dy)
 }
 
 // Newton Raphson search for the minimum point/spline distance
 func (ss *CubicSpline) Min2(p V2) float64 {
 
 	s := ss.Find(p.X)
-	t0 := s.XtoT(p.X)
-	y0 := p.Y
-
-	t := t0
+	x := p.X
 
 	for i := 0; i < 10; i++ {
-		fmt.Printf("t %f x %f y %f\n", t, s.TtoX(t), s.Function(t))
-		t = s.NR_Iterate(t0, y0, t)
+		fmt.Printf("x %f y %f\n", x, s.Function(x))
+		x = s.NR_Iterate(p.X, p.Y, x)
 	}
 
-	xmin := s.TtoX(t)
-	return math.Sqrt(ss.Dist2(xmin, p))
+	return math.Sqrt(ss.Dist2(x, p))
 }
 
 //-----------------------------------------------------------------------------
