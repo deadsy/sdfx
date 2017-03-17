@@ -481,16 +481,17 @@ func Test_CubicSpline(t *testing.T) {
 	// check for agreement with the input data
 	for i, s := range cs.spline {
 		// Check the x0 value
-		if Abs(s.x0-data[i].X) > TOLERANCE {
+		x0 := s.p0.X
+		if Abs(x0-data[i].X) > TOLERANCE {
 			t.Error("FAIL")
 		}
 		// Check the x1 value
-		x1 := s.x0 + 1.0/s.k
+		x1 := s.p1.X
 		if Abs(x1-data[i+1].X) > TOLERANCE {
 			t.Error("FAIL")
 		}
 		// Check the y0 value
-		if Abs(s.Function(s.XtoT(s.x0))-data[i].Y) > TOLERANCE {
+		if Abs(s.Function(s.XtoT(x0))-data[i].Y) > TOLERANCE {
 			t.Error("FAIL")
 		}
 		// Check the y1 value
@@ -535,7 +536,12 @@ func Test_CubicSpline(t *testing.T) {
 
 func Test_Quadratic(t *testing.T) {
 
-	x, rc := quadratic(0, 0, 1)
+	x, rc := quadratic(4, 2, 1)
+	if x != nil || rc != ZERO_SOLN {
+		t.Error("FAIL")
+	}
+
+	x, rc = quadratic(0, 0, 1)
 	if x != nil || rc != ZERO_SOLN {
 		t.Error("FAIL")
 	}

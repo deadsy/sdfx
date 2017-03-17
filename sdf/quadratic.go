@@ -21,6 +21,7 @@ const (
 	INF_SOLN
 )
 
+// Return the real solutions of ax^2 + bx + c = 0
 func quadratic(a, b, c float64) ([]float64, QSoln) {
 	if a == 0 {
 		if b == 0 {
@@ -36,11 +37,14 @@ func quadratic(a, b, c float64) ([]float64, QSoln) {
 		}
 	}
 	det := b*b - 4*a*c
+	if det < 0 {
+		return nil, ZERO_SOLN
+	}
+	x := -b / (2 * a)
 	if det == 0 {
-		return []float64{-b / (2 * a)}, ONE_SOLN
+		return []float64{x}, ONE_SOLN
 	}
 	d := math.Sqrt(det) / (2 * a)
-	x := -b / (2 * a)
 	return []float64{x + d, x - d}, TWO_SOLN
 }
 

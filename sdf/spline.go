@@ -57,7 +57,8 @@ func TriDiagonal(m []V3, d []float64) []float64 {
 // See: http://mathworld.wolfram.com/CubicSpline.html
 
 type CS struct {
-	x0, x1, k  float64
+	p0, p1     V2
+	k          float64
 	a, b, c, d float64
 }
 
@@ -93,8 +94,8 @@ func NewCubicSpline(data []V2) CubicSpline {
 		y1 := data[i+1].Y
 		D0 := x[i]
 		D1 := x[i+1]
-		spline[i].x0 = x0
-		spline[i].x1 = x1
+		spline[i].p0 = data[i]
+		spline[i].p1 = data[i+1]
 		spline[i].k = 1.0 / (x1 - x0)
 		spline[i].a = y0
 		spline[i].b = D0
@@ -109,7 +110,7 @@ func NewCubicSpline(data []V2) CubicSpline {
 
 // Return the t value for a given x value.
 func (s *CS) XtoT(x float64) float64 {
-	return s.k * (x - s.x0)
+	return s.k * (x - s.p0.X)
 }
 
 // Return the function value for a given t value.
@@ -125,6 +126,12 @@ func (s *CS) FirstDerivative(t float64) float64 {
 // Return the second derivative for a given t value.
 func (s *CS) SecondDerivative(t float64) float64 {
 	return 2*s.c + 6*s.d*t
+}
+
+// Return the maximum function value over a spline.
+func (s *CS) Max() float64 {
+	ymax := Max(s.p0.Y, s.p1.Y)
+	return ymax
 }
 
 //-----------------------------------------------------------------------------
@@ -145,7 +152,7 @@ func (ss CubicSpline) Find(x float64) *CS {
 	hi := n
 	for hi-lo > 1 {
 		mid := (lo + hi) >> 1
-		if ss.spline[mid].x0 < x {
+		if ss.spline[mid].p0.X < x {
 			lo = mid
 		} else {
 			hi = mid
@@ -237,7 +244,7 @@ func (ss *CubicSpline) Min2(p V2) float64 {
 	for i := 0; i < NR_MAX_ITERATIONS; i++ {
 		xold := x
 		x = s.NR_Iterate(p.X, p.Y, x)
-		if x >= s.x0 && x <= s.x1 {
+		if x >= s.p0.X && x <= s.p1.X {
 			if Abs(x-xold) < NR_TOLERANCE*Abs(x) {
 				// The x estimate is within tolerance
 				break
@@ -254,9 +261,9 @@ func (ss *CubicSpline) Min2(p V2) float64 {
 //-----------------------------------------------------------------------------
 
 type CubicSplineSDF2 struct {
-	xmin, xmax float64
-	spline     []CS
-	bb         Box2 // bounding box
+	xmin, xmax float64 // x min/max values
+	spline     []CS    // cubic splines
+	bb         Box2    // bounding box
 }
 
 func CubicSpline2D(knot []V2) SDF2 {
@@ -289,8 +296,8 @@ func CubicSpline2D(knot []V2) SDF2 {
 		y1 := knot[i+1].Y
 		D0 := x[i]
 		D1 := x[i+1]
-		s.spline[i].x0 = x0
-		s.spline[i].x1 = x1
+		s.spline[i].p0 = knot[i]
+		s.spline[i].p1 = knot[i+1]
 		s.spline[i].k = 1.0 / (x1 - x0)
 		s.spline[i].a = y0
 		s.spline[i].b = D0
@@ -305,6 +312,7 @@ func CubicSpline2D(knot []V2) SDF2 {
 	// work out the bounding box
 	ymax := 0.0
 	for i := 0; i < n-1; i++ {
+		ymax = Max(ymax, s.spline[i].Max())
 	}
 	s.bb = Box2{V2{s.xmin, 0}, V2{s.xmax, ymax}}
 
