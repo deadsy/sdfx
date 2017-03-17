@@ -28,6 +28,10 @@ func test1() {
 	s := NewCubicSpline(data)
 	s_2d := s.Polygonize()
 
+	s_3d := Extrude3D(s_2d, 1)
+
+	RenderSTL(s_3d, 300, "smin.stl")
+
 	fmt.Printf("dumb: dmin %f\n", s.Min1(p))
 	fmt.Printf("poly: dmin %f\n", s_2d.Evaluate(p))
 	fmt.Printf("nr: dmin %f\n", s.Min2(p))

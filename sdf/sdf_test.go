@@ -532,3 +532,28 @@ func Test_CubicSpline(t *testing.T) {
 }
 
 //-----------------------------------------------------------------------------
+
+func Test_Quadratic(t *testing.T) {
+
+	x, rc := quadratic(0, 0, 1)
+	if x != nil || rc != ZERO_SOLN {
+		t.Error("FAIL")
+	}
+
+	x, rc = quadratic(0, 2, -4)
+	if x[0] != 2 || rc != ONE_SOLN {
+		t.Error("FAIL")
+	}
+
+	x, rc = quadratic(1, -5, 6)
+	if x[0] != 3 || x[1] != 2 || rc != TWO_SOLN {
+		t.Error("FAIL")
+	}
+
+	x, rc = quadratic(0, 0, 0)
+	if x != nil || rc != INF_SOLN {
+		t.Error("FAIL")
+	}
+}
+
+//-----------------------------------------------------------------------------

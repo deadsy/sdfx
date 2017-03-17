@@ -252,3 +252,71 @@ func (ss *CubicSpline) Min2(p V2) float64 {
 }
 
 //-----------------------------------------------------------------------------
+
+type CubicSplineSDF2 struct {
+	xmin, xmax float64
+	spline     []CS
+	bb         Box2 // bounding box
+}
+
+func CubicSpline2D(knot []V2) SDF2 {
+
+	s := CubicSplineSDF2{}
+
+	// Build and solve the tridiagonal matrix
+	n := len(knot)
+	m := make([]V3, n)
+	d := make([]float64, n)
+	for i := 1; i < n-1; i++ {
+		m[i] = V3{1, 4, 1}
+		d[i] = 3 * (knot[i+1].Y - knot[i-1].Y)
+	}
+	// Special case the end splines.
+	// Assume the 2nd derivative at the end points is 0.
+	m[0] = V3{0, 2, 1}
+	d[0] = 3 * (knot[1].Y - knot[0].Y)
+	m[n-1] = V3{1, 2, 0}
+	d[n-1] = 3 * (knot[n-1].Y - knot[n-2].Y)
+	x := TriDiagonal(m, d)
+
+	// The solution data are the first derivatives.
+	// Reformat as the cubic polynomial coefficients.
+	s.spline = make([]CS, n-1)
+	for i := 0; i < n-1; i++ {
+		x0 := knot[i].X
+		x1 := knot[i+1].X
+		y0 := knot[i].Y
+		y1 := knot[i+1].Y
+		D0 := x[i]
+		D1 := x[i+1]
+		s.spline[i].x0 = x0
+		s.spline[i].x1 = x1
+		s.spline[i].k = 1.0 / (x1 - x0)
+		s.spline[i].a = y0
+		s.spline[i].b = D0
+		s.spline[i].c = 3*(y1-y0) - 2*D0 - D1
+		s.spline[i].d = 2*(y0-y1) + D0 + D1
+	}
+
+	// set x min/max
+	s.xmin = knot[0].X
+	s.xmax = knot[n-1].X
+
+	// work out the bounding box
+	ymax := 0.0
+	for i := 0; i < n-1; i++ {
+	}
+	s.bb = Box2{V2{s.xmin, 0}, V2{s.xmax, ymax}}
+
+	return &s
+}
+
+func (s *CubicSplineSDF2) Evaluate(p V2) float64 {
+	return 0
+}
+
+func (s *CubicSplineSDF2) BoundingBox() Box2 {
+	return s.bb
+}
+
+//-----------------------------------------------------------------------------
