@@ -289,14 +289,18 @@ func NewPolygon() *Polygon {
 	return &Polygon{}
 }
 
-// Add adds a polygon vertex to a polygon.
-func (p *Polygon) Add(x, y float64) *PV {
+// Add a V2 vertex to a polygon.
+func (p *Polygon) AddV2(x V2) *PV {
 	v := PV{}
-	v.vertex.X = x
-	v.vertex.Y = y
+	v.vertex = x
 	v.vtype = NORMAL
 	p.vlist = append(p.vlist, v)
 	return &p.vlist[len(p.vlist)-1]
+}
+
+// Add an x,y vertex to a polygon.
+func (p *Polygon) Add(x, y float64) *PV {
+	return p.AddV2(V2{x, y})
 }
 
 // Vertices returns the vertices of the polygon.

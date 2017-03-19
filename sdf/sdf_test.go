@@ -453,83 +453,56 @@ func Test_TriDiagonal(t *testing.T) {
 
 func Test_CubicSpline(t *testing.T) {
 
-	data := []V2{
+	knot := []V2{
 		V2{-1.5, -1.2},
 		V2{-0.2, 0},
 		V2{1, 0.5},
 		V2{5, 1},
 		V2{10, 2.2},
 		V2{12, 3.2},
-		V2{16, -1.2},
-		V2{18, -3.2},
+		V2{-16, -1.2},
+		V2{-18, -3.2},
 	}
-	cs := NewCubicSpline(data)
-	n := len(cs.spline)
-
-	if n != len(data)-1 {
+	s := CubicSpline2D(knot).(*CubicSplineSDF2)
+	n := len(s.spline)
+	if n != len(knot)-1 {
 		t.Error("FAIL")
 	}
-
-	// check for agreement with the input data
-	for _, v := range data {
-		y := cs.Function(v.X)
-		if Abs(y-v.Y) > TOLERANCE {
+	// check interpolation of the knots
+	for i, k := range knot {
+		p := s.F0(float64(i))
+		if !k.Equals(p, TOLERANCE) {
 			t.Error("FAIL")
 		}
 	}
-
-	// check for agreement with the input data
-	for i, s := range cs.spline {
-		// Check the x0 value
-		x0 := s.p0.X
-		if Abs(x0-data[i].X) > TOLERANCE {
-			t.Error("FAIL")
+	// check 1st and 2nd derivatives
+	for i := 0; i < n; i++ {
+		cs := s.spline[i]
+		if i == 0 {
+			// 2nd derivative at start == 0
+			f2 := cs.f2(0)
+			if !f2.Equals(V2{0, 0}, TOLERANCE) {
+				t.Error("FAIL")
+			}
 		}
-		// Check the x1 value
-		x1 := s.p1.X
-		if Abs(x1-data[i+1].X) > TOLERANCE {
-			t.Error("FAIL")
-		}
-		// Check the y0 value
-		if Abs(s.Function(s.XtoT(x0))-data[i].Y) > TOLERANCE {
-			t.Error("FAIL")
-		}
-		// Check the y1 value
-		if Abs(s.Function(s.XtoT(x1))-data[i+1].Y) > TOLERANCE {
-			t.Error("FAIL")
+		if i == n-1 {
+			// 2nd derivative at end == 0
+			f2 := cs.f2(1)
+			if !f2.Equals(V2{0, 0}, TOLERANCE) {
+				t.Error("FAIL")
+			}
+		} else {
+			cs_next := s.spline[i+1]
+			// check continuity of 1st derivative
+			if !cs.f1(1).Equals(cs_next.f1(0), TOLERANCE) {
+				t.Error("FAIL")
+			}
+			// check continuity of 2nd derivative
+			if !cs.f2(1).Equals(cs_next.f2(0), TOLERANCE) {
+				t.Error("FAIL")
+			}
 		}
 	}
-
-	// check for continuity of 1st,2nd derivatives
-	s := cs.spline[0]
-	yd1 := s.b + 2*s.c + 3*s.d
-	ydd1 := 2*s.c + 6*s.d
-	for i := 1; i < n; i++ {
-		s = cs.spline[i]
-		yd0 := s.b
-		ydd0 := 2 * s.c
-		if Abs(yd1-yd0) > TOLERANCE {
-			t.Error("FAIL")
-		}
-		if Abs(ydd1-ydd0) > TOLERANCE {
-			t.Error("FAIL")
-		}
-		yd1 = s.b + 2*s.c + 3*s.d
-		ydd1 = 2*s.c + 6*s.d
-	}
-
-	// check for 2nd derivative == 0 at endpoints
-	s = cs.spline[0]
-	ydd := 2 * s.c
-	if Abs(ydd) > TOLERANCE {
-		t.Error("FAIL")
-	}
-	s = cs.spline[n-1]
-	ydd = 2*s.c + 6*s.d
-	if Abs(ydd) > TOLERANCE {
-		t.Error("FAIL")
-	}
-
 }
 
 //-----------------------------------------------------------------------------

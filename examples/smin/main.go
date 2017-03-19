@@ -18,43 +18,19 @@ import (
 
 func test1() {
 
-	data := []V2{
-		V2{0, 10},
-		V2{5, 5},
-		V2{10, 10},
-	}
-
-	p := V2{3, 4}
-	s := NewCubicSpline(data)
-	s_2d := s.Polygonize()
-
-	s_3d := Extrude3D(s_2d, 1)
-
-	RenderSTL(s_3d, 300, "smin.stl")
-
-	fmt.Printf("dumb: dmin %f\n", s.Min1(p))
-	fmt.Printf("poly: dmin %f\n", s_2d.Evaluate(p))
-	fmt.Printf("nr: dmin %f\n", s.Min2(p))
-}
-
-//-----------------------------------------------------------------------------
-
-func test2() {
-	data := []V2{
-		V2{0, 1},
+	knot := []V2{
+		V2{0, 0},
+		V2{-1, 1},
 		V2{1, 2},
-		V2{2, 3},
-		V2{3, 4},
-		V2{4, 3},
-		V2{5, 2},
-		V2{6, 1},
-		V2{7, 0},
-		V2{8, 1},
-		V2{9, 2},
-		V2{10, 3},
+		V2{3, 2},
+		V2{4, 1},
+		V2{3, 0},
 	}
-	s := NewCubicSpline(data)
-	s.Polygonize()
+
+	s_2d := CubicSpline2D(knot)
+	p := s_2d.(*CubicSplineSDF2).Polygonize(200)
+	p.Render("spline.dxf")
+	fmt.Printf("%v\n", s_2d.BoundingBox())
 }
 
 //-----------------------------------------------------------------------------
