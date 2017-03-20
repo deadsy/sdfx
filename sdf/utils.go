@@ -5,6 +5,7 @@
 package sdf
 
 import (
+	"fmt"
 	"math"
 )
 
@@ -211,6 +212,17 @@ func ScaleTwistExtrude(height, twist float64, scale V2) ExtrudeFunc {
 		//pnew := Rotate(p.Z * k).MulPosition(V2{p.X, p.Y})
 		//return pnew.Mul(m.MulScalar(p.Z).Add(b))
 	}
+}
+
+//-----------------------------------------------------------------------------
+
+// Return a string that decodes the float64 bitfields.
+func FloatDecode(x float64) string {
+	i := math.Float64bits(x)
+	s := int((i >> 63) & 1)
+	f := i & ((1 << 52) - 1)
+	e := int((i>>52)&((1<<11)-1)) - 1023
+	return fmt.Sprintf("s %d f 0x%013x e %d", s, f, e)
 }
 
 //-----------------------------------------------------------------------------

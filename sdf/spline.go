@@ -15,6 +15,8 @@ See: http://mathworld.wolfram.com/CubicSpline.html
 
 package sdf
 
+import "fmt"
+
 //-----------------------------------------------------------------------------
 
 // Solve the tridiagonal matrix equation m.x = d, return x
@@ -82,7 +84,16 @@ func (p *CubicPolynomial) Set(y0, y1, D0, D1 float64) {
 
 // Return the t values for f1 == 0 (local minima/maxima)
 func (p *CubicPolynomial) f1_zeroes() []float64 {
+
+	fmt.Printf("p: a %f b %f c %f d %f\n", p.a, p.b, p.c, p.d)
+
+	fmt.Printf("%s\n", FloatDecode(p.d))
+	fmt.Printf("%s\n", FloatDecode(3*p.d))
+
+	fmt.Printf("q: a %f b %f c %f\n", 3*p.d, 2*p.c, p.b)
+
 	t, _ := quadratic(3*p.d, 2*p.c, p.b)
+	fmt.Printf("t %v\n", t)
 	return t
 }
 
@@ -204,7 +215,7 @@ func CubicSpline2D(knot []V2) SDF2 {
 	// work out the bounding box
 	s.bb = s.spline[0].BoundingBox()
 	for i := 1; i < n-1; i++ {
-		s.bb = s.bb.Extend(s.spline[0].BoundingBox())
+		s.bb = s.bb.Extend(s.spline[i].BoundingBox())
 	}
 	return &s
 }
