@@ -23,6 +23,7 @@ const (
 
 // Return the real solutions of ax^2 + bx + c = 0
 func quadratic(a, b, c float64) ([]float64, QSoln) {
+	// TODO Fix all comparisons to 0
 	if a == 0 {
 		if b == 0 {
 			if c == 0 {

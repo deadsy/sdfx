@@ -15,8 +15,6 @@ See: http://mathworld.wolfram.com/CubicSpline.html
 
 package sdf
 
-import "fmt"
-
 //-----------------------------------------------------------------------------
 
 // Solve the tridiagonal matrix equation m.x = d, return x
@@ -80,20 +78,18 @@ func (p *CubicPolynomial) Set(y0, y1, D0, D1 float64) {
 	p.b = D0
 	p.c = 3*(y1-y0) - 2*D0 - D1
 	p.d = 2*(y0-y1) + D0 + D1
+	// Zero out any coefficients that are small relative to the others.
+	epsilon := 1e-12
+	sum := Abs(p.a) + Abs(p.b) + Abs(p.c) + Abs(p.d)
+	p.a = ZeroSmall(p.a, sum, epsilon)
+	p.b = ZeroSmall(p.b, sum, epsilon)
+	p.c = ZeroSmall(p.c, sum, epsilon)
+	p.d = ZeroSmall(p.d, sum, epsilon)
 }
 
 // Return the t values for f1 == 0 (local minima/maxima)
 func (p *CubicPolynomial) f1_zeroes() []float64 {
-
-	fmt.Printf("p: a %f b %f c %f d %f\n", p.a, p.b, p.c, p.d)
-
-	fmt.Printf("%s\n", FloatDecode(p.d))
-	fmt.Printf("%s\n", FloatDecode(3*p.d))
-
-	fmt.Printf("q: a %f b %f c %f\n", 3*p.d, 2*p.c, p.b)
-
 	t, _ := quadratic(3*p.d, 2*p.c, p.b)
-	fmt.Printf("t %v\n", t)
 	return t
 }
 
@@ -175,7 +171,7 @@ func (s *CubicSplineSDF2) Polygonize(n int) *Polygon {
 
 func CubicSpline2D(knot []V2) SDF2 {
 	if len(knot) < 2 {
-		panic("cubic splines at least 2 knots")
+		panic("cubic splines need at least 2 knots")
 	}
 	s := CubicSplineSDF2{}
 

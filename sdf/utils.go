@@ -256,3 +256,13 @@ func EqualFloat64(a, b, epsilon float64) bool {
 }
 
 //-----------------------------------------------------------------------------
+
+// Zero out values that are small relative to a quantity.
+func ZeroSmall(x, y, epsilon float64) float64 {
+	if Abs(x)/y < epsilon {
+		return 0
+	}
+	return x
+}
+
+//-----------------------------------------------------------------------------
