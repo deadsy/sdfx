@@ -225,4 +225,34 @@ func FloatDecode(x float64) string {
 	return fmt.Sprintf("s %d f 0x%013x e %d", s, f, e)
 }
 
+// Encode a float64 from sign, fraction and exponent values.
+func FloatEncode(s int, f uint64, e int) float64 {
+	s &= 1
+	exp := uint64(e+1023) & ((1 << 11) - 1)
+	f &= (1 << 52) - 1
+	return math.Float64frombits(uint64(s)<<63 | exp<<52 | f)
+}
+
+//-----------------------------------------------------------------------------
+// Floating Point Comparisons
+// See: http://floating-point-gui.de/errors/NearlyEqualsTest.java
+
+const min_normal = 2.2250738585072014E-308 // 2**-1022
+
+func EqualFloat64(a, b, epsilon float64) bool {
+	if a == b {
+		return true
+	}
+	absA := math.Abs(a)
+	absB := math.Abs(b)
+	diff := math.Abs(a - b)
+	if a == 0 || b == 0 || diff < min_normal {
+		// a or b is zero or both are extremely close to it
+		// relative error is less meaningful here
+		return diff < (epsilon * min_normal)
+	}
+	// use relative error
+	return diff/math.Min((absA+absB), math.MaxFloat64) < epsilon
+}
+
 //-----------------------------------------------------------------------------

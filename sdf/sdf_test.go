@@ -536,3 +536,138 @@ func Test_Quadratic(t *testing.T) {
 }
 
 //-----------------------------------------------------------------------------
+
+func Test_Float_Comparison(t *testing.T) {
+
+	negative_infinity := math.Inf(-1)
+	positive_infinity := math.Inf(1)
+	nan := math.NaN()
+	max_value := math.MaxFloat64
+	min_value := math.SmallestNonzeroFloat64
+
+	epsilon := 0.00001
+
+	test0 := []struct {
+		a, b   float64
+		equals bool
+	}{
+		// Regular large numbers - generally not problematic
+		{1000000, 1000001, true},
+		{1000001, 1000000, true},
+		{10000, 10001, false},
+		{10001, 10000, false},
+		// Negative large numbers
+		{-1000000, -1000001, true},
+		{-1000001, -1000000, true},
+		{-10000, -10001, false},
+		{-10001, -10000, false},
+		// Numbers around 1
+		{1.0000001, 1.0000002, true},
+		{1.0000002, 1.0000001, true},
+		{1.0002, 1.0001, false},
+		{1.0001, 1.0002, false},
+		// Numbers around -1
+		{-1.0000001, -1.0000002, true},
+		{-1.0000002, -1.0000001, true},
+		{-1.0002, -1.0001, false},
+		{-1.0001, -1.0002, false},
+		// Numbers between 1 and 0
+		{0.000000001000001, 0.000000001000002, true},
+		{0.000000001000002, 0.000000001000001, true},
+		{0.000000000001002, 0.000000000001001, false},
+		{0.000000000001001, 0.000000000001002, false},
+		// Numbers between -1 and 0
+		{-0.000000001000001, -0.000000001000002, true},
+		{-0.000000001000002, -0.000000001000001, true},
+		{-0.000000000001002, -0.000000000001001, false},
+		{-0.000000000001001, -0.000000000001002, false},
+		// Comparisons involving zero
+		{0, 0, true},
+		{0, -0, true},
+		{-0, -0, true},
+		{0.00000001, 0, false},
+		{0, 0.00000001, false},
+		{-0.00000001, 0, false},
+		{0, -0.00000001, false},
+		// Comparisons of numbers on opposite sides of 0
+		{1.000000001, -1.0, false},
+		{-1.0, 1.000000001, false},
+		{-1.000000001, 1.0, false},
+		{1.0, -1.000000001, false},
+		//{10 * min_value, 10 * -min_value, true},        // problem
+		//{10000 * min_value, 10000 * -min_value, false}, // problem
+		// The really tricky part - comparisons of numbers very close to zero.
+		{min_value, min_value, true},
+		{min_value, -min_value, true},
+		{-min_value, min_value, true},
+		{min_value, 0, true},
+		{0, min_value, true},
+		{-min_value, 0, true},
+		{0, -min_value, true},
+		{0.000000001, -min_value, false},
+		{0.000000001, min_value, false},
+		{min_value, 0.000000001, false},
+		{-min_value, 0.000000001, false},
+		// Comparisons involving NaN values
+		{nan, nan, false},
+		{nan, 0.0, false},
+		{-0.0, nan, false},
+		{nan, -0.0, false},
+		{0.0, nan, false},
+		{nan, positive_infinity, false},
+		{positive_infinity, nan, false},
+		{nan, negative_infinity, false},
+		{negative_infinity, nan, false},
+		{nan, max_value, false},
+		{max_value, nan, false},
+		{nan, -max_value, false},
+		{-max_value, nan, false},
+		{nan, min_value, false},
+		{min_value, nan, false},
+		{nan, -min_value, false},
+		{-min_value, nan, false},
+		// Comparisons involving extreme values (overflow potential)
+		{max_value, max_value, true},
+		{max_value, -max_value, false},
+		{-max_value, max_value, false},
+		{max_value, max_value / 2, false},
+		{max_value, -max_value / 2, false},
+		{-max_value, max_value / 2, false},
+		// Comparisons involving infinities
+		{positive_infinity, positive_infinity, true},
+		{negative_infinity, negative_infinity, true},
+		{negative_infinity, positive_infinity, false},
+		{positive_infinity, max_value, false},
+		{negative_infinity, -max_value, false},
+	}
+
+	for _, v := range test0 {
+		if EqualFloat64(v.a, v.b, epsilon) != v.equals {
+			t.Error("FAIL")
+		}
+	}
+
+	test1 := []struct {
+		a, b, e float64
+		equals  bool
+	}{
+	// Comparisons involving zero
+	//{0.0, 1e-40, 0.01, true},
+	//{1e-40, 0.0, 0.01, true},
+	//{1e-40, 0.0, 0.000001, false},
+	//{0.0, 1e-40, 0.000001, false},
+	//{0.0, -1e-40, 0.1, true},
+	//{-1e-40, 0.0, 0.1, true},
+	//{-1e-40, 0.0, 0.00000001, false},
+	//{0.0, -1e-40, 0.00000001, false},
+	}
+
+	for _, v := range test1 {
+		if EqualFloat64(v.a, v.b, v.e) != v.equals {
+			t.Error("FAIL")
+		}
+	}
+
+}
+
+//-----------------------------------------------------------------------------
