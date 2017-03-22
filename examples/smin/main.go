@@ -28,9 +28,12 @@ func test1() {
 	}
 
 	s_2d := CubicSpline2D(knot)
-	p := s_2d.(*CubicSplineSDF2).Polygonize(200)
-	p.Render("spline.dxf")
-	fmt.Printf("%v\n", s_2d.BoundingBox())
+
+	//p := s_2d.(*CubicSplineSDF2).Polygonize(200)
+	//p.Render("spline.dxf")
+
+	p := V2{1, 1}
+	fmt.Printf("d %f\n", s_2d.Evaluate(p))
 }
 
 //-----------------------------------------------------------------------------

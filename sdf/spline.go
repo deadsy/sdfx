@@ -15,6 +15,11 @@ See: http://mathworld.wolfram.com/CubicSpline.html
 
 package sdf
 
+import (
+	"fmt"
+	"math"
+)
+
 //-----------------------------------------------------------------------------
 
 // Solve the tridiagonal matrix equation m.x = d, return x
@@ -130,11 +135,32 @@ func (s *CubicSpline) BoundingBox() Box2 {
 	return Box2{p.Min(), p.Max()}
 }
 
+const NR_TOLERANCE = 0.0001
+const NR_MAXITERS = 10
+
+func (s *CubicSpline) NR_Iterate(t float64, p V2) float64 {
+	// We are minimising the distance squared function.
+	// We are looking for the zeroes of the first derivative of this function.
+	// dx = x0 - p.X
+	// dy = y0 - p.Y
+	// d0 = dx*dx + dy*dy // distance * distance
+	// d1 = 2*(dx*x1 + dy*y1)
+	// d2 = 2*(dx*x2 + x1*x1 + dy*y2 + y1*y1)
+	// tnew = t - d1 / d2
+	f0 := s.f0(t)
+	f1 := s.f1(t)
+	f2 := s.f2(t)
+	dx := f0.X - p.X
+	dy := f0.Y - p.Y
+	return t - (dx*f1.X+dy*f1.Y)/(dx*f2.X+f1.X*f1.X+dy*f2.Y+f1.Y*f1.Y)
+}
+
 //-----------------------------------------------------------------------------
 
 type CubicSplineSDF2 struct {
-	spline []CubicSpline // cubic splines
-	bb     Box2          // bounding box
+	spline   []CubicSpline // cubic splines
+	maxiters int           // max newton-raphson iterations
+	bb       Box2          // bounding box
 }
 
 // Return the spline and t value for a given t value.
@@ -157,16 +183,39 @@ func (s *CubicSplineSDF2) F0(t float64) V2 {
 	return cs.f0(t)
 }
 
-// Return a polygon approximating the cubic spline.
-func (s *CubicSplineSDF2) Polygonize(n int) *Polygon {
-	p := NewPolygon()
-	dt := float64(len(s.spline)) / float64(n-1)
-	t := 0.0
-	for i := 0; i < n; i++ {
-		p.AddV2(s.F0(t))
-		t += dt
-	}
-	return p
+func (s *CubicSplineSDF2) F1(t float64) V2 {
+	cs, t := s.Find(t)
+	return cs.f1(t)
+}
+
+func (s *CubicSplineSDF2) F2(t float64) V2 {
+	cs, t := s.Find(t)
+	return cs.f2(t)
+}
+
+// Return the distance squared between a point and a point on the splines curve.
+func (s *CubicSplineSDF2) D0(t float64, p V2) float64 {
+	f0 := s.F0(t)
+	dx := f0.X - p.X
+	dy := f0.Y - p.Y
+	return dx*dx + dy*dy
+}
+
+func (s *CubicSplineSDF2) D1(t float64, p V2) float64 {
+	f0 := s.F0(t)
+	f1 := s.F1(t)
+	dx := f0.X - p.X
+	dy := f0.Y - p.Y
+	return 2 * (dx*f1.X + dy*f1.Y)
+}
+
+func (s *CubicSplineSDF2) D2(t float64, p V2) float64 {
+	f0 := s.F0(t)
+	f1 := s.F1(t)
+	f2 := s.F2(t)
+	dx := f0.X - p.X
+	dy := f0.Y - p.Y
+	return 2 * (dx*f2.X + f1.X*f1.X + dy*f2.Y + f1.Y*f1.Y)
 }
 
 func CubicSpline2D(knot []V2) SDF2 {
@@ -174,6 +223,7 @@ func CubicSpline2D(knot []V2) SDF2 {
 		panic("cubic splines need at least 2 knots")
 	}
 	s := CubicSplineSDF2{}
+	s.maxiters = NR_MAXITERS
 
 	// Build and solve the tridiagonal matrices
 	n := len(knot)
@@ -217,11 +267,73 @@ func CubicSpline2D(knot []V2) SDF2 {
 }
 
 func (s *CubicSplineSDF2) Evaluate(p V2) float64 {
-	return 0
+
+	// initial estimate
+	n := 9 // len(s.spline)
+	cs, t := s.Find(float64(n) / 2)
+
+	var i int
+	for i = 0; i < s.maxiters; i++ {
+
+		t_old := t
+		t = cs.NR_Iterate(t, p)
+		fmt.Printf("%d t_old %f t %f\n", cs.idx, t_old, t)
+
+		if t < 0 {
+			// previous spline
+			if cs.idx == 0 {
+				// no previous splines
+				t = 0
+				break
+			}
+			// find the previous spline
+			cs, t = s.Find(float64(cs.idx) + t)
+		} else if t > 1 {
+			// next spline
+			if cs.idx == n-1 {
+				// on the last spline
+				t = 1
+				break
+			}
+			// find the next spline
+			cs, t = s.Find(float64(cs.idx) + t)
+		} else {
+			// on the same spline
+			if Abs(t-t_old) < NR_TOLERANCE*Abs(t) {
+				// The t estimate is within tolerance
+				break
+			}
+		}
+	}
+	t += float64(cs.idx)
+	dmin := math.Sqrt(s.D0(t, p))
+
+	//if i == s.maxiters {
+	//	// deliberately cause rendering problems
+	//	dmin = 0
+	//}
+
+	fmt.Printf("p %v F0 %v t %f\n", p, s.F0(t), t)
+
+	return dmin
 }
 
 func (s *CubicSplineSDF2) BoundingBox() Box2 {
 	return s.bb
+}
+
+//-----------------------------------------------------------------------------
+
+// Return a polygon approximating the cubic spline.
+func (s *CubicSplineSDF2) Polygonize(n int) *Polygon {
+	p := NewPolygon()
+	dt := float64(len(s.spline)) / float64(n-1)
+	t := 0.0
+	for i := 0; i < n; i++ {
+		p.AddV2(s.F0(t))
+		t += dt
+	}
+	return p
 }
 
 //-----------------------------------------------------------------------------
