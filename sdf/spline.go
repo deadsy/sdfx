@@ -336,4 +336,10 @@ func (s *CubicSplineSDF2) Polygonize(n int) *Polygon {
 	return p
 }
 
+// Turn a CubicSplineSDF2 into a polygon based SDF2.
+func (s *CubicSplineSDF2) PolySpline2D(n int) SDF2 {
+	p := s.Polygonize(n)
+	return Polygon2D(p.Vertices())
+}
+
 //-----------------------------------------------------------------------------

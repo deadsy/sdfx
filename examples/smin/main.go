@@ -8,32 +8,29 @@ distance minimisation for cubic splines
 
 package main
 
-import (
-	"fmt"
-
-	. "github.com/deadsy/sdfx/sdf"
-)
+import . "github.com/deadsy/sdfx/sdf"
 
 //-----------------------------------------------------------------------------
 
 func test1() {
 
 	knot := []V2{
-		V2{0, 0},
+		V2{5, 0},
+		V2{2, 2},
+		V2{0, 4},
 		V2{-1, 1},
-		V2{1, 2},
-		V2{3, 2},
-		V2{4, 1},
-		V2{3, 0},
+		V2{-3, 0},
+		V2{-2, -2},
+		V2{0, -6},
+		V2{2, -2},
+		V2{5, 0},
 	}
 
-	s_2d := CubicSpline2D(knot)
-
-	//p := s_2d.(*CubicSplineSDF2).Polygonize(200)
-	//p.Render("spline.dxf")
-
-	p := V2{1, 1}
-	fmt.Printf("d %f\n", s_2d.Evaluate(p))
+	s0 := CubicSpline2D(knot)
+	s1 := s0.(*CubicSplineSDF2).PolySpline2D(300)
+	s2 := Extrude3D(s1, 1)
+	RenderSTL(s2, 300, "spline.stl")
+	SDF2_RenderPNG(s1, "spline.png")
 }
 
 //-----------------------------------------------------------------------------
