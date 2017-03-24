@@ -8,27 +8,51 @@ Interpolate using Bezier Curves
 
 package sdf
 
+import "fmt"
+
 //-----------------------------------------------------------------------------
 
 const POLY_EPSILON = 1e-12
 
 //-----------------------------------------------------------------------------
 
-// Cubic polynomial
-type Poly3 struct {
-	a, b, c, d float64
+type BezierPolynomial struct {
+	n          int     // polynomial order
+	a, b, c, d float64 // polynomial coefficients
 }
 
-// Return the polynomial function value for a given t value.
-func (p *Poly3) f0(t float64) float64 {
-	return p.a + t*(p.b+t*(p.c+p.d*t))
+func (p *BezierPolynomial) f0(t float64) float64 {
+	switch p.n {
+	case 1:
+		return p.a + t*p.b
+	case 2:
+		return p.a + t*(p.b+t*p.c)
+	case 3:
+		return p.a + t*(p.b+t*(p.c+p.d*t))
+	default:
+		panic(fmt.Sprintf("bad polynomial order %d", p.n))
+	}
+	return 0
 }
 
-// Set polynomial coefficent values.
-func (p *Poly3) Set(x0, x1, x2, x3 float64) {
-	p.a = x0
-	// TODO
-	// Zero out any coefficients that are small relative to the others.
+func (p *BezierPolynomial) Set(x []float64) {
+	p.n = len(x) - 1
+	switch p.n {
+	case 1:
+		p.a = x[0]
+		p.b = x[1] - x[0]
+	case 2:
+		p.a = x[0]
+		p.b = 2 * (x[1] - x[0])
+		p.c = x[2] - 2*x[1] + x[0]
+	case 3:
+		p.a = x[0]
+		p.b = 3 * (x[1] - x[0])
+		p.c = 3 * (x[2] - 2*x[1] + x[0])
+		p.d = x[3] - 3*x[2] + 3*x[1] - x[0]
+	default:
+		panic(fmt.Sprintf("bad polynomial order %d", p.n))
+	}
 	sum := Abs(p.a) + Abs(p.b) + Abs(p.c) + Abs(p.d)
 	p.a = ZeroSmall(p.a, sum, POLY_EPSILON)
 	p.b = ZeroSmall(p.b, sum, POLY_EPSILON)
@@ -38,48 +62,36 @@ func (p *Poly3) Set(x0, x1, x2, x3 float64) {
 
 //-----------------------------------------------------------------------------
 
-// Quadratic polynomial
-type Poly2 struct {
-	a, b, c float64
+type BezierSpline struct {
+	px, py BezierPolynomial // bezier polynomial
 }
 
-// Return the polynomial function value for a given t value.
-func (p *Poly2) f0(t float64) float64 {
-	return p.a + t*(p.b+t*p.c)
+// Return the function value for a given t value.
+func (s *BezierSpline) f0(t float64) V2 {
+	return V2{s.px.f0(t), s.py.f0(t)}
 }
 
-// Set polynomial coefficent values.
-func (p *Poly2) Set(x0, x1, x2 float64) {
-	p.a = x0
-	p.b = 2 * (x1 - x0)
-	p.c = x0 - 2*x1 + x2
-	// Zero out any coefficients that are small relative to the others.
-	sum := Abs(p.a) + Abs(p.b) + Abs(p.c)
-	p.a = ZeroSmall(p.a, sum, POLY_EPSILON)
-	p.b = ZeroSmall(p.b, sum, POLY_EPSILON)
-	p.c = ZeroSmall(p.c, sum, POLY_EPSILON)
+func (s *BezierSpline) Set(p []V2) {
+	x := make([]float64, len(p))
+	y := make([]float64, len(p))
+	for i, v := range p {
+		x[i] = v.X
+		y[i] = v.Y
+	}
+	s.px.Set(x)
+	s.py.Set(y)
 }
 
-//-----------------------------------------------------------------------------
-
-// Linear polynomial
-type Poly1 struct {
-	a, b float64
-}
-
-// Return the polynomial function value for a given t value.
-func (p *Poly1) f0(t float64) float64 {
-	return p.a + t*p.b
-}
-
-// Set polynomial coefficent values.
-func (p *Poly1) Set(x0, x1 float64) {
-	p.a = x0
-	p.b = x1 - x0
-	// Zero out any coefficients that are small relative to the others.
-	sum := Abs(p.a) + Abs(p.b)
-	p.a = ZeroSmall(p.a, sum, POLY_EPSILON)
-	p.b = ZeroSmall(p.b, sum, POLY_EPSILON)
+// Return a polygon approximating the bezier spline.
+func (s *BezierSpline) Polygonize(n int) *Polygon {
+	p := NewPolygon()
+	dt := 1.0 / float64(n-1)
+	t := 0.0
+	for i := 0; i < n; i++ {
+		p.AddV2(s.f0(t))
+		t += dt
+	}
+	return p
 }
 
 //-----------------------------------------------------------------------------
