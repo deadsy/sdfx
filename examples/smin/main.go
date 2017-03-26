@@ -35,36 +35,34 @@ func test1() {
 
 //-----------------------------------------------------------------------------
 
-func test2() {
+func test4() {
 
-	//  	points1 := []V2{
-	// 		V2{0, 0},
-	// 		V2{4, 1},
-	// 	}
+	b := NewBezier()
 
-	points2 := []V2{
-		V2{0, 0},
-		V2{1, 3},
-		V2{4, 0},
-	}
+	d1 := 5.0
+	d2 := 7.0
+	k1 := 2.5
+	k2 := 1.0
 
-	// 	points3 := []V2{
-	// 		V2{0, 0},
-	// 		V2{-1, 1},
-	// 		V2{4, 1},
-	// 		V2{3, 0},
-	// 	}
+	b.Add(0, -d1).Handle(DtoR(0), k1, k1)
+	b.Add(d1, 0).Handle(DtoR(90), k1, k1)
+	b.Add(d2, d2).Handle(DtoR(135), k2, k2)
+	b.Add(0, d1).Handle(DtoR(180), k1, k1)
+	b.Add(-d1, 0).Handle(DtoR(270), k1, k1)
+	b.Close()
 
-	s := BezierSpline{}
-	s.Set(points2)
-	p := s.Polygonize(100)
+	p := b.Polygon()
 	p.Render("spline.dxf")
+
+	s0 := Polygon2D(p.Vertices())
+	s1 := Extrude3D(s0, 1)
+	RenderSTL(s1, 300, "curve.stl")
 }
 
 //-----------------------------------------------------------------------------
 
 func main() {
-	test2()
+	test4()
 }
 
 //-----------------------------------------------------------------------------
