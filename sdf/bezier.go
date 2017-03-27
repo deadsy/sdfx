@@ -8,7 +8,10 @@ Create curves using Bezier splines.
 
 package sdf
 
-import "fmt"
+import (
+	"fmt"
+	"math"
+)
 
 //-----------------------------------------------------------------------------
 
@@ -130,9 +133,32 @@ func (s *BezierSpline) f0(t float64) V2 {
 	return V2{s.px.f0(t), s.py.f0(t)}
 }
 
+// Return the curve slope (as an angle) for a given t value.
+func (s *BezierSpline) slope(t float64) float64 {
+	return math.Atan2(s.py.f1(t), s.px.f1(t))
+}
+
+// Return the rate of change of curve slope for a given t value.
+func (s *BezierSpline) m1(t float64) (float64, error) {
+	x1 := s.px.f1(t)
+	y1 := s.py.f1(t)
+	x2 := s.px.f2(t)
+	y2 := s.py.f2(t)
+	if x1 == 0 {
+		return 0, fmt.Errorf("inf")
+	}
+	return (x1*y2 - y1*x2) / x1 * x1, nil
+}
+
+// Return the order of the bezier polynomial.
+func (s *BezierSpline) order() int {
+	return s.px.n
+}
+
 func NewBezierSpline(p []V2) *BezierSpline {
 	//fmt.Printf("%v\n", p)
 	s := BezierSpline{}
+	// work out the polynomials
 	x := make([]float64, len(p))
 	y := make([]float64, len(p))
 	for i, v := range p {
@@ -362,13 +388,29 @@ func (b *Bezier) Polygon() *Polygon {
 
 	// render the splines to a polygon
 	p := NewPolygon()
-	k := 50
+	k := 1000
+	dtmin := 1.0 / float64(k-1)
+	epsilon := 0.1
+
 	for _, s := range splines {
-		dt := 1.0 / float64(k-1)
-		t := 0.0
-		for i := 0; i < k; i++ {
-			p.AddV2(s.f0(t))
-			t += dt
+
+		if s.order() == 1 {
+			// linear
+			p.AddV2(s.f0(0))
+			p.AddV2(s.f0(1))
+		} else {
+			t := 0.0
+			for t < 1.0 {
+				p.AddV2(s.f0(t))
+				dtheta := Abs(s.slope(t+dtmin) - s.slope(t))
+				if dtheta < epsilon {
+					t += dtmin * (epsilon / dtheta)
+				} else {
+					t += dtmin
+				}
+			}
+			p.AddV2(s.f0(1))
+
 		}
 	}
 	return p
