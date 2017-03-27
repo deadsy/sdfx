@@ -11,6 +11,7 @@ package sdf
 import (
 	"fmt"
 	"math"
+	"math/rand"
 )
 
 //-----------------------------------------------------------------------------
@@ -125,7 +126,8 @@ func (p *BezierPolynomial) Set(x []float64) {
 //-----------------------------------------------------------------------------
 
 type BezierSpline struct {
-	px, py BezierPolynomial // x/y bezier polynomials
+	tolerance float64          // tolerance for adaptive sampling
+	px, py    BezierPolynomial // x/y bezier polynomials
 }
 
 // Return the function value for a given t value.
@@ -133,31 +135,32 @@ func (s *BezierSpline) f0(t float64) V2 {
 	return V2{s.px.f0(t), s.py.f0(t)}
 }
 
-// Return the curve slope (as an angle) for a given t value.
-func (s *BezierSpline) slope(t float64) float64 {
-	return math.Atan2(s.py.f1(t), s.px.f1(t))
-}
-
-// Return the rate of change of curve slope for a given t value.
-func (s *BezierSpline) m1(t float64) (float64, error) {
-	x1 := s.px.f1(t)
-	y1 := s.py.f1(t)
-	x2 := s.px.f2(t)
-	y2 := s.py.f2(t)
-	if x1 == 0 {
-		return 0, fmt.Errorf("inf")
+// Generate polygon samples for a bezier spline.
+func (s *BezierSpline) Sample(p *Polygon, t0, t1 float64, p0, p1 V2) {
+	// pick a "mid" point in [0.45,0.55]
+	k := 0.45 + 0.1*rand.Float64()
+	tmid := t0 + k*(t1-t0)
+	pmid := s.f0(tmid)
+	// use the cross product as a measure of collinearity
+	pa := p0.Sub(pmid).Normalize()
+	pb := p1.Sub(pmid).Normalize()
+	flat := pa.Cross(pb)
+	if flat < s.tolerance {
+		// flat enough, add the line segment
+		p.AddV2(p0)
+		p.AddV2(p1)
+	} else {
+		// not flat enough, subdivide and recurse
+		s.Sample(p, t0, tmid, p0, pmid)
+		s.Sample(p, tmid, t1, pmid, p1)
 	}
-	return (x1*y2 - y1*x2) / x1 * x1, nil
-}
-
-// Return the order of the bezier polynomial.
-func (s *BezierSpline) order() int {
-	return s.px.n
 }
 
 func NewBezierSpline(p []V2) *BezierSpline {
 	//fmt.Printf("%v\n", p)
 	s := BezierSpline{}
+	// closer to 180 == more polygon line segments
+	s.tolerance = math.Sin(DtoR(178))
 	// work out the polynomials
 	x := make([]float64, len(p))
 	y := make([]float64, len(p))
@@ -388,30 +391,8 @@ func (b *Bezier) Polygon() *Polygon {
 
 	// render the splines to a polygon
 	p := NewPolygon()
-	k := 1000
-	dtmin := 1.0 / float64(k-1)
-	epsilon := 0.1
-
 	for _, s := range splines {
-
-		if s.order() == 1 {
-			// linear
-			p.AddV2(s.f0(0))
-			p.AddV2(s.f0(1))
-		} else {
-			t := 0.0
-			for t < 1.0 {
-				p.AddV2(s.f0(t))
-				dtheta := Abs(s.slope(t+dtmin) - s.slope(t))
-				if dtheta < epsilon {
-					t += dtmin * (epsilon / dtheta)
-				} else {
-					t += dtmin
-				}
-			}
-			p.AddV2(s.f0(1))
-
-		}
+		s.Sample(p, 0, 1, s.f0(0), s.f0(1))
 	}
 	return p
 }
