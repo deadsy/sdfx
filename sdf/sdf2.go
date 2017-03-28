@@ -228,7 +228,7 @@ func Polygon2D(vertex []V2) SDF2 {
 
 	// Close the loop (if necessary)
 	s.vertex = vertex
-	if !vertex[0].Equals(vertex[n-1], 0) {
+	if !vertex[0].Equals(vertex[n-1], TOLERANCE) {
 		s.vertex = append(s.vertex, vertex[0])
 	}
 

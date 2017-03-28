@@ -123,6 +123,14 @@ func (a V2) Cross(b V2) float64 {
 	return (a.X * b.Y) - (a.Y * b.X)
 }
 
+// Return true if 3 points are colinear.
+func (mid V2) Colinear(a, b V2, tolerance float64) bool {
+	// use the cross product as a measure of colinearity
+	pa := a.Sub(mid).Normalize()
+	pb := b.Sub(mid).Normalize()
+	return Abs(pa.Cross(pb)) < tolerance
+}
+
 //-----------------------------------------------------------------------------
 
 // add a scalar to each vector component

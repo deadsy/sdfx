@@ -15,6 +15,7 @@ const PI = math.Pi
 const TAU = 2 * math.Pi
 const SQRT_HALF = 0.7071067811865476
 const MM_PER_INCH = 25.4
+const TOLERANCE = 1e-9
 
 //-----------------------------------------------------------------------------
 

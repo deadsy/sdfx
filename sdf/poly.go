@@ -303,15 +303,27 @@ func (p *Polygon) Add(x, y float64) *PV {
 	return p.AddV2(V2{x, y})
 }
 
+// Drop the last vertex from the list.
+func (p *Polygon) Drop() {
+	p.vlist = p.vlist[:len(p.vlist)-1]
+}
+
 // Vertices returns the vertices of the polygon.
 func (p *Polygon) Vertices() []V2 {
 	if p.vlist == nil {
 		return nil
 	}
 	p.fixups()
-	v := make([]V2, len(p.vlist))
-	for i, pv := range p.vlist {
-		v[i] = pv.vertex
+	n := len(p.vlist)
+	v := make([]V2, n)
+	if p.reverse {
+		for i, pv := range p.vlist {
+			v[n-1-i] = pv.vertex
+		}
+	} else {
+		for i, pv := range p.vlist {
+			v[i] = pv.vertex
+		}
 	}
 	return v
 }
@@ -335,7 +347,7 @@ func (p *Polygon) Render(path string) error {
 	if p.closed {
 		p0 := p.vlist[len(p.vlist)-1].vertex
 		p1 := p.vlist[0].vertex
-		if !p0.Equals(p1, 0) {
+		if !p0.Equals(p1, TOLERANCE) {
 			d.Line(p0.X, p0.Y, 0, p1.X, p1.Y, 0)
 		}
 	}

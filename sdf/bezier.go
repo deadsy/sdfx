@@ -10,7 +10,6 @@ package sdf
 
 import (
 	"fmt"
-	"math"
 	"math/rand"
 )
 
@@ -137,30 +136,32 @@ func (s *BezierSpline) f0(t float64) V2 {
 
 // Generate polygon samples for a bezier spline.
 func (s *BezierSpline) Sample(p *Polygon, t0, t1 float64, p0, p1 V2) {
-	// pick a "mid" point in [0.45,0.55]
-	k := 0.45 + 0.1*rand.Float64()
-	tmid := t0 + k*(t1-t0)
+	// test the midpoint
+	tmid := (t0 + t1) / 2
 	pmid := s.f0(tmid)
-	// use the cross product as a measure of collinearity
-	pa := p0.Sub(pmid).Normalize()
-	pb := p1.Sub(pmid).Normalize()
-	flat := pa.Cross(pb)
-	if flat < s.tolerance {
-		// flat enough, add the line segment
-		p.AddV2(p0)
-		p.AddV2(p1)
-	} else {
-		// not flat enough, subdivide and recurse
-		s.Sample(p, t0, tmid, p0, pmid)
-		s.Sample(p, tmid, t1, pmid, p1)
+	if pmid.Colinear(p0, p1, s.tolerance) {
+		// the curve could be periodic so perturb the midpoint
+		// pick a t value in [0.45,0.55]
+		k := 0.45 + 0.1*rand.Float64()
+		t2 := t0 + k*(t1-t0)
+		p2 := s.f0(t2)
+		if p2.Colinear(p0, p1, s.tolerance) {
+			// looks flat enough, add the line segment
+			p.AddV2(p0)
+			p.AddV2(p1)
+			return
+		}
 	}
+	// not flat enough, subdivide and recurse
+	s.Sample(p, t0, tmid, p0, pmid)
+	s.Sample(p, tmid, t1, pmid, p1)
 }
 
 func NewBezierSpline(p []V2) *BezierSpline {
 	//fmt.Printf("%v\n", p)
 	s := BezierSpline{}
-	// closer to 180 == more polygon line segments
-	s.tolerance = math.Sin(DtoR(178))
+	// closer to 0, more polygon line segments
+	s.tolerance = 0.02
 	// work out the polynomials
 	x := make([]float64, len(p))
 	y := make([]float64, len(p))
@@ -249,7 +250,7 @@ func (b *Bezier) closure() {
 		panic("first control vertex should be an endpoint")
 	}
 	if last.vtype == ENDPOINT {
-		if !last.vertex.Equals(first.vertex, 0) {
+		if !last.vertex.Equals(first.vertex, TOLERANCE) {
 			// the first and last vertices aren't equal.
 			// add the first vertex to close the curve
 			b.vlist = append(b.vlist, first)
@@ -391,8 +392,13 @@ func (b *Bezier) Polygon() *Polygon {
 
 	// render the splines to a polygon
 	p := NewPolygon()
-	for _, s := range splines {
+	n = len(splines)
+	for i, s := range splines {
 		s.Sample(p, 0, 1, s.f0(0), s.f0(1))
+		if i != n-1 {
+			// drop the last vertex since it is the first vertex of the next spline
+			p.Drop()
+		}
 	}
 	return p
 }
