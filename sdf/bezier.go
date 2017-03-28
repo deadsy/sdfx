@@ -147,7 +147,6 @@ func (s *BezierSpline) Sample(p *Polygon, t0, t1 float64, p0, p1 V2) {
 		p2 := s.f0(t2)
 		if p2.Colinear(p0, p1, s.tolerance) {
 			// looks flat enough, add the line segment
-			p.AddV2(p0)
 			p.AddV2(p1)
 			return
 		}
@@ -394,7 +393,11 @@ func (b *Bezier) Polygon() *Polygon {
 	p := NewPolygon()
 	n = len(splines)
 	for i, s := range splines {
-		s.Sample(p, 0, 1, s.f0(0), s.f0(1))
+		// Add the first vertex on the spline
+		p0 := s.f0(0)
+		p.AddV2(p0)
+		// Add the remaining spline vertices
+		s.Sample(p, 0, 1, p0, s.f0(1))
 		if i != n-1 {
 			// drop the last vertex since it is the first vertex of the next spline
 			p.Drop()
