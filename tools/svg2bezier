@@ -124,26 +124,35 @@ wsp:
 #------------------------------------------------------------------------------
 
 import ply.lex as lex
+from ply.lex import TOKEN
 import ply.yacc as yacc
 
 #------------------------------------------------------------------------------
 # Scanner
 
-digit = r'[0-9]'
-sign = r'[\+\-]'
+digits = r'([0-9]+)'
+sign = r'[+-]'
+exponent = r'([eE]' + sign + r'?' + digits + r')'
+fractional_constant = r'((' + digits + r'?' + r'\.' + digits + r')|(' + digits + r'\.))'
+floating_point_constant = r'((' + fractional_constant + exponent + '?' + ')|(' + digits + exponent + r'))'
+number = r'((' + sign + r'?' + digits + r')|(' + sign + r'?' + floating_point_constant + r'))'
 
 tokens = (
-  'elliptical_arc', # A
-  'curveto', # C
-  'horizontal_lineto', # H
-  'lineto', # L
-  'moveto', # M
-  'quadratic_bezier_curveto', # Q
-  'smooth_curveto', # S
-  'smooth_quadratic_bezier_curveto', # T
-  'vertical_lineto', # V
-  'closepath', # Z
+  'number',
+
+  'elliptical_arc',
+  'curveto',
+  'horizontal_lineto',
+  'lineto',
+  'moveto',
+  'quadratic_bezier_curveto',
+  'smooth_curveto',
+  'smooth_quadratic_bezier_curveto',
+  'vertical_lineto',
+  'closepath',
 )
+
+t_number = number
 
 t_elliptical_arc = r'[aA]'
 t_curveto = r'[cC]'
@@ -184,7 +193,7 @@ test_path = [
 
 def main():
 
-  test = 'MM  mm M MmmM'
+  test = '0.1234e123'
 
   lexer.input(test)
   while True:
