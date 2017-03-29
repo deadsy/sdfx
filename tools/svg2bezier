@@ -2,54 +2,8 @@
 #------------------------------------------------------------------------------
 '''
 
-Convert SVG Curve Paths to SDFX Bezier Curve Code.
+Convert SVG Curve Paths to sdfx Bezier Curve Code.
 
-'''
-#------------------------------------------------------------------------------
-
-import ply.lex as lex
-import ply.yacc as yacc
-
-#------------------------------------------------------------------------------
-# tokens
-
-tokens = (
-  'A','C','H','L','M','Q','S','T','V','Z',
-  'a','c','h','l','m','q','s','t','v','z',
-)
-
-t_A = r'A' # elliptical-arc
-t_a = r'a'
-
-t_C = r'C' # curveto (cubic bezier)
-t_c = r'c'
-
-t_H = r'H' # horizontal-lineto
-t_h = r'h'
-
-t_L = r'L' # lineto
-t_l = r'l'
-
-t_M = r'M' # moveto
-t_m = r'm'
-
-t_Q = r'Q' # quadratic-bezier-curveto
-t_q = r'q'
-
-t_S = r'S' # smooth-curveto (cubic bezier)
-t_s = r's'
-
-t_T = r'T' # smooth-quadratic-bezier-curveto
-t_t = r't'
-
-t_V = r'V' # vertical-lineto
-t_v = r'v'
-
-t_Z = r'Z' # closepath
-t_z = r'z'
-
-#------------------------------------------------------------------------------
-'''
 
 See: https://www.w3.org/TR/SVG/paths.html#PathData
 
@@ -169,6 +123,49 @@ wsp:
 '''
 #------------------------------------------------------------------------------
 
+import ply.lex as lex
+import ply.yacc as yacc
+
+#------------------------------------------------------------------------------
+# Scanner
+
+digit = r'[0-9]'
+sign = r'[\+\-]'
+
+tokens = (
+  'elliptical_arc', # A
+  'curveto', # C
+  'horizontal_lineto', # H
+  'lineto', # L
+  'moveto', # M
+  'quadratic_bezier_curveto', # Q
+  'smooth_curveto', # S
+  'smooth_quadratic_bezier_curveto', # T
+  'vertical_lineto', # V
+  'closepath', # Z
+)
+
+t_elliptical_arc = r'[aA]'
+t_curveto = r'[cC]'
+t_horizontal_lineto = r'[hH]'
+t_lineto = r'[lL]'
+t_moveto = r'[mM]'
+t_quadratic_bezier_curveto = r'[qQ]'
+t_smooth_curveto = r'[sS]'
+t_smooth_quadratic_bezier_curveto = r'[tT]'
+t_vertical_lineto = r'[vV]'
+t_closepath = r'[zZ]'
+
+t_ignore = ' \t\r\n' 
+
+def t_error(t):
+    print("illegal character '%s'" % t.value[0])
+    t.lexer.skip(1)
+
+lexer = lex.lex()
+
+#------------------------------------------------------------------------------
+
 test_path = [
   "M10 10 H 90 V 90 H 10 L 10 10"
   "M139,356 C100,100 372,91 398,414 Z",
@@ -186,8 +183,15 @@ test_path = [
 #------------------------------------------------------------------------------
 
 def main():
-  for t in test_path:
-    print(t)
+
+  test = 'MM  mm M MmmM'
+
+  lexer.input(test)
+  while True:
+    tok = lexer.token()
+    if not tok: 
+      break
+    print(tok)
 
 main()
 
