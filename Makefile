@@ -1,5 +1,6 @@
 
 DIRS = benchmark \
+       bezier \
        camshaft \
        challenge \
        cylinder_head \
@@ -9,7 +10,6 @@ DIRS = benchmark \
        pottery_wheel \
        nutsandbolts \
        3dp_nutbolt \
-       smin \
        test \
        voronoi \
 
