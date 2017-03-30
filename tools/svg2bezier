@@ -67,7 +67,7 @@ quadratic-bezier-curveto:
     ( "Q" | "q" ) wsp* quadratic-bezier-curveto-argument-sequence
 quadratic-bezier-curveto-argument-sequence:
     quadratic-bezier-curveto-argument
-    | quadratic-bezier-curveto-argument comma-wsp? 
+    | quadratic-bezier-curveto-argument comma-wsp?
         quadratic-bezier-curveto-argument-sequence
 quadratic-bezier-curveto-argument:
     coordinate-pair comma-wsp? coordinate-pair
@@ -82,7 +82,7 @@ elliptical-arc-argument-sequence:
     elliptical-arc-argument
     | elliptical-arc-argument comma-wsp? elliptical-arc-argument-sequence
 elliptical-arc-argument:
-    nonnegative-number comma-wsp? nonnegative-number comma-wsp? 
+    nonnegative-number comma-wsp? nonnegative-number comma-wsp?
         number comma-wsp flag comma-wsp? flag comma-wsp? coordinate-pair
 coordinate-pair:
     coordinate comma-wsp? coordinate
@@ -130,42 +130,46 @@ import ply.yacc as yacc
 #------------------------------------------------------------------------------
 # Scanner
 
-digits = r'([0-9]+)'
+digits = r'(\d+)'
 sign = r'[+-]'
 exponent = r'([eE]' + sign + r'?' + digits + r')'
-fractional_constant = r'((' + digits + r'?' + r'\.' + digits + r')|(' + digits + r'\.))'
-floating_point_constant = r'((' + fractional_constant + exponent + '?' + ')|(' + digits + exponent + r'))'
-number = r'((' + sign + r'?' + digits + r')|(' + sign + r'?' + floating_point_constant + r'))'
+fractional_constant = r'((' + digits + r'?\.' + digits + r')|(' + digits + r'\.))'
+floating_point_constant =  r'((' + fractional_constant + exponent + r'?)|(' + digits + exponent + r'))'
+number = r'(' + sign + r'?' + floating_point_constant + r')|(' + sign + r'?' + digits + r')'
 
 tokens = (
-  'number',
-
-  'elliptical_arc',
-  'curveto',
-  'horizontal_lineto',
-  'lineto',
-  'moveto',
-  'quadratic_bezier_curveto',
-  'smooth_curveto',
-  'smooth_quadratic_bezier_curveto',
-  'vertical_lineto',
-  'closepath',
+  'NUMBER',
+  'COMMA',
+  'ELLIPTICAL_ARC',
+  'CURVETO',
+  'HORIZONTAL_LINETO',
+  'LINETO',
+  'MOVETO',
+  'QUADRATIC_BEZIER_CURVETO',
+  'SMOOTH_CURVETO',
+  'SMOOTH_QUADRATIC_BEZIER_CURVETO',
+  'VERTICAL_LINETO',
+  'CLOSEPATH',
 )
 
-t_number = number
+@TOKEN(number)
+def t_NUMBER(t):
+    t.value = float(t.value)
+    return t
 
-t_elliptical_arc = r'[aA]'
-t_curveto = r'[cC]'
-t_horizontal_lineto = r'[hH]'
-t_lineto = r'[lL]'
-t_moveto = r'[mM]'
-t_quadratic_bezier_curveto = r'[qQ]'
-t_smooth_curveto = r'[sS]'
-t_smooth_quadratic_bezier_curveto = r'[tT]'
-t_vertical_lineto = r'[vV]'
-t_closepath = r'[zZ]'
+t_COMMA = r'\,'
+t_ELLIPTICAL_ARC = r'[aA]'
+t_CURVETO = r'[cC]'
+t_HORIZONTAL_LINETO = r'[hH]'
+t_LINETO = r'[lL]'
+t_MOVETO = r'[mM]'
+t_QUADRATIC_BEZIER_CURVETO = r'[qQ]'
+t_SMOOTH_CURVETO = r'[sS]'
+t_SMOOTH_QUADRATIC_BEZIER_CURVETO = r'[tT]'
+t_VERTICAL_LINETO = r'[vV]'
+t_CLOSEPATH = r'[zZ]'
 
-t_ignore = ' \t\r\n' 
+t_ignore = ' \t\r\n'
 
 def t_error(t):
     print("illegal character '%s'" % t.value[0])
@@ -174,33 +178,107 @@ def t_error(t):
 lexer = lex.lex()
 
 #------------------------------------------------------------------------------
+# Parser
+
+def p_moveto_drawto_command_group(t):
+  '''moveto_drawto_command_group : moveto
+                                 | moveto drawto_commands'''
+
+def p_drawto_commands(t):
+  '''drawto_commands : drawto_command
+                     | drawto_command drawto_commands'''
+
+def p_drawto_command(t):
+  '''drawto_command : closepath
+                    | lineto
+                    | horizontal_lineto
+                    | vertical_lineto
+                    | curveto
+                    | smooth_curveto
+                    | quadratic_bezier_curveto
+                    | smooth_quadratic_bezier_curveto
+                    | elliptical_arc'''
+
+def p_moveto(t):
+  '''moveto : MOVETO moveto_args'''
+
+def p_moveto_args(t):
+  '''moveto_args : coordinate_pair
+                 | coordinate_pair lineto_args
+                 | coordinate_pair COMMA lineto_args'''
+
+def p_lineto_args(t):
+  '''lineto_args : coordinate_pair
+                 | coordinate_pair lineto_args
+                 | coordinate_pair COMMA lineto_args'''
+
+def p_closepath(t):
+  'closepath : CLOSEPATH'
+
+def p_lineto(t):
+  'lineto : LINETO'
+
+def p_horizontal_lineto(t):
+  'horizontal_lineto : HORIZONTAL_LINETO'
+
+def p_vertical_lineto(t):
+  'vertical_lineto : VERTICAL_LINETO'
+
+def p_curveto(t):
+  'curveto : CURVETO'
+
+def p_smooth_curveto(t):
+  'smooth_curveto : SMOOTH_CURVETO'
+
+def p_quadratic_bezier_curveto(t):
+  'quadratic_bezier_curveto : QUADRATIC_BEZIER_CURVETO'
+
+def p_smooth_quadratic_bezier_curveto(t):
+  'smooth_quadratic_bezier_curveto : SMOOTH_QUADRATIC_BEZIER_CURVETO'
+
+def p_elliptical_arc(t):
+  'elliptical_arc : ELLIPTICAL_ARC'
+
+def p_coordinate_pair(t):
+  '''coordinate_pair : NUMBER NUMBER
+                     | NUMBER COMMA NUMBER'''
+
+def p_error(t):
+  print("syntax error at '%s'" % t.value)
+
+parser = yacc.yacc()
+
+#------------------------------------------------------------------------------
 
 test_path = [
-  "M10 10 H 90 V 90 H 10 L 10 10"
-  "M139,356 C100,100 372,91 398,414 Z",
-  "M10 10 C 20 20, 40 20, 50 10",
-  "M70 10 C 70 20, 120 20, 120 10",
-  "M130 10 C 120 20, 180 20, 170 10",
-  "M10 60 C 20 80, 40 80, 50 60",
-  "M70 60 C 70 80, 110 80, 110 60",
-  "M130 60 C 120 80, 180 80, 170 60",
-  "M10 110 C 20 140, 40 140, 50 110",
-  "M70 110 C 70 140, 110 140, 110 110",
-  "M130 110 C 120 140, 180 140, 170 110",
+  "M10 10 H 90 V 90 H 10 L 10 10",
+  #"M139,356 C100,100 372,91 398,414 Z",
+  #"M10 10 C 20 20, 40 20, 50 10",
+  #"M70 10 C 70 20, 120 20, 120 10",
+  #"M130 10 C 120 20, 180 20, 170 10",
+  #"M10 60 C 20 80, 40 80, 50 60",
+  #"M70 60 C 70 80, 110 80, 110 60",
+  #"M130 60 C 120 80, 180 80, 170 60",
+  #"M10 110 C 20 140, 40 140, 50 110",
+  #"M70 110 C 70 140, 110 140, 110 110",
+  #"M130 110 C 120 140, 180 140, 170 110",
+  "m -572.85714,869.50506 c 192.88322,-1.616 423.19532,2.38809 582.8571395,-98.57143 C 156.42598,678.34359 271.53116,497.47081 276.29115,324.16718 281.50356,134.39204 105.19248,-7.6659933 11.984471,-180.33054 c -24.093373,-44.63212 -34.60762,-119.917 -55.714286,-141.59297 -23.725303,-24.36524 -69.204155,-10.6815 -86.270185,12.85714 -30.05262,41.45064 8.50277,103.2095 25.71429,151.42858 61.988775,173.665188 273.35357,302.77743 273.66295,480.7582 C 169.6136,459.09331 74.436588,597.39293 -37.381851,674.7578 -186.7423,778.09721 -574.28571,767.61494 -574.28571,767.61494 Z"
 ]
 
 #------------------------------------------------------------------------------
 
 def main():
+  for t in test_path:
+    print('%s' % t)
+    parser.parse(t)
+    continue
 
-  test = '0.1234e123'
-
-  lexer.input(test)
-  while True:
-    tok = lexer.token()
-    if not tok: 
-      break
-    print(tok)
+    lexer.input(t)
+    while True:
+      tok = lexer.token()
+      if not tok:
+        break
+      print(tok)
 
 main()
 
