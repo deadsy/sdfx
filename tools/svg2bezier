@@ -75,7 +75,18 @@ def p_path_command(t):
 def p_moveto(t):
   '''moveto : MOVETO number_list'''
   v = vertices('M', t[2])
-  print('M %s' % v)
+  global curve
+  if len(v) >= 1:
+    # the first m/M is always absolute
+    x,y = v[0]
+    curve.set_xy(x,y)
+    curve.add_endpoint()
+  # any remaining vertices are rel/abs lineto commands
+  relative = t[1].islower()
+  for p in v[1:]:
+    x,y = p
+    curve.set_xy(x,y, relative)
+    curve.add_endpoint()
 
 def p_drawto_commands(t):
   '''drawto_commands : drawto_command
@@ -96,7 +107,8 @@ def p_drawto_command(t):
 
 def p_closepath(t):
   'closepath : CLOSEPATH'
-  print('Z')
+  global curve
+  curve.closepath()
 
 def p_lineto(t):
   'lineto : LINETO number_list'
@@ -117,8 +129,18 @@ def p_curveto(t):
   if len(v) % 3 != 0:
     print('C needs splines with 3 vertices each')
     raise SyntaxError
-  s = [(v[i], v[i+1], v[i+2]) for i in range(0, len(v), 3)]
-  print('C %s' % s)
+  splines = [(v[i], v[i+1], v[i+2]) for i in range(0, len(v), 3)]
+  # emit
+  global curve
+  relative = t[1].islower()
+  for s in splines:
+    p0,p1,p2 = s
+    curve.set_xy(p0[0], p0[1], relative)
+    curve.add_midpoint()
+    curve.set_xy(p1[0], p1[1], relative)
+    curve.add_midpoint()
+    curve.set_xy(p2[0], p2[1], relative)
+    curve.add_endpoint()
 
 def p_smooth_curveto(t):
   'smooth_curveto : SMOOTH_CURVETO number_list'
@@ -161,6 +183,47 @@ parser = yacc.yacc()
 
 #------------------------------------------------------------------------------
 
+class bezier_curve(object):
+
+  def __init__(self, name):
+    self.x = 0.0
+    self.y = 0.0
+    self.name = name
+    self.s = []
+    self.start_curve()
+
+  def set_xy(self, x, y, relative = False):
+    """set an x/y position"""
+    if relative:
+      self.x += x
+      self.y += y
+    else:
+      self.x = x
+      self.y = y
+
+  def start_curve(self):
+    """start a bezier curve"""
+    self.s.append('%s := NewBezier()' % self.name)
+
+  def add_endpoint(self):
+    """add an endpoint vertex"""
+    self.s.append('%s.Add(%f,%f)' % (self.name, self.x, self.y))
+
+  def add_midpoint(self):
+    """add a midpoint vertex"""
+    self.s.append('%s.Add(%f,%f).Mid()' % (self.name, self.x, self.y))
+
+  def closepath(self):
+    """close a bezier curve"""
+    self.s.append('%s.Close()' % self.name)
+
+  def __str__(self):
+    return '\n'.join(self.s)
+
+curve = bezier_curve('b')
+
+#------------------------------------------------------------------------------
+
 test_path = [
   "M10 10 H 90 V 90 H 10 L 10 10",
   "M1 2 C 1 2 3 4 5 6",
@@ -177,20 +240,11 @@ test_path = [
   "m -572.85714,869.50506 c 192.88322,-1.616 423.19532,2.38809 582.8571395,-98.57143 C 156.42598,678.34359 271.53116,497.47081 276.29115,324.16718 281.50356,134.39204 105.19248,-7.6659933 11.984471,-180.33054 c -24.093373,-44.63212 -34.60762,-119.917 -55.714286,-141.59297 -23.725303,-24.36524 -69.204155,-10.6815 -86.270185,12.85714 -30.05262,41.45064 8.50277,103.2095 25.71429,151.42858 61.988775,173.665188 273.35357,302.77743 273.66295,480.7582 C 169.6136,459.09331 74.436588,597.39293 -37.381851,674.7578 -186.7423,778.09721 -574.28571,767.61494 -574.28571,767.61494 Z"
 ]
 
-#------------------------------------------------------------------------------
-
 def main():
-  for t in test_path:
-    print('%s' % t)
-    parser.parse(t)
-    continue
-
-    #lexer.input(t)
-    #while True:
-      #tok = lexer.token()
-      #if not tok:
-        #break
-      #print(tok)
+  t  = "m -572.85714,869.50506 c 192.88322,-1.616 423.19532,2.38809 582.8571395,-98.57143 C 156.42598,678.34359 271.53116,497.47081 276.29115,324.16718 281.50356,134.39204 105.19248,-7.6659933 11.984471,-180.33054 c -24.093373,-44.63212 -34.60762,-119.917 -55.714286,-141.59297 -23.725303,-24.36524 -69.204155,-10.6815 -86.270185,12.85714 -30.05262,41.45064 8.50277,103.2095 25.71429,151.42858 61.988775,173.665188 273.35357,302.77743 273.66295,480.7582 C 169.6136,459.09331 74.436588,597.39293 -37.381851,674.7578 -186.7423,778.09721 -574.28571,767.61494 -574.28571,767.61494 Z"
+  global curve
+  parser.parse(t)
+  print('%s' % curve)
 
 main()
 
