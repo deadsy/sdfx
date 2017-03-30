@@ -1,125 +1,8 @@
 #!/usr/bin/python
 #------------------------------------------------------------------------------
 '''
-
 Convert SVG Curve Paths to sdfx Bezier Curve Code.
-
-
 See: https://www.w3.org/TR/SVG/paths.html#PathData
-
-svg-path:
-    wsp* moveto-drawto-command-groups? wsp*
-moveto-drawto-command-groups:
-    moveto-drawto-command-group
-    | moveto-drawto-command-group wsp* moveto-drawto-command-groups
-moveto-drawto-command-group:
-    moveto wsp* drawto-commands?
-drawto-commands:
-    drawto-command
-    | drawto-command wsp* drawto-commands
-drawto-command:
-    closepath
-    | lineto
-    | horizontal-lineto
-    | vertical-lineto
-    | curveto
-    | smooth-curveto
-    | quadratic-bezier-curveto
-    | smooth-quadratic-bezier-curveto
-    | elliptical-arc
-moveto:
-    ( "M" | "m" ) wsp* moveto-argument-sequence
-moveto-argument-sequence:
-    coordinate-pair
-    | coordinate-pair comma-wsp? lineto-argument-sequence
-closepath:
-    ("Z" | "z")
-lineto:
-    ( "L" | "l" ) wsp* lineto-argument-sequence
-lineto-argument-sequence:
-    coordinate-pair
-    | coordinate-pair comma-wsp? lineto-argument-sequence
-horizontal-lineto:
-    ( "H" | "h" ) wsp* horizontal-lineto-argument-sequence
-horizontal-lineto-argument-sequence:
-    coordinate
-    | coordinate comma-wsp? horizontal-lineto-argument-sequence
-vertical-lineto:
-    ( "V" | "v" ) wsp* vertical-lineto-argument-sequence
-vertical-lineto-argument-sequence:
-    coordinate
-    | coordinate comma-wsp? vertical-lineto-argument-sequence
-curveto:
-    ( "C" | "c" ) wsp* curveto-argument-sequence
-curveto-argument-sequence:
-    curveto-argument
-    | curveto-argument comma-wsp? curveto-argument-sequence
-curveto-argument:
-    coordinate-pair comma-wsp? coordinate-pair comma-wsp? coordinate-pair
-smooth-curveto:
-    ( "S" | "s" ) wsp* smooth-curveto-argument-sequence
-smooth-curveto-argument-sequence:
-    smooth-curveto-argument
-    | smooth-curveto-argument comma-wsp? smooth-curveto-argument-sequence
-smooth-curveto-argument:
-    coordinate-pair comma-wsp? coordinate-pair
-quadratic-bezier-curveto:
-    ( "Q" | "q" ) wsp* quadratic-bezier-curveto-argument-sequence
-quadratic-bezier-curveto-argument-sequence:
-    quadratic-bezier-curveto-argument
-    | quadratic-bezier-curveto-argument comma-wsp?
-        quadratic-bezier-curveto-argument-sequence
-quadratic-bezier-curveto-argument:
-    coordinate-pair comma-wsp? coordinate-pair
-smooth-quadratic-bezier-curveto:
-    ( "T" | "t" ) wsp* smooth-quadratic-bezier-curveto-argument-sequence
-smooth-quadratic-bezier-curveto-argument-sequence:
-    coordinate-pair
-    | coordinate-pair comma-wsp? smooth-quadratic-bezier-curveto-argument-sequence
-elliptical-arc:
-    ( "A" | "a" ) wsp* elliptical-arc-argument-sequence
-elliptical-arc-argument-sequence:
-    elliptical-arc-argument
-    | elliptical-arc-argument comma-wsp? elliptical-arc-argument-sequence
-elliptical-arc-argument:
-    nonnegative-number comma-wsp? nonnegative-number comma-wsp?
-        number comma-wsp flag comma-wsp? flag comma-wsp? coordinate-pair
-coordinate-pair:
-    coordinate comma-wsp? coordinate
-coordinate:
-    number
-nonnegative-number:
-    integer-constant
-    | floating-point-constant
-number:
-    sign? integer-constant
-    | sign? floating-point-constant
-flag:
-    "0" | "1"
-comma-wsp:
-    (wsp+ comma? wsp*) | (comma wsp*)
-comma:
-    ","
-integer-constant:
-    digit-sequence
-floating-point-constant:
-    fractional-constant exponent?
-    | digit-sequence exponent
-fractional-constant:
-    digit-sequence? "." digit-sequence
-    | digit-sequence "."
-exponent:
-    ( "e" | "E" ) sign? digit-sequence
-sign:
-    "+" | "-"
-digit-sequence:
-    digit
-    | digit digit-sequence
-digit:
-    "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
-wsp:
-    (#x20 | #x9 | #xD | #xA)
-
 '''
 #------------------------------------------------------------------------------
 
@@ -139,7 +22,6 @@ number = r'(' + sign + r'?' + floating_point_constant + r')|(' + sign + r'?' + d
 
 tokens = (
   'NUMBER',
-  'COMMA',
   'ELLIPTICAL_ARC',
   'CURVETO',
   'HORIZONTAL_LINETO',
@@ -157,7 +39,6 @@ def t_NUMBER(t):
     t.value = float(t.value)
     return t
 
-t_COMMA = r'\,'
 t_ELLIPTICAL_ARC = r'[aA]'
 t_CURVETO = r'[cC]'
 t_HORIZONTAL_LINETO = r'[hH]'
@@ -169,7 +50,7 @@ t_SMOOTH_QUADRATIC_BEZIER_CURVETO = r'[tT]'
 t_VERTICAL_LINETO = r'[vV]'
 t_CLOSEPATH = r'[zZ]'
 
-t_ignore = ' \t\r\n'
+t_ignore = ' ,\t\r\n'
 
 def t_error(t):
     print("illegal character '%s'" % t.value[0])
@@ -180,10 +61,21 @@ lexer = lex.lex()
 #------------------------------------------------------------------------------
 # Parser
 
-def p_moveto_drawto_command_group(t):
-  '''moveto_drawto_command_group : moveto
-                                 | moveto drawto_commands'''
+def vertices(cmd, l):
+  if len(l) % 2 != 0:
+    print('%s needs number pair arguments' % cmd)
+    raise SyntaxError
+  return [(l[i], l[i+1]) for i in range(0, len(l), 2)]
+
+def p_path_command(t):
+  '''path_command : moveto
+                  | moveto drawto_commands'''
   pass
+
+def p_moveto(t):
+  '''moveto : MOVETO number_list'''
+  v = vertices('M', t[2])
+  print('M %s' % v)
 
 def p_drawto_commands(t):
   '''drawto_commands : drawto_command
@@ -202,118 +94,63 @@ def p_drawto_command(t):
                     | elliptical_arc'''
   pass
 
-def p_moveto(t):
-  '''moveto : MOVETO moveto_args'''
-  print('M %s' % t[2])
-
-def p_moveto_args(t):
-  '''moveto_args : coordinate_pair
-                 | coordinate_pair moveto_args
-                 | coordinate_pair COMMA moveto_args'''
-  n = len(t)
-  if n == 2:
-    t[0] = [t[1],]
-  elif n == 3:
-    t[0] = [t[1],] + t[2]
-  elif n == 4:
-    t[0] = [t[1],] + t[3]
-  else:
-    assert False
-
 def p_closepath(t):
   'closepath : CLOSEPATH'
-  pass
+  print('Z')
 
 def p_lineto(t):
-  'lineto : LINETO lineto_args'
-  pass
-
-def p_lineto_args(t):
-  '''lineto_args : coordinate_pair
-                 | coordinate_pair lineto_args
-                 | coordinate_pair COMMA lineto_args'''
-  pass
+  'lineto : LINETO number_list'
+  v = vertices('L', t[2])
+  print('L %s' % v)
 
 def p_horizontal_lineto(t):
-  'horizontal_lineto : HORIZONTAL_LINETO horizontal_lineto_args'
-  pass
-
-def p_horizontal_lineto_args(t):
-  '''horizontal_lineto_args : NUMBER
-                            | NUMBER horizontal_lineto_args
-                            | NUMBER COMMA horizontal_lineto_args'''
-  pass
+  'horizontal_lineto : HORIZONTAL_LINETO number_list'
+  print("H %s" % t[2])
 
 def p_vertical_lineto(t):
-  'vertical_lineto : VERTICAL_LINETO vertical_lineto_args'
-  pass
-
-def p_vertical_lineto_args(t):
-  '''vertical_lineto_args : NUMBER
-                          | NUMBER vertical_lineto_args
-                          | NUMBER COMMA vertical_lineto_args'''
-  pass
+  'vertical_lineto : VERTICAL_LINETO number_list'
+  print("V %s" % t[2])
 
 def p_curveto(t):
-  'curveto : CURVETO curveto_args'
-  print("C %s" % t[2])
+  'curveto : CURVETO number_list'
+  v = vertices('C', t[2])
+  if len(v) % 3 != 0:
+    print('C needs splines with 3 vertices each')
+    raise SyntaxError
+  s = [(v[i], v[i+1], v[i+2]) for i in range(0, len(v), 3)]
+  print('C %s' % s)
 
-def p_curveto_args(t):
-  '''curveto_args : curveto_arg
-                  | curveto_arg curveto_args
-                  | curveto_arg COMMA curveto_args'''
+def p_smooth_curveto(t):
+  'smooth_curveto : SMOOTH_CURVETO number_list'
+  v = vertices('S', t[2])
+  if len(v) % 2 != 0:
+    print('S needs splines with 2 vertices each')
+    raise SyntaxError
+  s = [(v[i], v[i+1]) for i in range(0, len(v), 2)]
+  print("S %s" % s)
+
+def p_quadratic_bezier_curveto(t):
+  'quadratic_bezier_curveto : QUADRATIC_BEZIER_CURVETO number_list'
+  v = vertices('Q', t[2])
+  print("Q %s" % v)
+
+def p_smooth_quadratic_bezier_curveto(t):
+  'smooth_quadratic_bezier_curveto : SMOOTH_QUADRATIC_BEZIER_CURVETO number_list'
+  v = vertices('T', t[2])
+  print("T %s" % v)
+
+def p_elliptical_arc(t):
+  'elliptical_arc : ELLIPTICAL_ARC number_list'
+  print("A %s" % t[2])
+
+def p_number_list(t):
+  '''number_list : NUMBER
+                 | NUMBER number_list'''
   n = len(t)
   if n == 2:
     t[0] = [t[1],]
   elif n == 3:
     t[0] = [t[1],] + t[2]
-    pass
-  elif n == 4:
-    t[0] = [t[1],] + t[3]
-  else:
-    assert False
-
-def p_curveto_arg(t):
-  '''curveto_arg : coordinate_pair COMMA coordinate_pair COMMA coordinate_pair
-                 | coordinate_pair COMMA coordinate_pair coordinate_pair
-                 | coordinate_pair coordinate_pair COMMA coordinate_pair
-                 | coordinate_pair coordinate_pair coordinate_pair'''
-  n = len(t)
-  if n == 6:
-    t[0] = (t[1], t[3], t[5])
-  elif n == 5:
-    t[0] = (t[1], t[3], t[4])
-    t[0] = (t[1], t[2], t[4])
-  elif n == 4:
-    t[0] = (t[1], t[2], t[3])
-  else:
-    assert False
-
-
-def p_smooth_curveto(t):
-  'smooth_curveto : SMOOTH_CURVETO'
-  pass
-
-def p_quadratic_bezier_curveto(t):
-  'quadratic_bezier_curveto : QUADRATIC_BEZIER_CURVETO'
-  pass
-
-def p_smooth_quadratic_bezier_curveto(t):
-  'smooth_quadratic_bezier_curveto : SMOOTH_QUADRATIC_BEZIER_CURVETO'
-  pass
-
-def p_elliptical_arc(t):
-  'elliptical_arc : ELLIPTICAL_ARC'
-  pass
-
-def p_coordinate_pair(t):
-  '''coordinate_pair : NUMBER NUMBER
-                     | NUMBER COMMA NUMBER'''
-  n = len(t)
-  if n == 3:
-    t[0] = (t[1], t[2])
-  elif n == 4:
-    t[0] = (t[1], t[3])
   else:
     assert False
 
@@ -326,9 +163,7 @@ parser = yacc.yacc()
 
 test_path = [
   "M10 10 H 90 V 90 H 10 L 10 10",
-
   "M1 2 C 1 2 3 4 5 6",
-
   "M139,356 C100,100 372,91 398,414 Z",
   "M10 10 C 20 20, 40 20, 50 10",
   "M70 10 C 70 20, 120 20, 120 10",
@@ -350,12 +185,12 @@ def main():
     parser.parse(t)
     continue
 
-    lexer.input(t)
-    while True:
-      tok = lexer.token()
-      if not tok:
-        break
-      print(tok)
+    #lexer.input(t)
+    #while True:
+      #tok = lexer.token()
+      #if not tok:
+        #break
+      #print(tok)
 
 main()
 
