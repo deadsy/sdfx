@@ -67,6 +67,19 @@ def vertices(cmd, l):
     raise SyntaxError
   return [(l[i], l[i+1]) for i in range(0, len(l), 2)]
 
+def relative(x):
+  if x.islower():
+    if x == 'h':
+      return 'rel_x'
+    if x == 'v':
+      return 'rel_y'
+    return 'rel_xy'
+  if x == 'H':
+    return 'abs_x'
+  if x == 'V':
+    return 'abs_y'
+  return 'abs_xy'
+
 def p_path_command(t):
   '''path_command : moveto
                   | moveto drawto_commands'''
@@ -79,14 +92,17 @@ def p_moveto(t):
   if len(v) >= 1:
     # the first m/M is always absolute
     x,y = v[0]
+    curve.add_endpoint(x,y)
     curve.set_xy(x,y)
-    curve.add_endpoint()
-  # any remaining vertices are rel/abs lineto commands
-  relative = t[1].islower()
-  for p in v[1:]:
-    x,y = p
-    curve.set_xy(x,y, relative)
-    curve.add_endpoint()
+  if len(v) >= 2:
+    # any remaining vertices are rel/abs lineto commands
+    r = relative(t[1])
+    for p in v[1:]:
+      x,y = p
+      curve.add_endpoint(x, y, r)
+    # set the absolute position with the last value
+    p = v[-1]
+    curve.set_xy(p[0],p[1], r)
 
 def p_drawto_commands(t):
   '''drawto_commands : drawto_command
@@ -114,10 +130,12 @@ def p_lineto(t):
   'lineto : LINETO number_list'
   v = vertices('L', t[2])
   global curve
-  relative = t[1].islower()
+  r = relative(t[1])
   for p in v:
-    curve.set_xy(p[0], p[1], relative)
-    curve.add_endpoint()
+    curve.add_endpoint(p[0], p[1], r)
+  # set the absolute position with the last value
+  p = v[-1]
+  curve.set_xy(p[0], p[1], r)
 
 def p_horizontal_lineto(t):
   'horizontal_lineto : HORIZONTAL_LINETO number_list'
@@ -126,8 +144,10 @@ def p_horizontal_lineto(t):
     print('H has multiple numbers')
     raise SyntaxError
   global curve
-  curve.set_x(t[2][0], t[1].islower())
-  curve.add_endpoint()
+  r = relative(t[1])
+  x = t[2][0]
+  curve.add_endpoint(x, 0, r)
+  curve.set_xy(x, 0, r)
 
 def p_vertical_lineto(t):
   'vertical_lineto : VERTICAL_LINETO number_list'
@@ -136,8 +156,10 @@ def p_vertical_lineto(t):
     print('V has multiple numbers')
     raise SyntaxError
   global curve
-  curve.set_y(t[2][0], t[1].islower())
-  curve.add_endpoint()
+  r = relative(t[1])
+  y = t[2][0]
+  curve.add_endpoint(0, y, r)
+  curve.set_xy(0, y, r)
 
 def p_curveto(t):
   'curveto : CURVETO number_list'
@@ -148,15 +170,17 @@ def p_curveto(t):
   splines = [(v[i], v[i+1], v[i+2]) for i in range(0, len(v), 3)]
   # emit
   global curve
-  relative = t[1].islower()
+  r = relative(t[1])
   for s in splines:
     p0,p1,p2 = s
-    curve.set_xy(p0[0], p0[1], relative)
-    curve.add_midpoint()
-    curve.set_xy(p1[0], p1[1], relative)
-    curve.add_midpoint()
-    curve.set_xy(p2[0], p2[1], relative)
-    curve.add_endpoint()
+    curve.add_midpoint(p0[0], p0[1], r)
+    curve.add_midpoint(p1[0], p1[1], r)
+    curve.add_endpoint(p2[0], p2[1], r)
+  # set the position with the last vertex
+  if len(splines) >= 1:
+    s = splines[-1]
+    p = s[-1]
+    curve.set_xy(p[0], p[1], r)
 
 def p_smooth_curveto(t):
   'smooth_curveto : SMOOTH_CURVETO number_list'
@@ -170,7 +194,22 @@ def p_smooth_curveto(t):
 def p_quadratic_bezier_curveto(t):
   'quadratic_bezier_curveto : QUADRATIC_BEZIER_CURVETO number_list'
   v = vertices('Q', t[2])
-  print("Q %s" % v)
+  if len(v) % 2 != 0:
+    print('Q needs splines with 2 vertices each')
+    raise SyntaxError
+  splines = [(v[i], v[i+1]) for i in range(0, len(v), 2)]
+  # emit
+  global curve
+  r = relative(t[1])
+  for s in splines:
+    p0, p1 = s
+    curve.add_midpoint(p0[0], p0[1], r)
+    curve.add_endpoint(p1[0], p1[1], r)
+  # set the position with the last vertex
+  if len(splines) >= 1:
+    s = splines[-1]
+    p = s[-1]
+    curve.set_xy(p[0], p[1], r)
 
 def p_smooth_quadratic_bezier_curveto(t):
   'smooth_quadratic_bezier_curveto : SMOOTH_QUADRATIC_BEZIER_CURVETO number_list'
@@ -208,40 +247,42 @@ class bezier_curve(object):
     self.s = []
     self.start_curve()
 
-  def set_xy(self, x, y, relative = False):
-    """set an x/y position"""
-    if relative:
-      self.x += x
-      self.y += y
+  def vertex(self, x, y, r):
+    """calculate a vertex"""
+    if r == 'rel_xy':
+      return (self.x + x, self.y + y)
+    elif r == 'rel_x':
+      return (self.x + x, self.y)
+    elif r == 'rel_y':
+      return (self.x, self.y + y)
+    elif r == 'abs_xy':
+      return (x, y)
+    elif r == 'abs_x':
+      return (x, self.y)
+    elif r == 'abs_y':
+      return (self.x, y)
     else:
-      self.x = x
-      self.y = y
+      assert False
 
-  def set_x(self, x, relative = False):
-    """set an x position"""
-    if relative:
-      self.x += x
-    else:
-      self.x = x
-
-  def set_y(self, y, relative = False):
-    """set a y position"""
-    if relative:
-      self.y += y
-    else:
-      self.y = y
+  def set_xy(self, x, y, r = 'abs_xy'):
+    """set the x/y position"""
+    self.x, self.y = self.vertex(x, y, r)
 
   def start_curve(self):
     """start a bezier curve"""
     self.s.append('%s := NewBezier()' % self.name)
 
-  def add_endpoint(self):
-    """add an endpoint vertex"""
-    self.s.append('%s.Add(%f,%f)' % (self.name, self.x, self.y))
+  def endpoint_str(self, x, y, r):
+    x, y = self.vertex(x, y, r)
+    return '%s.Add(%f,%f)' % (self.name, x, y)
 
-  def add_midpoint(self):
+  def add_endpoint(self, x, y, r = 'abs_xy'):
+    """add an endpoint vertex"""
+    self.s.append(self.endpoint_str(x, y, r))
+
+  def add_midpoint(self, x, y, r = 'abs_xy'):
     """add a midpoint vertex"""
-    self.s.append('%s.Add(%f,%f).Mid()' % (self.name, self.x, self.y))
+    self.s.append('%s.Mid()' % self.endpoint_str(x, y, r))
 
   def closepath(self):
     """close a bezier curve"""
@@ -271,8 +312,10 @@ test_path = [
 ]
 
 def main():
-  t = "M10 10 H 90 V 90 H 10 L 10 10"
-# t  = "m -572.85714,869.50506 c 192.88322,-1.616 423.19532,2.38809 582.8571395,-98.57143 C 156.42598,678.34359 271.53116,497.47081 276.29115,324.16718 281.50356,134.39204 105.19248,-7.6659933 11.984471,-180.33054 c -24.093373,-44.63212 -34.60762,-119.917 -55.714286,-141.59297 -23.725303,-24.36524 -69.204155,-10.6815 -86.270185,12.85714 -30.05262,41.45064 8.50277,103.2095 25.71429,151.42858 61.988775,173.665188 273.35357,302.77743 273.66295,480.7582 C 169.6136,459.09331 74.436588,597.39293 -37.381851,674.7578 -186.7423,778.09721 -574.28571,767.61494 -574.28571,767.61494 Z"
+# t="M 100 350 q 150 -300 300 0"
+#  t="M150 0 L75 200 L225 200 Z"
+#  t = "M10 10 H 90 V 90 H 10 L 10 10"
+  t = "m -572.85714,869.50506 c 192.88322,-1.616 423.19532,2.38809 582.8571395,-98.57143 C 156.42598,678.34359 271.53116,497.47081 276.29115,324.16718 281.50356,134.39204 105.19248,-7.6659933 11.984471,-180.33054 c -24.093373,-44.63212 -34.60762,-119.917 -55.714286,-141.59297 -23.725303,-24.36524 -69.204155,-10.6815 -86.270185,12.85714 -30.05262,41.45064 8.50277,103.2095 25.71429,151.42858 61.988775,173.665188 273.35357,302.77743 273.66295,480.7582 C 169.6136,459.09331 74.436588,597.39293 -37.381851,674.7578 -186.7423,778.09721 -574.28571,767.61494 -574.28571,767.61494 Z"
   global curve
   parser.parse(t)
   print('%s' % curve)
