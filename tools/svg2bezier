@@ -176,11 +176,7 @@ def p_curveto(t):
     curve.add_midpoint(p0[0], p0[1], r)
     curve.add_midpoint(p1[0], p1[1], r)
     curve.add_endpoint(p2[0], p2[1], r)
-  # set the position with the last vertex
-  if len(splines) >= 1:
-    s = splines[-1]
-    p = s[-1]
-    curve.set_xy(p[0], p[1], r)
+    curve.set_xy(p2[0], p2[1], r)
 
 def p_smooth_curveto(t):
   'smooth_curveto : SMOOTH_CURVETO number_list'
@@ -188,8 +184,22 @@ def p_smooth_curveto(t):
   if len(v) % 2 != 0:
     print('S needs splines with 2 vertices each')
     raise SyntaxError
-  s = [(v[i], v[i+1]) for i in range(0, len(v), 2)]
-  print("S %s" % s)
+  splines = [(v[i], v[i+1]) for i in range(0, len(v), 2)]
+  # emit
+  global curve
+  r = relative(t[1])
+  for s in splines:
+    p0,p1 = s
+    # the first midpoint is a reflection across the
+    # current point of the previous midpoint
+    curve.implicit_midpoint()
+    curve.add_midpoint(p0[0], p0[1], r)
+    curve.add_endpoint(p1[0], p1[1], r)
+  # set the position with the last vertex
+  if len(splines) >= 1:
+    s = splines[-1]
+    p = s[-1]
+    curve.set_xy(p[0], p[1], r)
 
 def p_quadratic_bezier_curveto(t):
   'quadratic_bezier_curveto : QUADRATIC_BEZIER_CURVETO number_list'
@@ -238,14 +248,27 @@ parser = yacc.yacc()
 
 #------------------------------------------------------------------------------
 
+class vertex(object):
+
+  def __init__(self, x, y, t):
+    self.x = x
+    self.y = y
+    self.t = t
+
+  def __str__(self):
+    """return a tring for the vertex"""
+    s = []
+    s.append('b.Add(%f,%f)' % (self.x, self.y))
+    if self.t == 'mid':
+      s.append('.Mid()')
+    return ''.join(s)
+
 class bezier_curve(object):
 
-  def __init__(self, name):
-    self.x = 0.0
-    self.y = 0.0
-    self.name = name
-    self.s = []
-    self.start_curve()
+  def __init__(self):
+    self.x, self.y = 0.0, 0.0
+    self.vlist = []
+    self.closed = False
 
   def vertex(self, x, y, r):
     """calculate a vertex"""
@@ -268,30 +291,43 @@ class bezier_curve(object):
     """set the x/y position"""
     self.x, self.y = self.vertex(x, y, r)
 
-  def start_curve(self):
-    """start a bezier curve"""
-    self.s.append('%s := NewBezier()' % self.name)
-
-  def endpoint_str(self, x, y, r):
-    x, y = self.vertex(x, y, r)
-    return '%s.Add(%f,%f)' % (self.name, x, y)
-
   def add_endpoint(self, x, y, r = 'abs_xy'):
     """add an endpoint vertex"""
-    self.s.append(self.endpoint_str(x, y, r))
+    x, y = self.vertex(x, y, r)
+    self.vlist.append(vertex(x,y,'end'))
 
   def add_midpoint(self, x, y, r = 'abs_xy'):
     """add a midpoint vertex"""
-    self.s.append('%s.Mid()' % self.endpoint_str(x, y, r))
+    x, y = self.vertex(x, y, r)
+    self.vlist.append(vertex(x,y,'mid'))
+
+  def implicit_midpoint(self):
+    """add an implicit midpoint"""
+    if len(self.vlist) >= 2:
+      ep = self.vlist[-1]
+      mp = self.vlist[-2]
+      assert ep.t == 'end'
+      assert mp.t == 'mid'
+      x = 2 * ep.x - mp.x
+      y = 2 * ep.y - mp.y
+      self.vlist.append(vertex(x,y,'mid'))
+    else:
+      assert False
 
   def closepath(self):
     """close a bezier curve"""
-    self.s.append('%s.Close()' % self.name)
+    self.closed = True
 
   def __str__(self):
-    return '\n'.join(self.s)
+    s = []
+    s.append('b := NewBezier()')
+    for v in self.vlist:
+      s.append(str(v))
+    if self.closed:
+      s.append('b.Close()')
+    return '\n'.join(s)
 
-curve = bezier_curve('b')
+curve = bezier_curve()
 
 #------------------------------------------------------------------------------
 
@@ -312,10 +348,20 @@ test_path = [
 ]
 
 def main():
-# t="M 100 350 q 150 -300 300 0"
-#  t="M150 0 L75 200 L225 200 Z"
-#  t = "M10 10 H 90 V 90 H 10 L 10 10"
-  t = "m -572.85714,869.50506 c 192.88322,-1.616 423.19532,2.38809 582.8571395,-98.57143 C 156.42598,678.34359 271.53116,497.47081 276.29115,324.16718 281.50356,134.39204 105.19248,-7.6659933 11.984471,-180.33054 c -24.093373,-44.63212 -34.60762,-119.917 -55.714286,-141.59297 -23.725303,-24.36524 -69.204155,-10.6815 -86.270185,12.85714 -30.05262,41.45064 8.50277,103.2095 25.71429,151.42858 61.988775,173.665188 273.35357,302.77743 273.66295,480.7582 C 169.6136,459.09331 74.436588,597.39293 -37.381851,674.7578 -186.7423,778.09721 -574.28571,767.61494 -574.28571,767.61494 Z"
+  s = [
+    "m -572.85714,869.50506",
+    "c 192.88322,-1.616 423.19532,2.38809 582.8571395,-98.57143",
+    "C 156.42598,678.34359 271.53116,497.47081 276.29115,324.16718 281.50356,134.39204 105.19248,-7.6659933 11.984471,-180.33054",
+    "c -24.093373,-44.63212  -34.60762,-119.917   -55.714286,-141.59297",
+    "   -23.725303,-24.36524  -69.204155,-10.6815  -86.270185,12.85714",
+    "   -30.05262,41.45064    8.50277,103.2095     25.71429,151.42858",
+    "   61.988775,173.665188  273.35357,302.77743  273.66295,480.7582",
+    "C 169.6136,459.09331 74.436588,597.39293 -37.381851,674.7578 -186.7423,778.09721 -574.28571,767.61494 -574.28571,767.61494",
+    "Z",
+  ]
+
+  t = ' '.join(s)
+
   global curve
   parser.parse(t)
   print('%s' % curve)
