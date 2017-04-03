@@ -318,26 +318,37 @@ class bezier_curve(object):
     """close a bezier curve"""
     self.closed = True
 
-  def post(self):
-    """post processing"""
-    if len(self.vlist) == 0:
-      return
+  def flipy(self):
+    """flip the y axis"""
     for v in self.vlist:
       # flip the y-axis
       v.y = -v.y
-    # find the minimum endpoints
-    xmin, ymin = None, None
+
+  def offset(self,vmin):
+    """offset the curve"""
+    for v in self.vlist:
+      v.x -= vmin[0]
+      v.y -= vmin[1]
+
+  def vmin(self):
+    """return the minimum endpoint vertex"""
+    x, y = None, None
     for v in self.vlist:
       if v.t == 'end':
-        xmin = (min(xmin, v.x), v.x)[xmin is None]
-        ymin = (min(ymin, v.y), v.y)[ymin is None]
-    # offset the curve so the minimum is at 0,0
+        x = (min(x, v.x), v.x)[x is None]
+        y = (min(y, v.y), v.y)[y is None]
+    return (x, y)
+
+  def vmax(self):
+    """return the maximum endpoint vertex"""
+    x, y = None, None
     for v in self.vlist:
-      v.x -= xmin
-      v.y -= ymin
+      if v.t == 'end':
+        x = (max(x, v.x), v.x)[x is None]
+        y = (max(y, v.y), v.y)[y is None]
+    return (x, y)
 
   def __str__(self):
-    self.post()
     s = []
     s.append('b := NewBezier()')
     for v in self.vlist:
@@ -352,10 +363,16 @@ curve = bezier_curve()
 
 def main():
 
-  t = "m -572.85714,869.50506 c 192.88322,-1.616 423.19532,2.38809 582.8571395,-98.57143 C 156.42598,678.34359 271.53116,497.47081 276.29115,324.16718 281.50356,134.39204 105.19248,-7.6659933 11.984471,-180.33054 c -24.093373,-44.63212 -34.60762,-119.917 -55.714286,-141.59297 -23.725303,-24.36524 -69.204155,-10.6815 -86.270185,12.85714 -30.05262,41.45064 8.50277,103.2095 25.71429,151.42858 61.988775,173.665188 273.35357,302.77743 273.66295,480.7582 C 169.6136,459.09331 74.436588,597.39293 -37.381851,674.7578 -186.7423,778.09721 -574.28571,767.61494 -574.28571,767.61494 Z"
+  #t="M371 308q-41 0 -72 31.5t-31 71.5q0 69 128 170l239 180q129 111 129 203q0 116 -109 214q-105 95 -223 95q-63 0 -160 -64.5t-120 -64.5q-41 0 -70.5 33t-29.5 74q0 79 153 157q137 70 227 70q201 0 365 -157t164 -357q0 -146 -94 -259q-56 -68 -208 -176 q-153 -111 -213 -180q-35 -41 -75 -41zM316 -72q-44 0 -79.5 29.5t-35.5 71.5q0 62 33 112q37 56 95 56q96 0 96 -118q0 -55 -26 -99q-32 -52 -83 -52z"
+
+  t="M1541 222q0 -48 -16 -160q-16 -101 -107 -101q-55 0 -131 72q-407 385 -934 1111l-5 -227l-3 -228q0 -83 3.5 -249t3.5 -250q0 -269 -104 -269q-55 0 -87 35q-29 31 -29 74q0 42 6.5 127t6.5 127q0 62 4 185.5t4 185.5q0 66 -3 199.5t-3 199.5q0 63 -12 187.5t-12 187.5 q0 46 39.5 84t89.5 38q53 0 131 -116q249 -373 448 -620q237 -293 520 -560q3 43 0 127l-3 126q0 439 -34 699q-4 26 -27 105q-20 68 -20 106q0 116 106 116q174 0 174 -649q0 -111 -3 -331.5t-3 -331.5z"
 
   global curve
   parser.parse(t)
+
+  #curve.flipy()
+  curve.offset(curve.vmin())
+
   print('%s' % curve)
 
 main()
