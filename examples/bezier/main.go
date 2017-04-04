@@ -13,7 +13,6 @@ import . "github.com/deadsy/sdfx/sdf"
 //-----------------------------------------------------------------------------
 
 func bowling_pin() {
-
 	b := NewBezier()
 	b.Add(0, 0)
 	b.Add(2.031/2.0, 0).HandleFwd(DtoR(45), 2)
@@ -23,12 +22,24 @@ func bowling_pin() {
 	b.Add(0, 15).HandleRev(DtoR(0), 1)
 	b.Close()
 
-	p := b.Polygon()
-	p.Render("bowlingpin.dxf")
-
+  p := b.Polygon()
 	s0 := Polygon2D(p.Vertices())
 	s1 := Revolve3D(s0)
 	RenderSTL(s1, 300, "bowlingpin.stl")
+}
+
+//-----------------------------------------------------------------------------
+
+func egg() {
+	b := NewBezier()
+	b.Add(0, 0).HandleFwd(DtoR(0), 10)
+	b.Add(0, 16).HandleRev(DtoR(0), 5)
+	b.Close()
+
+	p := b.Polygon()
+	s0 := Polygon2D(p.Vertices())
+	s1 := Revolve3D(s0)
+	RenderSTL(s1, 300, "egg.stl")
 }
 
 //-----------------------------------------------------------------------------
@@ -74,7 +85,6 @@ func bowl() {
 //-----------------------------------------------------------------------------
 
 func vase() {
-
 	b := NewBezier()
 	b.Add(0.357140, 0.000000)
 	b.Add(286.591374, 0.000000)
@@ -113,7 +123,6 @@ func vase() {
 //-----------------------------------------------------------------------------
 
 func comic_sans_n() {
-
 	b := NewBezier()
 	b.Add(1418.000000, 301.000000)
 	b.Add(1418.000000, 253.000000).Mid()
@@ -181,18 +190,18 @@ func comic_sans_n() {
 	b.Add(1418.000000, 301.000000)
 	b.Close()
 
-	p := b.Polygon()
-	p.Render("comicsans_n.dxf")
-
+  p := b.Polygon()
+	p.Render("comicsans.dxf")
 }
 
 //-----------------------------------------------------------------------------
 
 func main() {
-	//bowling_pin()
+	bowling_pin()
 	bowl()
 	vase()
 	comic_sans_n()
+	egg()
 }
 
 //-----------------------------------------------------------------------------

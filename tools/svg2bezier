@@ -81,8 +81,17 @@ def relative(x):
   return 'abs_xy'
 
 def p_path_command(t):
-  '''path_command : moveto
-                  | moveto drawto_commands'''
+  '''path_command : moveto_drawto_commands'''
+  pass
+
+def p_moveto_drawto_commands(t):
+  '''moveto_drawto_commands : moveto_drawto_command
+                            | moveto_drawto_command moveto_drawto_commands'''
+  pass
+
+def p_moveto_drawto_command(t):
+  '''moveto_drawto_command : moveto
+                           | moveto drawto_commands'''
   pass
 
 def p_moveto(t):
@@ -92,6 +101,7 @@ def p_moveto(t):
   if len(v) >= 1:
     # the first m/M is always absolute
     x,y = v[0]
+    curve.add_start(x,y)
     curve.add_endpoint(x,y)
     curve.set_xy(x,y)
   if len(v) >= 2:
@@ -258,9 +268,12 @@ class vertex(object):
   def __str__(self):
     """return a tring for the vertex"""
     s = []
-    s.append('b.Add(%f,%f)' % (self.x, self.y))
-    if self.t == 'mid':
-      s.append('.Mid()')
+    if self.t == 'start':
+      s.append('b := NewBezier()')
+    else:
+      s.append('b.Add(%f,%f)' % (self.x, self.y))
+      if self.t == 'mid':
+        s.append('.Mid()')
     return ''.join(s)
 
 class bezier_curve(object):
@@ -290,6 +303,9 @@ class bezier_curve(object):
   def set_xy(self, x, y, r = 'abs_xy'):
     """set the x/y position"""
     self.x, self.y = self.vertex(x, y, r)
+
+  def add_start(self, x, y):
+    self.vlist.append(vertex(x, y, 'start'))
 
   def add_endpoint(self, x, y, r = 'abs_xy'):
     """add an endpoint vertex"""
@@ -324,11 +340,11 @@ class bezier_curve(object):
       # flip the y-axis
       v.y = -v.y
 
-  def offset(self,vmin):
+  def offset(self,ofs):
     """offset the curve"""
     for v in self.vlist:
-      v.x -= vmin[0]
-      v.y -= vmin[1]
+      v.x -= ofs[0]
+      v.y -= ofs[1]
 
   def vmin(self):
     """return the minimum endpoint vertex"""
@@ -350,7 +366,6 @@ class bezier_curve(object):
 
   def __str__(self):
     s = []
-    s.append('b := NewBezier()')
     for v in self.vlist:
       s.append(str(v))
     if self.closed:
@@ -364,7 +379,6 @@ curve = bezier_curve()
 def main():
 
   #t="M371 308q-41 0 -72 31.5t-31 71.5q0 69 128 170l239 180q129 111 129 203q0 116 -109 214q-105 95 -223 95q-63 0 -160 -64.5t-120 -64.5q-41 0 -70.5 33t-29.5 74q0 79 153 157q137 70 227 70q201 0 365 -157t164 -357q0 -146 -94 -259q-56 -68 -208 -176 q-153 -111 -213 -180q-35 -41 -75 -41zM316 -72q-44 0 -79.5 29.5t-35.5 71.5q0 62 33 112q37 56 95 56q96 0 96 -118q0 -55 -26 -99q-32 -52 -83 -52z"
-
   t="M1541 222q0 -48 -16 -160q-16 -101 -107 -101q-55 0 -131 72q-407 385 -934 1111l-5 -227l-3 -228q0 -83 3.5 -249t3.5 -250q0 -269 -104 -269q-55 0 -87 35q-29 31 -29 74q0 42 6.5 127t6.5 127q0 62 4 185.5t4 185.5q0 66 -3 199.5t-3 199.5q0 63 -12 187.5t-12 187.5 q0 46 39.5 84t89.5 38q53 0 131 -116q249 -373 448 -620q237 -293 520 -560q3 43 0 127l-3 126q0 439 -34 699q-4 26 -27 105q-20 68 -20 106q0 116 106 116q174 0 174 -649q0 -111 -3 -331.5t-3 -331.5z"
 
   global curve
