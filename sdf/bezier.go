@@ -266,7 +266,7 @@ func (b *Bezier) closure() {
 	}
 }
 
-// Do some validation checks on the control verticesake care of curve closure.
+// Do some validation checks on the control vertices.
 func (b *Bezier) validate() {
 	// basic checks
 	n := len(b.vlist)

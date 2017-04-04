@@ -22,7 +22,7 @@ func bowling_pin() {
 	b.Add(0, 15).HandleRev(DtoR(0), 1)
 	b.Close()
 
-  p := b.Polygon()
+	p := b.Polygon()
 	s0 := Polygon2D(p.Vertices())
 	s1 := Revolve3D(s0)
 	RenderSTL(s1, 300, "bowlingpin.stl")
@@ -190,7 +190,7 @@ func comic_sans_n() {
 	b.Add(1418.000000, 301.000000)
 	b.Close()
 
-  p := b.Polygon()
+	p := b.Polygon()
 	p.Render("comicsans.dxf")
 }
 
