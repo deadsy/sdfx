@@ -164,7 +164,7 @@ func NewBezierSpline(p []V2) *BezierSpline {
 	//fmt.Printf("%v\n", p)
 	s := BezierSpline{}
 	// closer to 0, more polygon line segments
-	s.tolerance = 0.02
+	s.tolerance = 0.02 // sin(theta)
 	// work out the polynomials
 	x := make([]float64, len(p))
 	y := make([]float64, len(p))
