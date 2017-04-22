@@ -232,6 +232,65 @@ func (s *ExtrudeSDF3) BoundingBox() Box3 {
 }
 
 //-----------------------------------------------------------------------------
+// Linear extrude an SDF2 with rounded edges.
+// Note: The height of the extrusion is adjusted for the rounding.
+// The underlying SDF2 shape is not modified.
+
+// Extrude, SDF2 to SDF3 with rounded edges.
+type ExtrudeRoundedSDF3 struct {
+	sdf    SDF2
+	height float64
+	round  float64
+	bb     Box3
+}
+
+// Linear extrude an SDF2 with rounded edges.
+func ExtrudeRounded3D(sdf SDF2, height, round float64) SDF3 {
+	s := ExtrudeRoundedSDF3{}
+	s.sdf = sdf
+	s.height = (height / 2) - round
+	if s.height < 0 {
+		panic("height < 2 * round")
+	}
+	s.round = round
+	// work out the bounding box
+	bb := sdf.BoundingBox()
+	s.bb = Box3{V3{bb.Min.X, bb.Min.Y, -s.height}.SubScalar(round), V3{bb.Max.X, bb.Max.Y, s.height}.AddScalar(round)}
+	return &s
+}
+
+func (s *ExtrudeRoundedSDF3) Evaluate(p V3) float64 {
+	// sdf for the projected 2d surface
+	a := s.sdf.Evaluate(V2{p.X, p.Y})
+	b := Abs(p.Z) - s.height
+	var d float64
+	if b > 0 {
+		// outside the object Z extent
+		if a < 0 {
+			// inside the boundary
+			d = b
+		} else {
+			// outside the boundary
+			d = math.Sqrt((a * a) + (b * b))
+		}
+	} else {
+		// within the object Z extent
+		if a < 0 {
+			// inside the boundary
+			d = Max(a, b)
+		} else {
+			// outside the boundary
+			d = a
+		}
+	}
+	return d - s.round
+}
+
+func (s *ExtrudeRoundedSDF3) BoundingBox() Box3 {
+	return s.bb
+}
+
+//-----------------------------------------------------------------------------
 // Box (exact distance field)
 
 // Box

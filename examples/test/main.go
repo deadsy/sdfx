@@ -439,6 +439,13 @@ func test42() {
 	p.Render("test.dxf")
 }
 
+func test43() {
+	s0 := Line2D(10, 3)
+	s0 = Cut2D(s0, V2{4, 0}, V2{1, 1})
+	s1 := ExtrudeRounded3D(s0, 4, 1)
+	RenderSTL(s1, 300, "test.stl")
+}
+
 func main() {
-	test42()
+	test43()
 }
