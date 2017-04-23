@@ -12,9 +12,11 @@ import . "github.com/deadsy/sdfx/sdf"
 
 //-----------------------------------------------------------------------------
 
-var bearing_od = 22.0
-var bearing_id = 8.0
-var bearing_w = 7.0
+// 608 bearing
+var bearing_od = 22.0       // outer diameter of outer race
+var bearing_id = 8.0        // inner diameter of inner race
+var bearing_od_inner = 12.1 // outer diameter of inner race
+var bearing_w = 7.0         // bearing width
 
 var bearing_or = bearing_od / 2
 var bearing_ir = bearing_id / 2
@@ -52,8 +54,7 @@ func flower(n int, r0, r1, r2 float64) SDF2 {
 	}
 
 	b.Close()
-	p := b.Polygon()
-	return Polygon2D(p.Vertices())
+	return Polygon2D(b.Polygon().Vertices())
 }
 
 //-----------------------------------------------------------------------------
@@ -80,13 +81,13 @@ func body() SDF3 {
 func spincap() SDF3 {
 
 	t := 3.0
-	sx := (12.0 - bearing_id) / 2.0
+	sx := (bearing_od_inner - bearing_id) / 2.0
 	sy := 1.0
 	h := t + sy + (bearing_w-1.0)/2.0
 
 	p := NewPolygon()
 	p.Add(0, 0)
-	p.Add(bearing_or, 0).Smooth(t/1.5,6)
+	p.Add(bearing_or, 0).Smooth(t/1.5, 6)
 	p.Add(bearing_or, t)
 	p.Add(bearing_ir+sx, t)
 	p.Add(bearing_ir+sx, t+sy)
@@ -94,15 +95,14 @@ func spincap() SDF3 {
 	p.Add(bearing_ir, h)
 	p.Add(0, h)
 
-	s0 := Polygon2D(p.Vertices())
-	return Revolve3D(s0)
+	return Revolve3D(Polygon2D(p.Vertices()))
 }
 
 //-----------------------------------------------------------------------------
 
 func main() {
 	RenderSTL(body(), 300, "body.stl")
-	RenderSTL(spincap(), 300, "cap.stl")
+	RenderSTL(spincap(), 150, "cap.stl")
 }
 
 //-----------------------------------------------------------------------------
