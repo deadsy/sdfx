@@ -5,6 +5,7 @@ DIRS = benchmark \
        challenge \
        cylinder_head \
        extrusion \
+       fidget \
        gears \
        geneva \
        pottery_wheel \
