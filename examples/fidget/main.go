@@ -21,6 +21,9 @@ var bearing_w = 7.0         // bearing width
 var bearing_or = bearing_od / 2
 var bearing_ir = bearing_id / 2
 
+// Adjust clearance to give good interfernewce fits for the bearings and spin caps.
+var clearance = 0.0
+
 //-----------------------------------------------------------------------------
 
 // Return an N petal bezier flower.
@@ -69,9 +72,9 @@ func body() SDF3 {
 	// body
 	s1 := ExtrudeRounded3D(flower(n, r0, r1, r2), bearing_w, bearing_w/4.0)
 	// periphery holes
-	s2 := MakeBoltCircle3D(bearing_w, bearing_or, r1, n)
+	s2 := MakeBoltCircle3D(bearing_w, bearing_or+clearance, r1, n)
 	// center hole
-	s3 := Cylinder3D(bearing_w, bearing_or, 0)
+	s3 := Cylinder3D(bearing_w, bearing_or+clearance, 0)
 
 	return Difference3D(s1, Union3D(s2, s3))
 }
@@ -91,8 +94,8 @@ func spincap() SDF3 {
 	p.Add(bearing_or, t)
 	p.Add(bearing_ir+sx, t)
 	p.Add(bearing_ir+sx, t+sy)
-	p.Add(bearing_ir, t+sy)
-	p.Add(bearing_ir, h)
+	p.Add(bearing_ir-clearance, t+sy)
+	p.Add(bearing_ir-clearance, h)
 	p.Add(0, h)
 
 	return Revolve3D(Polygon2D(p.Vertices()))
