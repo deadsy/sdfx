@@ -13,7 +13,7 @@ import . "github.com/deadsy/sdfx/sdf"
 //-----------------------------------------------------------------------------
 
 func finial1() {
-	base := 50.0
+	base := 100.0
 	base_height := 20.0
 	column_radius := 15.0
 	column_height := 70.0
@@ -22,7 +22,7 @@ func finial1() {
 	ball_ofs := (base_height / 2) + column_height + ball_radius*0.8
 	round := ball_radius / 5
 
-	s0 := Polygon2D(Nagon(4, base))
+	s0 := Polygon2D(Nagon(4, base * SQRT_HALF))
 	s1 := Circle2D(column_radius)
 
 	column_3d := Loft3D(s0, s1, column_height, 0)
