@@ -291,18 +291,18 @@ func (s *ExtrudeRoundedSDF3) BoundingBox() Box3 {
 }
 
 //-----------------------------------------------------------------------------
-// Extrude and Blend (with rounded edges)
+// Extrude/Loft (with rounded edges)
 // Blend between sdf0 and sdf1 as we move from bottom to top.
 
-type ExtrudeBlendSDF3 struct {
+type LoftSDF3 struct {
 	sdf0, sdf1 SDF2
 	height     float64
 	round      float64
 	bb         Box3
 }
 
-func ExtrudeBlend3D(sdf0, sdf1 SDF2, height, round float64) SDF3 {
-	s := ExtrudeBlendSDF3{
+func Loft3D(sdf0, sdf1 SDF2, height, round float64) SDF3 {
+	s := LoftSDF3{
 		sdf0:   sdf0,
 		sdf1:   sdf1,
 		height: (height / 2) - round,
@@ -319,11 +319,39 @@ func ExtrudeBlend3D(sdf0, sdf1 SDF2, height, round float64) SDF3 {
 	return &s
 }
 
-func (s *ExtrudeBlendSDF3) Evaluate(p V3) float64 {
-	return 0
+func (s *LoftSDF3) Evaluate(p V3) float64 {
+	// work out the mix value as a function of height
+	k := Clamp((0.5*p.Z/s.height)+0.5, 0, 1)
+	// mix the 2D SDFs
+	a0 := s.sdf0.Evaluate(V2{p.X, p.Y})
+	a1 := s.sdf1.Evaluate(V2{p.X, p.Y})
+	a := Mix(a0, a1, k)
+
+	b := Abs(p.Z) - s.height
+	var d float64
+	if b > 0 {
+		// outside the object Z extent
+		if a < 0 {
+			// inside the boundary
+			d = b
+		} else {
+			// outside the boundary
+			d = math.Sqrt((a * a) + (b * b))
+		}
+	} else {
+		// within the object Z extent
+		if a < 0 {
+			// inside the boundary
+			d = Max(a, b)
+		} else {
+			// outside the boundary
+			d = a
+		}
+	}
+	return d - s.round
 }
 
-func (s *ExtrudeBlendSDF3) BoundingBox() Box3 {
+func (s *LoftSDF3) BoundingBox() Box3 {
 	return s.bb
 }
 

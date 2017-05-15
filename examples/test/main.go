@@ -446,6 +446,14 @@ func test43() {
 	RenderSTL(s1, 300, "test.stl")
 }
 
+func test44() {
+	r := 100.0
+	s0 := Polygon2D(Nagon(5, r))
+	s1 := Circle2D(r / 2)
+	s2 := Loft3D(s1, s0, 200.0, 20.0)
+	RenderSTL(s2, 300, "test.stl")
+}
+
 func main() {
-	test43()
+	test44()
 }
