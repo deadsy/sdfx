@@ -11,7 +11,7 @@ import (
 	"image/png"
 	"os"
 
-	"github.com/deadsy/pt/pt"
+	"github.com/fogleman/pt/pt"
 )
 
 //-----------------------------------------------------------------------------

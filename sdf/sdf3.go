@@ -11,7 +11,7 @@ package sdf
 import (
 	"math"
 
-	"github.com/deadsy/pt/pt"
+	"github.com/fogleman/pt/pt"
 )
 
 //-----------------------------------------------------------------------------
@@ -287,6 +287,43 @@ func (s *ExtrudeRoundedSDF3) Evaluate(p V3) float64 {
 }
 
 func (s *ExtrudeRoundedSDF3) BoundingBox() Box3 {
+	return s.bb
+}
+
+//-----------------------------------------------------------------------------
+// Extrude and Blend (with rounded edges)
+// Blend between sdf0 and sdf1 as we move from bottom to top.
+
+type ExtrudeBlendSDF3 struct {
+	sdf0, sdf1 SDF2
+	height     float64
+	round      float64
+	bb         Box3
+}
+
+func ExtrudeBlend3D(sdf0, sdf1 SDF2, height, round float64) SDF3 {
+	s := ExtrudeBlendSDF3{
+		sdf0:   sdf0,
+		sdf1:   sdf1,
+		height: (height / 2) - round,
+		round:  round,
+	}
+	if s.height < 0 {
+		panic("height < 2 * round")
+	}
+	// work out the bounding box
+	bb0 := sdf0.BoundingBox()
+	bb1 := sdf1.BoundingBox()
+	bb := bb0.Extend(bb1)
+	s.bb = Box3{V3{bb.Min.X, bb.Min.Y, -s.height}.SubScalar(round), V3{bb.Max.X, bb.Max.Y, s.height}.AddScalar(round)}
+	return &s
+}
+
+func (s *ExtrudeBlendSDF3) Evaluate(p V3) float64 {
+	return 0
+}
+
+func (s *ExtrudeBlendSDF3) BoundingBox() Box3 {
 	return s.bb
 }
 
