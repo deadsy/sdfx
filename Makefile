@@ -1,6 +1,7 @@
 
 DIRS = benchmark \
        bezier \
+       bolt_container \
        camshaft \
        challenge \
        cylinder_head \
