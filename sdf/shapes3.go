@@ -126,3 +126,20 @@ func Knurl3D(
 }
 
 //-----------------------------------------------------------------------------
+
+// Return a washer.
+func Washer3D(
+	t float64, // thickness
+	r_inner float64, // inner radius
+	r_outer float64, // outer radius
+) SDF3 {
+	if t <= 0 {
+		panic("t <= 0")
+	}
+	if r_inner >= r_outer {
+		panic("r_inner >= r_outer")
+	}
+	return Difference3D(Cylinder3D(t, r_outer, 0), Cylinder3D(t, r_inner, 0))
+}
+
+//-----------------------------------------------------------------------------
