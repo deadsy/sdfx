@@ -33,12 +33,7 @@ func bolt_container() SDF3 {
 	l := screw_length
 	screw := Screw3D(ISOThread(r, thread_pitch, "external"), l, thread_pitch, 1)
 	// chamfer the thread
-	p := NewPolygon()
-	p.Add(0, -l/2)
-	p.Add(r, -l/2)
-	p.Add(r, l/2).Chamfer(r / 4)
-	p.Add(0, l/2)
-	screw = Intersect3D(screw, Revolve3D(Polygon2D(p.Vertices())))
+	screw = Chamfered_Cylinder(screw, 0, 0.25)
 	screw = Transform3D(screw, Translate3d(V3{0, 0, l / 2}))
 
 	// build the internal cavity
@@ -55,7 +50,6 @@ func bolt_container() SDF3 {
 //-----------------------------------------------------------------------------
 
 func nut_top() SDF3 {
-
 	return nil
 }
 

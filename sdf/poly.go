@@ -64,28 +64,34 @@ func (v *PV) Hide() *PV {
 
 // Smooth marks the polygon vertex for smoothing.
 func (v *PV) Smooth(radius float64, facets int) *PV {
-	v.radius = radius
-	v.facets = facets
-	v.vtype = SMOOTH
+	if radius != 0 && facets != 0 {
+		v.radius = radius
+		v.facets = facets
+		v.vtype = SMOOTH
+	}
 	return v
 }
 
 // Chamfer marks the polygon vertex for chamfering.
 func (v *PV) Chamfer(size float64) *PV {
 	// Fake it with a 1 facet smoothing.
-	// The size will be inaacurate for anything other than
+	// The size will be inaccurate for anything other than
 	// 90 degree segments, but this is easy, and I'm lazy ...
-	v.radius = size / math.Sqrt(2)
-	v.facets = 1
-	v.vtype = SMOOTH
+	if size != 0 {
+		v.radius = size * SQRT_HALF
+		v.facets = 1
+		v.vtype = SMOOTH
+	}
 	return v
 }
 
 // Arc replaces a line segment with a circular arc.
 func (v *PV) Arc(radius float64, facets int) *PV {
-	v.radius = radius
-	v.facets = facets
-	v.vtype = ARC
+	if radius != 0 && facets != 0 {
+		v.radius = radius
+		v.facets = facets
+		v.vtype = ARC
+	}
 	return v
 }
 
