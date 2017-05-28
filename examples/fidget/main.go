@@ -58,9 +58,7 @@ func flower(n int, r0, r1, r2 float64) SDF2 {
 	return Polygon2D(b.Polygon().Vertices())
 }
 
-//-----------------------------------------------------------------------------
-
-func body() SDF3 {
+func body1() SDF3 {
 
 	n := 3
 	t := bearing_thickness
@@ -78,6 +76,33 @@ func body() SDF3 {
 	s3 := Cylinder3D(t, r+clearance, 0)
 
 	return Difference3D(s1, Union3D(s2, s3))
+}
+
+//-----------------------------------------------------------------------------
+
+func body2() SDF3 {
+	t := bearing_thickness
+	r := bearing_outer_od / 2
+	r0 := r + 4.0
+
+	// build the arm
+	p := NewPolygon()
+	p.Add(r, -t/2)
+	p.Add(r0, -t/2)
+	p.Add(r0, t/2)
+	p.Add(r, t/2)
+	theta := DtoR(270)
+	arm := RevolveTheta3D(Polygon2D(p.Vertices()), theta)
+	arm = Transform3D(arm, Translate3d(V3{-1.5 * r0, 0, 0}))
+
+	// create 6 arms
+	arms := RotateUnion3D(arm, 6, RotateZ(DtoR(60)))
+
+	// add the center
+	body := Union3D(Cylinder3D(t, r0, 0), arms)
+
+	// remove the center hole
+	return Difference3D(body, Cylinder3D(t, r, 0))
 }
 
 //-----------------------------------------------------------------------------
@@ -121,12 +146,11 @@ func spincap_single() SDF3 {
 
 // Threaded spincap for double spinners.
 func spincap_double(mode string) SDF3 {
-	gap := 0.5
 	r := (bearing_inner_id / 2) - clearance
-	l := bearing_thickness - gap
 	thread_r := r * 0.8
 	thread_pitch := 1.0
 	thread_tolerance := 0.25
+	l := bearing_thickness
 
 	if mode == "male" {
 		// Add an external screw thread.
@@ -134,14 +158,14 @@ func spincap_double(mode string) SDF3 {
 		screw := Screw3D(t, bearing_thickness, thread_pitch, 1)
 		screw = Chamfered_Cylinder(screw, 0, 0.5)
 		screw = Transform3D(screw, Translate3d(V3{0, 0, 1.5 * l}))
-		return Union3D(spincap(r, l), screw)
+		return Union3D(spincap(r, l+0.5), screw)
 
 	} else if mode == "female" {
 		// Add an internal screw thread.
 		t := ISOThread(thread_r, thread_pitch, "internal")
 		screw := Screw3D(t, bearing_thickness, thread_pitch, 1)
 		screw = Transform3D(screw, Translate3d(V3{0, 0, l * 0.5}))
-		return Difference3D(spincap(r, l), screw)
+		return Difference3D(spincap(r, l-0.5), screw)
 	}
 
 	panic("bad mode")
@@ -158,7 +182,8 @@ func spincap_washer() SDF3 {
 //-----------------------------------------------------------------------------
 
 func main() {
-	RenderSTL(body(), 300, "body.stl")
+	RenderSTL(body1(), 300, "body1.stl")
+	RenderSTL(body2(), 300, "body2.stl")
 	RenderSTL(spincap_single(), 150, "cap_single.stl")
 	RenderSTL(spincap_double("male"), 150, "cap_double_male.stl")
 	RenderSTL(spincap_double("female"), 150, "cap_double_female.stl")
