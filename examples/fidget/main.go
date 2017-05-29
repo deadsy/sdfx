@@ -19,8 +19,14 @@ var bearing_inner_id = 8.0  // inner diameter of inner race
 var bearing_inner_od = 12.1 // outer diameter of inner race
 var bearing_thickness = 7.0 // bearing thickness
 
-// Adjust clearance to give good interfernewce fits for the bearings and spin caps.
+// Adjust clearance to give good interference fits for the bearings and spin caps.
 var clearance = 0.0
+
+//-----------------------------------------------------------------------------
+
+// ball bearing counterweights
+var bb_large_d = (1.0/2.0) * MM_PER_INCH
+var bb_small_d = (5.0/16.0) * MM_PER_INCH
 
 //-----------------------------------------------------------------------------
 
