@@ -6,7 +6,11 @@ import (
 	. "github.com/deadsy/sdfx/sdf"
 )
 
-const CUBIC_INCHES_PER_GALLON = 231
+const CUBIC_INCHES_PER_GALLON = 231.0
+const ML_PER_GALLON = 3785.41
+const DENSITY_WATER = 1.0 // g/cm3
+const DENSITY_SALT = 2.17 // g/cm3
+const GRAMS_PER_POUND = 453.592
 
 var pool_w = 119.0 + 115.0
 var pool_l = 101.0 + 101.0 + 96.0 + 96.0 + 83.0
@@ -28,5 +32,23 @@ func main() {
 
 	fmt.Printf("vol %f in3\n", vol)
 	fmt.Printf("vol %f gallons\n", vol/CUBIC_INCHES_PER_GALLON)
+
+	salt_ml := (3500.0) / 1000000.0
+	salt_gallon := salt_ml * ML_PER_GALLON
+
+	fmt.Printf("g salt per gallon %f g\n", salt_gallon)
+	fmt.Printf("lbs salt per gallon %f lbs\n", salt_gallon/GRAMS_PER_POUND)
+
+	c0 := 2000.0
+	c1 := 3500.0
+
+	c0_g_per_ml := c0 / 1000000.0
+	c1_g_per_ml := c1 / 1000000.0
+
+	vol = 35000.0 * ML_PER_GALLON
+
+	add_salt := (c1_g_per_ml - c0_g_per_ml) * vol
+
+	fmt.Printf("add salt %f lbs\n", add_salt/GRAMS_PER_POUND)
 
 }
