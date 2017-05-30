@@ -25,8 +25,8 @@ var clearance = 0.0
 //-----------------------------------------------------------------------------
 
 // ball bearing counterweights
-var bb_large_d = (1.0/2.0) * MM_PER_INCH
-var bb_small_d = (5.0/16.0) * MM_PER_INCH
+var bb_large_d = (1.0 / 2.0) * MM_PER_INCH
+var bb_small_d = (5.0 / 16.0) * MM_PER_INCH
 
 //-----------------------------------------------------------------------------
 

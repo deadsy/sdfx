@@ -304,6 +304,13 @@ func (p *Polygon) AddV2(x V2) *PV {
 	return &p.vlist[len(p.vlist)-1]
 }
 
+// Add a set of V2 vertices to a polygon.
+func (p *Polygon) AddV2Set(x []V2) {
+	for _, v := range x {
+		p.AddV2(v)
+	}
+}
+
 // Add an x,y vertex to a polygon.
 func (p *Polygon) Add(x, y float64) *PV {
 	return p.AddV2(V2{x, y})

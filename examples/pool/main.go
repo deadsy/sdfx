@@ -7,48 +7,31 @@ import (
 )
 
 const CUBIC_INCHES_PER_GALLON = 231.0
-const ML_PER_GALLON = 3785.41
-const DENSITY_WATER = 1.0 // g/cm3
-const DENSITY_SALT = 2.17 // g/cm3
-const GRAMS_PER_POUND = 453.592
 
-var pool_w = 119.0 + 115.0
-var pool_l = 101.0 + 101.0 + 96.0 + 96.0 + 83.0
+// pool dimensions are in inches
+var pool_w = 234.0
+var pool_l = 477.0
 
 var pool_depth = []V2{
-	V2{0, 43},
-	V2{101, 46},
-	V2{101 + 101, 58},
-	V2{101 + 101 + 96, 83},
-	V2{101 + 101 + 96 + 96, 96},
-	V2{101 + 101 + 96 + 96 + 83, 96},
+	V2{0.0, 43.0},
+	V2{101.0, 46.0},
+	V2{202.0, 58.0},
+	V2{298.0, 83.0},
+	V2{394.0, 96.0},
+	V2{477.0, 96.0},
 }
 
+var vol = (7738.3005 * 1000.0) / CUBIC_INCHES_PER_GALLON // gallons
+
 func main() {
+	fmt.Printf("pool volume %f gallons\n", vol)
 
-	pool_d := (43.0 + 96.0) / 2
+	p := NewPolygon()
+	p.Add(0, 0)
+	p.AddV2Set(pool_depth)
+	p.Add(pool_l, 0)
 
-	vol := pool_d * pool_w * pool_l
-
-	fmt.Printf("vol %f in3\n", vol)
-	fmt.Printf("vol %f gallons\n", vol/CUBIC_INCHES_PER_GALLON)
-
-	salt_ml := (3500.0) / 1000000.0
-	salt_gallon := salt_ml * ML_PER_GALLON
-
-	fmt.Printf("g salt per gallon %f g\n", salt_gallon)
-	fmt.Printf("lbs salt per gallon %f lbs\n", salt_gallon/GRAMS_PER_POUND)
-
-	c0 := 2000.0
-	c1 := 3500.0
-
-	c0_g_per_ml := c0 / 1000000.0
-	c1_g_per_ml := c1 / 1000000.0
-
-	vol = 35000.0 * ML_PER_GALLON
-
-	add_salt := (c1_g_per_ml - c0_g_per_ml) * vol
-
-	fmt.Printf("add salt %f lbs\n", add_salt/GRAMS_PER_POUND)
-
+	profile := Polygon2D(p.Vertices())
+	pool := Extrude3D(profile, pool_w)
+	RenderSTL(pool, 300, "pool.stl")
 }
