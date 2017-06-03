@@ -83,14 +83,14 @@ func mvh25_to_mpvc3() {
 	h3 := h2 + 20.0
 
 	p := NewPolygon()
-	p.Add(r0+t, h0)
-	p.Add(r0+t, h1).Smooth(t, 4)
-	p.Add(r1+t, h2).Smooth(t, 4)
-	p.Add(r1+t, h3)
-	p.Add(r1, h3)
-	p.Add(r1, h2).Smooth(t, 4)
-	p.Add(r0, h1).Smooth(t, 4)
 	p.Add(r0, h0)
+	p.Add(r0, h1).Smooth(t, 4)
+	p.Add(r1, h2).Smooth(t, 4)
+	p.Add(r1, h3)
+	p.Add(r1-t, h3)
+	p.Add(r1-t, h2).Smooth(t, 4)
+	p.Add(r0-t, h1).Smooth(t, 4)
+	p.Add(r0-t, h0)
 
 	s_2d := Polygon2D(p.Vertices())
 	s_3d := Revolve3D(s_2d)
