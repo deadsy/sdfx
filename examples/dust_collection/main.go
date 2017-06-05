@@ -19,6 +19,7 @@ import (
 // dust deputy tapered pipe
 var dd_outer_d = 51.0
 var dd_taper = DtoR(2.0)
+var dd_length = 39.0
 
 // vaccum hose 2.5" male fitting
 var vh_outer_d = 58.0
@@ -38,7 +39,6 @@ func fdd_to_fvh25() {
 	t := wall_thickness
 	transition_length := 15.0
 	vh_length := 30.0
-	dd_length := 39.0
 
 	r0 := dd_outer_d / 2
 	r1 := r0 - dd_length*math.Tan(dd_taper)
@@ -60,10 +60,8 @@ func fdd_to_fvh25() {
 	p.Add(r1, h1).Smooth(t, 4)
 	p.Add(r0, h0)
 
-	s_2d := Polygon2D(p.Vertices())
-	s_3d := Revolve3D(s_2d)
-
-	RenderSTL(s_3d, 150, "fdd_fvh25.stl")
+	s := Revolve3D(Polygon2D(p.Vertices()))
+	RenderSTL(s, 150, "fdd_fvh25.stl")
 }
 
 //-----------------------------------------------------------------------------
@@ -92,10 +90,39 @@ func mvh25_to_mpvc3() {
 	p.Add(r0-t, h1).Smooth(t, 4)
 	p.Add(r0-t, h0)
 
-	s_2d := Polygon2D(p.Vertices())
-	s_3d := Revolve3D(s_2d)
+	s := Revolve3D(Polygon2D(p.Vertices()))
+	RenderSTL(s, 150, "mvh25_mpvc3.stl")
+}
 
-	RenderSTL(s_3d, 150, "mvh25_mpvc3.stl")
+//-----------------------------------------------------------------------------
+
+// adapter: female dust deputy, male 3" pvc
+func fdd_to_mpvc3() {
+
+	t := wall_thickness
+	transition_length := 15.0
+
+	r0 := pvc3_outer_d / 2
+	r2 := (dd_outer_d / 2) + t
+	r1 := r2 - dd_length*math.Tan(dd_taper)
+
+	h0 := 0.0
+	h1 := h0 + 35.0
+	h2 := h1 + transition_length
+	h3 := h2 + dd_length
+
+	p := NewPolygon()
+	p.Add(r0, h0)
+	p.Add(r0, h1).Smooth(t, 4)
+	p.Add(r1, h2).Smooth(t, 4)
+	p.Add(r2, h3)
+	p.Add(r2-t, h3)
+	p.Add(r1-t, h2).Smooth(t, 4)
+	p.Add(r0-t, h1).Smooth(t, 4)
+	p.Add(r0-t, h0)
+
+	s := Revolve3D(Polygon2D(p.Vertices()))
+	RenderSTL(s, 150, "fdd_mpvc3.stl")
 }
 
 //-----------------------------------------------------------------------------
@@ -103,6 +130,7 @@ func mvh25_to_mpvc3() {
 func main() {
 	fdd_to_fvh25()
 	mvh25_to_mpvc3()
+	fdd_to_mpvc3()
 }
 
 //-----------------------------------------------------------------------------
