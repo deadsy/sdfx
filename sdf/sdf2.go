@@ -8,13 +8,42 @@
 
 package sdf
 
-import "math"
+import (
+	"errors"
+	"math"
+)
 
 //-----------------------------------------------------------------------------
 
 type SDF2 interface {
 	Evaluate(p V2) float64
 	BoundingBox() Box2
+}
+
+//-----------------------------------------------------------------------------
+// SDF2 Evaluation Caching
+
+type SDF2Cache struct {
+	cache map[V2]float64
+	hits  uint
+}
+
+func (c *SDF2Cache) lookup(p V2) (float64, error) {
+	if d, ok := c.cache[p]; ok {
+		c.hits += 1
+		return d, nil
+	}
+	return 0.0, errors.New("not found")
+}
+
+func (c *SDF2Cache) store(p V2, d float64) {
+	c.cache[p] = d
+}
+
+func cache_setup() *SDF2Cache {
+	c := SDF2Cache{}
+	c.cache = make(map[V2]float64)
+	return &c
 }
 
 //-----------------------------------------------------------------------------
