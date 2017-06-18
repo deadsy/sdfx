@@ -5,6 +5,7 @@ DIRS = benchmark \
        camshaft \
        challenge \
        cylinder_head \
+       dust_collection \
        extrusion \
        fidget \
        finial \
@@ -13,6 +14,7 @@ DIRS = benchmark \
        pottery_wheel \
        nutsandbolts \
        3dp_nutbolt \
+       simple_stl \
        test \
        voronoi \
 

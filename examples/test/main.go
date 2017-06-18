@@ -62,22 +62,6 @@ func test7() {
 	RenderPNG(s3, true)
 }
 
-func test8() {
-	a := V3{0, 0, 0}
-	b := V3{1, 0, 0}
-	c := V3{0, 1, 0}
-	d := V3{0, 0, 1}
-	t1 := NewTriangle(a, b, d)
-	t2 := NewTriangle(a, c, b)
-	t3 := NewTriangle(a, d, c)
-	t4 := NewTriangle(b, c, d)
-	m := NewMesh([]*Triangle{t1, t2, t3, t4})
-	err := SaveSTL("test.stl", m)
-	if err != nil {
-		fmt.Printf("%s", err)
-	}
-}
-
 func test9() {
 	s := Sphere3D(10.0)
 	RenderSTL(s, 200, "test.stl")
