@@ -1,20 +1,19 @@
 //-----------------------------------------------------------------------------
 /*
 
- */
+Dealunay Triangulation
+
+See: http://paulbourke.net/papers/triangulate/
+
+*/
 //-----------------------------------------------------------------------------
 
 package sdf
 
 //-----------------------------------------------------------------------------
 
-type Mesh struct {
-	Triangles []*Triangle3
-	box       *Box3
-}
-
-func NewMesh(triangles []*Triangle3) *Mesh {
-	return &Mesh{triangles, nil}
+func Delaunay2d(p []V2, t Triangle2) []Triangle2 {
+	return nil
 }
 
 //-----------------------------------------------------------------------------

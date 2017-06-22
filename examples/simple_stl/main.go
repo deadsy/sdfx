@@ -25,12 +25,12 @@ func main() {
 	c := V3{0, side, 0}
 	d := V3{0, 0, side}
 
-	t1 := NewTriangle(a, b, d)
-	t2 := NewTriangle(a, c, b)
-	t3 := NewTriangle(a, d, c)
-	t4 := NewTriangle(b, c, d)
+	t1 := NewTriangle3(a, b, d)
+	t2 := NewTriangle3(a, c, b)
+	t3 := NewTriangle3(a, d, c)
+	t4 := NewTriangle3(b, c, d)
 
-	m := NewMesh([]*Triangle{t1, t2, t3, t4})
+	m := NewMesh([]*Triangle3{t1, t2, t3, t4})
 	err := SaveSTL("simple.stl", m)
 	if err != nil {
 		fmt.Printf("%s", err)

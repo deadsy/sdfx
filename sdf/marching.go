@@ -70,7 +70,7 @@ func (l *LayerYZ) Get(x, y, z int) float64 {
 
 func NewSDFMesh(sdf SDF3, box Box3, step float64) *Mesh {
 
-	var triangles []*Triangle
+	var triangles []*Triangle3
 	size := box.Size()
 	base := box.Min
 	steps := size.DivScalar(step).Ceil().ToV3i()
@@ -127,7 +127,7 @@ func NewSDFMesh(sdf SDF3, box Box3, step float64) *Mesh {
 
 //-----------------------------------------------------------------------------
 
-func mcPolygonize(p [8]V3, v [8]float64, x float64) []*Triangle {
+func mcPolygonize(p [8]V3, v [8]float64, x float64) []*Triangle3 {
 	index := 0
 	for i := 0; i < 8; i++ {
 		if v[i] < x {
@@ -148,9 +148,9 @@ func mcPolygonize(p [8]V3, v [8]float64, x float64) []*Triangle {
 	}
 	table := triangleTable[index]
 	count := len(table) / 3
-	result := make([]*Triangle, count)
+	result := make([]*Triangle3, count)
 	for i := 0; i < count; i++ {
-		triangle := Triangle{}
+		triangle := Triangle3{}
 		triangle.V[2] = points[table[i*3+0]]
 		triangle.V[1] = points[table[i*3+1]]
 		triangle.V[0] = points[table[i*3+2]]
