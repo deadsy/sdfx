@@ -40,12 +40,41 @@ func NewTriangle3(a, b, c V3) *Triangle3 {
 	return &t
 }
 
+func NewTriangle2(a, b, c V2) *Triangle2 {
+	t := Triangle2{}
+	t.V[0] = a
+	t.V[1] = b
+	t.V[2] = c
+	return &t
+}
+
 //-----------------------------------------------------------------------------
 
+// return the normal vector to the plane defined by the triangle
 func (t *Triangle3) Normal() V3 {
 	e1 := t.V[1].Sub(t.V[0])
 	e2 := t.V[2].Sub(t.V[0])
 	return e1.Cross(e2).Normalize()
+}
+
+//-----------------------------------------------------------------------------
+
+// return the super triangle of the point set, ie: A triangle enclosing all the points
+func (s V2Set) SuperTriangle() *Triangle2 {
+
+	if len(s) == 0 {
+		// no points
+		return nil
+	}
+
+	if len(s) == 1 {
+		// a single point
+		p := s[0]
+		return NewTriangle2(V2{p.X - 1, p.Y - 1}, V2{p.X, p.Y + 1}, V2{p.X + 1, p.Y - 1})
+	}
+
+	// TODO
+	return nil
 }
 
 //-----------------------------------------------------------------------------
