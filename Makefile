@@ -1,5 +1,6 @@
 
-DIRS = benchmark \
+DIRS = 3dp_nutbolt \
+       benchmark \
        bezier \
        bolt_container \
        camshaft \
@@ -11,9 +12,9 @@ DIRS = benchmark \
        finial \
        gears \
        geneva \
-       pottery_wheel \
        nutsandbolts \
-       3dp_nutbolt \
+       pool \
+       pottery_wheel \
        simple_stl \
        test \
        voronoi \

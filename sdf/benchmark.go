@@ -30,16 +30,9 @@ func fmt_eps(eps float64) string {
 
 // Benchmark evaluation speed for an SDF2.
 func BenchmarkSDF2(description string, s SDF2) {
-
 	// sample over a region larger than the bounding box
-	center := s.BoundingBox().Center()
-	size := s.BoundingBox().Size().MulScalar(1.2)
-
-	// build an array of random sample points
-	var points [N_EVALS]V2
-	for i, _ := range points {
-		points[i] = center.Add(size.Random())
-	}
+	box := NewBox2(s.BoundingBox().Center(), s.BoundingBox().Size().MulScalar(1.2))
+	points := box.RandomSet(N_EVALS)
 
 	start := time.Now()
 	for _, p := range points {
@@ -54,18 +47,10 @@ func BenchmarkSDF2(description string, s SDF2) {
 //-----------------------------------------------------------------------------
 
 // Benchmark evaluation speed for an SDF3.
-
 func BenchmarkSDF3(description string, s SDF3) {
-
 	// sample over a region larger than the bounding box
-	center := s.BoundingBox().Center()
-	size := s.BoundingBox().Size().MulScalar(1.2)
-
-	// build an array of random sample points
-	var points [N_EVALS]V3
-	for i, _ := range points {
-		points[i] = center.Add(size.Random())
-	}
+	box := NewBox3(s.BoundingBox().Center(), s.BoundingBox().Size().MulScalar(1.2))
+	points := box.RandomSet(N_EVALS)
 
 	start := time.Now()
 	for _, p := range points {

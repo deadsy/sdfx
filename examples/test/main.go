@@ -289,15 +289,6 @@ func test24() {
 	SDF2_RenderPNG(s0, "test.png")
 }
 
-func test25() {
-	s0 := Circle2D(0.0)
-	var s1 SDF2
-	for i := 0; i < 50; i++ {
-		s1 = Union2D(s1, Transform2D(s0, Translate2d(RandomV2(-10, 10))))
-	}
-	SDF2_RenderPNG(s1, "test.png")
-}
-
 func test26() {
 	s := Cylinder3D(5, 2, 1)
 	RenderSTL(s, 200, "test.stl")

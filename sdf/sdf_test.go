@@ -63,7 +63,8 @@ func Test_MulBox(t *testing.T) {
 	// 2D boxes
 	b2d := Box2{V2{-1, -1}, V2{1, 1}}
 	for i := 0; i < 100; i++ {
-		v := RandomV2(-5, 5)
+		b := NewBox2(V2{0, 0}, V2{10, 10})
+		v := b.Random()
 		// translating
 		m0 := Translate2d(v)
 		m1 := Translate2d(v.Negate())
@@ -85,7 +86,8 @@ func Test_MulBox(t *testing.T) {
 	// 3D boxes
 	b3d := Box3{V3{-1, -1, -1}, V3{1, 1, 1}}
 	for i := 0; i < 100; i++ {
-		v := RandomV3(-5, 5)
+		b := NewBox3(V3{0, 0, 0}, V3{10, 10, 10})
+		v := b.Random()
 		// translating
 		m0 := Translate3d(v)
 		m1 := Translate3d(v.Negate())
@@ -182,8 +184,9 @@ func Test_Line(t *testing.T) {
 	}
 
 	for i := 0; i < 10000; i++ {
-		l0 := NewLine2_PV(RandomV2(-10, 10), RandomV2(-10, 10))
-		l1 := NewLine2_PP(RandomV2(-10, 10), RandomV2(-10, 10))
+		b := NewBox2(V2{0, 0}, V2{20, 20})
+		l0 := NewLine2_PV(b.Random(), b.Random())
+		l1 := NewLine2_PP(b.Random(), b.Random())
 		t0, t1, err := l0.Intersect(l1)
 		if err != nil {
 			continue
@@ -267,7 +270,8 @@ func Test_Polygon2(t *testing.T) {
 	s1 = Transform2D(s1, Translate2d(V2{0.8, 0}))
 
 	for i := 0; i < 10000; i++ {
-		p := RandomV2(-10*k, 10*k)
+		b := NewBox2(V2{0, 0}, V2{20 * k, 20 * k})
+		p := b.Random()
 		if Abs(s0.Evaluate(p)-s1.Evaluate(p)) > TOLERANCE {
 			t.Error("FAIL")
 		}
@@ -303,7 +307,8 @@ func Test_Polygon3(t *testing.T) {
 	s0 := Polygon2D(points)
 
 	for i := 0; i < 1000; i++ {
-		p := RandomV2(-5*b, 5*b)
+		b := NewBox2(V2{0, 0}, V2{10 * b, 10 * b})
+		p := b.Random()
 		if Abs(s0.Evaluate(p)-s1.Evaluate(p)) > TOLERANCE {
 			t.Error("FAIL")
 		}

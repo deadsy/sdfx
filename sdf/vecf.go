@@ -40,66 +40,44 @@ func (a V2) Equals(b V2, tolerance float64) bool {
 
 //-----------------------------------------------------------------------------
 
-func RandomUnitV3(rnd *rand.Rand) V3 {
-	for {
-		var x, y, z float64
-		if rnd == nil {
-			x = rand.Float64()*2 - 1
-			y = rand.Float64()*2 - 1
-			z = rand.Float64()*2 - 1
-		} else {
-			x = rnd.Float64()*2 - 1
-			y = rnd.Float64()*2 - 1
-			z = rnd.Float64()*2 - 1
-		}
-		if x*x+y*y+z*z > 1 {
-			continue
-		}
-		return V3{x, y, z}.Normalize()
-	}
-}
-
-func RandomUnitV2(rnd *rand.Rand) V2 {
-	for {
-		var x, y float64
-		if rnd == nil {
-			x = rand.Float64()*2 - 1
-			y = rand.Float64()*2 - 1
-		} else {
-			x = rnd.Float64()*2 - 1
-			y = rnd.Float64()*2 - 1
-		}
-		if x*x+y*y > 1 {
-			continue
-		}
-		return V2{x, y}.Normalize()
-	}
-}
-
+// Return a random float [a,b)
 func random_range(a, b float64) float64 {
 	return a + (b-a)*rand.Float64()
 }
 
-func RandomV3(a, b float64) V3 {
-	return V3{random_range(a, b),
-		random_range(a, b),
-		random_range(a, b)}
+// Return a random point within a bounding box.
+func (b *Box2) Random() V2 {
+	return V2{
+		random_range(b.Min.X, b.Max.X),
+		random_range(b.Min.Y, b.Max.Y),
+	}
 }
 
-func RandomV2(a, b float64) V2 {
-	return V2{random_range(a, b),
-		random_range(a, b)}
+// Return a random point within a bounding box.
+func (b *Box3) Random() V3 {
+	return V3{
+		random_range(b.Min.X, b.Max.X),
+		random_range(b.Min.Y, b.Max.Y),
+		random_range(b.Min.Z, b.Max.Z),
+	}
 }
 
-func (v V2) Random() V2 {
-	return V2{random_range(-v.X/2, v.X/2),
-		random_range(-v.Y/2, v.Y/2)}
+// Return a set of random points from within a bounding box.
+func (b *Box2) RandomSet(n int) V2Set {
+	s := make([]V2, n)
+	for i := range s {
+		s[i] = b.Random()
+	}
+	return s
 }
 
-func (v V3) Random() V3 {
-	return V3{random_range(-v.X/2, v.X/2),
-		random_range(-v.Y/2, v.Y/2),
-		random_range(-v.Z/2, v.Z/2)}
+// Return a set of random points from within a bounding box.
+func (b *Box3) RandomSet(n int) V3Set {
+	s := make([]V3, n)
+	for i := range s {
+		s[i] = b.Random()
+	}
+	return s
 }
 
 //-----------------------------------------------------------------------------
