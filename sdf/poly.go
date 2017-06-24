@@ -11,8 +11,6 @@ package sdf
 import (
 	"fmt"
 	"math"
-
-	"github.com/yofu/dxf"
 )
 
 //-----------------------------------------------------------------------------
@@ -348,12 +346,12 @@ func (p *Polygon) Render(path string) error {
 	}
 	p.fixups()
 	fmt.Printf("rendering %s\n", path)
-	d := dxf.NewDrawing()
+	d := NewDXF(path)
 	for i := 0; i < len(p.vlist)-1; i++ {
 		if p.vlist[i+1].vtype != HIDE {
 			p0 := p.vlist[i].vertex
 			p1 := p.vlist[i+1].vertex
-			d.Line(p0.X, p0.Y, 0, p1.X, p1.Y, 0)
+			d.Line(p0, p1)
 		}
 	}
 	// close the polygon if needed
@@ -361,10 +359,10 @@ func (p *Polygon) Render(path string) error {
 		p0 := p.vlist[len(p.vlist)-1].vertex
 		p1 := p.vlist[0].vertex
 		if !p0.Equals(p1, TOLERANCE) {
-			d.Line(p0.X, p0.Y, 0, p1.X, p1.Y, 0)
+			d.Line(p0, p1)
 		}
 	}
-	err := d.SaveAs(path)
+	err := d.Save()
 	if err != nil {
 		return err
 	}
