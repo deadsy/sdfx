@@ -429,6 +429,16 @@ func test44() {
 	RenderSTL(s2, 300, "test.stl")
 }
 
+func test45() {
+	d := NewDXF("test.dxf")
+	b := Box2{V2{0, 0}, V2{0.1, 1}}
+	s := b.RandomSet(1000)
+	t := s.SuperTriangle()
+	d.Points(s)
+	d.Lines([]V2{t.V[0], t.V[1], t.V[2], t.V[0]})
+	d.Save()
+}
+
 func main() {
-	test44()
+	test45()
 }
