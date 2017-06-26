@@ -10,6 +10,39 @@ See: http://paulbourke.net/papers/triangulate/
 
 package sdf
 
+import "errors"
+
+//-----------------------------------------------------------------------------
+
+// return the super triangle of the point set, ie: 3 vertices enclosing all points
+func (s V2Set) SuperTriangle() ([]V2, error) {
+
+	if len(s) == 0 {
+		return nil, errors.New("no vertices")
+	}
+
+	var p V2
+	var k float64
+
+	if len(s) == 1 {
+		// a single point
+		p := s[0]
+		k := p.MaxComponent() * 0.125
+		if k == 0 {
+			k = 1
+		}
+	} else {
+		b := Box2{s.Min(), s.Max()}
+		p = b.Center()
+		k = b.Size().MaxComponent() * 2.0
+	}
+
+	p0 := p.Add(V2{-k, -k})
+	p1 := p.Add(V2{0, k})
+	p2 := p.Add(V2{k, -k})
+	return []V2{p0, p1, p2}, nil
+}
+
 //-----------------------------------------------------------------------------
 
 func Delaunay2d(p []V2) []Triangle2 {

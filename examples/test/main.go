@@ -431,11 +431,11 @@ func test44() {
 
 func test45() {
 	d := NewDXF("test.dxf")
-	b := Box2{V2{0, 0}, V2{0.1, 1}}
+	b := Box2{V2{0, 0}, V2{1, 1}}
 	s := b.RandomSet(1000)
-	t := s.SuperTriangle()
+	t, _ := s.SuperTriangle()
 	d.Points(s)
-	d.Lines([]V2{t.V[0], t.V[1], t.V[2], t.V[0]})
+	d.Lines([]V2{t[0], t[1], t[2], t[0]})
 	d.Save()
 }
 

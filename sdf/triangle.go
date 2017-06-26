@@ -59,43 +59,6 @@ func (t *Triangle3) Normal() V3 {
 
 //-----------------------------------------------------------------------------
 
-// return the super triangle of the point set, ie: A triangle enclosing all points
-func (s V2Set) SuperTriangle() *Triangle2 {
-
-	if len(s) == 0 {
-		// no points
-		return nil
-	}
-
-	if len(s) == 1 {
-		// a single point
-		p := s[0]
-		k := p.MaxComponent() * 0.125
-		if k == 0 {
-			k = 1
-		}
-
-		p0 := V2{p.X - k, p.Y - k}
-		p1 := V2{p.X + k, p.Y - k}
-		p2 := V2{p.X, p.Y + k}
-
-		return NewTriangle2(p0, p1, p2)
-	}
-
-	b := Box2{s.Min(), s.Max()}
-	k := b.Size().MinComponent() * 0.125
-	b = Box2{b.Min.Sub(V2{k, k}), b.Max.Add(V2{k, k})}
-	sz := b.Size()
-
-	p0 := b.Min
-	p1 := V2{p0.X + sz.X + sz.Y, p0.Y}
-	p2 := V2{p0.X, p0.Y + sz.X + sz.Y}
-
-	return NewTriangle2(p0, p1, p2)
-}
-
-//-----------------------------------------------------------------------------
-
 // Return true if the point is within the circumcircle of the triangle.
 // See: http://www.mathopenref.com/trianglecircumcircle.html
 // See: http://paulbourke.net/papers/triangulate/
