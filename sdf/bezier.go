@@ -15,10 +15,6 @@ import (
 
 //-----------------------------------------------------------------------------
 
-const POLY_EPSILON = 1e-12
-
-//-----------------------------------------------------------------------------
-
 type BezierPolynomial struct {
 	n             int     // polynomial order
 	a, b, c, d, e float64 // polynomial coefficients
@@ -115,11 +111,11 @@ func (p *BezierPolynomial) Set(x []float64) {
 	}
 	// zero out any very small coefficients
 	sum := Abs(p.a) + Abs(p.b) + Abs(p.c) + Abs(p.d) + Abs(p.e)
-	p.a = ZeroSmall(p.a, sum, POLY_EPSILON)
-	p.b = ZeroSmall(p.b, sum, POLY_EPSILON)
-	p.c = ZeroSmall(p.c, sum, POLY_EPSILON)
-	p.d = ZeroSmall(p.d, sum, POLY_EPSILON)
-	p.e = ZeroSmall(p.e, sum, POLY_EPSILON)
+	p.a = ZeroSmall(p.a, sum, EPSILON)
+	p.b = ZeroSmall(p.b, sum, EPSILON)
+	p.c = ZeroSmall(p.c, sum, EPSILON)
+	p.d = ZeroSmall(p.d, sum, EPSILON)
+	p.e = ZeroSmall(p.e, sum, EPSILON)
 }
 
 //-----------------------------------------------------------------------------

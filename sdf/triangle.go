@@ -100,8 +100,66 @@ func (s V2Set) SuperTriangle() *Triangle2 {
 // See: http://www.mathopenref.com/trianglecircumcircle.html
 // See: http://paulbourke.net/papers/triangulate/
 func (t Triangle2) InCircumcircle(p V2) bool {
-	// TODO
-	return false
+
+	var m1, m2, mx1, mx2, my1, my2 float64
+	var dx, dy, drsqr float64
+	var xc, yc, rsqr float64
+
+	x1 := t.V[0].X
+	x2 := t.V[1].X
+	x3 := t.V[2].X
+
+	y1 := t.V[0].Y
+	y2 := t.V[1].Y
+	y3 := t.V[2].Y
+
+	xp := p.X
+	yp := p.Y
+
+	fabsy1y2 := Abs(y1 - y2)
+	fabsy2y3 := Abs(y2 - y3)
+
+	// Check for coincident points
+	if fabsy1y2 < EPSILON && fabsy2y3 < EPSILON {
+		return false
+	}
+
+	if fabsy1y2 < EPSILON {
+		m2 = -(x3 - x2) / (y3 - y2)
+		mx2 = (x2 + x3) / 2.0
+		my2 = (y2 + y3) / 2.0
+		xc = (x2 + x1) / 2.0
+		yc = m2*(xc-mx2) + my2
+	} else if fabsy2y3 < EPSILON {
+		m1 = -(x2 - x1) / (y2 - y1)
+		mx1 = (x1 + x2) / 2.0
+		my1 = (y1 + y2) / 2.0
+		xc = (x3 + x2) / 2.0
+		yc = m1*(xc-mx1) + my1
+	} else {
+		m1 = -(x2 - x1) / (y2 - y1)
+		m2 = -(x3 - x2) / (y3 - y2)
+		mx1 = (x1 + x2) / 2.0
+		mx2 = (x2 + x3) / 2.0
+		my1 = (y1 + y2) / 2.0
+		my2 = (y2 + y3) / 2.0
+		xc = (m1*mx1 - m2*mx2 + my2 - my1) / (m1 - m2)
+		if fabsy1y2 > fabsy2y3 {
+			yc = m1*(xc-mx1) + my1
+		} else {
+			yc = m2*(xc-mx2) + my2
+		}
+	}
+
+	dx = x2 - xc
+	dy = y2 - yc
+	rsqr = dx*dx + dy*dy
+
+	dx = xp - xc
+	dy = yp - yc
+	drsqr = dx*dx + dy*dy
+
+	return (drsqr - rsqr) <= EPSILON
 }
 
 //-----------------------------------------------------------------------------
