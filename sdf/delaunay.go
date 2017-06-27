@@ -14,6 +14,14 @@ import "errors"
 
 //-----------------------------------------------------------------------------
 
+// 2d/3d triangle referencing a list of vertices
+type TriangleI [3]int
+
+// 2d/3d edge referencing a list of vertices
+type EdgeI [2]int
+
+//-----------------------------------------------------------------------------
+
 // return the super triangle of the point set, ie: 3 vertices enclosing all points
 func (s V2Set) SuperTriangle() ([]V2, error) {
 
@@ -45,8 +53,43 @@ func (s V2Set) SuperTriangle() ([]V2, error) {
 
 //-----------------------------------------------------------------------------
 
-func Delaunay2d(p []V2) []Triangle2 {
-	return nil
+func Delaunay2d(p []V2) ([]TriangleI, error) {
+
+	// number of vertices
+	n := len(p)
+	if n < 3 {
+		return nil, errors.New("not enough vertices")
+	}
+
+	// work out the super triangle, add it to the vertex set
+	st, err := V2Set(p).SuperTriangle()
+	if err != nil {
+		return nil, err
+	}
+	p = append(p, st...)
+
+	// allocate the triangles
+	triangle := make([]TriangleI, n+1)
+	done := make([]bool, n+1)
+
+	// set the super triangle as the 0th triangle
+	triangle[0][0] = n
+	triangle[0][1] = n + 1
+	triangle[0][2] = n + 2
+	done[0] = true
+
+	// TODO
+
+	// remove any triangles with vertices from the super triangle
+	k := 0
+	for _, t := range triangle {
+		if t[0] < n && t[1] < n && t[2] < n {
+			triangle[k] = t
+			k += 1
+		}
+	}
+	// done
+	return triangle[:k], nil
 }
 
 /*
