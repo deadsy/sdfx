@@ -53,44 +53,121 @@ func (s V2Set) SuperTriangle() ([]V2, error) {
 
 //-----------------------------------------------------------------------------
 
-func Delaunay2d(p []V2) ([]TriangleI, error) {
+func (vs V2Set) Delaunay2d() ([]TriangleI, error) {
 
 	// number of vertices
-	n := len(p)
-	if n < 3 {
-		return nil, errors.New("not enough vertices")
-	}
+	n := len(vs)
 
-	// work out the super triangle, add it to the vertex set
-	st, err := V2Set(p).SuperTriangle()
+	// TODO - sort the vertices by x value
+
+	// work out the super triangle
+	t, err := vs.SuperTriangle()
 	if err != nil {
 		return nil, err
 	}
-	p = append(p, st...)
+	// add the super triangle to the vertex set
+	vs = append(vs, t...)
 
 	// allocate the triangles
-	triangle := make([]TriangleI, n+1)
-	done := make([]bool, n+1)
+	ts := make([]TriangleI, 0, n)
+	done := make([]bool, 0, n)
 
 	// set the super triangle as the 0th triangle
-	triangle[0][0] = n
-	triangle[0][1] = n + 1
-	triangle[0][2] = n + 2
-	done[0] = true
+	ts = append(ts, TriangleI{n, n + 1, n + 2})
+	done = append(done, false)
 
-	// TODO
+	// Add the vertices one at a time into the mesh
+	// Note: we don't iterate over the super triangle vertices
+	for i := 0; i < n; i++ {
+
+		//v := vs[i]
+
+		// Create the edge buffer.
+		// If the vertex lies inside the circumcircle of the triangle
+		// then the three edges of that triangle are added to the edge
+		// buffer and that triangle is removed.
+		es := make([]EdgeI, 0, 32)
+		nt := len(ts)
+		for j := 0; j < nt; j++ {
+
+			if done[j] {
+				continue
+			}
+
+			//          x1 = pxyz[v[j].p1].x
+			//          y1 = pxyz[v[j].p1].y
+			//          x2 = pxyz[v[j].p2].x
+			//          y2 = pxyz[v[j].p2].y
+			//          x3 = pxyz[v[j].p3].x
+			//          y3 = pxyz[v[j].p3].y
+			//
+			//          inside = CircumCircle(xp,yp,x1,y1,x2,y2,x3,y3,&xc,&yc,&r)
+			//          if (xc < xp && ((xp-xc)*(xp-xc)) > r) {
+			// 				done[j] = true
+			//          }
+
+			inside := true
+
+			if inside {
+				// add the triangle edges to the edge set
+				es = append(es, EdgeI{ts[j][0], ts[j][1]})
+				es = append(es, EdgeI{ts[j][1], ts[j][2]})
+				es = append(es, EdgeI{ts[j][2], ts[j][0]})
+				// remove the triangle (copy in the tail)
+				ts[j] = ts[nt-1]
+				done[j] = done[nt-1]
+				nt -= 1
+				// back up the loop variable, we have a new triangle at this index
+				j -= 1
+			}
+		}
+
+		// re-size the triangle/done sets
+		ts = ts[:nt-1]
+		done = done[:nt-1]
+
+		// Tag multiple edges. If all triangles are specified anticlockwise
+		// then all interior edges are opposite pointing in direction.
+		for j := 0; j < len(es)-1; j++ {
+			for k := j + 1; k < len(es); k++ {
+				if (es[j][0] == es[k][1]) && (es[j][1] == es[k][0]) {
+					es[j] = EdgeI{-1, -1}
+					es[k] = EdgeI{-1, -1}
+				}
+				// Shouldn't need the following, see note above
+				if (es[j][0] == es[k][0]) && (es[j][1] == es[k][1]) {
+					es[j] = EdgeI{-1, -1}
+					es[k] = EdgeI{-1, -1}
+				}
+			}
+		}
+
+		// Form new triangles for the current point skipping over any tagged edges.
+		// All edges are arranged in clockwise order.
+		for _, e := range es {
+			if e[0] < 0 || e[1] < 0 {
+				continue
+			}
+			ts = append(ts, TriangleI{e[0], e[1], i})
+			done = append(done, false)
+		}
+
+	}
 
 	// remove any triangles with vertices from the super triangle
 	k := 0
-	for _, t := range triangle {
+	for _, t := range ts {
 		if t[0] < n && t[1] < n && t[2] < n {
-			triangle[k] = t
+			ts[k] = t
 			k += 1
 		}
 	}
+
 	// done
-	return triangle[:k], nil
+	return ts[:k], nil
 }
+
+//-----------------------------------------------------------------------------
 
 /*
 
