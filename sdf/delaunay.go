@@ -10,7 +10,10 @@ See: http://paulbourke.net/papers/triangulate/
 
 package sdf
 
-import "errors"
+import (
+	"errors"
+	"sort"
+)
 
 //-----------------------------------------------------------------------------
 
@@ -58,7 +61,8 @@ func (vs V2Set) Delaunay2d() ([]TriangleI, error) {
 	// number of vertices
 	n := len(vs)
 
-	// TODO - sort the vertices by x value
+	// sort the vertices by x value
+	sort.Sort(V2SetByX(vs))
 
 	// work out the super triangle
 	t, err := vs.SuperTriangle()

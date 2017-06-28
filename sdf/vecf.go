@@ -334,3 +334,12 @@ func (a V2) Normalize() V2 {
 }
 
 //-----------------------------------------------------------------------------
+// Sort By X for a V2Set
+
+type V2SetByX V2Set
+
+func (a V2SetByX) Len() int           { return len(a) }
+func (a V2SetByX) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a V2SetByX) Less(i, j int) bool { return a[i].X < a[j].X }
+
+//-----------------------------------------------------------------------------
