@@ -3,7 +3,9 @@
 
 Dealunay Triangulation
 
-See: http://paulbourke.net/papers/triangulate/
+See:
+http://www.mathopenref.com/trianglecircumcircle.html
+http://paulbourke.net/papers/triangulate/
 
 */
 //-----------------------------------------------------------------------------
@@ -56,6 +58,91 @@ func (s V2Set) SuperTriangle() ([]V2, error) {
 
 //-----------------------------------------------------------------------------
 
+// Return the circumcenter of a triangle
+func (t Triangle2) Circumcenter() (V2, error) {
+
+	var m1, m2, mx1, mx2, my1, my2 float64
+	var xc, yc float64
+
+	x1 := t[0].X
+	x2 := t[1].X
+	x3 := t[2].X
+
+	y1 := t[0].Y
+	y2 := t[1].Y
+	y3 := t[2].Y
+
+	fabsy1y2 := Abs(y1 - y2)
+	fabsy2y3 := Abs(y2 - y3)
+
+	// Check for coincident points
+	if fabsy1y2 < EPSILON && fabsy2y3 < EPSILON {
+		return V2{}, errors.New("coincident points")
+	}
+
+	if fabsy1y2 < EPSILON {
+		m2 = -(x3 - x2) / (y3 - y2)
+		mx2 = (x2 + x3) / 2.0
+		my2 = (y2 + y3) / 2.0
+		xc = (x2 + x1) / 2.0
+		yc = m2*(xc-mx2) + my2
+	} else if fabsy2y3 < EPSILON {
+		m1 = -(x2 - x1) / (y2 - y1)
+		mx1 = (x1 + x2) / 2.0
+		my1 = (y1 + y2) / 2.0
+		xc = (x3 + x2) / 2.0
+		yc = m1*(xc-mx1) + my1
+	} else {
+		m1 = -(x2 - x1) / (y2 - y1)
+		m2 = -(x3 - x2) / (y3 - y2)
+		mx1 = (x1 + x2) / 2.0
+		mx2 = (x2 + x3) / 2.0
+		my1 = (y1 + y2) / 2.0
+		my2 = (y2 + y3) / 2.0
+		xc = (m1*mx1 - m2*mx2 + my2 - my1) / (m1 - m2)
+		if fabsy1y2 > fabsy2y3 {
+			yc = m1*(xc-mx1) + my1
+		} else {
+			yc = m2*(xc-mx2) + my2
+		}
+	}
+
+	return V2{xc, yc}, nil
+}
+
+// Return inside = true if the point is inside the circumcircle of the triangle.
+// Return done = true if the vertex (and the subsequent x-ordered vertices) is outside the circumcircle.
+func (t Triangle2) InCircumcircle(p V2) (inside, done bool) {
+	c, err := t.Circumcenter()
+	if err != nil {
+		inside = false
+		done = true
+		return
+	}
+
+	// radius squared of circumcircle
+	dx := t[0].X - c.X
+	dy := t[0].Y - c.Y
+	r2 := dx*dx + dy*dy
+
+	// distance squared from circumcenter to point
+	dx = p.X - c.X
+	dy = p.Y - c.Y
+	d2 := dx*dx + dy*dy
+
+	// is the point within the circumcircle?
+	inside = d2-r2 <= EPSILON
+
+	// If this vertex has an x-value beyond the circumcenter and the distance based on the x-delta
+	// is greater than the circumradius, then this triangle is done for this and all subsequent vertices
+	// since the vertex list has been sorted by x-value.
+	done = (dx > 0) && (dx*dx > r2)
+
+	return
+}
+
+//-----------------------------------------------------------------------------
+
 func (vs V2Set) Delaunay2d() ([]TriangleI, error) {
 
 	// number of vertices
@@ -83,8 +170,7 @@ func (vs V2Set) Delaunay2d() ([]TriangleI, error) {
 	// Add the vertices one at a time into the mesh
 	// Note: we don't iterate over the super triangle vertices
 	for i := 0; i < n; i++ {
-
-		//v := vs[i]
+		v := vs[i]
 
 		// Create the edge buffer.
 		// If the vertex lies inside the circumcircle of the triangle
@@ -98,19 +184,9 @@ func (vs V2Set) Delaunay2d() ([]TriangleI, error) {
 				continue
 			}
 
-			//          x1 = pxyz[v[j].p1].x
-			//          y1 = pxyz[v[j].p1].y
-			//          x2 = pxyz[v[j].p2].x
-			//          y2 = pxyz[v[j].p2].y
-			//          x3 = pxyz[v[j].p3].x
-			//          y3 = pxyz[v[j].p3].y
-			//
-			//          inside = CircumCircle(xp,yp,x1,y1,x2,y2,x3,y3,&xc,&yc,&r)
-			//          if (xc < xp && ((xp-xc)*(xp-xc)) > r) {
-			// 				done[j] = true
-			//          }
-
-			inside := true
+			t := Triangle2{vs[ts[j][0]], vs[ts[j][1]], vs[ts[j][2]]}
+			inside, complete := t.InCircumcircle(v)
+			done[j] = complete
 
 			if inside {
 				// add the triangle edges to the edge set
