@@ -538,6 +538,29 @@ func Test_Quadratic(t *testing.T) {
 
 //-----------------------------------------------------------------------------
 
+func Test_Colinear_Fast(t *testing.T) {
+	test := []struct {
+		a, b, c V2
+		result  bool
+	}{
+		{V2{}, V2{}, V2{}, true},
+		{V2{}, V2{}, V2{10, 17}, true},
+		{V2{1, 1}, V2{1, 2}, V2{1, 3}, true},
+		{V2{1, 1}, V2{2, 2}, V2{3, 3}, true},
+		{V2{1, 1}, V2{2, 1}, V2{3, 1}, true},
+		{V2{1, 1}, V2{2, 5}, V2{-2, 4}, false},
+		{V2{1, 1}, V2{1, 1}, V2{-2, 4}, true},
+		{V2{1, 1}, V2{-1, 1}, V2{0, -1}, false},
+	}
+	for _, v := range test {
+		if Colinear_Fast(v.a, v.b, v.c, EPSILON) != v.result {
+			t.Error("FAIL")
+		}
+	}
+}
+
+//-----------------------------------------------------------------------------
+
 func Test_Float_Comparison(t *testing.T) {
 
 	negative_infinity := math.Inf(-1)

@@ -102,11 +102,19 @@ func (a V2) Cross(b V2) float64 {
 }
 
 // Return true if 3 points are colinear.
-func (mid V2) Colinear(a, b V2, tolerance float64) bool {
+func Colinear_Slow(a, b, c V2, tolerance float64) bool {
 	// use the cross product as a measure of colinearity
-	pa := a.Sub(mid).Normalize()
-	pb := b.Sub(mid).Normalize()
+	pa := a.Sub(c).Normalize()
+	pb := b.Sub(c).Normalize()
 	return Abs(pa.Cross(pb)) < tolerance
+}
+
+// Return true if 3 points are colinear.
+func Colinear_Fast(a, b, c V2, tolerance float64) bool {
+	// use the cross product as a measure of colinearity
+	ac := a.Sub(b)
+	bc := b.Sub(c)
+	return Abs(ac.Cross(bc)) < tolerance
 }
 
 //-----------------------------------------------------------------------------
