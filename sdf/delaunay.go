@@ -121,14 +121,13 @@ func (vs V2Set) Delaunay2d() ([]TriangleI, error) {
 				ts[j] = ts[nt-1]
 				done[j] = done[nt-1]
 				nt -= 1
-				// back up the loop variable, we have a new triangle at this index
 				j -= 1
 			}
 		}
 
 		// re-size the triangle/done sets
-		ts = ts[:nt-1]
-		done = done[:nt-1]
+		ts = ts[:nt]
+		done = done[:nt]
 
 		// Tag multiple edges. If all triangles are specified anticlockwise
 		// then all interior edges are opposite pointing in direction.
@@ -159,16 +158,21 @@ func (vs V2Set) Delaunay2d() ([]TriangleI, error) {
 	}
 
 	// remove any triangles with vertices from the super triangle
-	k := 0
-	for _, t := range ts {
-		if t[0] < n && t[1] < n && t[2] < n {
-			ts[k] = t
-			k += 1
+	nt := len(ts)
+	for j := 0; j < nt; j++ {
+		t := ts[j]
+		if t[0] >= n || t[1] >= n || t[2] >= n {
+			// remove the triangle (copy in the tail)
+			ts[j] = ts[nt-1]
+			nt -= 1
+			j -= 1
 		}
 	}
+	// re-size the triangle set
+	ts = ts[:nt]
 
 	// done
-	return ts[:k], nil
+	return ts, nil
 }
 
 //-----------------------------------------------------------------------------
