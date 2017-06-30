@@ -431,18 +431,23 @@ func test44() {
 
 func test45() {
 	d := NewDXF("test.dxf")
-	b := Box2{V2{0, 0}, V2{1, 1}}
+	k := 1.0
+	b := Box2{V2{0, 0}, V2{k, k}}
 	s := b.RandomSet(1000)
 	t, _ := s.SuperTriangle()
-	d.Points(s)
+	r := k / (20.0 * math.Sqrt(float64(len(s))))
+	d.Points(s, r)
 	d.Triangle(t)
 	d.Save()
 }
 
 func test46() {
 	d := NewDXF("test.dxf")
-	b := Box2{V2{0, 0}, V2{10, 10}}
+	k := 10.0
+	b := Box2{V2{0, 0}, V2{k, k}}
 	s := b.RandomSet(256)
+	r := k / (20.0 * math.Sqrt(float64(len(s))))
+	d.Points(s, r)
 	fmt.Printf("%d points\n", len(s))
 	ts, err := s.Delaunay2d()
 	if err != nil {
