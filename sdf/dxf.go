@@ -46,6 +46,10 @@ func (d *DXF) Points(s V2Set) {
 	}
 }
 
+func (d *DXF) Triangle(t Triangle2) {
+	d.Lines([]V2{t[0], t[1], t[2], t[0]})
+}
+
 func (d *DXF) Save() error {
 	err := d.drawing.SaveAs(d.name)
 	if err != nil {

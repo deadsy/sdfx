@@ -435,10 +435,27 @@ func test45() {
 	s := b.RandomSet(1000)
 	t, _ := s.SuperTriangle()
 	d.Points(s)
-	d.Lines([]V2{t[0], t[1], t[2], t[0]})
+	d.Triangle(t)
+	d.Save()
+}
+
+func test46() {
+	d := NewDXF("test.dxf")
+	b := Box2{V2{0, 0}, V2{10, 10}}
+	s := b.RandomSet(256)
+	fmt.Printf("%d points\n", len(s))
+	ts, err := s.Delaunay2d()
+	if err != nil {
+		fmt.Printf("%s\n", err)
+		return
+	}
+	fmt.Printf("%d triangles\n", len(ts))
+	for _, t := range ts {
+		d.Triangle(t.ToTriangle2(s))
+	}
 	d.Save()
 }
 
 func main() {
-	test45()
+	test46()
 }
