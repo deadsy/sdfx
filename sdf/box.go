@@ -6,6 +6,8 @@
 
 package sdf
 
+import "errors"
+
 //-----------------------------------------------------------------------------
 
 type Box3 struct {
@@ -90,6 +92,13 @@ func (a Box2) Center() V2 {
 
 //-----------------------------------------------------------------------------
 
+// scale a box about the center point
+func (a Box2) ScaleAboutCenter(s V2) Box2 {
+	return NewBox2(a.Center(), a.Size().Mul(s))
+}
+
+//-----------------------------------------------------------------------------
+
 // Return a slice of box vertices
 func (a Box2) Vertices() V2Set {
 	v := make([]V2, 4)
@@ -112,6 +121,67 @@ func (a Box3) Vertices() V3Set {
 	v[6] = V3{a.Max.X, a.Max.Y, a.Min.Z}
 	v[7] = a.Max
 	return v
+}
+
+// return the bottom left of a 2d bounding box
+func (a Box2) BottomLeft() V2 {
+	return a.Min
+}
+
+// return the top left of a 2d bounding box
+func (a Box2) TopLeft() V2 {
+	return V2{a.Min.X, a.Max.Y}
+}
+
+//-----------------------------------------------------------------------------
+// Map a 2d region to integer grid coordinates
+
+type Map2 struct {
+	bb    Box2 // bounding box
+	grid  V2i  // integral dimension
+	delta V2
+	flipy bool // flip the y-axis
+}
+
+func NewMap2(bb Box2, grid V2i, flipy bool) (*Map2, error) {
+	// sanity check the bounding box
+	bb_size := bb.Size()
+	if bb_size.X <= 0 || bb_size.Y <= 0 {
+		return nil, errors.New("bad bounding box")
+	}
+	// sanity check the integer dimensions
+	if grid[0] <= 0 || grid[1] <= 0 {
+		return nil, errors.New("bad grid dimensions")
+	}
+	m := Map2{}
+	m.bb = bb
+	m.grid = grid
+	m.flipy = flipy
+	m.delta = bb_size.Div(grid.ToV2())
+	return &m, nil
+}
+
+func (m *Map2) ToV2(p V2i) V2 {
+	ofs := p.ToV2().AddScalar(0.5).Mul(m.delta)
+	var origin V2
+	if m.flipy {
+		origin = m.bb.TopLeft()
+		ofs.Y = -ofs.Y
+	} else {
+		origin = m.bb.BottomLeft()
+	}
+	return origin.Add(ofs)
+}
+
+func (m *Map2) ToV2i(p V2) V2i {
+	var v V2
+	if m.flipy {
+		v = p.Sub(m.bb.TopLeft())
+		v.Y = -v.Y
+	} else {
+		v = p.Sub(m.bb.BottomLeft())
+	}
+	return v.Div(m.delta).ToV2i()
 }
 
 //-----------------------------------------------------------------------------

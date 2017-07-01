@@ -279,16 +279,6 @@ func test22() {
 	RenderSTL(s0, 200, "test.stl")
 }
 
-func test23() {
-	s0 := Circle2D(4.0)
-	SDF2_RenderPNG(s0, "test.png")
-}
-
-func test24() {
-	s0 := Box2D(V2{50, 70}, 4)
-	SDF2_RenderPNG(s0, "test.png")
-}
-
 func test26() {
 	s := Cylinder3D(5, 2, 1)
 	RenderSTL(s, 200, "test.stl")
