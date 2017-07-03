@@ -342,6 +342,13 @@ func (a V2) Normalize() V2 {
 }
 
 //-----------------------------------------------------------------------------
+
+// convert a V2 to a V3 with a specified Z value
+func (a V2) ToV3(z float64) V3 {
+	return V3{a.X, a.Y, z}
+}
+
+//-----------------------------------------------------------------------------
 // Sort By X for a V2Set
 
 type V2SetByX V2Set

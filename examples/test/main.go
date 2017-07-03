@@ -432,23 +432,35 @@ func test45() {
 }
 
 func test46() {
-	d := NewDXF("test.dxf")
 	k := 10.0
 	b := Box2{V2{0, 0}, V2{k, k}}
-	s := b.RandomSet(256)
+	s := b.RandomSet(400)
 	r := k / (20.0 * math.Sqrt(float64(len(s))))
+
+	d := NewDXF("test1.dxf")
 	d.Points(s, r)
-	fmt.Printf("%d points\n", len(s))
-	ts, err := s.Delaunay2d()
-	if err != nil {
-		fmt.Printf("%s\n", err)
-		return
-	}
+	ts, _ := s.Delaunay2d()
+	//for _, t := range ts {
+	//	fmt.Printf("%d %d %d\n", t[0], t[1], t[2])
+	//}
 	fmt.Printf("%d triangles\n", len(ts))
 	for _, t := range ts {
 		d.Triangle(t.ToTriangle2(s))
 	}
 	d.Save()
+
+	d = NewDXF("test2.dxf")
+	d.Points(s, r)
+	ts, _ = s.Delaunay2d_Slow()
+	//for _, t := range ts {
+	//	fmt.Printf("%d %d %d\n", t[0], t[1], t[2])
+	//}
+	fmt.Printf("%d triangles\n", len(ts))
+	for _, t := range ts {
+		d.Triangle(t.ToTriangle2(s))
+	}
+	d.Save()
+
 }
 
 func main() {

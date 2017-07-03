@@ -268,3 +268,44 @@ func ZeroSmall(x, y, epsilon float64) float64 {
 }
 
 //-----------------------------------------------------------------------------
+
+// Generate the next k-length combination of 0 to n-1
+// Return false when done
+func NextCombination(n int, a []int) bool {
+	k := len(a)
+	m := 0
+	i := 0
+	for {
+		i++
+		if i > k {
+			return false
+		}
+		if a[k-i] < n-i {
+			m = a[k-i]
+			for j := i; j >= 1; j-- {
+				m++
+				a[k-j] = m
+			}
+			return true
+		}
+	}
+}
+
+// Generate k-length combinations of 0 to n-1
+// Call function f for each generated combination.
+func MapCombinations(n, k int, f func([]int)) {
+	if k >= 0 && n >= k {
+		a := make([]int, k)
+		for i := range a {
+			a[i] = i
+		}
+		for {
+			f(a)
+			if NextCombination(n, a) == false {
+				break
+			}
+		}
+	}
+}
+
+//-----------------------------------------------------------------------------

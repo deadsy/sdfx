@@ -1,11 +1,12 @@
 //-----------------------------------------------------------------------------
 /*
 
-Dealunay Triangulation
+Delaunay Triangulation
 
 See:
 http://www.mathopenref.com/trianglecircumcircle.html
 http://paulbourke.net/papers/triangulate/
+Computational Geometry, Joseph O'Rourke, 2nd edition, Code 5.1
 
 */
 //-----------------------------------------------------------------------------
@@ -22,13 +23,69 @@ import (
 // 2d/3d triangle referencing a list of vertices
 type TriangleI [3]int
 
-// 2d/3d edge referencing a list of vertices
-type EdgeI [2]int
-
 // Given vertex indices and the vertex array, return the triangle with real vertices.
 func (t TriangleI) ToTriangle2(p []V2) Triangle2 {
 	return Triangle2{p[t[0]], p[t[1]], p[t[2]]}
 }
+
+// triangle sorting by index
+type TriangleIByIndex []TriangleI
+
+func (a TriangleIByIndex) Len() int      { return len(a) }
+func (a TriangleIByIndex) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a TriangleIByIndex) Less(i, j int) bool {
+	if a[i][0] < a[j][0] {
+		return true
+	}
+	if a[i][0] == a[j][0] && a[i][1] < a[j][1] {
+		return true
+	}
+	if a[i][1] == a[j][1] && a[i][2] < a[j][2] {
+		return true
+	}
+	return false
+}
+
+// convert a triangle to it's lowest index first form.
+func (t *TriangleI) Canonical() {
+	if t[0] < t[1] && t[0] < t[2] {
+		// ok
+		return
+	}
+	if t[1] < t[0] && t[1] < t[2] {
+		// t[1] is the smallest
+		tmp := t[0]
+		t[0] = t[1]
+		t[1] = t[2]
+		t[2] = tmp
+		return
+	}
+	// t[2] is the smallest
+	tmp := t[2]
+	t[2] = t[1]
+	t[1] = t[0]
+	t[0] = tmp
+}
+
+type TriangleISet []TriangleI
+
+// Convert a triangle set to it's canonical form.
+// This common form is used to facilitate comparison
+// between the results of different implementations.
+func (ts TriangleISet) Canonical() []TriangleI {
+	// convert each triangle to it's lowest index first form
+	for i := range ts {
+		ts[i].Canonical()
+	}
+	// sort the triangles by index
+	sort.Sort(TriangleIByIndex(ts))
+	return ts
+}
+
+//-----------------------------------------------------------------------------
+
+// 2d/3d edge referencing a list of vertices
+type EdgeI [2]int
 
 //-----------------------------------------------------------------------------
 
@@ -148,6 +205,7 @@ func (t Triangle2) InCircumcircle(p V2) (inside, done bool) {
 
 //-----------------------------------------------------------------------------
 
+// return the delaunay triangulation of a 2d point set
 func (vs V2Set) Delaunay2d() ([]TriangleI, error) {
 
 	// number of vertices
@@ -253,7 +311,80 @@ func (vs V2Set) Delaunay2d() ([]TriangleI, error) {
 	ts = ts[:nt]
 
 	// done
-	return ts, nil
+	return TriangleISet(ts).Canonical(), nil
+}
+
+//-----------------------------------------------------------------------------
+
+// Return the delaunay triangulation of a 2d point set.
+// This is a slow reference implementation for testing faster algorithms.
+// See: Computational Geometry, Joseph O'Rourke, 2nd edition, Code 5.1
+func (vs V2Set) Delaunay2d_Slow() ([]TriangleI, error) {
+
+	// number of vertices
+	n := len(vs)
+	if n < 3 {
+		return nil, errors.New("number of vertices < 3")
+	}
+
+	// map the 2d points onto a 3d parabola
+	z := make([]float64, n)
+	for i, v := range vs {
+		z[i] = v.Length2()
+	}
+
+	// make the set of triangles
+	ts := make([]TriangleI, 0, (2*n)+1)
+
+	// iterate through all the possible triangles
+	c := []int{0, 1, 2}
+
+	for {
+
+		t := TriangleI{c[0], c[1], c[2]}
+
+		p0 := vs[t[0]].ToV3(z[t[0]])
+		p1 := vs[t[1]].ToV3(z[t[1]])
+		p2 := vs[t[2]].ToV3(z[t[2]])
+
+		norm := p1.Sub(p0).Cross(p2.Sub(p1))
+
+		// we want to consider triangles whose normal faces in the -ve z direction
+		if norm.Z > 0 {
+			// swap the triangle handed-ness to flip the normal
+			t[1], t[2] = t[2], t[1]
+			norm = norm.MulScalar(-1.0)
+		}
+
+		// Are there any vertices below this plane?
+		hull := true
+		for i, v := range vs {
+			if i == t[0] || i == t[1] || i == t[2] {
+				// on the plane
+				continue
+			}
+			pi := v.ToV3(z[i])
+			if pi.Sub(p0).Dot(norm) > 0 {
+				// below the plane
+				hull = false
+				break
+			}
+		}
+
+		if hull {
+			// there are no vertices below this triangles plane
+			// so it is part of the lower convex hull.
+			ts = append(ts, t)
+		}
+
+		// get the next triangle
+		if NextCombination(n, c) == false {
+			break
+		}
+	}
+
+	// done
+	return TriangleISet(ts).Canonical(), nil
 }
 
 //-----------------------------------------------------------------------------
