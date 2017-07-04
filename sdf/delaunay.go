@@ -31,8 +31,12 @@ func (t TriangleI) ToTriangle2(p []V2) Triangle2 {
 // triangle sorting by index
 type TriangleIByIndex []TriangleI
 
-func (a TriangleIByIndex) Len() int      { return len(a) }
-func (a TriangleIByIndex) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a TriangleIByIndex) Len() int {
+	return len(a)
+}
+func (a TriangleIByIndex) Swap(i, j int) {
+	a[i], a[j] = a[j], a[i]
+}
 func (a TriangleIByIndex) Less(i, j int) bool {
 	if a[i][0] < a[j][0] {
 		return true
@@ -46,7 +50,8 @@ func (a TriangleIByIndex) Less(i, j int) bool {
 	return false
 }
 
-// convert a triangle to it's lowest index first form.
+// Convert a triangle to it's lowest index first form.
+// Preserve the winding order.
 func (t *TriangleI) Canonical() {
 	if t[0] < t[1] && t[0] < t[2] {
 		// ok
@@ -82,6 +87,23 @@ func (ts TriangleISet) Canonical() []TriangleI {
 	return ts
 }
 
+// Test two triangle sets for equality.
+func (a TriangleISet) Equals(b TriangleISet) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	a = a.Canonical()
+	b = b.Canonical()
+	for i := range a {
+		if (a[i][0] != b[i][0]) ||
+			(a[i][1] != b[i][1]) ||
+			(a[i][2] != b[i][2]) {
+			return false
+		}
+	}
+	return true
+}
+
 //-----------------------------------------------------------------------------
 
 // 2d/3d edge referencing a list of vertices
@@ -89,7 +111,7 @@ type EdgeI [2]int
 
 //-----------------------------------------------------------------------------
 
-// return the super triangle of the point set, ie: 3 vertices enclosing all points
+// Return the super triangle of the point set, ie: 3 vertices enclosing all points
 func (s V2Set) SuperTriangle() (Triangle2, error) {
 
 	if len(s) == 0 {
@@ -111,6 +133,11 @@ func (s V2Set) SuperTriangle() (Triangle2, error) {
 		p = b.Center()
 		k = b.Size().MaxComponent() * 2.0
 	}
+
+	// Note: super triangles should be large enough to avoid having the circumcenter of
+	// any triangle lie outside of the super triangle. This is kludgey. For thin triangles
+	// on the hull the circumcenter is going to be arbitrarily far away.
+	k *= 4096.0
 
 	p0 := p.Add(V2{-k, -k})
 	p1 := p.Add(V2{0, k})
@@ -206,7 +233,7 @@ func (t Triangle2) InCircumcircle(p V2) (inside, done bool) {
 //-----------------------------------------------------------------------------
 
 // return the delaunay triangulation of a 2d point set
-func (vs V2Set) Delaunay2d() ([]TriangleI, error) {
+func (vs V2Set) Delaunay2d() (TriangleISet, error) {
 
 	// number of vertices
 	n := len(vs)
@@ -219,6 +246,7 @@ func (vs V2Set) Delaunay2d() ([]TriangleI, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	// add the super triangle to the vertex set
 	vs = append(vs, t[:]...)
 
@@ -243,7 +271,6 @@ func (vs V2Set) Delaunay2d() ([]TriangleI, error) {
 		es := make([]EdgeI, 0, 64)
 		nt := len(ts)
 		for j := 0; j < nt; j++ {
-
 			if done[j] {
 				continue
 			}
@@ -269,24 +296,18 @@ func (vs V2Set) Delaunay2d() ([]TriangleI, error) {
 		ts = ts[:nt]
 		done = done[:nt]
 
-		// Tag multiple edges. If all triangles are specified anticlockwise
-		// then all interior edges are opposite pointing in direction.
+		// Tag duplicate edges for removal.
 		for j := 0; j < len(es)-1; j++ {
 			for k := j + 1; k < len(es); k++ {
-				if (es[j][0] == es[k][1]) && (es[j][1] == es[k][0]) {
-					es[j] = EdgeI{-1, -1}
-					es[k] = EdgeI{-1, -1}
-				}
-				// Shouldn't need the following, see note above
-				if (es[j][0] == es[k][0]) && (es[j][1] == es[k][1]) {
+				if (es[j][0] == es[k][1] && es[j][1] == es[k][0]) ||
+					(es[j][1] == es[k][1] && es[j][0] == es[k][0]) {
 					es[j] = EdgeI{-1, -1}
 					es[k] = EdgeI{-1, -1}
 				}
 			}
 		}
 
-		// Form new triangles for the current point skipping over any tagged edges.
-		// All edges are arranged in clockwise order.
+		// Form new triangles for the current point skipping over any duplicate edges.
 		for _, e := range es {
 			if e[0] < 0 || e[1] < 0 {
 				continue
@@ -307,11 +328,12 @@ func (vs V2Set) Delaunay2d() ([]TriangleI, error) {
 			j -= 1
 		}
 	}
+
 	// re-size the triangle set
 	ts = ts[:nt]
 
 	// done
-	return TriangleISet(ts).Canonical(), nil
+	return ts, nil
 }
 
 //-----------------------------------------------------------------------------
@@ -319,7 +341,7 @@ func (vs V2Set) Delaunay2d() ([]TriangleI, error) {
 // Return the delaunay triangulation of a 2d point set.
 // This is a slow reference implementation for testing faster algorithms.
 // See: Computational Geometry, Joseph O'Rourke, 2nd edition, Code 5.1
-func (vs V2Set) Delaunay2d_Slow() ([]TriangleI, error) {
+func (vs V2Set) Delaunay2d_Slow() (TriangleISet, error) {
 
 	// number of vertices
 	n := len(vs)
@@ -384,7 +406,7 @@ func (vs V2Set) Delaunay2d_Slow() ([]TriangleI, error) {
 	}
 
 	// done
-	return TriangleISet(ts).Canonical(), nil
+	return ts, nil
 }
 
 //-----------------------------------------------------------------------------

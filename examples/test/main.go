@@ -434,33 +434,29 @@ func test45() {
 func test46() {
 	k := 10.0
 	b := Box2{V2{0, 0}, V2{k, k}}
-	s := b.RandomSet(400)
-	r := k / (20.0 * math.Sqrt(float64(len(s))))
+	s := b.RandomSet(325)
 
+	ts1, _ := s.Delaunay2d()
+	fmt.Printf("ts1 %d triangles\n", len(ts1))
 	d := NewDXF("test1.dxf")
-	d.Points(s, r)
-	ts, _ := s.Delaunay2d()
-	//for _, t := range ts {
-	//	fmt.Printf("%d %d %d\n", t[0], t[1], t[2])
-	//}
-	fmt.Printf("%d triangles\n", len(ts))
-	for _, t := range ts {
+	for _, t := range ts1 {
 		d.Triangle(t.ToTriangle2(s))
 	}
 	d.Save()
 
+	ts2, _ := s.Delaunay2d_Slow()
+	fmt.Printf("ts2 %d triangles\n", len(ts2))
 	d = NewDXF("test2.dxf")
-	d.Points(s, r)
-	ts, _ = s.Delaunay2d_Slow()
-	//for _, t := range ts {
-	//	fmt.Printf("%d %d %d\n", t[0], t[1], t[2])
-	//}
-	fmt.Printf("%d triangles\n", len(ts))
-	for _, t := range ts {
+	for _, t := range ts2 {
 		d.Triangle(t.ToTriangle2(s))
 	}
 	d.Save()
 
+	if ts1.Equals(ts2) {
+		fmt.Printf("same\n")
+	} else {
+		fmt.Printf("different\n")
+	}
 }
 
 func main() {
