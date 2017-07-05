@@ -459,6 +459,41 @@ func test46() {
 	}
 }
 
+func test47() {
+	xsz := 20
+	ysz := 20
+
+	m, _ := NewMap2(NewBox2(V2{0, 0}, V2{20, 20}), V2i{xsz, ysz}, false)
+	s := make(V2Set, 0, xsz*ysz)
+	for i := 0; i < xsz; i++ {
+		for j := 0; j < ysz; j++ {
+			s = append(s, m.ToV2(V2i{i, j}))
+		}
+	}
+
+	ts1, _ := s.Delaunay2d()
+	fmt.Printf("ts1 %d triangles\n", len(ts1))
+	d := NewDXF("test1.dxf")
+	for _, t := range ts1 {
+		d.Triangle(t.ToTriangle2(s))
+	}
+	d.Save()
+
+	ts2, _ := s.Delaunay2d_Slow()
+	fmt.Printf("ts2 %d triangles\n", len(ts2))
+	d = NewDXF("test2.dxf")
+	for _, t := range ts2 {
+		d.Triangle(t.ToTriangle2(s))
+	}
+	d.Save()
+
+	if ts1.Equals(ts2) {
+		fmt.Printf("same\n")
+	} else {
+		fmt.Printf("different\n")
+	}
+}
+
 func main() {
-	test46()
+	test47()
 }
