@@ -677,3 +677,30 @@ func (s *DifferenceSDF2) BoundingBox() Box2 {
 }
 
 //-----------------------------------------------------------------------------
+
+// Generate a set of internal mesh points for an SDF2
+func GenerateMesh2D(s SDF2, grid V2i) (V2Set, error) {
+
+	// create the grid mapping for the bounding box
+	m, err := NewMap2(s.BoundingBox(), grid, false)
+	if err != nil {
+		return nil, err
+	}
+
+	// create the vertex set storage
+	vset := make(V2Set, 0, grid[0]*grid[1])
+
+	// iterate across the grid and add the vertices if they are inside the SDF2
+	for i := 0; i < grid[0]; i++ {
+		for j := 0; j < grid[1]; j++ {
+			v := m.ToV2(V2i{i, j})
+			if s.Evaluate(v) <= 0 {
+				vset = append(vset, v)
+			}
+		}
+	}
+
+	return vset, nil
+}
+
+//-----------------------------------------------------------------------------

@@ -460,8 +460,8 @@ func test46() {
 }
 
 func test47() {
-	xsz := 20
-	ysz := 20
+	xsz := 3
+	ysz := 3
 
 	m, _ := NewMap2(NewBox2(V2{0, 0}, V2{20, 20}), V2i{xsz, ysz}, false)
 	s := make(V2Set, 0, xsz*ysz)
@@ -494,6 +494,31 @@ func test47() {
 	}
 }
 
+func test48() {
+	s1 := Circle2D(0.8)
+	s0 := Box2D(V2{3.0, 4.0}, 0.5)
+	s := Difference2D(s0, Transform2D(s1, Translate2d(V2{0.5, 0.5})))
+
+	p, err := GenerateMesh2D(s, V2i{20, 40})
+	if err != nil {
+		fmt.Printf("%s\n", err)
+		return
+	}
+
+	ts, err := p.Delaunay2d()
+	if err != nil {
+		fmt.Printf("%s\n", err)
+		return
+	}
+
+	fmt.Printf("ts %d triangles\n", len(ts))
+	d := NewDXF("test.dxf")
+	for _, t := range ts {
+		d.Triangle(t.ToTriangle2(p))
+	}
+	d.Save()
+}
+
 func main() {
-	test47()
+	test48()
 }
