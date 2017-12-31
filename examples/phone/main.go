@@ -12,96 +12,132 @@ import . "github.com/deadsy/sdfx/sdf"
 
 //-----------------------------------------------------------------------------
 
-var phone_l = 147.0
-var phone_w = 78.0
-var phone_h = 11.6
-var phone_r = 11.0
+// phone body
+var phone_w = 78.0  // width
+var phone_h = 146.5 // height
+var phone_t = 11.6  // thickness
+var phone_r = 11.2  // corner radius
 
-func phone(z_ofs float64) SDF3 {
-	s2d := Box2D(V2{phone_l, phone_w}, phone_r)
-	s3d := Extrude3D(s2d, phone_h)
-	m := Translate3d(V3{0, 0, z_ofs})
+// camera hole
+var camera_w = 23.5 // width
+var camera_h = 33.0 // height
+var camera_r = 3.0  // corner radius
+var camera_xofs = 0.0
+var camera_yofs = ((phone_h - camera_h) / 2.0) - 9.0
+
+// speaker hole
+var speaker_w = 12.5 // width
+var speaker_h = 10.0 // height
+var speaker_r = 3.0  // corner radius
+var speaker_xofs = 8.5 - ((phone_w - speaker_w) / 2.0)
+var speaker_yofs = ((phone_h - speaker_h) / 2.0) - 114.0
+
+// wall thickness
+var wall_t = 3.0
+
+//-----------------------------------------------------------------------------
+
+func phone_body() SDF3 {
+	s2d := Box2D(V2{phone_w, phone_h}, phone_r)
+	s3d := Extrude3D(s2d, phone_t)
+	m := Translate3d(V3{0, 0, wall_t / 2.0})
+	return Transform3D(s3d, m)
+}
+
+func camera_hole() SDF3 {
+	s2d := Box2D(V2{camera_w, camera_h}, camera_r)
+	s3d := Extrude3D(s2d, wall_t+phone_t)
+	m := Translate3d(V3{camera_xofs, camera_yofs, 0})
+	return Transform3D(s3d, m)
+}
+
+func speaker_hole() SDF3 {
+	s2d := Box2D(V2{speaker_w, speaker_h}, speaker_r)
+	s3d := Extrude3D(s2d, wall_t+phone_t)
+	m := Translate3d(V3{speaker_xofs, speaker_yofs, 0})
+	return Transform3D(s3d, m)
+}
+
+//-----------------------------------------------------------------------------
+// holes for buttons, jacks, etc.
+
+var hole_r = 2.0 // corner radius
+
+func hole_left(length, yofs, zofs float64) SDF3 {
+	w := phone_t * 2.0
+	xofs := -(phone_w + wall_t) / 2.0
+	yofs = (phone_h-length)/2.0 - yofs
+	zofs = phone_t + ((phone_t + wall_t) / 2.0) - zofs
+	s2d := Box2D(V2{w, length}, hole_r)
+	s3d := Extrude3D(s2d, wall_t)
+	m := Translate3d(V3{xofs, yofs, zofs}).Mul(RotateY(DtoR(90)))
+	return Transform3D(s3d, m)
+}
+
+func hole_right(length, yofs, zofs float64) SDF3 {
+	w := phone_t * 2.0
+	xofs := (phone_w + wall_t) / 2.0
+	yofs = (phone_h-length)/2.0 - yofs
+	zofs = phone_t + ((phone_t + wall_t) / 2.0) - zofs
+	s2d := Box2D(V2{w, length}, hole_r)
+	s3d := Extrude3D(s2d, wall_t)
+	m := Translate3d(V3{xofs, yofs, zofs}).Mul(RotateY(DtoR(90)))
+	return Transform3D(s3d, m)
+}
+
+func hole_top(length, xofs, zofs float64) SDF3 {
+	w := phone_t * 2.0
+	xofs = -(phone_w-length)/2.0 + xofs
+	yofs := (phone_h + wall_t) / 2.0
+	zofs = phone_t + ((phone_t + wall_t) / 2.0) - zofs
+	s2d := Box2D(V2{length, w}, hole_r)
+	s3d := Extrude3D(s2d, wall_t)
+	m := Translate3d(V3{xofs, yofs, zofs}).Mul(RotateX(DtoR(90)))
+	return Transform3D(s3d, m)
+}
+
+func hole_bottom(length, xofs, zofs float64) SDF3 {
+	w := phone_t * 2.0
+	xofs = -(phone_w-length)/2.0 + xofs
+	yofs := -(phone_h + wall_t) / 2.0
+	zofs = phone_t + ((phone_t + wall_t) / 2.0) - zofs
+	s2d := Box2D(V2{length, w}, hole_r)
+	s3d := Extrude3D(s2d, wall_t)
+	m := Translate3d(V3{xofs, yofs, zofs}).Mul(RotateX(DtoR(90)))
 	return Transform3D(s3d, m)
 }
 
 //-----------------------------------------------------------------------------
 
-var wall_thickness = 3.0
-
 func outer_shell() SDF3 {
-	l := phone_l + (2.0 * wall_thickness)
-	w := phone_w + (2.0 * wall_thickness)
-	r := phone_r + wall_thickness
-	h := phone_h + wall_thickness
-	s2d := Box2D(V2{l, w}, r)
-	return Extrude3D(s2d, h)
-}
-
-//-----------------------------------------------------------------------------
-
-func side_cutout() SDF3 {
-	x := (phone_l / 2.0) + wall_thickness
-	l := phone_l * 0.3
-	y0 := phone_w * 0.2
-	y1 := phone_w * 0.1
-
-	b := NewBezier()
-	b.Add(x, y0)
-	b.Add(x-l, y1).Mid()
-	b.Add(x-l, -y1).Mid()
-	b.Add(x, -y0)
-	b.Close()
-
-	s2d := Polygon2D(b.Polygon().Vertices())
-	return Extrude3D(s2d, phone_h+wall_thickness)
-}
-
-func side_cutouts() SDF3 {
-	s0 := side_cutout()
-	m := RotateZ(DtoR(180))
-	s1 := Transform3D(s0, m)
-	return Union3D(s0, s1)
-}
-
-//-----------------------------------------------------------------------------
-
-func top_cutout(x_ofs float64) SDF3 {
-
-	y := (phone_w / 2.0) + wall_thickness
-	h := phone_w * 0.3
-	x0 := phone_w * 0.2
-	x1 := x0 * 0.8
-
-	b := NewBezier()
-	b.Add(x0, y)
-	b.Add(-x0, y)
-	b.Add(-x1, y-h).Mid()
-	b.Add(x1, y-h).Mid()
-	b.Close()
-
-	s2d := Polygon2D(b.Polygon().Vertices())
-	s2d = Transform2D(s2d, Translate2d(V2{x_ofs, 0}))
-	return Extrude3D(s2d, phone_h+wall_thickness)
-}
-
-func top_cutouts() SDF3 {
-	x_ofs := phone_l * 0.3
-	return Union3D(top_cutout(x_ofs), top_cutout(-x_ofs))
+	w := phone_w + (2.0 * wall_t)
+	h := phone_h + (2.0 * wall_t)
+	r := phone_r + wall_t
+	t := phone_t + wall_t
+	s2d := Box2D(V2{w, h}, r)
+	return Extrude3D(s2d, t)
 }
 
 //-----------------------------------------------------------------------------
 
 func additive() SDF3 {
-	return Union3D(outer_shell())
+	return Union3D(
+		outer_shell(),
+	)
 }
 
 //-----------------------------------------------------------------------------
 
 func subtractive() SDF3 {
 	return Union3D(
-		phone(wall_thickness/2.0),
-		side_cutouts(),
-		top_cutouts(),
+		phone_body(),
+		camera_hole(),
+		speaker_hole(),
+		hole_left(31.0, 16.5, 8.0),
+		hole_right(20.0, 32.0, 8.0),
+		hole_top(13.0, 15.0, 8.0),
+		hole_top(13.0, 49.5, 9.0),
+		hole_bottom(35.0, 17.0, 9.0),
 	)
 }
 

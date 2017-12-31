@@ -13,6 +13,7 @@ DIRS = 3dp_nutbolt \
        gears \
        geneva \
        nutsandbolts \
+       phone \
        pool \
        pottery_wheel \
        simple_stl \
