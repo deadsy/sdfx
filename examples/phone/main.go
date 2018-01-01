@@ -15,22 +15,22 @@ import . "github.com/deadsy/sdfx/sdf"
 // phone body
 var phone_w = 78.0  // width
 var phone_h = 146.5 // height
-var phone_t = 11.6  // thickness
-var phone_r = 11.2  // corner radius
+var phone_t = 13.0  // thickness
+var phone_r = 12.0  // corner radius
 
 // camera hole
 var camera_w = 23.5 // width
 var camera_h = 33.0 // height
 var camera_r = 3.0  // corner radius
 var camera_xofs = 0.0
-var camera_yofs = ((phone_h - camera_h) / 2.0) - 9.0
+var camera_yofs = 48.0
 
 // speaker hole
 var speaker_w = 12.5 // width
 var speaker_h = 10.0 // height
 var speaker_r = 3.0  // corner radius
-var speaker_xofs = 8.5 - ((phone_w - speaker_w) / 2.0)
-var speaker_yofs = ((phone_h - speaker_h) / 2.0) - 114.0
+var speaker_xofs = 23.0
+var speaker_yofs = -46.0
 
 // wall thickness
 var wall_t = 3.0
@@ -133,11 +133,11 @@ func subtractive() SDF3 {
 		phone_body(),
 		camera_hole(),
 		speaker_hole(),
-		hole_left(31.0, 16.5, 8.0),
-		hole_right(20.0, 32.0, 8.0),
-		hole_top(13.0, 15.0, 8.0),
+		hole_left(31.0, 19.5, 8.0),
+		hole_right(20.0, 34.0, 8.0),
+		hole_top(13.0, 16.0, 8.0),
 		hole_top(13.0, 49.5, 9.0),
-		hole_bottom(35.0, 17.0, 9.0),
+		hole_bottom(35.0, 20.5, 9.0),
 	)
 }
 
