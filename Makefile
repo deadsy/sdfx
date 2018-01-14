@@ -11,6 +11,7 @@ DIRS = 3dp_nutbolt \
        fidget \
        finial \
        gears \
+       gas_cap \
        geneva \
        nutsandbolts \
        phone \

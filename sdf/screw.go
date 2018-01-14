@@ -235,6 +235,25 @@ func ISOThread(radius, pitch float64, mode string) SDF2 {
 	return Polygon2D(iso.Vertices())
 }
 
+// Return the 2d profile for an ANSI 45/7 buttress thread.
+// https://en.wikipedia.org/wiki/Buttress_thread
+// radius = radius of thread
+// pitch = thread to thread distance
+// mode = internal/external thread
+func ANSIButtressThread(radius, pitch float64) SDF2 {
+	tp := NewPolygon()
+	// TODO - work out the constants using trig
+	tp.Add(0.5*pitch, 0)
+	tp.Add(0.5*pitch, radius)
+	tp.Add(0.4822*pitch, radius)
+	tp.Add(0.3906*pitch, radius-0.7453*pitch).Smooth(0.0714*pitch, 5)
+	tp.Add(-0.3457*pitch, radius)
+	tp.Add(-0.5*pitch, radius)
+	tp.Add(-0.5*pitch, 0)
+	//tp.Render("buttress.dxf")
+	return Polygon2D(tp.Vertices())
+}
+
 //-----------------------------------------------------------------------------
 
 type ScrewSDF3 struct {
