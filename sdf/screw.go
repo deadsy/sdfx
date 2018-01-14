@@ -237,19 +237,55 @@ func ISOThread(radius, pitch float64, mode string) SDF2 {
 
 // Return the 2d profile for an ANSI 45/7 buttress thread.
 // https://en.wikipedia.org/wiki/Buttress_thread
+// AMSE B1.9-1973
 // radius = radius of thread
 // pitch = thread to thread distance
-// mode = internal/external thread
 func ANSIButtressThread(radius, pitch float64) SDF2 {
+
+	t0 := math.Tan(DtoR(45.0))
+	t1 := math.Tan(DtoR(7.0))
+	b := 0.6 // thread engagement
+
+	h0 := pitch / (t0 + t1)
+	h1 := ((b / 2.0) * pitch) + (0.5 * h0)
+	hp := pitch / 2.0
+
 	tp := NewPolygon()
-	// TODO - work out the constants using trig
-	tp.Add(0.5*pitch, 0)
-	tp.Add(0.5*pitch, radius)
-	tp.Add(0.4822*pitch, radius)
-	tp.Add(0.3906*pitch, radius-0.7453*pitch).Smooth(0.0714*pitch, 5)
-	tp.Add(-0.3457*pitch, radius)
-	tp.Add(-0.5*pitch, radius)
-	tp.Add(-0.5*pitch, 0)
+	tp.Add(pitch, 0)
+	tp.Add(pitch, radius)
+	tp.Add(hp-((h0-h1)*t1), radius)
+	tp.Add(t0*h0-hp, radius-h1).Smooth(0.0714*pitch, 5)
+	tp.Add((h0-h1)*t0-hp, radius)
+	tp.Add(-pitch, radius)
+	tp.Add(-pitch, 0)
+
+	//tp.Render("buttress.dxf")
+	return Polygon2D(tp.Vertices())
+}
+
+// Return the 2d profile for a screw top style plastic buttress thread.
+// Similar to ANSI 45/7 - but with more corner rounding
+// radius = radius of thread
+// pitch = thread to thread distance
+func PlasticButtressThread(radius, pitch float64) SDF2 {
+
+	t0 := math.Tan(DtoR(45.0))
+	t1 := math.Tan(DtoR(7.0))
+	b := 0.6 // thread engagement
+
+	h0 := pitch / (t0 + t1)
+	h1 := ((b / 2.0) * pitch) + (0.5 * h0)
+	hp := pitch / 2.0
+
+	tp := NewPolygon()
+	tp.Add(pitch, 0)
+	tp.Add(pitch, radius)
+	tp.Add(hp-((h0-h1)*t1), radius).Smooth(0.05*pitch, 5)
+	tp.Add(t0*h0-hp, radius-h1).Smooth(0.15*pitch, 5)
+	tp.Add((h0-h1)*t0-hp, radius).Smooth(0.15*pitch, 5)
+	tp.Add(-pitch, radius)
+	tp.Add(-pitch, 0)
+
 	//tp.Render("buttress.dxf")
 	return Polygon2D(tp.Vertices())
 }
