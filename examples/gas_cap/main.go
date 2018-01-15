@@ -15,8 +15,12 @@ import . "github.com/deadsy/sdfx/sdf"
 var cap_radius = 56.0 / 2.0
 var cap_height = 28.0
 var cap_thickness = 4.0
-var thread_radius = 48.0 / 2.0
 var thread_pitch = 6.0
+
+//var thread_diameter = 48.0 // tight
+var thread_diameter = 48.5 // just right
+//var thread_diameter = 49.0 // loose
+var thread_radius = thread_diameter / 2.0
 
 //-----------------------------------------------------------------------------
 
