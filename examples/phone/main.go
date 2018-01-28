@@ -120,6 +120,31 @@ func outer_shell() SDF3 {
 
 //-----------------------------------------------------------------------------
 
+func clip() SDF3 {
+	theta := 35.0
+	p := NewPolygon()
+	p.Add(0, 0)
+	p.Add(12.0, 0).Rel()
+	p.Add(0, 2.0).Rel()
+	p.Add(-10.0, 0).Rel()
+	p.Add(0, 4.5).Rel()
+	p.Add(-19.5411, 0).Rel()
+	p.Add(14.8717, DtoR(270.0-theta)).Polar().Rel()
+	p.Add(0, -7.8612).Rel()
+	p.Add(4.3306, DtoR(270.0+theta)).Polar().Rel()
+	p.Add(2.0, DtoR(theta)).Polar().Rel()
+	p.Add(3.7, DtoR(90.0+theta)).Polar().Rel()
+	p.Add(0, 6.6).Rel()
+	p.Add(13.2, DtoR(90.0-theta)).Polar().Rel()
+	p.Add(16.5, 0).Rel()
+	// back to the the start with a closed polygon
+	p.Close()
+	p.Render("clip.dxf")
+	return Extrude3D(Polygon2D(p.Vertices()), 8.0)
+}
+
+//-----------------------------------------------------------------------------
+
 func additive() SDF3 {
 	return Union3D(
 		outer_shell(),
@@ -144,8 +169,9 @@ func subtractive() SDF3 {
 //-----------------------------------------------------------------------------
 
 func main() {
-	s := Difference3D(additive(), subtractive())
-	RenderSTL(s, 300, "holder.stl")
+	RenderSTL(clip(), 300, "clip.stl")
+	//s := Difference3D(additive(), subtractive())
+	//RenderSTL(s, 300, "holder.stl")
 }
 
 //-----------------------------------------------------------------------------
