@@ -8,6 +8,11 @@ Marching Cubes
 
 package sdf
 
+import (
+	"runtime"
+	"sync"
+)
+
 //-----------------------------------------------------------------------------
 
 const EPS = 1e-9
@@ -24,6 +29,34 @@ type LayerYZ struct {
 
 func NewLayerYZ(base, inc V3, steps V3i) *LayerYZ {
 	return &LayerYZ{base, inc, steps, nil, nil}
+}
+
+// evalReq is used for processing evaluations in parallel.
+//
+// A slice of V3 is run through `fn`; the result of which
+// is stored in the corresponding index of the `out` slice.
+type evalReq struct {
+	out []float64
+	p   []V3
+	fn  func(V3) float64
+	wg  *sync.WaitGroup
+}
+
+var evalProcessCh = make(chan evalReq, 100)
+
+func init() {
+	for i := 0; i < runtime.NumCPU(); i++ {
+		go func() {
+			var i int
+			var p V3
+			for r := range evalProcessCh {
+				for i, p = range r.p {
+					r.out[i] = r.fn(p)
+				}
+				r.wg.Done()
+			}
+		}()
+	}
 }
 
 // Evaluate the SDF for a given XY layer
@@ -45,17 +78,44 @@ func (l *LayerYZ) Evaluate(sdf SDF3, x int) {
 	var p V3
 	p.X = l.base.X + float64(x)*dx
 
+	// define the base struct for requesting evaluation
+	eReq := evalReq{
+		wg:  new(sync.WaitGroup),
+		fn:  sdf.Evaluate,
+		out: l.val1,
+	}
+
 	// evaluate the layer
 	p.Y = l.base.Y
+
+	// Performance doesn't seem to improve past 100.
+	const batchSize = 100
+
+	eReq.p = make([]V3, 0, batchSize)
 	for y := 0; y < ny+1; y++ {
 		p.Z = l.base.Z
 		for z := 0; z < nz+1; z++ {
-			l.val1[idx] = sdf.Evaluate(p)
-			idx += 1
+			eReq.p = append(eReq.p, p)
+			if len(eReq.p) == batchSize {
+				eReq.wg.Add(1)
+				evalProcessCh <- eReq
+				eReq.out = eReq.out[batchSize:]   // shift the output slice for processing
+				eReq.p = make([]V3, 0, batchSize) // create a new slice for the next batch
+			}
+			idx++
 			p.Z += dz
 		}
 		p.Y += dy
 	}
+
+	// send any remaining points for processing
+	if len(eReq.p) > 0 {
+		eReq.wg.Add(1)
+		evalProcessCh <- eReq
+	}
+
+	// Wait for all processing to complete before returning
+	eReq.wg.Wait()
 }
 
 func (l *LayerYZ) Get(x, y, z int) float64 {
