@@ -9,6 +9,7 @@ STL Load/Save
 package sdf
 
 import (
+	"bufio"
 	"encoding/binary"
 	"os"
 )
@@ -33,15 +34,17 @@ func SaveSTL(path string, mesh *Mesh) error {
 		return err
 	}
 	defer file.Close()
+
+	buf := bufio.NewWriter(file)
 	header := STLHeader{}
 	header.Count = uint32(len(mesh.Triangles))
-	if err := binary.Write(file, binary.LittleEndian, &header); err != nil {
+	if err := binary.Write(buf, binary.LittleEndian, &header); err != nil {
 		return err
 	}
 
+	var d STLTriangle
 	for _, triangle := range mesh.Triangles {
 		n := triangle.Normal()
-		d := STLTriangle{}
 		d.Normal[0] = float32(n.X)
 		d.Normal[1] = float32(n.Y)
 		d.Normal[2] = float32(n.Z)
@@ -54,12 +57,12 @@ func SaveSTL(path string, mesh *Mesh) error {
 		d.Vertex3[0] = float32(triangle.V[2].X)
 		d.Vertex3[1] = float32(triangle.V[2].Y)
 		d.Vertex3[2] = float32(triangle.V[2].Z)
-		if err := binary.Write(file, binary.LittleEndian, &d); err != nil {
+		if err := binary.Write(buf, binary.LittleEndian, &d); err != nil {
 			return err
 		}
 	}
 
-	return nil
+	return buf.Flush()
 }
 
 //-----------------------------------------------------------------------------
