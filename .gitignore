@@ -1,1 +1,4 @@
+tools/parser.out
+tools/parsetab.py
 *.stl
+*.pyc
