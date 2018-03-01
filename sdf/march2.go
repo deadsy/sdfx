@@ -112,7 +112,71 @@ func MarchingSquares(sdf SDF2, box Box2, step float64) []Line2_PP {
 
 // generate the line segments for a square
 func ms_ToLines(p [4]V2, v [4]float64, x float64) []Line2_PP {
+
+	index := 0
+	for i := 0; i < 4; i++ {
+		if v[i] < x {
+			index |= 1 << uint(i)
+		}
+	}
+
+	if edgeTable[index] == 0 {
+		return nil
+	}
+
+	var points [4]V2
+	for i := 0; i < 4; i++ {
+		bit := 1 << uint(i)
+		if edgeTable[index]&bit != 0 {
+			a := pairTable[i][0]
+			b := pairTable[i][1]
+			points[i] = ms_Interpolate(p[a], p[b], v[a], v[b], x)
+		}
+	}
+
 	return nil
+}
+
+//-----------------------------------------------------------------------------
+
+func ms_Interpolate(p1, p2 V2, v1, v2, x float64) V2 {
+	if Abs(x-v1) < EPS {
+		return p1
+	}
+	if Abs(x-v2) < EPS {
+		return p2
+	}
+	if Abs(v1-v2) < EPS {
+		return p1
+	}
+	t := (x - v1) / (v2 - v1)
+	return V2{
+		p1.X + t*(p2.X-p1.X),
+		p1.Y + t*(p2.Y-p1.Y),
+	}
+}
+
+//-----------------------------------------------------------------------------
+
+// these are the vertex pairs for the edges
+var ms_pairs = [][]int{
+	{0, 1},
+	{1, 2},
+	{2, 3},
+	{3, 0},
+}
+
+// 4 vertices -> 16 possible inside/outside combinations
+// a 1 bit in the value indicates which edge has a line point
+var ms_edges = [16]int{
+	0, 0, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0,
+}
+
+var ms_lines = [][]int{
+	{},
 }
 
 //-----------------------------------------------------------------------------
