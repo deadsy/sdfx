@@ -176,7 +176,7 @@ func NewSDFMesh(sdf SDF3, box Box3, step float64) *Mesh {
 					l.Get(1, y, z+1),
 					l.Get(1, y+1, z+1),
 					l.Get(0, y+1, z+1)}
-				triangles = append(triangles, mcPolygonize(corners, values, 0)...)
+				triangles = append(triangles, mc_ToTriangles(corners, values, 0)...)
 				p.Z += dz
 			}
 			p.Y += dy
@@ -189,26 +189,30 @@ func NewSDFMesh(sdf SDF3, box Box3, step float64) *Mesh {
 
 //-----------------------------------------------------------------------------
 
-func mcPolygonize(p [8]V3, v [8]float64, x float64) []*Triangle3 {
+func mc_ToTriangles(p [8]V3, v [8]float64, x float64) []*Triangle3 {
+	// which of the 0..255 patterns do we have?
 	index := 0
 	for i := 0; i < 8; i++ {
 		if v[i] < x {
 			index |= 1 << uint(i)
 		}
 	}
-	if edgeTable[index] == 0 {
+	// do we have any triangles to create?
+	if mc_edge_table[index] == 0 {
 		return nil
 	}
+	// work out the interpolated points on the edges
 	var points [12]V3
 	for i := 0; i < 12; i++ {
 		bit := 1 << uint(i)
-		if edgeTable[index]&bit != 0 {
-			a := pairTable[i][0]
-			b := pairTable[i][1]
-			points[i] = mcInterpolate(p[a], p[b], v[a], v[b], x)
+		if mc_edge_table[index]&bit != 0 {
+			a := mc_pair_table[i][0]
+			b := mc_pair_table[i][1]
+			points[i] = mc_Interpolate(p[a], p[b], v[a], v[b], x)
 		}
 	}
-	table := triangleTable[index]
+	// create the triangles
+	table := mc_triangle_table[index]
 	count := len(table) / 3
 	result := make([]*Triangle3, count)
 	for i := 0; i < count; i++ {
@@ -223,7 +227,7 @@ func mcPolygonize(p [8]V3, v [8]float64, x float64) []*Triangle3 {
 
 //-----------------------------------------------------------------------------
 
-func mcInterpolate(p1, p2 V3, v1, v2, x float64) V3 {
+func mc_Interpolate(p1, p2 V3, v1, v2, x float64) V3 {
 	if Abs(x-v1) < EPS {
 		return p1
 	}
@@ -243,22 +247,26 @@ func mcInterpolate(p1, p2 V3, v1, v2, x float64) V3 {
 
 //-----------------------------------------------------------------------------
 
-var pairTable = [][]int{
-	{0, 1},
-	{1, 2},
-	{2, 3},
-	{3, 0},
-	{4, 5},
-	{5, 6},
-	{6, 7},
-	{7, 4},
-	{0, 4},
-	{1, 5},
-	{2, 6},
-	{3, 7},
+// These are the vertex pairs for the edges
+var mc_pair_table = [12][2]int{
+	{0, 1}, // 0
+	{1, 2}, // 1
+	{2, 3}, // 2
+	{3, 0}, // 3
+	{4, 5}, // 4
+	{5, 6}, // 5
+	{6, 7}, // 6
+	{7, 4}, // 7
+	{0, 4}, // 8
+	{1, 5}, // 9
+	{2, 6}, // 10
+	{3, 7}, // 11
 }
 
-var edgeTable = []int{
+// 8 vertices -> 256 possible inside/outside combinations
+// A 1 bit in the value indicates an edge with a line end point.
+// 12 edges -> 12 bit values
+var mc_edge_table = [256]int{
 	0x0000, 0x0109, 0x0203, 0x030a, 0x0406, 0x050f, 0x0605, 0x070c,
 	0x080c, 0x0905, 0x0a0f, 0x0b06, 0x0c0a, 0x0d03, 0x0e09, 0x0f00,
 	0x0190, 0x0099, 0x0393, 0x029a, 0x0596, 0x049f, 0x0795, 0x069c,
@@ -293,7 +301,8 @@ var edgeTable = []int{
 	0x070c, 0x0605, 0x050f, 0x0406, 0x030a, 0x0203, 0x0109, 0x0000,
 }
 
-var triangleTable = [][]int{
+// specify the edges used to create the triangle(s)
+var mc_triangle_table = [256][]int{
 	{},
 	{0, 8, 3},
 	{0, 1, 9},
