@@ -47,7 +47,23 @@ func RenderDXF(
 	mesh_cells int, //number of cells on the longest axis. e.g 200
 	path string, //path to filename
 ) {
-	// TODO
+	// work out the region we will sample
+	bb0 := s.BoundingBox()
+	bb0_size := bb0.Size()
+	mesh_inc := bb0_size.MaxComponent() / float64(mesh_cells)
+	bb1_size := bb0_size.DivScalar(mesh_inc)
+	bb1_size = bb1_size.Ceil().AddScalar(1)
+	cells := bb1_size.ToV2i()
+	bb1_size = bb1_size.MulScalar(mesh_inc)
+	bb := NewBox2(bb0.Center(), bb1_size)
+
+	fmt.Printf("rendering %s (%dx%d)\n", path, cells[0], cells[1])
+
+	m := MarchingSquares(s, bb, mesh_inc)
+	err := SaveDXF(path, m)
+	if err != nil {
+		fmt.Printf("%s", err)
+	}
 }
 
 //-----------------------------------------------------------------------------

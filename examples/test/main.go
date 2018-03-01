@@ -516,6 +516,11 @@ func test48() {
 	d.Save()
 }
 
+func test49() {
+	s0 := Circle2D(0.8)
+	RenderDXF(s0, 50, "test.dxf")
+}
+
 func main() {
-	test48()
+	test49()
 }

@@ -67,3 +67,20 @@ func (d *DXF) Save() error {
 }
 
 //-----------------------------------------------------------------------------
+
+func SaveDXF(path string, mesh []*Line2_PP) error {
+	d := NewDXF(path)
+	d.drawing.ChangeLayer("Lines")
+	for i, _ := range mesh {
+		p0 := mesh[i][0]
+		p1 := mesh[i][1]
+		d.drawing.Line(p0.X, p0.Y, 0, p1.X, p1.Y, 0)
+	}
+	err := d.Save()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+//-----------------------------------------------------------------------------
