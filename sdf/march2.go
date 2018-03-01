@@ -177,12 +177,12 @@ var ms_pair_table = [4][2]int{
 
 // 4 vertices -> 16 possible inside/outside combinations
 // A 1 bit in the value indicates an edge with a line end point.
-// 4 edges -> 4 bit values
+// 4 edges -> 4 bit values, note the fwd/rev symmetry
 var ms_edge_table = [16]int{
 	0x0, 0x9, 0x3, 0xa,
 	0x6, 0xf, 0x5, 0xc,
 	0xc, 0x5, 0xf, 0x6,
-	0xc, 0x3, 0x9, 0x0,
+	0xa, 0x3, 0x9, 0x0,
 }
 
 // specify the edges used to create the line(s)

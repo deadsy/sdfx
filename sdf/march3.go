@@ -265,7 +265,7 @@ var mc_pair_table = [12][2]int{
 
 // 8 vertices -> 256 possible inside/outside combinations
 // A 1 bit in the value indicates an edge with a line end point.
-// 12 edges -> 12 bit values
+// 12 edges -> 12 bit values, note the fwd/rev symmetry
 var mc_edge_table = [256]int{
 	0x0000, 0x0109, 0x0203, 0x030a, 0x0406, 0x050f, 0x0605, 0x070c,
 	0x080c, 0x0905, 0x0a0f, 0x0b06, 0x0c0a, 0x0d03, 0x0e09, 0x0f00,
