@@ -130,7 +130,7 @@ func (l *LayerYZ) Get(x, y, z int) float64 {
 
 //-----------------------------------------------------------------------------
 
-func NewSDFMesh(sdf SDF3, box Box3, step float64) *Mesh {
+func MarchingCubes(sdf SDF3, box Box3, step float64) []*Triangle3 {
 
 	var triangles []*Triangle3
 	size := box.Size()
@@ -184,7 +184,7 @@ func NewSDFMesh(sdf SDF3, box Box3, step float64) *Mesh {
 		p.X += dx
 	}
 
-	return NewMesh(triangles)
+	return triangles
 }
 
 //-----------------------------------------------------------------------------

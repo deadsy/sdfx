@@ -10,27 +10,27 @@ import (
 func test1() {
 	s0 := Box2D(V2{0.8, 1.2}, 0.05)
 	s1 := RevolveTheta3D(s0, DtoR(225))
-	RenderPNG(s1, true)
+	RenderSTL(s1, 200, "test.stl")
 }
 
 func test2() {
 	s0 := Box2D(V2{0.8, 1.2}, 0.1)
 	s1 := Extrude3D(s0, 0.3)
-	RenderPNG(s1, true)
+	RenderSTL(s1, 200, "test.stl")
 }
 
 func test3() {
 	s0 := Circle2D(0.1)
 	s0 = Transform2D(s0, Translate2d(V2{1, 0}))
 	s1 := Revolve3D(s0)
-	RenderPNG(s1, true)
+	RenderSTL(s1, 200, "test.stl")
 }
 
 func test4() {
 	s0 := Box2D(V2{0.2, 0.4}, 0.05)
 	s0 = Transform2D(s0, Translate2d(V2{1, 0}))
 	s1 := RevolveTheta3D(s0, DtoR(270))
-	RenderPNG(s1, true)
+	RenderSTL(s1, 200, "test.stl")
 }
 
 func test5() {
@@ -40,7 +40,6 @@ func test5() {
 	s1 := RevolveTheta3D(s0, DtoR(315))
 
 	RenderSTL(s1, 200, "test.stl")
-	//RenderPNG(s1, true)
 }
 
 func test6() {
@@ -50,7 +49,7 @@ func test6() {
 	s2 := Transform3D(s0, Translate3d(V3{0, -d, 0}))
 	s3 := Union3D(s1, s2)
 	s3.(*UnionSDF3).SetMin(PolyMin(0.1))
-	RenderPNG(s3, true)
+	RenderSTL(s3, 200, "test.stl")
 }
 
 func test7() {
@@ -59,7 +58,7 @@ func test7() {
 	s2 := Union3D(s0, s1)
 	s2.(*UnionSDF3).SetMin(PolyMin(0.1))
 	s3 := Transform3D(s2, Rotate3d(V3{0, 0, 1}, DtoR(-30)))
-	RenderPNG(s3, true)
+	RenderSTL(s3, 200, "test.stl")
 }
 
 func test9() {
@@ -91,7 +90,6 @@ func test12() {
 	s0 = Transform2D(s0, Translate2d(V2{0.8, 0}))
 	s1 := RevolveTheta3D(s0, DtoR(360))
 	RenderSTL(s1, 200, "test.stl")
-	//RenderPNG(s1, true)
 }
 
 func test13() {
@@ -100,7 +98,6 @@ func test13() {
 	s0 = Transform2D(s0, Translate2d(V2{0.8, 0}))
 	s1 := RevolveTheta3D(s0, DtoR(270))
 	RenderSTL(s1, 200, "test.stl")
-	//RenderPNG(s1, true)
 }
 
 func test14() {

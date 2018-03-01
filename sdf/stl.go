@@ -28,7 +28,7 @@ type STLTriangle struct {
 
 //-----------------------------------------------------------------------------
 
-func SaveSTL(path string, mesh *Mesh) error {
+func SaveSTL(path string, mesh []*Triangle3) error {
 	file, err := os.Create(path)
 	if err != nil {
 		return err
@@ -37,13 +37,13 @@ func SaveSTL(path string, mesh *Mesh) error {
 
 	buf := bufio.NewWriter(file)
 	header := STLHeader{}
-	header.Count = uint32(len(mesh.Triangles))
+	header.Count = uint32(len(mesh))
 	if err := binary.Write(buf, binary.LittleEndian, &header); err != nil {
 		return err
 	}
 
 	var d STLTriangle
-	for _, triangle := range mesh.Triangles {
+	for _, triangle := range mesh {
 		n := triangle.Normal()
 		d.Normal[0] = float32(n.X)
 		d.Normal[1] = float32(n.Y)

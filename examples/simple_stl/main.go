@@ -30,8 +30,7 @@ func main() {
 	t3 := NewTriangle3(a, d, c)
 	t4 := NewTriangle3(b, c, d)
 
-	m := NewMesh([]*Triangle3{t1, t2, t3, t4})
-	err := SaveSTL("simple.stl", m)
+	err := SaveSTL("simple.stl", []*Triangle3{t1, t2, t3, t4})
 	if err != nil {
 		fmt.Printf("%s", err)
 	}
