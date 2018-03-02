@@ -140,6 +140,7 @@ func wheel_pattern() {
 	wheel.(*UnionSDF3).SetMin(PolyMin(wall_thickness))
 
 	RenderSTL(wheel, 200, "wheel.stl")
+	RenderDXF(Slice2D(wheel, V3{0, 0, 15.0}, V3{0, 0, 1}), 200, "wheel.dxf")
 }
 
 //-----------------------------------------------------------------------------
