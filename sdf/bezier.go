@@ -243,6 +243,9 @@ func (b *Bezier) closure() {
 	if !b.closed {
 		return
 	}
+	if len(b.vlist) == 0 || len(b.vlist) == 1 {
+		panic("bad number of vertices")
+	}
 	first := b.vlist[0]
 	last := b.vlist[len(b.vlist)-1]
 	if first.vtype != ENDPOINT {
