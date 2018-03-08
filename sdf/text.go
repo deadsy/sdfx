@@ -53,48 +53,78 @@ func printGlyph(g *truetype.GlyphBuf) {
 
 //-----------------------------------------------------------------------------
 
-func glyph_convert(g *truetype.GlyphBuf) []V2 {
-
-	k := 1.0
-
+// return the SDF2 for the n-th curve of the glyph
+func glyph_curve(g *truetype.GlyphBuf, n int) (SDF2, bool) {
+	// get the start and end point
+	start := 0
+	if n != 0 {
+		start = g.Ends[n-1]
+	}
+	end := g.Ends[n] - 1
+	// build a bezier curve from the points
 	b := NewBezier()
-
-	e := 0 // index into the endpoint table
-
 	prev_off := false
-
-	for i, p := range g.Points {
+	for i := start; i <= end; i++ {
+		p := g.Points[i]
 		// is the point off/on the curve?
-		off := p.Flags&0x01 == 0
-
+		off := p.Flags&1 == 0
+		// do we have an implicit on point?
 		if off && prev_off {
 			// implicit on point at the midpoint of the 2 off points
 			pp := g.Points[i-1]
 			v := V2{(float64(pp.X) + float64(p.X)) * 0.5, (float64(pp.Y) + float64(p.Y)) * 0.5}
-			v.MulScalar(k)
 			b.AddV2(v)
 		}
-
 		// add the point
 		v := V2{float64(p.X), float64(p.Y)}
-		v.MulScalar(k)
 		x := b.AddV2(v)
 		if off {
 			x.Mid()
 		}
-
 		prev_off = off
+	}
+	b.Close()
+	// determine the cw/ccw direction
+	// TODO - write this better
+	cw := false
+	sum := 0.0
+	for i := start; i <= end; i++ {
+		prev := i - 1
+		if i == start {
+			prev = end
+		}
+		next := i + 1
+		if i == end {
+			next = start
+		}
+		p := g.Points[i]
+		pn := g.Points[next]
+		pp := g.Points[prev]
+		v := V2{float64(p.X), float64(p.Y)}
+		vn := V2{float64(pn.X), float64(pn.Y)}
+		vp := V2{float64(pp.X), float64(pp.Y)}
+		v0 := v.Sub(vp)
+		v1 := vn.Sub(v)
+		sum += v0.Cross(v1)
+	}
+	if sum < 0 {
+		cw = true
+	}
+	return Polygon2D(b.Polygon().Vertices()), cw
+}
 
-		if i+1 == int(g.Ends[e]) {
-			// TODO
-			break
-			e++
+// return the SDF2 for a glyph
+func glyph_convert(g *truetype.GlyphBuf) SDF2 {
+	var s0 SDF2
+	for n := 0; n < len(g.Ends); n++ {
+		s1, cw := glyph_curve(g, n)
+		if cw {
+			s0 = Union2D(s0, s1)
+		} else {
+			s0 = Difference2D(s0, s1)
 		}
 	}
-
-	b.Close()
-
-	return b.Polygon().Vertices()
+	return s0
 }
 
 //-----------------------------------------------------------------------------
@@ -117,26 +147,30 @@ func Test_Text() error {
 	printBounds(f.Bounds(fupe))
 	fmt.Printf("FUnitsPerEm:%d\n\n", fupe)
 
-	c := 'm'
+	c := 'Q'
 	i := f.Index(c)
-	hm := f.HMetric(fupe, i)
 	g := &truetype.GlyphBuf{}
 	err = g.Load(f, fupe, i, font.HintingNone)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("'%c' glyph\n", c)
-	fmt.Printf("AdvanceWidth:%d LeftSideBearing:%d\n", hm.AdvanceWidth, hm.LeftSideBearing)
-	printGlyph(g)
 
-	s2d := Polygon2D(glyph_convert(g))
+	//hm := f.HMetric(fupe, i)
+	//fmt.Printf("'%c' glyph\n", c)
+	//fmt.Printf("AdvanceWidth:%d LeftSideBearing:%d\n", hm.AdvanceWidth, hm.LeftSideBearing)
+	//printGlyph(g)
+
+	s2d := glyph_convert(g)
 	RenderDXF(s2d, 200, "shape.dxf")
 
-	a := truetype.NewFace(f, &truetype.Options{
-		Size: 12,
-		DPI:  72,
-	})
-	fmt.Printf("%#v\n", a.Metrics())
+	s3d := ExtrudeRounded3D(s2d, 200, 20)
+	RenderSTL(s3d, 300, "shape.stl")
+
+	//a := truetype.NewFace(f, &truetype.Options{
+	//	Size: 12,
+	//	DPI:  72,
+	//})
+	//fmt.Printf("%#v\n", a.Metrics())
 
 	return nil
 }
