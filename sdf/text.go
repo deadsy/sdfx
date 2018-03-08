@@ -53,6 +53,13 @@ func printGlyph(g *truetype.GlyphBuf) {
 
 //-----------------------------------------------------------------------------
 
+// convert a truetype point to a V2
+func p_to_V2(p truetype.Point) V2 {
+	return V2{float64(p.X), float64(p.Y)}
+}
+
+//-----------------------------------------------------------------------------
+
 // return the SDF2 for the n-th curve of the glyph
 func glyph_curve(g *truetype.GlyphBuf, n int) (SDF2, bool) {
 	// get the start and end point
@@ -61,56 +68,38 @@ func glyph_curve(g *truetype.GlyphBuf, n int) (SDF2, bool) {
 		start = g.Ends[n-1]
 	}
 	end := g.Ends[n] - 1
+
 	// build a bezier curve from the points
+	// work out the cw/ccw direction
 	b := NewBezier()
-	prev_off := false
+	sum := 0.0
+	off_prev := false
+	v_prev := p_to_V2(g.Points[end])
+
 	for i := start; i <= end; i++ {
 		p := g.Points[i]
+		v := p_to_V2(p)
 		// is the point off/on the curve?
 		off := p.Flags&1 == 0
 		// do we have an implicit on point?
-		if off && prev_off {
+		if off && off_prev {
 			// implicit on point at the midpoint of the 2 off points
-			pp := g.Points[i-1]
-			v := V2{(float64(pp.X) + float64(p.X)) * 0.5, (float64(pp.Y) + float64(p.Y)) * 0.5}
-			b.AddV2(v)
+			b.AddV2(v.Add(v_prev).MulScalar(0.5))
 		}
 		// add the point
-		v := V2{float64(p.X), float64(p.Y)}
 		x := b.AddV2(v)
 		if off {
 			x.Mid()
 		}
-		prev_off = off
+		// accumulate the cw/ccw direction
+		sum += (v.X - v_prev.X) * (v.Y + v_prev.Y)
+		// next point...
+		v_prev = v
+		off_prev = off
 	}
 	b.Close()
-	// determine the cw/ccw direction
-	// TODO - write this better
-	cw := false
-	sum := 0.0
-	for i := start; i <= end; i++ {
-		prev := i - 1
-		if i == start {
-			prev = end
-		}
-		next := i + 1
-		if i == end {
-			next = start
-		}
-		p := g.Points[i]
-		pn := g.Points[next]
-		pp := g.Points[prev]
-		v := V2{float64(p.X), float64(p.Y)}
-		vn := V2{float64(pn.X), float64(pn.Y)}
-		vp := V2{float64(pp.X), float64(pp.Y)}
-		v0 := v.Sub(vp)
-		v1 := vn.Sub(v)
-		sum += v0.Cross(v1)
-	}
-	if sum < 0 {
-		cw = true
-	}
-	return Polygon2D(b.Polygon().Vertices()), cw
+
+	return Polygon2D(b.Polygon().Vertices()), sum > 0
 }
 
 // return the SDF2 for a glyph
