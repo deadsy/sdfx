@@ -521,13 +521,6 @@ func test49() {
 	RenderDXF(s0, 50, "test.dxf")
 }
 
-func test50() {
-	err := Test_Text()
-	if err != nil {
-		fmt.Printf("%s\n", err)
-	}
-}
-
 func main() {
-	test50()
+	test49()
 }

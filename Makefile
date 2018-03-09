@@ -19,6 +19,7 @@ DIRS = 3dp_nutbolt \
        pottery_wheel \
        simple_stl \
        test \
+       text \
        voronoi \
 
 all:

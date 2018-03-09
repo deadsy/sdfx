@@ -118,6 +118,38 @@ func glyph_convert(g *truetype.GlyphBuf) SDF2 {
 
 //-----------------------------------------------------------------------------
 
+// load a truetype (*.ttf) font file
+func LoadFont(fname string) (*truetype.Font, error) {
+
+	// read the font file
+	b, err := ioutil.ReadFile(fname)
+	if err != nil {
+		return nil, err
+	}
+
+	return truetype.Parse(b)
+}
+
+// return an SDF2 for the text string
+func TextSDF2(f *truetype.Font, text string) (SDF2, error) {
+
+	fupe := fixed.Int26_6(f.FUnitsPerEm())
+
+	c := '\u0040'
+	i := f.Index(c)
+	g := &truetype.GlyphBuf{}
+	err := g.Load(f, fupe, i, font.HintingNone)
+	if err != nil {
+		return nil, err
+	}
+
+	return glyph_convert(g), nil
+}
+
+//-----------------------------------------------------------------------------
+
+/*
+
 func Test_Text() error {
 
 	// get the font data
@@ -144,10 +176,10 @@ func Test_Text() error {
 		return err
 	}
 
-	//hm := f.HMetric(fupe, i)
-	//fmt.Printf("'%c' glyph\n", c)
-	//fmt.Printf("AdvanceWidth:%d LeftSideBearing:%d\n", hm.AdvanceWidth, hm.LeftSideBearing)
-	//printGlyph(g)
+	hm := f.HMetric(fupe, i)
+	fmt.Printf("'%c' glyph\n", c)
+	fmt.Printf("AdvanceWidth:%d LeftSideBearing:%d\n", hm.AdvanceWidth, hm.LeftSideBearing)
+	printGlyph(g)
 
 	s2d := glyph_convert(g)
 	RenderDXF(s2d, 200, "shape.dxf")
@@ -155,13 +187,15 @@ func Test_Text() error {
 	s3d := ExtrudeRounded3D(s2d, 200, 20)
 	RenderSTL(s3d, 300, "shape.stl")
 
-	//a := truetype.NewFace(f, &truetype.Options{
-	//	Size: 12,
-	//	DPI:  72,
-	//})
-	//fmt.Printf("%#v\n", a.Metrics())
+	a := truetype.NewFace(f, &truetype.Options{
+		Size: 12,
+		DPI:  72,
+	})
+	fmt.Printf("%#v\n", a.Metrics())
 
 	return nil
 }
+
+*/
 
 //-----------------------------------------------------------------------------
