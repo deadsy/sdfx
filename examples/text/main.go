@@ -20,16 +20,25 @@ import (
 func main() {
 
 	f, err := LoadFont("cmr10.ttf")
+	//f, err := LoadFont("Times_New_Roman.ttf")
+
 	if err != nil {
 		fmt.Printf("can't read font file %s\n", err)
 		os.Exit(1)
 	}
 
-	s2d, err := TextSDF2(f, "Hello World!")
-	RenderDXF(s2d, 200, "shape.dxf")
+	t := NewText("SDFX! Hello World!")
 
-	s3d := ExtrudeRounded3D(s2d, 200, 20)
-	RenderSTL(s3d, 200, "shape.stl")
+	s2d, err := TextSDF2(f, t)
+	if err != nil {
+		fmt.Printf("can't generate text sdf2 %s\n", err)
+		os.Exit(1)
+	}
+
+	RenderDXF(s2d, 600, "shape.dxf")
+
+	s3d := ExtrudeRounded3D(s2d, 400, 20)
+	RenderSTL(s3d, 600, "shape.stl")
 }
 
 //-----------------------------------------------------------------------------

@@ -13,6 +13,7 @@ package sdf
 import (
 	"fmt"
 	"io/ioutil"
+	"strings"
 
 	"github.com/golang/freetype/truetype"
 	"golang.org/x/image/font"
@@ -25,30 +26,24 @@ const POINT_PER_INCH = 72.0
 
 //-----------------------------------------------------------------------------
 
-func printBounds(b fixed.Rectangle26_6) {
-	fmt.Printf("Min.X:%d Min.Y:%d Max.X:%d Max.Y:%d\n", b.Min.X, b.Min.Y, b.Max.X, b.Max.Y)
+type align int
+
+const (
+	L_ALIGN align = iota
+	R_ALIGN
+	C_ALIGN
+)
+
+type Text struct {
+	s      string
+	halign align
 }
 
-func printGlyph(g *truetype.GlyphBuf) {
-	printBounds(g.Bounds)
-	fmt.Print("Points:\n---\n")
-	e := 0
-	for i, p := range g.Points {
-		fmt.Printf("%4d, %4d", p.X, p.Y)
-		if p.Flags&0x01 != 0 {
-			fmt.Print("  on\n")
-		} else {
-			fmt.Print("  off\n")
-		}
-		if i+1 == int(g.Ends[e]) {
-			fmt.Print("---\n")
-			e++
-		}
+func NewText(s string) *Text {
+	return &Text{
+		s:      s,
+		halign: L_ALIGN,
 	}
-
-	fmt.Printf("points: %v\n", g.Points)
-	fmt.Printf("ends: %v\n", g.Ends)
-
 }
 
 //-----------------------------------------------------------------------------
@@ -117,75 +112,73 @@ func glyph_convert(g *truetype.GlyphBuf) SDF2 {
 }
 
 //-----------------------------------------------------------------------------
+// public api
 
 // load a truetype (*.ttf) font file
 func LoadFont(fname string) (*truetype.Font, error) {
-
 	// read the font file
 	b, err := ioutil.ReadFile(fname)
 	if err != nil {
 		return nil, err
 	}
-
 	return truetype.Parse(b)
 }
 
 // return an SDF2 for the text string
-func TextSDF2(f *truetype.Font, text string) (SDF2, error) {
+func TextSDF2(f *truetype.Font, t *Text) (SDF2, error) {
 
-	fupe := fixed.Int26_6(f.FUnitsPerEm())
+	var s0 SDF2
+	i_prev := truetype.Index(0)
+	scale := fixed.Int26_6(f.FUnitsPerEm())
+	x_ofs := 0.0
 
-	c := '\u0040'
-	i := f.Index(c)
-	g := &truetype.GlyphBuf{}
-	err := g.Load(f, fupe, i, font.HintingNone)
-	if err != nil {
-		return nil, err
+	for _, r := range t.s {
+		i := f.Index(r)
+
+		// get the glyph metrics
+		hm := f.HMetric(scale, i)
+		vm := f.VMetric(scale, i)
+
+		// apply kerning
+		k := f.Kern(scale, i_prev, i)
+		x_ofs += float64(k)
+
+		var s []string
+		s = append(s, fmt.Sprintf("r %c i %d", r, i))
+		s = append(s, fmt.Sprintf("aw %d lsb %d", hm.AdvanceWidth, hm.LeftSideBearing))
+		s = append(s, fmt.Sprintf("ah %d tsb %d", vm.AdvanceHeight, vm.TopSideBearing))
+		s = append(s, fmt.Sprintf("k %d", k))
+		fmt.Printf("%s\n", strings.Join(s, " "))
+
+		// load the glyph
+		g := &truetype.GlyphBuf{}
+		err := g.Load(f, scale, i, font.HintingNone)
+		if err != nil {
+			return nil, err
+		}
+
+		s1 := glyph_convert(g)
+		if s1 != nil {
+			s1 = Transform2D(s1, Translate2d(V2{x_ofs, 0}))
+			s0 = Union2D(s0, s1)
+		}
+
+		x_ofs += float64(hm.AdvanceWidth)
+		i_prev = i
 	}
 
-	return glyph_convert(g), nil
+	return s0, nil
 }
 
 //-----------------------------------------------------------------------------
 
 /*
 
+func printBounds(b fixed.Rectangle26_6) {
+	fmt.Printf("Min.X:%d Min.Y:%d Max.X:%d Max.Y:%d\n", b.Min.X, b.Min.Y, b.Max.X, b.Max.Y)
+}
+
 func Test_Text() error {
-
-	// get the font data
-	fontfile := "/usr/share/fonts/truetype/msttcorefonts/Arial_Black.ttf"
-	b, err := ioutil.ReadFile(fontfile)
-	if err != nil {
-		return err
-	}
-
-	f, err := truetype.Parse(b)
-	if err != nil {
-		return err
-	}
-
-	fupe := fixed.Int26_6(f.FUnitsPerEm())
-	printBounds(f.Bounds(fupe))
-	fmt.Printf("FUnitsPerEm:%d\n\n", fupe)
-
-	c := 'Q'
-	i := f.Index(c)
-	g := &truetype.GlyphBuf{}
-	err = g.Load(f, fupe, i, font.HintingNone)
-	if err != nil {
-		return err
-	}
-
-	hm := f.HMetric(fupe, i)
-	fmt.Printf("'%c' glyph\n", c)
-	fmt.Printf("AdvanceWidth:%d LeftSideBearing:%d\n", hm.AdvanceWidth, hm.LeftSideBearing)
-	printGlyph(g)
-
-	s2d := glyph_convert(g)
-	RenderDXF(s2d, 200, "shape.dxf")
-
-	s3d := ExtrudeRounded3D(s2d, 200, 20)
-	RenderSTL(s3d, 300, "shape.stl")
 
 	a := truetype.NewFace(f, &truetype.Options{
 		Size: 12,
