@@ -23,6 +23,9 @@ type BezierPolynomial struct {
 // Return the bezier polynomial function value.
 func (p *BezierPolynomial) f0(t float64) float64 {
 	switch p.n {
+	case 0:
+		// point
+		return p.a
 	case 1:
 		// linear
 		return p.a + t*p.b
@@ -43,6 +46,9 @@ func (p *BezierPolynomial) f0(t float64) float64 {
 // Return the 1st derivative of the bezier polynomial.
 func (p *BezierPolynomial) f1(t float64) float64 {
 	switch p.n {
+	case 0:
+		// point
+		return 0
 	case 1:
 		// linear
 		return p.b
@@ -63,6 +69,9 @@ func (p *BezierPolynomial) f1(t float64) float64 {
 // Return the 2nd derivative of the bezier polynomial.
 func (p *BezierPolynomial) f2(t float64) float64 {
 	switch p.n {
+	case 0:
+		// point
+		return 0
 	case 1:
 		// linear
 		return 0
@@ -84,6 +93,9 @@ func (p *BezierPolynomial) f2(t float64) float64 {
 func (p *BezierPolynomial) Set(x []float64) {
 	p.n = len(x) - 1
 	switch p.n {
+	case 0:
+		// point
+		p.a = x[0]
 	case 1:
 		// linear
 		p.a = x[0]
@@ -116,6 +128,19 @@ func (p *BezierPolynomial) Set(x []float64) {
 	p.c = ZeroSmall(p.c, sum, EPSILON)
 	p.d = ZeroSmall(p.d, sum, EPSILON)
 	p.e = ZeroSmall(p.e, sum, EPSILON)
+	// reduce the polynomial to the lowest order
+	if p.n == 4 && p.e == 0 {
+		p.n = 3
+	}
+	if p.n == 3 && p.d == 0 {
+		p.n = 2
+	}
+	if p.n == 2 && p.c == 0 {
+		p.n = 1
+	}
+	if p.n == 1 && p.b == 0 {
+		p.n = 0
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -131,7 +156,8 @@ func (s *BezierSpline) f0(t float64) V2 {
 }
 
 // Generate polygon samples for a bezier spline.
-func (s *BezierSpline) Sample(p *Polygon, t0, t1 float64, p0, p1 V2) {
+func (s *BezierSpline) Sample(p *Polygon, t0, t1 float64, p0, p1 V2, n int) {
+
 	// test the midpoint
 	tmid := (t0 + t1) / 2
 	pmid := s.f0(tmid)
@@ -151,9 +177,19 @@ func (s *BezierSpline) Sample(p *Polygon, t0, t1 float64, p0, p1 V2) {
 			return
 		}
 	}
+	// have we hit the recursion limit?
+	if n > 8 {
+		fmt.Printf("warn: bezier spline resursion limit %v\n", s)
+		if t0 == 0 {
+			// add p0 for the first point on the spline
+			p.AddV2(p0)
+		}
+		p.AddV2(p1)
+		return
+	}
 	// not flat enough, subdivide and recurse
-	s.Sample(p, t0, tmid, p0, pmid)
-	s.Sample(p, tmid, t1, pmid, p1)
+	s.Sample(p, t0, tmid, p0, pmid, n+1)
+	s.Sample(p, tmid, t1, pmid, p1, n+1)
 }
 
 func NewBezierSpline(p []V2) *BezierSpline {
@@ -396,8 +432,12 @@ func (b *Bezier) Polygon() *Polygon {
 	p := NewPolygon()
 	n = len(splines)
 	for i, s := range splines {
+		if s.px.n == 0 && s.py.n == 0 {
+			// This is a point, not a curve. Skip it.
+			continue
+		}
 		// Add the spline vertices
-		s.Sample(p, 0, 1, s.f0(0), s.f0(1))
+		s.Sample(p, 0, 1, s.f0(0), s.f0(1), 0)
 		if i != n-1 {
 			// drop the last vertex since it is the first vertex of the next spline
 			p.Drop()

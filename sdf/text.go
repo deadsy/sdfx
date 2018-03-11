@@ -142,6 +142,7 @@ func TextSDF2(f *truetype.Font, t *Text) (SDF2, error) {
 		// apply kerning
 		k := f.Kern(scale, i_prev, i)
 		x_ofs += float64(k)
+		i_prev = i
 
 		var s []string
 		s = append(s, fmt.Sprintf("r %c i %d", r, i))
@@ -164,7 +165,6 @@ func TextSDF2(f *truetype.Font, t *Text) (SDF2, error) {
 		}
 
 		x_ofs += float64(hm.AdvanceWidth)
-		i_prev = i
 	}
 
 	return s0, nil
