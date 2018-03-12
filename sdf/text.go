@@ -13,7 +13,6 @@ package sdf
 import (
 	"fmt"
 	"io/ioutil"
-	"strings"
 
 	"github.com/golang/freetype/truetype"
 	"golang.org/x/image/font"
@@ -29,9 +28,9 @@ const POINT_PER_INCH = 72.0
 type align int
 
 const (
-	L_ALIGN align = iota
-	R_ALIGN
-	C_ALIGN
+	L_ALIGN align = iota // left hand side x = 0
+	R_ALIGN              // right hand side x = 0
+	C_ALIGN              // center x = 0
 )
 
 type Text struct {
@@ -112,6 +111,46 @@ func glyph_convert(g *truetype.GlyphBuf) SDF2 {
 }
 
 //-----------------------------------------------------------------------------
+
+// return the SDF2 for a line of text
+func lineSDF2(f *truetype.Font, l string) (SDF2, float64, error) {
+
+	var s0 SDF2
+	i_prev := truetype.Index(0)
+	scale := fixed.Int26_6(f.FUnitsPerEm())
+	x_ofs := 0.0
+
+	for _, r := range l {
+		i := f.Index(r)
+
+		// get the glyph metrics
+		hm := f.HMetric(scale, i)
+
+		// apply kerning
+		k := f.Kern(scale, i_prev, i)
+		x_ofs += float64(k)
+		i_prev = i
+
+		// load the glyph
+		g := &truetype.GlyphBuf{}
+		err := g.Load(f, scale, i, font.HintingNone)
+		if err != nil {
+			return nil, 0, err
+		}
+
+		s1 := glyph_convert(g)
+		if s1 != nil {
+			s1 = Transform2D(s1, Translate2d(V2{x_ofs, 0}))
+			s0 = Union2D(s0, s1)
+		}
+
+		x_ofs += float64(hm.AdvanceWidth)
+	}
+
+	return s0, x_ofs, nil
+}
+
+//-----------------------------------------------------------------------------
 // public api
 
 // load a truetype (*.ttf) font file
@@ -127,22 +166,20 @@ func LoadFont(fname string) (*truetype.Font, error) {
 // return an SDF2 for the text string
 func TextSDF2(f *truetype.Font, t *Text) (SDF2, error) {
 
-	var s0 SDF2
-	i_prev := truetype.Index(0)
 	scale := fixed.Int26_6(f.FUnitsPerEm())
-	x_ofs := 0.0
+	vm := f.VMetric(scale, f.Index('\n'))
+	fmt.Printf("ah %d tsb %d\n", vm.AdvanceHeight, vm.TopSideBearing)
 
-	for _, r := range t.s {
-		i := f.Index(r)
+	s0, hlen, err := lineSDF2(f, t.s)
+	fmt.Printf("hlen %f\n", hlen)
+	fmt.Printf("bb %v\n", s0.BoundingBox())
 
-		// get the glyph metrics
-		hm := f.HMetric(scale, i)
-		vm := f.VMetric(scale, i)
+	return s0, err
+}
 
-		// apply kerning
-		k := f.Kern(scale, i_prev, i)
-		x_ofs += float64(k)
-		i_prev = i
+//-----------------------------------------------------------------------------
+
+/*
 
 		var s []string
 		s = append(s, fmt.Sprintf("r %c i %d", r, i))
@@ -151,28 +188,6 @@ func TextSDF2(f *truetype.Font, t *Text) (SDF2, error) {
 		s = append(s, fmt.Sprintf("k %d", k))
 		fmt.Printf("%s\n", strings.Join(s, " "))
 
-		// load the glyph
-		g := &truetype.GlyphBuf{}
-		err := g.Load(f, scale, i, font.HintingNone)
-		if err != nil {
-			return nil, err
-		}
-
-		s1 := glyph_convert(g)
-		if s1 != nil {
-			s1 = Transform2D(s1, Translate2d(V2{x_ofs, 0}))
-			s0 = Union2D(s0, s1)
-		}
-
-		x_ofs += float64(hm.AdvanceWidth)
-	}
-
-	return s0, nil
-}
-
-//-----------------------------------------------------------------------------
-
-/*
 
 func printBounds(b fixed.Rectangle26_6) {
 	fmt.Printf("Min.X:%d Min.Y:%d Max.X:%d Max.Y:%d\n", b.Min.X, b.Min.Y, b.Max.X, b.Max.Y)
