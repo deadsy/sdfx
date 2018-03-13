@@ -19,8 +19,8 @@ import (
 
 func main() {
 
-	f, err := LoadFont("cmr10.ttf")
-	//f, err := LoadFont("Times_New_Roman.ttf")
+	//f, err := LoadFont("cmr10.ttf")
+	f, err := LoadFont("Times_New_Roman.ttf")
 	//f, err := LoadFont("wt064.ttf")
 
 	if err != nil {
@@ -28,7 +28,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	t := NewText("SDFX! Hello World!")
+	t := NewText("SDFX!\nHello\nWorld!")
 	//t := NewText("相同的不同")
 
 	s2d, err := TextSDF2(f, t)
@@ -39,8 +39,8 @@ func main() {
 
 	RenderDXF(s2d, 600, "shape.dxf")
 
-	s3d := ExtrudeRounded3D(s2d, 400, 20)
-	RenderSTL(s3d, 600, "shape.stl")
+	//s3d := ExtrudeRounded3D(s2d, 400, 20)
+	//RenderSTL(s3d, 600, "shape.stl")
 }
 
 //-----------------------------------------------------------------------------

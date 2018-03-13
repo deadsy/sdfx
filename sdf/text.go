@@ -11,8 +11,8 @@ Convert a string and a font specification into an SDF2
 package sdf
 
 import (
-	"fmt"
 	"io/ioutil"
+	"strings"
 
 	"github.com/golang/freetype/truetype"
 	"golang.org/x/image/font"
@@ -41,7 +41,7 @@ type Text struct {
 func NewText(s string) *Text {
 	return &Text{
 		s:      s,
-		halign: L_ALIGN,
+		halign: C_ALIGN,
 	}
 }
 
@@ -168,13 +168,30 @@ func TextSDF2(f *truetype.Font, t *Text) (SDF2, error) {
 
 	scale := fixed.Int26_6(f.FUnitsPerEm())
 	vm := f.VMetric(scale, f.Index('\n'))
-	fmt.Printf("ah %d tsb %d\n", vm.AdvanceHeight, vm.TopSideBearing)
+	//fmt.Printf("ah %d tsb %d\n", vm.AdvanceHeight, vm.TopSideBearing)
+	ah := float64(vm.AdvanceHeight)
 
-	s0, hlen, err := lineSDF2(f, t.s)
-	fmt.Printf("hlen %f\n", hlen)
-	fmt.Printf("bb %v\n", s0.BoundingBox())
+	lines := strings.Split(t.s, "\n")
+	var s0 SDF2
+	y_ofs := 0.0 // ((float64(len(lines)) / 2.0) - 1.0) * ah
 
-	return s0, err
+	for i := range lines {
+		s1, hlen, err := lineSDF2(f, lines[i])
+		if err != nil {
+			return nil, err
+		}
+		x_ofs := 0.0
+		if t.halign == R_ALIGN {
+			x_ofs = -hlen
+		} else if t.halign == C_ALIGN {
+			x_ofs = -hlen / 2.0
+		}
+		s1 = Transform2D(s1, Translate2d(V2{x_ofs, y_ofs}))
+		s0 = Union2D(s0, s1)
+		y_ofs -= ah
+	}
+
+	return s0, nil
 }
 
 //-----------------------------------------------------------------------------
