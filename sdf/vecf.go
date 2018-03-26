@@ -233,20 +233,34 @@ func (a V2) Sub(b V2) V2 {
 	return V2{a.X - b.X, a.Y - b.Y}
 }
 
+// Multiply two vectors by component.
 func (a V3) Mul(b V3) V3 {
 	return V3{a.X * b.X, a.Y * b.Y, a.Z * b.Z}
 }
 
+// Multiply two vectors by component.
 func (a V2) Mul(b V2) V2 {
 	return V2{a.X * b.X, a.Y * b.Y}
 }
 
+// Divide two vectors by component.
 func (a V3) Div(b V3) V3 {
 	return V3{a.X / b.X, a.Y / b.Y, a.Z / b.Z}
 }
 
+// Divide two vectors by component.
 func (a V2) Div(b V2) V2 {
 	return V2{a.X / b.X, a.Y / b.Y}
+}
+
+// Negate the vector.
+func (a V2) Neg() V2 {
+	return V2{-a.X, -a.Y}
+}
+
+// Negate the vector.
+func (a V3) Neg() V3 {
+	return V3{-a.X, -a.Y, -a.Z}
 }
 
 //-----------------------------------------------------------------------------

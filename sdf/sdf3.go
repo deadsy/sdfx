@@ -10,8 +10,6 @@ package sdf
 
 import (
 	"math"
-
-	"github.com/fogleman/pt/pt"
 )
 
 //-----------------------------------------------------------------------------
@@ -55,28 +53,6 @@ func sdf_box3d(p, s V3) float64 {
 		return d.Z
 	}
 	return d.MaxComponent()
-}
-
-//-----------------------------------------------------------------------------
-// Create a pt.SDF from an SDF3
-
-type PtSDF struct {
-	Sdf SDF3
-}
-
-func NewPtSDF(sdf SDF3) pt.SDF {
-	return &PtSDF{sdf}
-}
-
-func (s *PtSDF) Evaluate(p pt.Vector) float64 {
-	return s.Sdf.Evaluate(V3{p.X, p.Y, p.Z})
-}
-
-func (s *PtSDF) BoundingBox() pt.Box {
-	b := s.Sdf.BoundingBox()
-	j := b.Min
-	k := b.Max
-	return pt.Box{Min: pt.Vector{X: j.X, Y: j.Y, Z: j.Z}, Max: pt.Vector{X: k.X, Y: k.Y, Z: k.Z}}
 }
 
 //-----------------------------------------------------------------------------

@@ -167,13 +167,11 @@ func LoadFont(fname string) (*truetype.Font, error) {
 func TextSDF2(f *truetype.Font, t *Text) (SDF2, error) {
 
 	scale := fixed.Int26_6(f.FUnitsPerEm())
-	vm := f.VMetric(scale, f.Index('\n'))
-	//fmt.Printf("ah %d tsb %d\n", vm.AdvanceHeight, vm.TopSideBearing)
-	ah := float64(vm.AdvanceHeight)
-
 	lines := strings.Split(t.s, "\n")
 	var s0 SDF2
-	y_ofs := 0.0 // ((float64(len(lines)) / 2.0) - 1.0) * ah
+	y_ofs := 0.0
+	vm := f.VMetric(scale, f.Index('\n'))
+	ah := float64(vm.AdvanceHeight)
 
 	for i := range lines {
 		s1, hlen, err := lineSDF2(f, lines[i])
@@ -191,36 +189,8 @@ func TextSDF2(f *truetype.Font, t *Text) (SDF2, error) {
 		y_ofs -= ah
 	}
 
+	s0 = Center2D(s0)
 	return s0, nil
 }
-
-//-----------------------------------------------------------------------------
-
-/*
-
-		var s []string
-		s = append(s, fmt.Sprintf("r %c i %d", r, i))
-		s = append(s, fmt.Sprintf("aw %d lsb %d", hm.AdvanceWidth, hm.LeftSideBearing))
-		s = append(s, fmt.Sprintf("ah %d tsb %d", vm.AdvanceHeight, vm.TopSideBearing))
-		s = append(s, fmt.Sprintf("k %d", k))
-		fmt.Printf("%s\n", strings.Join(s, " "))
-
-
-func printBounds(b fixed.Rectangle26_6) {
-	fmt.Printf("Min.X:%d Min.Y:%d Max.X:%d Max.Y:%d\n", b.Min.X, b.Min.Y, b.Max.X, b.Max.Y)
-}
-
-func Test_Text() error {
-
-	a := truetype.NewFace(f, &truetype.Options{
-		Size: 12,
-		DPI:  72,
-	})
-	fmt.Printf("%#v\n", a.Metrics())
-
-	return nil
-}
-
-*/
 
 //-----------------------------------------------------------------------------

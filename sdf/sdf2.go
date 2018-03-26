@@ -678,6 +678,14 @@ func (s *DifferenceSDF2) BoundingBox() Box2 {
 
 //-----------------------------------------------------------------------------
 
+// Center an SDF2 on it's bounding box.
+func Center2D(s SDF2) SDF2 {
+	ofs := s.BoundingBox().Center().Neg()
+	return Transform2D(s, Translate2d(ofs))
+}
+
+//-----------------------------------------------------------------------------
+
 // Generate a set of internal mesh points for an SDF2
 func GenerateMesh2D(s SDF2, grid V2i) (V2Set, error) {
 

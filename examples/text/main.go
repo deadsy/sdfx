@@ -19,8 +19,8 @@ import (
 
 func main() {
 
-	//f, err := LoadFont("cmr10.ttf")
-	f, err := LoadFont("Times_New_Roman.ttf")
+	f, err := LoadFont("cmr10.ttf")
+	//f, err := LoadFont("Times_New_Roman.ttf")
 	//f, err := LoadFont("wt064.ttf")
 
 	if err != nil {
@@ -28,7 +28,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	t := NewText("SDFX!\nHello\nWorld!")
+	t := NewText("SDFX!\nHello,\nWorld!")
 	//t := NewText("相同的不同")
 
 	s2d, err := TextSDF2(f, t)
