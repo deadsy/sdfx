@@ -31,7 +31,7 @@ func main() {
 	t := NewText("SDFX!\nHello,\nWorld!")
 	//t := NewText("相同的不同")
 
-	s2d, err := TextSDF2(f, t)
+	s2d, err := TextSDF2(f, t, 10.0)
 	if err != nil {
 		fmt.Printf("can't generate text sdf2 %s\n", err)
 		os.Exit(1)

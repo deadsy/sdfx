@@ -164,7 +164,7 @@ func LoadFont(fname string) (*truetype.Font, error) {
 }
 
 // return an SDF2 for the text string
-func TextSDF2(f *truetype.Font, t *Text) (SDF2, error) {
+func TextSDF2(f *truetype.Font, t *Text, h float64) (SDF2, error) {
 
 	scale := fixed.Int26_6(f.FUnitsPerEm())
 	lines := strings.Split(t.s, "\n")
@@ -189,8 +189,7 @@ func TextSDF2(f *truetype.Font, t *Text) (SDF2, error) {
 		y_ofs -= ah
 	}
 
-	s0 = Center2D(s0)
-	return s0, nil
+	return CenterScale2D(s0, h/ah), nil
 }
 
 //-----------------------------------------------------------------------------

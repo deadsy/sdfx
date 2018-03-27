@@ -371,6 +371,25 @@ func (s *TransformSDF2) BoundingBox() Box2 {
 }
 
 //-----------------------------------------------------------------------------
+
+// Center the origin of an SDF2 on it's bounding box.
+func Center2D(s SDF2) SDF2 {
+	ofs := s.BoundingBox().Center().Neg()
+	return Transform2D(s, Translate2d(ofs))
+}
+
+// Scale an SDF2
+func Scale2D(s SDF2, k float64) SDF2 {
+	return Transform2D(s, Scale2d(V2{k, k}))
+}
+
+// Center and scale an SDF2 on it's bounding box.
+func CenterScale2D(s SDF2, k float64) SDF2 {
+	ofs := s.BoundingBox().Center().Neg()
+	return Transform2D(s, Scale2d(V2{k, k}).Mul(Translate2d(ofs)))
+}
+
+//-----------------------------------------------------------------------------
 // ArraySDF2: Create an X by Y array of a given SDF2
 // num = the array size
 // size = the step size
@@ -674,14 +693,6 @@ func (s *DifferenceSDF2) SetMax(max MaxFunc) {
 // Return the bounding box.
 func (s *DifferenceSDF2) BoundingBox() Box2 {
 	return s.bb
-}
-
-//-----------------------------------------------------------------------------
-
-// Center an SDF2 on it's bounding box.
-func Center2D(s SDF2) SDF2 {
-	ofs := s.BoundingBox().Center().Neg()
-	return Transform2D(s, Translate2d(ofs))
 }
 
 //-----------------------------------------------------------------------------
