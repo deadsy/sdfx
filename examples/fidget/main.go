@@ -116,7 +116,7 @@ func body2() SDF3 {
 // Basic spin cap with variable pin size.
 func spincap(
 	pin_r float64, // pin radius
-	pin_l float64, // pin lenght
+	pin_l float64, // pin length
 ) SDF3 {
 
 	t := 3.0  // thickness of the spin cap

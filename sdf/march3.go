@@ -159,14 +159,14 @@ func MarchingCubes(sdf SDF3, box Box3, step float64) []*Triangle3 {
 				x0, y0, z0 := p.X, p.Y, p.Z
 				x1, y1, z1 := x0+dx, y0+dy, z0+dz
 				corners := [8]V3{
-					V3{x0, y0, z0},
-					V3{x1, y0, z0},
-					V3{x1, y1, z0},
-					V3{x0, y1, z0},
-					V3{x0, y0, z1},
-					V3{x1, y0, z1},
-					V3{x1, y1, z1},
-					V3{x0, y1, z1}}
+					{x0, y0, z0},
+					{x1, y0, z0},
+					{x1, y1, z0},
+					{x0, y1, z0},
+					{x0, y0, z1},
+					{x1, y0, z1},
+					{x1, y1, z1},
+					{x0, y1, z1}}
 				values := [8]float64{
 					l.Get(0, y, z),
 					l.Get(1, y, z),

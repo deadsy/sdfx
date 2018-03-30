@@ -175,10 +175,10 @@ func core_box() {
 	dx := h * 0.4
 	hole_radius := ((3.0 / 16.0) * MM_PER_INCH) / 2.0
 	positions := []V2{
-		V2{dx, dy},
-		V2{-dx, dy},
-		V2{dx, -dy},
-		V2{-dx, -dy}}
+		{dx, dy},
+		{-dx, dy},
+		{dx, -dy},
+		{-dx, -dy}}
 	holes_3d := MultiCylinder3D(d, hole_radius, positions)
 
 	// Drill the holes

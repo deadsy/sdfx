@@ -88,10 +88,10 @@ func MarchingSquares(sdf SDF2, box Box2, step float64) []*Line2_PP {
 			x0, y0 := p.X, p.Y
 			x1, y1 := x0+dx, y0+dy
 			corners := [4]V2{
-				V2{x0, y0},
-				V2{x1, y0},
-				V2{x1, y1},
-				V2{x0, y1},
+				{x0, y0},
+				{x1, y0},
+				{x1, y1},
+				{x0, y1},
 			}
 			values := [4]float64{
 				l.Get(0, y),

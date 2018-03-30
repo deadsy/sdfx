@@ -82,9 +82,9 @@ func test11() {
 func test12() {
 	k := 0.1
 	points := []V2{
-		V2{0, -k},
-		V2{k, k},
-		V2{-k, k},
+		{0, -k},
+		{k, k},
+		{-k, k},
 	}
 	s0 := Polygon2D(points)
 	s0 = Transform2D(s0, Translate2d(V2{0.8, 0}))
@@ -94,7 +94,7 @@ func test12() {
 
 func test13() {
 	k := 0.4
-	s0 := Polygon2D([]V2{V2{k, -k}, V2{k, k}, V2{-k, k}, V2{-k, -k}})
+	s0 := Polygon2D([]V2{{k, -k}, {k, k}, {-k, k}, {-k, -k}})
 	s0 = Transform2D(s0, Translate2d(V2{0.8, 0}))
 	s1 := RevolveTheta3D(s0, DtoR(270))
 	RenderSTL(s1, 200, "test.stl")
@@ -114,10 +114,10 @@ func test14() {
 	k := 2.0
 
 	points := []V2{
-		V2{j + c*a - s*b, k + s*a + c*b},
-		V2{j - c*a - s*b, k - s*a + c*b},
-		V2{j - c*a + s*b, k - s*a - c*b},
-		V2{j + c*a + s*b, k + s*a - c*b},
+		{j + c*a - s*b, k + s*a + c*b},
+		{j - c*a - s*b, k - s*a + c*b},
+		{j - c*a + s*b, k - s*a - c*b},
+		{j + c*a + s*b, k + s*a - c*b},
 	}
 
 	s0 := Polygon2D(points)
@@ -137,9 +137,9 @@ func test15() {
 	k := 0.0
 
 	points := []V2{
-		V2{0, -b},
-		V2{a, b},
-		V2{-a, b},
+		{0, -b},
+		{a, b},
+		{-a, b},
 	}
 
 	s0 := Polygon2D(points)
@@ -166,10 +166,10 @@ func test16() {
 	k := 0.0
 
 	points := []V2{
-		V2{b0, -c},
-		V2{a0, c},
-		V2{-a1, c},
-		V2{-b1, -c},
+		{b0, -c},
+		{a0, c},
+		{-a1, c},
+		{-b1, -c},
 	}
 
 	s0 := Polygon2D(points)
@@ -191,9 +191,9 @@ func test17() {
 	k := 0.0
 
 	points := []V2{
-		V2{a, 0},
-		V2{-a, b},
-		V2{-a, -b},
+		{a, 0},
+		{-a, b},
+		{-a, -b},
 	}
 
 	s0 := Polygon2D(points)
@@ -219,14 +219,14 @@ func test18() {
 	h4 := 1.0
 
 	points := []V2{
-		V2{0, 0},
-		V2{r0, 0},
-		V2{r0, h0},
-		V2{r1, h1},
-		V2{r2, h2},
-		V2{r3, h3},
-		V2{r3, h4},
-		V2{0, h4},
+		{0, 0},
+		{r0, 0},
+		{r0, h0},
+		{r1, h1},
+		{r2, h2},
+		{r3, h3},
+		{r3, h4},
+		{0, h4},
 	}
 
 	s0 := Polygon2D(points)
@@ -283,7 +283,7 @@ func test26() {
 
 func test27() {
 	r := 5.0
-	posn := []V2{V2{2 * r, 2 * r}, V2{-r, r}, V2{r, -r}, V2{-r, -r}, V2{0, 0}}
+	posn := []V2{{2 * r, 2 * r}, {-r, r}, {r, -r}, {-r, -r}, {0, 0}}
 	s := MultiCylinder3D(3, 1, posn)
 	RenderSTL(s, 200, "test.stl")
 }

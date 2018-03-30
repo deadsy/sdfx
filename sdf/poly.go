@@ -163,7 +163,7 @@ func (p *Polygon) arc_vertex(i int) bool {
 	rv := m.MulPosition(a.Sub(c))
 	// work out the new vertices
 	vlist := make([]PV, v.facets-1)
-	for j, _ := range vlist {
+	for j := range vlist {
 		vlist[j] = PV{vertex: c.Add(rv)}
 		rv = m.MulPosition(rv)
 	}
@@ -177,7 +177,7 @@ func (p *Polygon) create_arcs() {
 	done := false
 	for done == false {
 		done = true
-		for i, _ := range p.vlist {
+		for i := range p.vlist {
 			if p.arc_vertex(i) {
 				done = false
 			}
@@ -228,7 +228,7 @@ func (p *Polygon) smooth_vertex(i int) bool {
 	rv := p0.Sub(c)
 	// work out the new points
 	points := make([]PV, v.facets+1)
-	for j, _ := range points {
+	for j := range points {
 		points[j] = PV{vertex: c.Add(rv)}
 		rv = rm.MulPosition(rv)
 	}
@@ -242,7 +242,7 @@ func (p *Polygon) smooth_vertices() {
 	done := false
 	for done == false {
 		done = true
-		for i, _ := range p.vlist {
+		for i := range p.vlist {
 			if p.smooth_vertex(i) {
 				done = false
 			}
@@ -254,7 +254,7 @@ func (p *Polygon) smooth_vertices() {
 
 // Converts relative vertices to absolute vertices.
 func (p *Polygon) relative_to_absolute() {
-	for i, _ := range p.vlist {
+	for i := range p.vlist {
 		v := &p.vlist[i]
 		if v.relative {
 			pv := p.prev_vertex(i)

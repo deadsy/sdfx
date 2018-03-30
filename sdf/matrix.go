@@ -247,13 +247,13 @@ func (a M22) MulPosition(b V2) V2 {
 //-----------------------------------------------------------------------------
 
 func (v V2Set) MulVertices(a M33) {
-	for i, _ := range v {
+	for i := range v {
 		v[i] = a.MulPosition(v[i])
 	}
 }
 
 func (v V3Set) MulVertices(a M44) {
-	for i, _ := range v {
+	for i := range v {
 		v[i] = a.MulPosition(v[i])
 	}
 }

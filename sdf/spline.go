@@ -77,7 +77,7 @@ func (p *CubicPolynomial) f2(t float64) float64 {
 	return 2*p.c + 6*p.d*t
 }
 
-// Set polynomial coefficent values.
+// Set polynomial coefficient values.
 func (p *CubicPolynomial) Set(y0, y1, D0, D1 float64) {
 	p.a = y0
 	p.b = D0

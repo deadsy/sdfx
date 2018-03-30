@@ -80,8 +80,8 @@ func cc16b() SDF3 {
 	base_hole_yofs := (base_d / 2.0) - 25.0
 	base_hole_xofs := (base_w / 2.0) - 25.0
 	holes := []V2{
-		V2{base_hole_xofs, base_hole_yofs},
-		V2{-base_hole_xofs, base_hole_yofs},
+		{base_hole_xofs, base_hole_yofs},
+		{-base_hole_xofs, base_hole_yofs},
 	}
 	holes_2d := MultiCircle2D(base_hole_r, holes)
 	base_2d = Difference2D(base_2d, holes_2d)
@@ -112,10 +112,10 @@ func cc16b() SDF3 {
 	recess_h := 2.0
 	recess_zofs := (base_h / 2.0) - recess_h
 	recess := []V2{
-		V2{0, 0},
-		V2{recess_w, 0},
-		V2{recess_w + recess_h, recess_h},
-		V2{0, recess_h},
+		{0, 0},
+		{recess_w, 0},
+		{recess_w + recess_h, recess_h},
+		{0, recess_h},
 	}
 	recess_2d := Polygon2D(recess)
 	recess_3d := Extrude3D(recess_2d, base_w)

@@ -204,14 +204,14 @@ func Test_Line(t *testing.T) {
 //-----------------------------------------------------------------------------
 
 func Test_Polygon1(t *testing.T) {
-	s := Polygon2D([]V2{V2{0, 0}, V2{1, 0}, V2{0, 1}})
+	s := Polygon2D([]V2{{0, 0}, {1, 0}, {0, 1}})
 	b := s.BoundingBox()
 	b0 := Box2{V2{0, 0}, V2{1, 1}}
 	if b.Equals(b0, TOLERANCE) == false {
 		t.Error("FAIL")
 	}
 
-	s = Polygon2D([]V2{V2{0, -2}, V2{1, 1}, V2{-2, 2}})
+	s = Polygon2D([]V2{{0, -2}, {1, 1}, {-2, 2}})
 	b = s.BoundingBox()
 	b0 = Box2{V2{-2, -2}, V2{1, 2}}
 	if b.Equals(b0, TOLERANCE) == false {
@@ -219,9 +219,9 @@ func Test_Polygon1(t *testing.T) {
 	}
 
 	points := []V2{
-		V2{0, -1},
-		V2{1, 1},
-		V2{-1, 1},
+		{0, -1},
+		{1, 1},
+		{-1, 1},
 	}
 
 	s = Polygon2D(points)
@@ -263,7 +263,7 @@ func Test_Polygon1(t *testing.T) {
 func Test_Polygon2(t *testing.T) {
 	k := 1.2
 
-	s0 := Polygon2D([]V2{V2{k, -k}, V2{k, k}, V2{-k, k}, V2{-k, -k}})
+	s0 := Polygon2D([]V2{{k, -k}, {k, k}, {-k, k}, {-k, -k}})
 	s0 = Transform2D(s0, Translate2d(V2{0.8, 0}))
 
 	s1 := Box2D(V2{2 * k, 2 * k}, 0)
@@ -298,10 +298,10 @@ func Test_Polygon3(t *testing.T) {
 	s1 = Transform2D(s1, Translate2d(V2{j, k}))
 
 	points := []V2{
-		V2{j + c*a - s*b, k + s*a + c*b},
-		V2{j - c*a - s*b, k - s*a + c*b},
-		V2{j - c*a + s*b, k - s*a - c*b},
-		V2{j + c*a + s*b, k + s*a - c*b},
+		{j + c*a - s*b, k + s*a + c*b},
+		{j - c*a - s*b, k - s*a + c*b},
+		{j - c*a + s*b, k - s*a - c*b},
+		{j + c*a + s*b, k + s*a - c*b},
 	}
 
 	s0 := Polygon2D(points)
@@ -455,14 +455,14 @@ func Test_TriDiagonal(t *testing.T) {
 func Test_CubicSpline(t *testing.T) {
 
 	knot := []V2{
-		V2{-1.5, -1.2},
-		V2{-0.2, 0},
-		V2{1, 0.5},
-		V2{5, 1},
-		V2{10, 2.2},
-		V2{12, 3.2},
-		V2{-16, -1.2},
-		V2{-18, -3.2},
+		{-1.5, -1.2},
+		{-0.2, 0},
+		{1, 0.5},
+		{5, 1},
+		{10, 2.2},
+		{12, 3.2},
+		{-16, -1.2},
+		{-18, -3.2},
 	}
 	s := CubicSpline2D(knot).(*CubicSplineSDF2)
 	n := len(s.spline)

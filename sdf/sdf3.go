@@ -78,9 +78,9 @@ func RevolveTheta3D(sdf SDF2, theta float64) SDF3 {
 	// work out the bounding box
 	var vset V2Set
 	if s.theta == 0 {
-		vset = []V2{V2{1, 1}, V2{-1, -1}}
+		vset = []V2{{1, 1}, {-1, -1}}
 	} else {
-		vset = []V2{V2{0, 0}, V2{1, 0}, V2{cos, sin}}
+		vset = []V2{{0, 0}, {1, 0}, {cos, sin}}
 		if s.theta > 0.5*PI {
 			vset = append(vset, V2{0, 1})
 		}

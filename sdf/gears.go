@@ -165,12 +165,12 @@ func GearRack2D(
 
 	// create a half tooth profile centered on the y-axis
 	tooth := []V2{
-		V2{pitch, 0},
-		V2{pitch, base_height},
-		V2{dx + dxt - bl, base_height},
-		V2{dxt - bl, tooth_height},
-		V2{-pitch, tooth_height},
-		V2{-pitch, 0},
+		{pitch, 0},
+		{pitch, base_height},
+		{dx + dxt - bl, base_height},
+		{dxt - bl, tooth_height},
+		{-pitch, tooth_height},
+		{-pitch, 0},
 	}
 
 	s.tooth = Polygon2D(tooth)

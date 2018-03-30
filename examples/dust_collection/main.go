@@ -21,7 +21,7 @@ var dd_od = 51.0
 var dd_taper = DtoR(2.0)
 var dd_length = 39.0
 
-// vaccum hose 2.5" male fitting
+// vacuum hose 2.5" male fitting
 var vh_od = 58.0
 var vh_clearance = 0.6
 var vh_taper = DtoR(0.4)

@@ -143,11 +143,11 @@ func cc18c() SDF3 {
 	// build the central sleeve
 	r_outer := 42.3 / 2.0
 	p := []V2{
-		V2{0, 0},
-		V2{r_outer, 0},
-		V2{r_outer, 29},
-		V2{r_outer - 1.0, 30},
-		V2{0, 30},
+		{0, 0},
+		{r_outer, 0},
+		{r_outer, 29},
+		{r_outer - 1.0, 30},
+		{0, 30},
 	}
 	sleeve_3d := Revolve3D(Polygon2D(p))
 	sleeve_3d = Transform3D(sleeve_3d, Translate3d(V3{0, 0, -10}))

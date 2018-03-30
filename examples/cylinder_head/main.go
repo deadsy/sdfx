@@ -114,10 +114,10 @@ func sparkplug(mode string, x_ofs float64) SDF3 {
 		vlist = boss.Vertices()
 	} else if mode == "hole" {
 		vlist = []V2{
-			V2{0, 0},
-			V2{sp_hole_r, 0},
-			V2{sp_hole_r, sp_hole_h},
-			V2{0, sp_hole_h},
+			{0, 0},
+			{sp_hole_r, 0},
+			{sp_hole_r, sp_hole_h},
+			{0, sp_hole_h},
 		}
 	} else if mode == "counterbore" {
 		p := NewPolygon()
@@ -241,16 +241,16 @@ var stud_hole_dx0 = dim(7.0 / 16.0)
 var stud_hole_dx1 = dim(1.066)
 
 var stud_locations = []V2{
-	V2{stud_hole_dx0 + stud_hole_dx1, 0},
-	V2{stud_hole_dx0 + stud_hole_dx1, stud_hole_dy},
-	V2{stud_hole_dx0 + stud_hole_dx1, -stud_hole_dy},
-	V2{stud_hole_dx0, stud_hole_dy},
-	V2{stud_hole_dx0, -stud_hole_dy},
-	V2{-stud_hole_dx0 - stud_hole_dx1, 0},
-	V2{-stud_hole_dx0 - stud_hole_dx1, stud_hole_dy},
-	V2{-stud_hole_dx0 - stud_hole_dx1, -stud_hole_dy},
-	V2{-stud_hole_dx0, stud_hole_dy},
-	V2{-stud_hole_dx0, -stud_hole_dy},
+	{stud_hole_dx0 + stud_hole_dx1, 0},
+	{stud_hole_dx0 + stud_hole_dx1, stud_hole_dy},
+	{stud_hole_dx0 + stud_hole_dx1, -stud_hole_dy},
+	{stud_hole_dx0, stud_hole_dy},
+	{stud_hole_dx0, -stud_hole_dy},
+	{-stud_hole_dx0 - stud_hole_dx1, 0},
+	{-stud_hole_dx0 - stud_hole_dx1, stud_hole_dy},
+	{-stud_hole_dx0 - stud_hole_dx1, -stud_hole_dy},
+	{-stud_hole_dx0, stud_hole_dy},
+	{-stud_hole_dx0, -stud_hole_dy},
 }
 
 func head_stud_holes() SDF3 {
