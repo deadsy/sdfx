@@ -124,7 +124,7 @@ func (s V2Set) SuperTriangle() (Triangle2, error) {
 	if len(s) == 1 {
 		// a single point
 		p := s[0]
-		k := p.MaxComponent() * 0.125
+		k = p.MaxComponent() * 0.125
 		if k == 0 {
 			k = 1
 		}
