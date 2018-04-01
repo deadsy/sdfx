@@ -29,8 +29,8 @@ var clearance = 0.0
 func bushing() SDF3 {
 
 	r0 := 2.3 // radius of central screw
-	r1 := (bearing_outer_od + bearing_inner_od) / 2.0
-	r2 := (bearing_inner_id / 2) - clearance
+	r1 := (bearing_outer_od + bearing_inner_od) / 4.0
+	r2 := (bearing_inner_id / 2.0) - clearance
 
 	h0 := 3.0 // height of cap
 	h1 := h0 + bearing_thickness + 1.0

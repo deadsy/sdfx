@@ -1,7 +1,9 @@
 
 DIRS = 3dp_nutbolt \
+       axoloti \
        benchmark \
        bezier \
+       bjj \
        bolt_container \
        camshaft \
        challenge \
