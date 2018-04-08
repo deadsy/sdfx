@@ -12,12 +12,82 @@ import . "github.com/deadsy/sdfx/sdf"
 
 //-----------------------------------------------------------------------------
 
+// standoffs
+
+var standoff_parms = &Standoff_Parms{
+	Pillar_height: 10.0,
+	Pillar_radius: 6.0 / 2.0,
+	Hole_depth:    7.0,
+	Hole_radius:   1.5 / 2.0,
+	Number_webs:   4,
+	Web_height:    5.0,
+	Web_radius:    5.0,
+	Web_width:     2.0,
+}
+
+//-----------------------------------------------------------------------------
+
+// one standoff
+func standoff() SDF3 {
+	return Standoff3D(standoff_parms)
+}
+
+// multiple standoffs
+func standoffs() SDF3 {
+	x0 := 0.0
+	x1 := x0 + 40.0
+	x2 := x1 + 62.0
+	x3 := x2 + 10.0
+	x4 := x3 + 40.0
+	y0 := 0.0
+	y1 := y0 + 30.0
+
+	positions := V2Set{
+		{x0, y0}, {x0, y1},
+		//{x1, y1},
+		{x2, y0}, {x2, y1},
+		//{x3, y1},
+		{x4, y0}, {x4, y1},
+	}
+
+	s := make([]SDF3, len(positions))
+	for i, p := range positions {
+		s[i] = Transform3D(standoff(), Translate3d(V3{p.X, p.Y, 0}))
+	}
+	return Union3D(s...)
+}
+
+//-----------------------------------------------------------------------------
+
+func base() SDF3 {
+
+	// base
+	base_width := 50.0
+	base_length := 170.0
+	base_height := 3.0
+	s0 := Box3D(V3{base_length, base_width, base_height}, 0)
+
+	// standoffs
+	// location of 0,0 standoff
+	x0 := 9.0
+	y0 := 10.0
+
+	z_ofs := 0.5 * (standoff_parms.Pillar_height + base_height)
+	x_ofs := -0.5*base_length + x0
+	y_ofs := -0.5*base_width + y0
+	s1 := Transform3D(standoffs(), Translate3d(V3{x_ofs, y_ofs, z_ofs}))
+
+	return Union3D(s0, s1)
+}
+
+//-----------------------------------------------------------------------------
+
 func front_panel() SDF3 {
 
 	var cutouts SDF2
 
 	// 1/4" Stereo Jack (x2)
-	stereo_d := 11.2 // front panel cutout
+	stereo_d := 11.0 // front panel cutout
 	stereo_y := 8.14 // pcb to center of barrel
 	stereo_x0 := 0.0
 	stereo_x1 := 19.4
@@ -27,9 +97,9 @@ func front_panel() SDF3 {
 
 	// MIDI DIN Jack (x2)
 	midi_d := 15.0 // front panel cutout
-	midi_y := 10.0 // pcb to center of connector
+	midi_y := 9.3  // pcb to center of connector
 	midi_x0 := 103.4
-	midi_x1 := 124.0
+	midi_x1 := midi_x0 + 20.4
 	midi_r := midi_d / 2.0
 	cutouts = Union2D(cutouts, Transform2D(Circle2D(midi_r), Translate2d(V2{midi_x0, midi_y})))
 	cutouts = Union2D(cutouts, Transform2D(Circle2D(midi_r), Translate2d(V2{midi_x1, midi_y})))
@@ -81,7 +151,7 @@ func front_panel() SDF3 {
 	cutouts = Union2D(cutouts, Transform2D(Box2D(V2{pb_w, pb_h}, 0.0), Translate2d(V2{pb_x1, pb_y})))
 
 	// overall panel
-	panel_w := 160.0
+	panel_w := 170.0
 	panel_h := 35.0
 	panel := Box2D(V2{panel_w, panel_h}, 0.0)
 	cutouts = Transform2D(cutouts, Translate2d(V2{-60.0, -10.0}))
@@ -92,7 +162,8 @@ func front_panel() SDF3 {
 //-----------------------------------------------------------------------------
 
 func main() {
-	RenderSTL(front_panel(), 300, "front_panel.stl")
+	RenderSTL(front_panel(), 400, "front.stl")
+	RenderSTL(base(), 400, "base.stl")
 }
 
 //-----------------------------------------------------------------------------

@@ -143,3 +143,58 @@ func Washer3D(
 }
 
 //-----------------------------------------------------------------------------
+// Board standoffs
+
+type Standoff_Parms struct {
+	Pillar_height float64
+	Pillar_radius float64
+	Hole_depth    float64
+	Hole_radius   float64
+	Number_webs   int
+	Web_height    float64
+	Web_radius    float64
+	Web_width     float64
+}
+
+// single web
+func pillar_web(p *Standoff_Parms) SDF3 {
+	w := NewPolygon()
+	w.Add(0, 0)
+	w.Add(p.Web_radius, 0)
+	w.Add(0, p.Web_height)
+	s := Extrude3D(Polygon2D(w.Vertices()), p.Web_width)
+	m := Translate3d(V3{0, 0, -0.5 * p.Pillar_height}).Mul(RotateX(DtoR(90.0)))
+	return Transform3D(s, m)
+}
+
+// multiple webs
+func pillar_webs(p *Standoff_Parms) SDF3 {
+	if p.Number_webs == 0 {
+		return nil
+	}
+	return RotateCopy3D(pillar_web(p), p.Number_webs)
+}
+
+// pillar
+func pillar(p *Standoff_Parms) SDF3 {
+	return Cylinder3D(p.Pillar_height, p.Pillar_radius, 0)
+}
+
+// pillar hole
+func pillar_hole(p *Standoff_Parms) SDF3 {
+	if p.Hole_radius == 0.0 || p.Hole_depth == 0.0 {
+		return nil
+	}
+	s := Cylinder3D(p.Hole_depth, p.Hole_radius, 0)
+	z_ofs := 0.5 * (p.Pillar_height - p.Hole_depth)
+	return Transform3D(s, Translate3d(V3{0, 0, z_ofs}))
+}
+
+func Standoff3D(p *Standoff_Parms) SDF3 {
+	s0 := Difference3D(Union3D(pillar(p), pillar_webs(p)), pillar_hole(p))
+	// Cut off any part of the webs that protrude from the top of the pillar
+	s1 := Cylinder3D(p.Pillar_height, 2.0*p.Web_radius, 0)
+	return Intersect3D(s0, s1)
+}
+
+//-----------------------------------------------------------------------------
