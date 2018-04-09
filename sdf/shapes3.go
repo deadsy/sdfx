@@ -192,9 +192,12 @@ func pillar_hole(p *Standoff_Parms) SDF3 {
 
 func Standoff3D(p *Standoff_Parms) SDF3 {
 	s0 := Difference3D(Union3D(pillar(p), pillar_webs(p)), pillar_hole(p))
-	// Cut off any part of the webs that protrude from the top of the pillar
-	s1 := Cylinder3D(p.Pillar_height, 2.0*p.Web_radius, 0)
-	return Intersect3D(s0, s1)
+	if p.Number_webs != 0 {
+		// Cut off any part of the webs that protrude from the top of the pillar
+		s1 := Cylinder3D(p.Pillar_height, 2.0*p.Web_radius, 0)
+		return Intersect3D(s0, s1)
+	}
+	return s0
 }
 
 //-----------------------------------------------------------------------------
