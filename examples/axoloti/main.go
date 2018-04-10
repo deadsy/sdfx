@@ -199,6 +199,15 @@ func main() {
 
 	//RenderSTL(front_panel(), 400, "front.stl")
 	//RenderSTL(base(), 400, "base.stl")
+
+	fb := &FingerButtonParms{
+		Size:      V2{10.0, 4.0},
+		Gap:       0.5,
+		Length:    20.0,
+		Thickness: 4.0,
+	}
+
+	RenderDXF(FingerButton3D(fb), 400, "b.dxf")
 }
 
 //-----------------------------------------------------------------------------
