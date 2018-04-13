@@ -201,13 +201,13 @@ func main() {
 	//RenderSTL(base(), 400, "base.stl")
 
 	fb := &FingerButtonParms{
-		Size:      V2{10.0, 4.0},
-		Gap:       0.5,
-		Length:    20.0,
-		Thickness: 4.0,
+		Width:  3.5,
+		Gap:    0.5,
+		Length: 30.0,
 	}
 
-	RenderDXF(FingerButton3D(fb), 400, "b.dxf")
+	RenderDXF(FingerButton2D(fb), 400, "b.dxf")
+
 }
 
 //-----------------------------------------------------------------------------
