@@ -15,16 +15,13 @@ import . "github.com/deadsy/sdfx/sdf"
 var front_panel_thickness = 3.0
 var front_panel_length = 170.0
 var front_panel_height = 50.0
-var front_panel_radius = 5.0
 
 var base_width = 50.0
 var base_length = 170.0
 var base_thickness = 3.0
-var base_corner_radius = 5.0
 
 var base_foot_width = 10.0
 var base_foot_corner_radius = 3.0
-var base_hole_radius = 1.0
 
 var pcb_thickness = 1.4
 var pcb_width = 50.0
@@ -57,7 +54,7 @@ func standoffs() SDF3 {
 		{3.5, 40.0},   // H2
 		{54.0, 40.0},  // H3
 		{156.5, 10.0}, // H4
-		{54.0, 10.0},  // H5
+		//{54.0, 10.0},  // H5
 		{156.5, 40.0}, // H6
 		{44.0, 10.0},  // H7
 		{116.0, 10.0}, // H8
@@ -71,34 +68,21 @@ func standoffs() SDF3 {
 
 //-----------------------------------------------------------------------------
 
-func base_holes() SDF2 {
-	// from the board mechanicals
-	positions := V2Set{
-		{-60.0, 15.0},
-		{-60.0, -15.0},
-		{0, 15.0},
-		{0, -15.0},
-		{60.0, 15.0},
-		{60.0, -15.0},
-	}
-	s := make([]SDF2, len(positions))
-	for i, p := range positions {
-		s[i] = Transform2D(Circle2D(base_hole_radius), Translate2d(V2{p.X, p.Y}))
-	}
-	return Union2D(s...)
-}
-
-//-----------------------------------------------------------------------------
-
 func base() SDF3 {
 	// base
-	s0 := Box2D(V2{base_length, base_width}, base_corner_radius)
+	pp := &PanelParms{
+		Size:         V2{base_length, base_width},
+		CornerRadius: 5.0,
+		HoleDiameter: 2.0,
+		HoleMargin:   [4]float64{7.0, 20.0, 7.0, 20.0},
+		HolePattern:  [4]string{"xx", "x", "xx", "x"},
+	}
+	s0 := Panel2D(pp)
 
 	// cutout
 	l := base_length - (2.0 * base_foot_width)
 	w := 18.0
 	s1 := Box2D(V2{l, w}, base_foot_corner_radius)
-	s1 = Union2D(base_holes(), s1)
 	y_ofs := 0.5 * (base_width - pcb_width)
 	s1 = Transform2D(s1, Translate2d(V2{0, y_ofs}))
 
@@ -166,9 +150,10 @@ func front_panel() SDF3 {
 	// overall panel
 	pp := &PanelParms{
 		Size:         V2{front_panel_length, front_panel_height},
-		CornerRadius: front_panel_radius,
-		HoleRadius:   1.0,
-		HoleOffset:   5.0,
+		CornerRadius: 5.0,
+		HoleDiameter: 2.0,
+		HoleMargin:   [4]float64{5.0, 5.0, 5.0, 5.0},
+		HolePattern:  [4]string{"xx", "x", "xx", "x"},
 	}
 	panel := Panel2D(pp)
 
@@ -184,8 +169,10 @@ func front_panel() SDF3 {
 func main() {
 	s0 := front_panel()
 	s1 := base()
+	RenderSTL(s0, 400, "fp.stl")
+	RenderSTL(s1, 400, "base.stl")
 	s0 = Transform3D(s0, Translate3d(V3{0, 80, 0}))
-	RenderSTL(Union3D(s0, s1), 400, "x.stl")
+	RenderSTL(Union3D(s0, s1), 400, "both.stl")
 }
 
 //-----------------------------------------------------------------------------
