@@ -38,7 +38,7 @@ func standoffs() SDF3 {
 		PillarHeight:   pillar_height,
 		PillarDiameter: 6.0,
 		HoleDepth:      10.0,
-		HoleDiameter:   2.0,
+		HoleDiameter:   2.3,
 	}
 
 	z_ofs := 0.5 * (pillar_height + base_thickness)
@@ -113,22 +113,22 @@ func front_panel() SDF3 {
 	s_button := Transform2D(FingerButton2D(fb), Rotate2d(DtoR(-90)))
 
 	jack_x := 123.0
-	midi_x := 18.2
-	led_x := 62.7
-	pb_x := 52.8
+	midi_x := 18.7
+	led_x := 62.9
+	pb_x := 53.1
 
 	holes := []PanelHole{
 		{V2{midi_x, 9.3}, s_midi},                // MIDI DIN Jack
 		{V2{midi_x + 20.32, 9.3}, s_midi},        // MIDI DIN Jack
 		{V2{jack_x, 8.14}, s_jack},               // 1/4" Stereo Jack
 		{V2{jack_x + 19.5, 8.14}, s_jack},        // 1/4" Stereo Jack
-		{V2{107.4, 2.3}, Circle2D(0.5 * 5.5)},    // 3.5 mm Headphone Jack
+		{V2{107.6, 2.3}, Circle2D(0.5 * 5.5)},    // 3.5 mm Headphone Jack
 		{V2{led_x, 0.5}, s_led},                  // LED
 		{V2{led_x + 3.635, 0.5}, s_led},          // LED
 		{V2{pb_x, 0.8}, s_button},                // Push Button
 		{V2{pb_x + 5.334, 0.8}, s_button},        // Push Button
-		{V2{84.1, 1.3}, Box2D(V2{16.0, 8.0}, 0)}, // micro SD card
-		{V2{96.7, 1.3}, Box2D(V2{11.0, 8.0}, 0)}, // micro USB connector
+		{V2{84.1, 1.0}, Box2D(V2{16.0, 7.5}, 0)}, // micro SD card
+		{V2{96.7, 1.0}, Box2D(V2{11.0, 7.5}, 0)}, // micro USB connector
 		{V2{73.1, 7.1}, Box2D(V2{7.5, 15.0}, 0)}, // fullsize USB connector
 	}
 
