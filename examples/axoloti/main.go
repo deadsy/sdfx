@@ -15,6 +15,7 @@ import . "github.com/deadsy/sdfx/sdf"
 var front_panel_thickness = 3.0
 var front_panel_length = 170.0
 var front_panel_height = 50.0
+var front_panel_y_offset = 15.0
 
 var base_width = 50.0
 var base_length = 170.0
@@ -23,47 +24,38 @@ var base_thickness = 3.0
 var base_foot_width = 10.0
 var base_foot_corner_radius = 3.0
 
-var pcb_thickness = 1.4
 var pcb_width = 50.0
 var pcb_length = 160.0
 
-var pillar_height = 10.0
+var pillar_height = 12.0
 
 //-----------------------------------------------------------------------------
 
-// one standoff
-func standoff() SDF3 {
-	standoff_parms := &Standoff_Parms{
-		Pillar_height: pillar_height,
-		Pillar_radius: 6.0 / 2.0,
-		Hole_depth:    7.0,
-		Hole_radius:   1.5 / 2.0,
-		Number_webs:   0,
-		Web_height:    0,
-		Web_radius:    0,
-		Web_width:     0,
-	}
-	return Standoff3D(standoff_parms)
-}
-
 // multiple standoffs
 func standoffs() SDF3 {
+
+	k := &StandoffParms{
+		PillarHeight:   pillar_height,
+		PillarDiameter: 6.0,
+		HoleDepth:      10.0,
+		HoleDiameter:   2.0,
+	}
+
+	z_ofs := 0.5 * (pillar_height + base_thickness)
+
 	// from the board mechanicals
-	positions := V2Set{
-		{3.5, 10.0},   // H1
-		{3.5, 40.0},   // H2
-		{54.0, 40.0},  // H3
-		{156.5, 10.0}, // H4
-		//{54.0, 10.0},  // H5
-		{156.5, 40.0}, // H6
-		{44.0, 10.0},  // H7
-		{116.0, 10.0}, // H8
+	positions := V3Set{
+		{3.5, 10.0, z_ofs},   // H1
+		{3.5, 40.0, z_ofs},   // H2
+		{54.0, 40.0, z_ofs},  // H3
+		{156.5, 10.0, z_ofs}, // H4
+		//{54.0, 10.0, z_ofs},  // H5
+		{156.5, 40.0, z_ofs}, // H6
+		{44.0, 10.0, z_ofs},  // H7
+		{116.0, 10.0, z_ofs}, // H8
 	}
-	s := make([]SDF3, len(positions))
-	for i, p := range positions {
-		s[i] = Transform3D(standoff(), Translate3d(V3{p.X, p.Y, 0}))
-	}
-	return Union3D(s...)
+
+	return Standoffs3D(k, positions)
 }
 
 //-----------------------------------------------------------------------------
@@ -73,7 +65,7 @@ func base() SDF3 {
 	pp := &PanelParms{
 		Size:         V2{base_length, base_width},
 		CornerRadius: 5.0,
-		HoleDiameter: 2.0,
+		HoleDiameter: 3.5,
 		HoleMargin:   [4]float64{7.0, 20.0, 7.0, 20.0},
 		HolePattern:  [4]string{"xx", "x", "xx", "x"},
 	}
@@ -92,8 +84,7 @@ func base() SDF3 {
 	s2 = Transform3D(s2, Translate3d(V3{x_ofs, y_ofs, 0}))
 
 	// standoffs
-	z_ofs := 0.5 * (pillar_height + base_thickness)
-	s3 := Transform3D(standoffs(), Translate3d(V3{0, 0, z_ofs}))
+	s3 := standoffs()
 
 	s4 := Union3D(s2, s3)
 	s4.(*UnionSDF3).SetMin(PolyMin(3.0))
@@ -136,9 +127,9 @@ func front_panel() SDF3 {
 		{V2{led_x + 3.635, 0.5}, s_led},          // LED
 		{V2{pb_x, 0.8}, s_button},                // Push Button
 		{V2{pb_x + 5.334, 0.8}, s_button},        // Push Button
-		{V2{84.1, 1.0}, Box2D(V2{14.3, 2.0}, 0)}, // micro SD card
-		{V2{96.7, 1.3}, Box2D(V2{8.0, 3.1}, 0)},  // micro USB connector
-		{V2{72.6, 7.6}, Box2D(V2{7.1, 14.8}, 0)}, // fullsize USB connector
+		{V2{84.1, 1.3}, Box2D(V2{16.0, 8.0}, 0)}, // micro SD card
+		{V2{96.7, 1.3}, Box2D(V2{11.0, 8.0}, 0)}, // micro USB connector
+		{V2{73.1, 7.1}, Box2D(V2{7.5, 15.0}, 0)}, // fullsize USB connector
 	}
 
 	s := make([]SDF2, len(holes))
@@ -151,14 +142,14 @@ func front_panel() SDF3 {
 	pp := &PanelParms{
 		Size:         V2{front_panel_length, front_panel_height},
 		CornerRadius: 5.0,
-		HoleDiameter: 2.0,
+		HoleDiameter: 3.5,
 		HoleMargin:   [4]float64{5.0, 5.0, 5.0, 5.0},
 		HolePattern:  [4]string{"xx", "x", "xx", "x"},
 	}
 	panel := Panel2D(pp)
 
 	x_ofs := 0.5 * pcb_length
-	y_ofs := (0.5 * front_panel_height) - pcb_thickness - pillar_height - base_thickness
+	y_ofs := (0.5 * front_panel_height) - front_panel_y_offset
 	panel = Transform2D(panel, Translate2d(V2{x_ofs, y_ofs}))
 
 	return Extrude3D(Difference2D(panel, cutouts), front_panel_thickness)
