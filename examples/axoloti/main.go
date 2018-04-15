@@ -38,7 +38,7 @@ func standoffs() SDF3 {
 		PillarHeight:   pillar_height,
 		PillarDiameter: 6.0,
 		HoleDepth:      10.0,
-		HoleDiameter:   2.3,
+		HoleDiameter:   2.4,
 	}
 
 	z_ofs := 0.5 * (pillar_height + base_thickness)
@@ -101,7 +101,7 @@ type PanelHole struct {
 
 func front_panel() SDF3 {
 
-	s_midi := Circle2D(0.5 * 15.5)
+	s_midi := Circle2D(0.5 * 16.5)
 	s_jack := Circle2D(0.5 * 11.5)
 	s_led := Box2D(V2{1.6, 1.6}, 0)
 
@@ -113,9 +113,9 @@ func front_panel() SDF3 {
 	s_button := Transform2D(FingerButton2D(fb), Rotate2d(DtoR(-90)))
 
 	jack_x := 123.0
-	midi_x := 18.7
+	midi_x := 18.8
 	led_x := 62.9
-	pb_x := 53.1
+	pb_x := 53.0
 
 	holes := []PanelHole{
 		{V2{midi_x, 9.3}, s_midi},                // MIDI DIN Jack
