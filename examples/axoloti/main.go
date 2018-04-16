@@ -101,13 +101,13 @@ type PanelHole struct {
 
 func front_panel() SDF3 {
 
-	s_midi := Circle2D(0.5 * 16.5)
+	s_midi := Circle2D(0.5 * 17.0)
 	s_jack := Circle2D(0.5 * 11.5)
 	s_led := Box2D(V2{1.6, 1.6}, 0)
 
 	fb := &FingerButtonParms{
 		Width:  3.5,
-		Gap:    0.5,
+		Gap:    0.6,
 		Length: 20.0,
 	}
 	s_button := Transform2D(FingerButton2D(fb), Rotate2d(DtoR(-90)))
