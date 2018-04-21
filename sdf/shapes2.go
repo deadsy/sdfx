@@ -72,9 +72,10 @@ type FingerButtonParms struct {
 
 // Return the 2D cutout for a finger button.
 func FingerButton2D(k *FingerButtonParms) SDF2 {
-	r := 0.5 * k.Width
+	r0 := 0.5 * k.Width
+	r1 := r0 - k.Gap
 	l := 2.0 * k.Length
-	s := Difference2D(Line2D(l, r+k.Gap), Line2D(l, r))
+	s := Difference2D(Line2D(l, r0), Line2D(l, r1))
 	s = Cut2D(s, V2{0, 0}, V2{0, 1})
 	return Transform2D(s, Translate2d(V2{-k.Length, 0}))
 }
