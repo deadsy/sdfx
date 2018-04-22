@@ -27,7 +27,7 @@ var base_foot_corner_radius = 3.0
 var pcb_width = 50.0
 var pcb_length = 160.0
 
-var pillar_height = 12.0
+var pillar_height = 16.8
 
 //-----------------------------------------------------------------------------
 
@@ -121,8 +121,8 @@ func front_panel() SDF3 {
 	pb1 := V2{pb_x + 5.334, 0.8}
 
 	holes := []PanelHole{
-		{V2{midi_x, 9.3}, s_midi},                // MIDI DIN Jack
-		{V2{midi_x + 20.32, 9.3}, s_midi},        // MIDI DIN Jack
+		{V2{midi_x, 10.2}, s_midi},               // MIDI DIN Jack
+		{V2{midi_x + 20.32, 10.2}, s_midi},       // MIDI DIN Jack
 		{V2{jack_x, 8.14}, s_jack},               // 1/4" Stereo Jack
 		{V2{jack_x + 19.5, 8.14}, s_jack},        // 1/4" Stereo Jack
 		{V2{107.6, 2.3}, Circle2D(0.5 * 5.5)},    // 3.5 mm Headphone Jack
