@@ -18,22 +18,6 @@ type PanelParms struct {
 	HolePattern  [4]string  // top, right, bottom, left
 }
 
-// Return a series of holes along a line.
-func line_of_holes(hole SDF2, p0, p1 V2, pattern string) []SDF2 {
-	var holes []SDF2
-	if pattern != "" {
-		x := p0
-		dx := p1.Sub(p0).DivScalar(float64(len(pattern)))
-		for _, c := range pattern {
-			if c == 'x' {
-				holes = append(holes, Transform2D(hole, Translate2d(x)))
-			}
-			x = x.Add(dx)
-		}
-	}
-	return holes
-}
-
 // Return a 2d panel with holes on the edges.
 func Panel2D(k *PanelParms) SDF2 {
 	// panel
@@ -53,10 +37,10 @@ func Panel2D(k *PanelParms) SDF2 {
 	hole := Circle2D(0.5 * k.HoleDiameter)
 	var holes []SDF2
 	// clockwise: top, right, bottom, left
-	holes = append(holes, line_of_holes(hole, tl, tr, k.HolePattern[0])...)
-	holes = append(holes, line_of_holes(hole, tr, br, k.HolePattern[1])...)
-	holes = append(holes, line_of_holes(hole, br, bl, k.HolePattern[2])...)
-	holes = append(holes, line_of_holes(hole, bl, tl, k.HolePattern[3])...)
+	holes = append(holes, LineOf2D(hole, tl, tr, k.HolePattern[0])...)
+	holes = append(holes, LineOf2D(hole, tr, br, k.HolePattern[1])...)
+	holes = append(holes, LineOf2D(hole, br, bl, k.HolePattern[2])...)
+	holes = append(holes, LineOf2D(hole, bl, tl, k.HolePattern[3])...)
 
 	return Difference2D(s0, Union2D(holes...))
 }

@@ -218,3 +218,52 @@ func Standoffs3D(k *StandoffParms, positions V3Set) SDF3 {
 }
 
 //-----------------------------------------------------------------------------
+// 4 part panel box
+
+type PanelBoxParms struct {
+	Size     V3      // outer box dimensions
+	Wall     float64 // wall thickness
+	Rounding float64 // radius of corner rounding
+	FrontX   float64 // x-depth of box front
+	BackX    float64 // x-depth of box back
+}
+
+// PanelBox3D returns a 4 part panel box
+func PanelBox3D(k *PanelBoxParms) []SDF3 {
+
+	mid_x := k.Size.X - k.FrontX - k.BackX
+	if mid_x < 0.0 {
+		panic("the front and back panel depths exceed the total x size")
+	}
+
+	outer := Box3D(k.Size, k.Rounding)
+	inner := Box3D(k.Size.SubScalar(2.0*k.Wall), Max(0.0, k.Rounding-k.Wall))
+	shell := Difference3D(outer, inner)
+
+	// front panel
+	x0 := (0.5 * k.Size.X) - k.FrontX
+	front_panel := Cut3D(shell, V3{x0, 0, 0}, V3{1, 0, 0})
+
+	// back panel
+	x1 := -(0.5 * k.Size.X) + k.BackX
+	back_panel := Cut3D(shell, V3{x1, 0, 0}, V3{-1, 0, 0})
+
+	if mid_x == 0 {
+		// no mid section
+		return []SDF3{front_panel, back_panel}
+	}
+
+	// mid section
+	mid_section := Cut3D(shell, V3{x0, 0, 0}, V3{-1, 0, 0})
+	mid_section = Cut3D(mid_section, V3{x1, 0, 0}, V3{1, 0, 0})
+
+	// top panel
+	top_panel := Cut3D(mid_section, V3{}, V3{0, 0, 1})
+
+	// bottom panel
+	bottom_panel := Cut3D(mid_section, V3{}, V3{0, 0, 1})
+
+	return []SDF3{front_panel, back_panel, top_panel, bottom_panel}
+}
+
+//-----------------------------------------------------------------------------

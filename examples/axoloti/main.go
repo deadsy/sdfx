@@ -93,13 +93,20 @@ func base() SDF3 {
 }
 
 //-----------------------------------------------------------------------------
+// front panel cutouts
 
 type PanelHole struct {
 	center V2   // center of hole
 	hole   SDF2 // 2d hole
 }
 
-func front_panel() SDF3 {
+// button positions
+var pb_x float64 = 53.0
+var pb0 = V2{pb_x, 0.8}
+var pb1 = V2{pb_x + 5.334, 0.8}
+
+// fp_cutouts returns the 2D front panel cutouts
+func fp_cutouts() SDF2 {
 
 	s_midi := Circle2D(0.5 * 17.0)
 	s_jack := Circle2D(0.5 * 11.5)
@@ -115,10 +122,6 @@ func front_panel() SDF3 {
 	jack_x := 123.0
 	midi_x := 18.8
 	led_x := 62.9
-
-	pb_x := 53.0
-	pb0 := V2{pb_x, 0.8}
-	pb1 := V2{pb_x + 5.334, 0.8}
 
 	holes := []PanelHole{
 		{V2{midi_x, 10.2}, s_midi},               // MIDI DIN Jack
@@ -139,7 +142,13 @@ func front_panel() SDF3 {
 	for i, k := range holes {
 		s[i] = Transform2D(k.hole, Translate2d(k.center))
 	}
-	cutouts := Union2D(s...)
+
+	return Union2D(s...)
+}
+
+//-----------------------------------------------------------------------------
+
+func front_panel() SDF3 {
 
 	// overall panel
 	pp := &PanelParms{
@@ -156,21 +165,21 @@ func front_panel() SDF3 {
 	panel = Transform2D(panel, Translate2d(V2{x_ofs, y_ofs}))
 
 	// extrude to 3d
-	fp := Extrude3D(Difference2D(panel, cutouts), front_panel_thickness)
+	fp := Extrude3D(Difference2D(panel, fp_cutouts()), front_panel_thickness)
 
 	// Add buttons to the finger button
 	b_height := 4.0
 	b := Cylinder3D(b_height, 1.4, 0)
 	b0 := Transform3D(b, Translate3d(pb0.ToV3(-0.5*b_height)))
 	b1 := Transform3D(b, Translate3d(pb1.ToV3(-0.5*b_height)))
-	fp = Union3D(fp, b0, b1)
 
-	return fp
+	return Union3D(fp, b0, b1)
 }
 
 //-----------------------------------------------------------------------------
 
-func main() {
+// Create the STLs for the axoloti mount kit
+func mount_kit() {
 	// front panel
 	s0 := front_panel()
 	RenderSTL(Transform3D(s0, RotateY(DtoR(180.0))), 400, "fp.stl")
@@ -180,8 +189,39 @@ func main() {
 	RenderSTL(s1, 400, "base.stl")
 
 	// both together
-	s0 = Transform3D(s0, Translate3d(V3{0, 80, 0}))
-	RenderSTL(Union3D(s0, s1), 400, "fp_and_base.stl")
+	//s0 = Transform3D(s0, Translate3d(V3{0, 80, 0}))
+	//RenderSTL(Union3D(s0, s1), 400, "fp_and_base.stl")
+}
+
+//-----------------------------------------------------------------------------
+
+// Create the STLs for the axoloti enclosure
+func enclosure() {
+
+	box_wall := 3.0
+	box_width := pcb_length + (2.0 * box_wall)
+
+	bp := PanelBoxParms{
+		Size:     V3{200.0, box_width, 60.0},
+		Wall:     box_wall,
+		Rounding: 5.0,
+		FrontX:   20.0,
+		BackX:    10.0,
+	}
+
+	panel := PanelBox3D(&bp)
+
+	RenderSTL(panel[0], 400, "front.stl")
+	RenderSTL(panel[1], 400, "back.stl")
+	RenderSTL(panel[2], 400, "top.stl")
+	RenderSTL(panel[3], 400, "bottom.stl")
+}
+
+//-----------------------------------------------------------------------------
+
+func main() {
+	mount_kit()
+	//enclosure()
 }
 
 //-----------------------------------------------------------------------------

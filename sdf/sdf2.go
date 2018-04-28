@@ -723,3 +723,21 @@ func GenerateMesh2D(s SDF2, grid V2i) (V2Set, error) {
 }
 
 //-----------------------------------------------------------------------------
+
+// LineOf2D returns a slice of 2D objects positioned along a line from p0 to p1.
+func LineOf2D(s SDF2, p0, p1 V2, pattern string) []SDF2 {
+	var objects []SDF2
+	if pattern != "" {
+		x := p0
+		dx := p1.Sub(p0).DivScalar(float64(len(pattern)))
+		for _, c := range pattern {
+			if c == 'x' {
+				objects = append(objects, Transform2D(s, Translate2d(x)))
+			}
+			x = x.Add(dx)
+		}
+	}
+	return objects
+}
+
+//-----------------------------------------------------------------------------

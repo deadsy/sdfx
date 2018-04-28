@@ -909,3 +909,21 @@ func Chamfered_Cylinder(s SDF3, kb, kt float64) SDF3 {
 }
 
 //-----------------------------------------------------------------------------
+
+// LineOf3D returns a slice of 3D objects positioned along a line from p0 to p1.
+func LineOf3D(s SDF3, p0, p1 V3, pattern string) []SDF3 {
+	var objects []SDF3
+	if pattern != "" {
+		x := p0
+		dx := p1.Sub(p0).DivScalar(float64(len(pattern)))
+		for _, c := range pattern {
+			if c == 'x' {
+				objects = append(objects, Transform3D(s, Translate3d(x)))
+			}
+			x = x.Add(dx)
+		}
+	}
+	return objects
+}
+
+//-----------------------------------------------------------------------------
