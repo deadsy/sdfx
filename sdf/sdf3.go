@@ -581,6 +581,9 @@ type UnionSDF3 struct {
 
 // Union3D returns the union of multiple SDF3 objects.
 func Union3D(sdf ...SDF3) SDF3 {
+	if len(sdf) == 0 {
+		return nil
+	}
 	s := UnionSDF3{}
 	// strip out any nils
 	s.sdf = make([]SDF3, 0, len(sdf))
@@ -588,6 +591,9 @@ func Union3D(sdf ...SDF3) SDF3 {
 		if x != nil {
 			s.sdf = append(s.sdf, x)
 		}
+	}
+	if len(s.sdf) == 0 {
+		return nil
 	}
 	if len(s.sdf) == 1 {
 		// only one sdf - not really a union
@@ -910,8 +916,8 @@ func Chamfered_Cylinder(s SDF3, kb, kt float64) SDF3 {
 
 //-----------------------------------------------------------------------------
 
-// LineOf3D returns a slice of 3D objects positioned along a line from p0 to p1.
-func LineOf3D(s SDF3, p0, p1 V3, pattern string) []SDF3 {
+// LineOf3D returns a union of 3D objects positioned along a line from p0 to p1.
+func LineOf3D(s SDF3, p0, p1 V3, pattern string) SDF3 {
 	var objects []SDF3
 	if pattern != "" {
 		x := p0
@@ -923,7 +929,7 @@ func LineOf3D(s SDF3, p0, p1 V3, pattern string) []SDF3 {
 			x = x.Add(dx)
 		}
 	}
-	return objects
+	return Union3D(objects...)
 }
 
 //-----------------------------------------------------------------------------

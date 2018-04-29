@@ -609,6 +609,9 @@ type UnionSDF2 struct {
 
 // Union2D returns the union of multiple SDF2 objects.
 func Union2D(sdf ...SDF2) SDF2 {
+	if len(sdf) == 0 {
+		return nil
+	}
 	s := UnionSDF2{}
 	// strip out any nils
 	s.sdf = make([]SDF2, 0, len(sdf))
@@ -616,6 +619,9 @@ func Union2D(sdf ...SDF2) SDF2 {
 		if x != nil {
 			s.sdf = append(s.sdf, x)
 		}
+	}
+	if len(s.sdf) == 0 {
+		return nil
 	}
 	if len(s.sdf) == 1 {
 		// only one sdf - not really a union
@@ -724,8 +730,8 @@ func GenerateMesh2D(s SDF2, grid V2i) (V2Set, error) {
 
 //-----------------------------------------------------------------------------
 
-// LineOf2D returns a slice of 2D objects positioned along a line from p0 to p1.
-func LineOf2D(s SDF2, p0, p1 V2, pattern string) []SDF2 {
+// LineOf2D returns a union of 2D objects positioned along a line from p0 to p1.
+func LineOf2D(s SDF2, p0, p1 V2, pattern string) SDF2 {
 	var objects []SDF2
 	if pattern != "" {
 		x := p0
@@ -737,7 +743,7 @@ func LineOf2D(s SDF2, p0, p1 V2, pattern string) []SDF2 {
 			x = x.Add(dx)
 		}
 	}
-	return objects
+	return Union2D(objects...)
 }
 
 //-----------------------------------------------------------------------------

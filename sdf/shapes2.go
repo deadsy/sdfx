@@ -37,10 +37,10 @@ func Panel2D(k *PanelParms) SDF2 {
 	hole := Circle2D(0.5 * k.HoleDiameter)
 	var holes []SDF2
 	// clockwise: top, right, bottom, left
-	holes = append(holes, LineOf2D(hole, tl, tr, k.HolePattern[0])...)
-	holes = append(holes, LineOf2D(hole, tr, br, k.HolePattern[1])...)
-	holes = append(holes, LineOf2D(hole, br, bl, k.HolePattern[2])...)
-	holes = append(holes, LineOf2D(hole, bl, tl, k.HolePattern[3])...)
+	holes = append(holes, LineOf2D(hole, tl, tr, k.HolePattern[0]))
+	holes = append(holes, LineOf2D(hole, tr, br, k.HolePattern[1]))
+	holes = append(holes, LineOf2D(hole, br, bl, k.HolePattern[2]))
+	holes = append(holes, LineOf2D(hole, bl, tl, k.HolePattern[3]))
 
 	return Difference2D(s0, Union2D(holes...))
 }

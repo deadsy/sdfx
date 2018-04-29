@@ -207,6 +207,7 @@ func enclosure() {
 		Rounding: 5.0,
 		FrontX:   20.0,
 		BackX:    10.0,
+		SideTabs: "v^v^v^v",
 	}
 
 	panel := PanelBox3D(&bp)
