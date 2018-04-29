@@ -234,9 +234,11 @@ type PanelBoxParms struct {
 
 func tab_3d(size V3, orientation string) SDF3 {
 
-	h := size.Y // height
-	w := size.X // width
-	l := size.Z // length
+	clearance := 0.05
+
+	h := size.Y                     // height
+	w := size.X                     // width
+	l := (1.0 - clearance) * size.Z // length
 
 	p := NewPolygon()
 	p.Add(0, -0.5*h)
@@ -245,7 +247,7 @@ func tab_3d(size V3, orientation string) SDF3 {
 	p.Add(0, 0.5*h)
 	tab := Extrude3D(Polygon2D(p.Vertices()), l)
 
-	m := Translate3d(V3{-0.5 * l, 0, 0})
+	m := Translate3d(V3{-0.5 * size.Z, 0, 0})
 	switch orientation {
 	case "ru": // right, up
 		m = m.Mul(RotateX(DtoR(90.0)))
