@@ -202,20 +202,21 @@ func enclosure() {
 	box_width := pcb_length + (2.0 * box_wall)
 
 	bp := PanelBoxParms{
-		Size:     V3{200.0, box_width, 60.0},
-		Wall:     box_wall,
-		Rounding: 5.0,
-		FrontX:   20.0,
-		BackX:    10.0,
-		SideTabs: "v^v^v^v",
+		Size:       V3{box_width, 60.0, 200.0},
+		Wall:       box_wall,
+		Panel:      box_wall,
+		Rounding:   5.0,
+		FrontInset: 5.0,
+		BackInset:  5.0,
+		Clearance:  0.05,
+		SideTabs:   "v^v^v^v",
 	}
 
-	panel := PanelBox3D(&bp)
+	box := PanelBox3D(&bp)
 
-	RenderSTL(panel[0], 400, "front.stl")
-	RenderSTL(panel[1], 400, "back.stl")
-	RenderSTL(panel[2], 400, "top.stl")
-	RenderSTL(panel[3], 400, "bottom.stl")
+	RenderSTL(box[0], 400, "panel.stl")
+	RenderSTL(box[1], 400, "top.stl")
+	RenderSTL(box[2], 400, "bottom.stl")
 }
 
 //-----------------------------------------------------------------------------

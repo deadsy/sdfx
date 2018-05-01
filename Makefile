@@ -5,6 +5,7 @@ DIRS = 3dp_nutbolt \
        bezier \
        bjj \
        bolt_container \
+       box \
        camshaft \
        challenge \
        cylinder_head \

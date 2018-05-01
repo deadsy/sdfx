@@ -224,20 +224,22 @@ func Standoffs3D(k *StandoffParms, positions V3Set) SDF3 {
 // 4 part panel box
 
 type PanelBoxParms struct {
-	Size     V3      // outer box dimensions
-	Wall     float64 // wall thickness
-	Rounding float64 // radius of corner rounding
-	FrontX   float64 // x-depth of box front
-	BackX    float64 // x-depth of box back
-	SideTabs string  // side tab pattern ^ (bottom) v (top) . (empty)
+	Size       V3      // outer box dimensions (width, height, length)
+	Wall       float64 // wall thickness
+	Panel      float64 // front/back panel thickness
+	Rounding   float64 // radius of corner rounding
+	FrontInset float64 // inset depth of box front
+	BackInset  float64 // inset depth of box back
+	Clearance  float64 // fit clearance (typically 0.05)
+	SideTabs   string  // side tab pattern ^ (bottom) v (top) . (empty)
 }
 
 func tab_3d(size V3, orientation string) SDF3 {
 
 	clearance := 0.05
 
-	h := size.Y                     // height
 	w := size.X                     // width
+	h := size.Y                     // height
 	l := (1.0 - clearance) * size.Z // length
 
 	p := NewPolygon()
@@ -247,20 +249,16 @@ func tab_3d(size V3, orientation string) SDF3 {
 	p.Add(0, 0.5*h)
 	tab := Extrude3D(Polygon2D(p.Vertices()), l)
 
-	m := Translate3d(V3{-0.5 * size.Z, 0, 0})
+	m := Translate3d(V3{0, 0, -0.5 * size.Z})
 	switch orientation {
-	case "ru": // right, up
-		m = m.Mul(RotateX(DtoR(90.0)))
-		m = m.Mul(RotateY(DtoR(90.0)))
-	case "rd": // right, down
-		m = m.Mul(RotateX(DtoR(-90.0)))
-		m = m.Mul(RotateY(DtoR(-90.0)))
-	case "lu": // left, up
-		m = m.Mul(RotateX(DtoR(90.0)))
-		m = m.Mul(RotateY(DtoR(-90.0)))
-	case "ld": // left, down
-		m = m.Mul(RotateX(DtoR(-90.0)))
-		m = m.Mul(RotateY(DtoR(90.0)))
+	case "bl": // bottom, left
+	case "tl": // top, left
+		m = m.Mul(RotateX(PI))
+	case "br": // bottom, right
+		m = m.Mul(RotateZ(PI))
+		m = m.Mul(RotateX(PI))
+	case "tr": // top, right
+		m = m.Mul(RotateZ(PI))
 	default:
 		panic("invalid tab orientation")
 	}
@@ -271,69 +269,74 @@ func tab_3d(size V3, orientation string) SDF3 {
 // PanelBox3D returns a 4 part panel box
 func PanelBox3D(k *PanelBoxParms) []SDF3 {
 
-	mid_x := k.Size.X - k.FrontX - k.BackX
-	if mid_x < 0.0 {
-		panic("the front and back panel depths exceed the total x size")
+	mid_z := k.Size.Z - k.FrontInset - k.BackInset - 2.0*k.Panel - 4.0*k.Wall
+	if mid_z <= 0.0 {
+		panic("the front and back panel depths exceed the total box length")
 	}
 
-	outer := Box3D(k.Size, k.Rounding)
-	inner := Box3D(k.Size.SubScalar(2.0*k.Wall), Max(0.0, k.Rounding-k.Wall))
-	shell := Difference3D(outer, inner)
+	outer_size := V2{k.Size.X, k.Size.Y}
+	inner_size := outer_size.SubScalar(2.0 * k.Wall)
+	ridge_size := inner_size.SubScalar(2.0 * k.Wall)
 
-	// front panel
-	x0 := (0.5 * k.Size.X) - k.FrontX
-	front_panel := Cut3D(shell, V3{x0, 0, 0}, V3{1, 0, 0})
+	outer := Box2D(outer_size, k.Rounding)
+	inner := Box2D(inner_size, Max(0.0, k.Rounding-k.Wall))
+	ridge := Box2D(ridge_size, Max(0.0, k.Rounding-2.0*k.Wall))
 
-	// back panel
-	x1 := -(0.5 * k.Size.X) + k.BackX
-	back_panel := Cut3D(shell, V3{x1, 0, 0}, V3{-1, 0, 0})
+	// front/pack panels
+	shrink := 1.0 - k.Clearance
+	panel := Extrude3D(inner, k.Panel)
+	panel = Transform3D(panel, Scale3d(V3{shrink, shrink, shrink}))
 
-	if mid_x == 0 {
-		// no mid section
-		return []SDF3{front_panel, back_panel}
-	}
+	// box
+	box := Extrude3D(Difference2D(outer, inner), k.Size.Z)
 
-	// mid section
-	mid_section := Cut3D(shell, V3{x0, 0, 0}, V3{-1, 0, 0})
-	mid_section = Cut3D(mid_section, V3{x1, 0, 0}, V3{1, 0, 0})
+	// add the panel holding ridges
+	pr := Extrude3D(Difference2D(inner, ridge), k.Wall)
+	z0 := 0.5*(k.Size.Z-k.Wall) - k.FrontInset
+	z1 := z0 - k.Wall - k.Panel
+	z2 := 0.5*(k.Wall-k.Size.Z) + k.BackInset
+	z3 := z2 + k.Wall + k.Panel
+	pr0 := Transform3D(pr, Translate3d(V3{0, 0, z0}))
+	pr1 := Transform3D(pr, Translate3d(V3{0, 0, z1}))
+	pr2 := Transform3D(pr, Translate3d(V3{0, 0, z2}))
+	pr3 := Transform3D(pr, Translate3d(V3{0, 0, z3}))
+	box = Union3D(box, pr0, pr1, pr2, pr3)
 
-	// top panel
-	top_panel := Cut3D(mid_section, V3{}, V3{0, 0, 1})
-	// bottom panel
-	bottom_panel := Cut3D(mid_section, V3{}, V3{0, 0, -1})
+	// cut the top and bottom box halves
+	top := Cut3D(box, V3{}, V3{0, 1, 0})
+	bottom := Cut3D(box, V3{}, V3{0, -1, 0})
 
 	if k.SideTabs != "" {
 
-		tab_length := mid_x / float64(len(k.SideTabs))
-		x0 := 0.5*k.Size.X - k.FrontX
-		x1 := -0.5*k.Size.X + k.BackX
-		y := 0.5*k.Size.Y - k.Wall
+		tab_length := mid_z / float64(len(k.SideTabs))
+		z0 := 0.5*k.Size.Z - k.FrontInset - 2.0*k.Wall - k.Panel
+		z1 := -0.5*k.Size.Z + k.BackInset + 2.0*k.Wall + k.Panel
+		x := 0.5*k.Size.X - k.Wall
 		t_pattern := strings.Replace(k.SideTabs, "v", "x", -1)
 		t_pattern = strings.Replace(t_pattern, "^", ".", -1)
-
 		b_pattern := strings.Replace(k.SideTabs, "^", "x", -1)
 		b_pattern = strings.Replace(b_pattern, "v", ".", -1)
 
 		// top panel left side
-		tab := tab_3d(V3{k.Wall, k.Wall * 4.0, tab_length}, "rd")
-		tl_tabs := LineOf3D(tab, V3{x0, -y, 0}, V3{x1, -y, 0}, t_pattern)
+		tab := tab_3d(V3{k.Wall, k.Wall * 4.0, tab_length}, "tl")
+		tl_tabs := LineOf3D(tab, V3{-x, 0, z0}, V3{-x, 0, z1}, t_pattern)
 		// top panel right side
-		tab = tab_3d(V3{k.Wall, k.Wall * 4.0, tab_length}, "ld")
-		tr_tabs := LineOf3D(tab, V3{x0, y, 0}, V3{x1, y, 0}, t_pattern)
+		tab = tab_3d(V3{k.Wall, k.Wall * 4.0, tab_length}, "tr")
+		tr_tabs := LineOf3D(tab, V3{x, 0, z0}, V3{x, 0, z1}, t_pattern)
 		// add tabs to the top panel
-		top_panel = Union3D(top_panel, tl_tabs, tr_tabs)
+		top = Union3D(top, tl_tabs, tr_tabs)
 
 		// bottom panel left side
-		tab = tab_3d(V3{k.Wall, k.Wall * 4.0, tab_length}, "ru")
-		bl_tabs := LineOf3D(tab, V3{x0, -y, 0}, V3{x1, -y, 0}, b_pattern)
+		tab = tab_3d(V3{k.Wall, k.Wall * 4.0, tab_length}, "bl")
+		bl_tabs := LineOf3D(tab, V3{-x, 0, z0}, V3{-x, 0, z1}, b_pattern)
 		// bottom panel right side
-		tab = tab_3d(V3{k.Wall, k.Wall * 4.0, tab_length}, "lu")
-		br_tabs := LineOf3D(tab, V3{x0, y, 0}, V3{x1, y, 0}, b_pattern)
+		tab = tab_3d(V3{k.Wall, k.Wall * 4.0, tab_length}, "br")
+		br_tabs := LineOf3D(tab, V3{x, 0, z0}, V3{x, 0, z1}, b_pattern)
 		// add tabs to the bottom panel
-		bottom_panel = Union3D(bottom_panel, bl_tabs, br_tabs)
+		bottom = Union3D(bottom, bl_tabs, br_tabs)
 	}
 
-	return []SDF3{front_panel, back_panel, top_panel, bottom_panel}
+	return []SDF3{panel, top, bottom}
 }
 
 //-----------------------------------------------------------------------------
