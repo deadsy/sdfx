@@ -221,26 +221,18 @@ func Standoffs3D(k *StandoffParms, positions V3Set) SDF3 {
 }
 
 //-----------------------------------------------------------------------------
-// 4 part panel box
 
-type PanelBoxParms struct {
-	Size       V3      // outer box dimensions (width, height, length)
-	Wall       float64 // wall thickness
-	Panel      float64 // front/back panel thickness
-	Rounding   float64 // radius of corner rounding
-	FrontInset float64 // inset depth of box front
-	BackInset  float64 // inset depth of box back
-	Clearance  float64 // fit clearance (typically 0.05)
-	SideTabs   string  // side tab pattern ^ (bottom) v (top) . (empty)
+type BoxTabParms struct {
+	Size        V3 // tab dimensions (width, height, length)
+	Orientation string
+	Clearance   float64 // fit clearance (typically 0.05)
 }
 
-func tab_3d(size V3, orientation string) SDF3 {
+func BoxTab3D(k *BoxTabParms) SDF3 {
 
-	clearance := 0.05
-
-	w := size.X                     // width
-	h := size.Y                     // height
-	l := (1.0 - clearance) * size.Z // length
+	w := k.Size.X                       // width
+	h := k.Size.Y                       // height
+	l := (1.0 - k.Clearance) * k.Size.Z // length
 
 	p := NewPolygon()
 	p.Add(0, -0.5*h)
@@ -249,8 +241,8 @@ func tab_3d(size V3, orientation string) SDF3 {
 	p.Add(0, 0.5*h)
 	tab := Extrude3D(Polygon2D(p.Vertices()), l)
 
-	m := Translate3d(V3{0, 0, -0.5 * size.Z})
-	switch orientation {
+	m := Translate3d(V3{0, 0, -0.5 * k.Size.Z})
+	switch k.Orientation {
 	case "bl": // bottom, left
 	case "tl": // top, left
 		m = m.Mul(RotateX(PI))
@@ -264,6 +256,20 @@ func tab_3d(size V3, orientation string) SDF3 {
 	}
 
 	return Transform3D(tab, m)
+}
+
+//-----------------------------------------------------------------------------
+// 4 part panel box
+
+type PanelBoxParms struct {
+	Size       V3      // outer box dimensions (width, height, length)
+	Wall       float64 // wall thickness
+	Panel      float64 // front/back panel thickness
+	Rounding   float64 // radius of corner rounding
+	FrontInset float64 // inset depth of box front
+	BackInset  float64 // inset depth of box back
+	Clearance  float64 // fit clearance (typically 0.05)
+	SideTabs   string  // side tab pattern ^ (bottom) v (top) . (empty)
 }
 
 // PanelBox3D returns a 4 part panel box
@@ -317,21 +323,26 @@ func PanelBox3D(k *PanelBoxParms) []SDF3 {
 		b_pattern := strings.Replace(k.SideTabs, "^", "x", -1)
 		b_pattern = strings.Replace(b_pattern, "v", ".", -1)
 
+		tp := &BoxTabParms{
+			Size:      V3{k.Wall, k.Wall * 4.0, tab_length},
+			Clearance: 0.05,
+		}
+
 		// top panel left side
-		tab := tab_3d(V3{k.Wall, k.Wall * 4.0, tab_length}, "tl")
-		tl_tabs := LineOf3D(tab, V3{-x, 0, z0}, V3{-x, 0, z1}, t_pattern)
+		tp.Orientation = "tl"
+		tl_tabs := LineOf3D(BoxTab3D(tp), V3{-x, 0, z0}, V3{-x, 0, z1}, t_pattern)
 		// top panel right side
-		tab = tab_3d(V3{k.Wall, k.Wall * 4.0, tab_length}, "tr")
-		tr_tabs := LineOf3D(tab, V3{x, 0, z0}, V3{x, 0, z1}, t_pattern)
+		tp.Orientation = "tr"
+		tr_tabs := LineOf3D(BoxTab3D(tp), V3{x, 0, z0}, V3{x, 0, z1}, t_pattern)
 		// add tabs to the top panel
 		top = Union3D(top, tl_tabs, tr_tabs)
 
 		// bottom panel left side
-		tab = tab_3d(V3{k.Wall, k.Wall * 4.0, tab_length}, "bl")
-		bl_tabs := LineOf3D(tab, V3{-x, 0, z0}, V3{-x, 0, z1}, b_pattern)
+		tp.Orientation = "bl"
+		bl_tabs := LineOf3D(BoxTab3D(tp), V3{-x, 0, z0}, V3{-x, 0, z1}, b_pattern)
 		// bottom panel right side
-		tab = tab_3d(V3{k.Wall, k.Wall * 4.0, tab_length}, "br")
-		br_tabs := LineOf3D(tab, V3{x, 0, z0}, V3{x, 0, z1}, b_pattern)
+		tp.Orientation = "br"
+		br_tabs := LineOf3D(BoxTab3D(tp), V3{x, 0, z0}, V3{x, 0, z1}, b_pattern)
 		// add tabs to the bottom panel
 		bottom = Union3D(bottom, bl_tabs, br_tabs)
 	}
