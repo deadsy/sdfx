@@ -722,8 +722,8 @@ type CutSDF3 struct {
 	bb  Box3 // bounding box
 }
 
-// Cut the SDF3 along a plane passing through a with normal n.
-// The SDF3 on the positive side of the normal remains.
+// Cut3D cuts an SDF3 along a plane passing through a with normal n.
+// The SDF3 on the same side as the normal remains.
 func Cut3D(sdf SDF3, a, n V3) SDF3 {
 	s := CutSDF3{}
 	s.sdf = sdf

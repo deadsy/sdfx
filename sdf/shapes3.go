@@ -230,8 +230,13 @@ type BoxTabParms struct {
 
 func BoxTab3D(k *BoxTabParms) SDF3 {
 
-	l := (1.0 - k.Clearance) * k.Size.Z // length
-	tab := Extrude3D(Box2D(V2{k.Size.Y, l}, k.Size.Y*0.25), k.Size.X)
+	w := k.Size.X
+	h := k.Size.Y
+	l := (1.0 - k.Clearance) * k.Size.Z
+
+	tab := Extrude3D(Box2D(V2{l, h}, 0.25*h), w)
+	// create a slope where the tab attaches to the box, avoiding overhangs.
+	tab = Cut3D(tab, V3{0, 0.5 * h, 0.5 * w}, V3{0, -1, 1})
 
 	m := Identity3d()
 
