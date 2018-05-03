@@ -17,10 +17,10 @@ func box1() {
 	bp := PanelBoxParms{
 		Size:       V3{100.0, 60.0, 200.0},
 		Wall:       3.0,
-		Panel:      5.0,
+		Panel:      3.0,
 		Rounding:   5.0,
 		FrontInset: 5.0,
-		BackInset:  10.0,
+		BackInset:  5.0,
 		Clearance:  0.05,
 		SideTabs:   "v^v^v^v",
 	}

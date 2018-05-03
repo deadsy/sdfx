@@ -230,6 +230,27 @@ type BoxTabParms struct {
 
 func BoxTab3D(k *BoxTabParms) SDF3 {
 
+	l := (1.0 - k.Clearance) * k.Size.Z // length
+	tab := Extrude3D(Box2D(V2{k.Size.Y, l}, k.Size.Y*0.25), k.Size.X)
+
+	m := Identity3d()
+
+	switch k.Orientation {
+	case "bl": // bottom, left
+	case "tl": // top, left
+	case "br": // bottom, right
+	case "tr": // top, right
+	default:
+		panic("invalid tab orientation")
+	}
+
+	return Transform3D(tab, m)
+}
+
+/*
+
+func BoxTab3D(k *BoxTabParms) SDF3 {
+
 	w := k.Size.X                       // width
 	h := k.Size.Y                       // height
 	l := (1.0 - k.Clearance) * k.Size.Z // length
@@ -258,6 +279,8 @@ func BoxTab3D(k *BoxTabParms) SDF3 {
 	return Transform3D(tab, m)
 }
 
+*/
+
 //-----------------------------------------------------------------------------
 // 4 part panel box
 
@@ -275,7 +298,10 @@ type PanelBoxParms struct {
 // PanelBox3D returns a 4 part panel box
 func PanelBox3D(k *PanelBoxParms) []SDF3 {
 
-	mid_z := k.Size.Z - k.FrontInset - k.BackInset - 2.0*k.Panel - 4.0*k.Wall
+	// the panel gap is slightly larger than the panel thickness
+	panel_gap := (1.0 + k.Clearance) * k.Panel
+
+	mid_z := k.Size.Z - k.FrontInset - k.BackInset - 2.0*(panel_gap+2.0*k.Wall)
 	if mid_z <= 0.0 {
 		panic("the front and back panel depths exceed the total box length")
 	}
@@ -288,10 +314,10 @@ func PanelBox3D(k *PanelBoxParms) []SDF3 {
 	inner := Box2D(inner_size, Max(0.0, k.Rounding-k.Wall))
 	ridge := Box2D(ridge_size, Max(0.0, k.Rounding-2.0*k.Wall))
 
-	// front/pack panels
+	// front/pack panels - don't shrink the panel thickness (z)
 	shrink := 1.0 - k.Clearance
 	panel := Extrude3D(inner, k.Panel)
-	panel = Transform3D(panel, Scale3d(V3{shrink, shrink, shrink}))
+	panel = Transform3D(panel, Scale3d(V3{shrink, shrink, 1.0}))
 
 	// box
 	box := Extrude3D(Difference2D(outer, inner), k.Size.Z)
@@ -299,9 +325,9 @@ func PanelBox3D(k *PanelBoxParms) []SDF3 {
 	// add the panel holding ridges
 	pr := Extrude3D(Difference2D(inner, ridge), k.Wall)
 	z0 := 0.5*(k.Size.Z-k.Wall) - k.FrontInset
-	z1 := z0 - k.Wall - k.Panel
+	z1 := z0 - k.Wall - panel_gap
 	z2 := 0.5*(k.Wall-k.Size.Z) + k.BackInset
-	z3 := z2 + k.Wall + k.Panel
+	z3 := z2 + k.Wall + panel_gap
 	pr0 := Transform3D(pr, Translate3d(V3{0, 0, z0}))
 	pr1 := Transform3D(pr, Translate3d(V3{0, 0, z1}))
 	pr2 := Transform3D(pr, Translate3d(V3{0, 0, z2}))
