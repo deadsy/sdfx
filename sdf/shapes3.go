@@ -223,68 +223,57 @@ func Standoffs3D(k *StandoffParms, positions V3Set) SDF3 {
 //-----------------------------------------------------------------------------
 
 type BoxTabParms struct {
-	Size        V3 // tab dimensions (width, height, length)
+	Wall        float64 // wall thickness
+	Length      float64 // tab length
+	Hole        bool    // screw hole for tab?
 	Orientation string
 	Clearance   float64 // fit clearance (typically 0.05)
 }
 
 func BoxTab3D(k *BoxTabParms) SDF3 {
 
-	w := k.Size.X
-	h := k.Size.Y
-	l := (1.0 - k.Clearance) * k.Size.Z
+	w := k.Wall
+	l := (1.0 - k.Clearance) * k.Length
+
+	var h float64
+	if k.Hole {
+		h = 6.0 * k.Wall
+	} else {
+		h = 4.0 * k.Wall
+	}
 
 	tab := Extrude3D(Box2D(V2{l, h}, 0.25*h), w)
-	// create a slope where the tab attaches to the box, avoiding overhangs.
+	// add a slope where the tab attaches to the box, avoiding overhangs.
 	tab = Cut3D(tab, V3{0, 0.5 * h, 0.5 * w}, V3{0, -1, 1})
 
+	// add a cutout to give some tab/body clearance
+	w1 := k.Clearance * w
+	cutout := Box3D(V3{l, h - 2.0*k.Wall, w1}, 0)
+	cutout = Transform3D(cutout, Translate3d(V3{0, -w, 0.5 * (w - w1)}))
+
+	tab = Difference3D(tab, cutout)
+
 	m := Identity3d()
-
 	switch k.Orientation {
 	case "bl": // bottom, left
+		m = m.Mul(Translate3d(V3{0.5 * w, 0, -0.5 * k.Length}))
+		m = m.Mul(RotateY(DtoR(90)))
+		m = m.Mul(RotateX(PI))
 	case "tl": // top, left
+		m = m.Mul(Translate3d(V3{0.5 * w, 0, -0.5 * k.Length}))
+		m = m.Mul(RotateY(DtoR(-90)))
 	case "br": // bottom, right
+		m = m.Mul(Translate3d(V3{-0.5 * w, 0, -0.5 * k.Length}))
+		m = m.Mul(RotateY(DtoR(-90)))
+		m = m.Mul(RotateX(PI))
 	case "tr": // top, right
+		m = m.Mul(Translate3d(V3{-0.5 * w, 0, -0.5 * k.Length}))
+		m = m.Mul(RotateY(DtoR(90)))
 	default:
 		panic("invalid tab orientation")
 	}
-
 	return Transform3D(tab, m)
 }
-
-/*
-
-func BoxTab3D(k *BoxTabParms) SDF3 {
-
-	w := k.Size.X                       // width
-	h := k.Size.Y                       // height
-	l := (1.0 - k.Clearance) * k.Size.Z // length
-
-	p := NewPolygon()
-	p.Add(0, -0.5*h)
-	p.Add(w, -0.25*h)
-	p.Add(w, 0.5*h)
-	p.Add(0, 0.5*h)
-	tab := Extrude3D(Polygon2D(p.Vertices()), l)
-
-	m := Translate3d(V3{0, 0, -0.5 * k.Size.Z})
-	switch k.Orientation {
-	case "bl": // bottom, left
-	case "tl": // top, left
-		m = m.Mul(RotateX(PI))
-	case "br": // bottom, right
-		m = m.Mul(RotateZ(PI))
-		m = m.Mul(RotateX(PI))
-	case "tr": // top, right
-		m = m.Mul(RotateZ(PI))
-	default:
-		panic("invalid tab orientation")
-	}
-
-	return Transform3D(tab, m)
-}
-
-*/
 
 //-----------------------------------------------------------------------------
 // 4 part panel box
@@ -355,8 +344,10 @@ func PanelBox3D(k *PanelBoxParms) []SDF3 {
 		b_pattern = strings.Replace(b_pattern, "v", ".", -1)
 
 		tp := &BoxTabParms{
-			Size:      V3{k.Wall, k.Wall * 4.0, tab_length},
-			Clearance: 0.05,
+			Wall:      k.Wall,
+			Length:    tab_length,
+			Hole:      false,
+			Clearance: k.Clearance,
 		}
 
 		// top panel left side
