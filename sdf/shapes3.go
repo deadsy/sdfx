@@ -225,8 +225,8 @@ func Standoffs3D(k *StandoffParms, positions V3Set) SDF3 {
 type BoxTabParms struct {
 	Wall        float64 // wall thickness
 	Length      float64 // tab length
-	Hole        bool    // screw hole for tab?
-	Orientation string
+	Hole        float64 // hole diameter >= 0 gives a larger tab with a screw hole
+	Orientation string  // orientation of tab
 	Clearance   float64 // fit clearance (typically 0.05)
 }
 
@@ -236,7 +236,7 @@ func BoxTab3D(k *BoxTabParms) SDF3 {
 	l := (1.0 - k.Clearance) * k.Length
 
 	var h float64
-	if k.Hole {
+	if k.Hole > 0 {
 		h = 6.0 * k.Wall
 	} else {
 		h = 4.0 * k.Wall
@@ -250,8 +250,15 @@ func BoxTab3D(k *BoxTabParms) SDF3 {
 	w1 := k.Clearance * w
 	cutout := Box3D(V3{l, h - 2.0*k.Wall, w1}, 0)
 	cutout = Transform3D(cutout, Translate3d(V3{0, -w, 0.5 * (w - w1)}))
-
 	tab = Difference3D(tab, cutout)
+
+	if k.Hole > 0 {
+		// put a screw hole in the tab
+		hole := Cylinder3D(w, 0.5*k.Hole, 0)
+		hole = Transform3D(hole, Translate3d(V3{0, -2.0 * w, 0}))
+		tab = Difference3D(tab, hole)
+		tab = Transform3D(tab, Translate3d(V3{0, -w, 0}))
+	}
 
 	m := Identity3d()
 	switch k.Orientation {
@@ -278,6 +285,19 @@ func BoxTab3D(k *BoxTabParms) SDF3 {
 //-----------------------------------------------------------------------------
 // 4 part panel box
 
+// Convert the tab pattern to "..x.." form with the tab type of interest.
+func filter_tabs(pattern string, tab rune) string {
+	out := make([]byte, len(pattern))
+	for i, c := range pattern {
+		if c == tab {
+			out[i] = byte('x')
+		} else {
+			out[i] = byte('.')
+		}
+	}
+	return string(out)
+}
+
 type PanelBoxParms struct {
 	Size       V3      // outer box dimensions (width, height, length)
 	Wall       float64 // wall thickness
@@ -286,11 +306,39 @@ type PanelBoxParms struct {
 	FrontInset float64 // inset depth of box front
 	BackInset  float64 // inset depth of box back
 	Clearance  float64 // fit clearance (typically 0.05)
-	SideTabs   string  // side tab pattern ^ (bottom) v (top) . (empty)
+	Hole       float64 // diameter of screw holes
+	SideTabs   string  // tab pattern b/B (bottom) t/T (top) . (empty)
 }
 
 // PanelBox3D returns a 4 part panel box
 func PanelBox3D(k *PanelBoxParms) []SDF3 {
+	// sanity checks
+	if k.Size.X <= 0 || k.Size.Y <= 0 || k.Size.Z <= 0 {
+		panic("invalid box size")
+	}
+	if k.Wall <= 0 {
+		panic("invalid wall size")
+	}
+	if k.Panel <= 0 {
+		panic("invalid panel size")
+	}
+	if k.Rounding < 0 {
+		panic("invalid rounding size")
+	}
+	if k.FrontInset < 0 || k.BackInset < 0 {
+		panic("invalid front/back inset size")
+	}
+	if k.Clearance < 0 || k.Clearance > 1.0 {
+		panic("invalid clearance")
+	}
+	if k.Hole < 0 {
+		panic("invalid screw hole size")
+	}
+	if k.Hole > 0 {
+		if !strings.Contains(k.SideTabs, "T") && !strings.Contains(k.SideTabs, "B") {
+			panic("screw hole is non-zero, but there are no screw tabs (T/B)")
+		}
+	}
 
 	// the panel gap is slightly larger than the panel thickness
 	panel_gap := (1.0 + k.Clearance) * k.Panel
@@ -333,20 +381,19 @@ func PanelBox3D(k *PanelBoxParms) []SDF3 {
 	bottom := Cut3D(box, V3{}, V3{0, -1, 0})
 
 	if k.SideTabs != "" {
+		// tabs with no holes
 
 		tab_length := mid_z / float64(len(k.SideTabs))
 		z0 := 0.5*k.Size.Z - k.FrontInset - 2.0*k.Wall - k.Panel
 		z1 := -0.5*k.Size.Z + k.BackInset + 2.0*k.Wall + k.Panel
 		x := 0.5*k.Size.X - k.Wall
-		t_pattern := strings.Replace(k.SideTabs, "v", "x", -1)
-		t_pattern = strings.Replace(t_pattern, "^", ".", -1)
-		b_pattern := strings.Replace(k.SideTabs, "^", "x", -1)
-		b_pattern = strings.Replace(b_pattern, "v", ".", -1)
+
+		t_pattern := filter_tabs(k.SideTabs, 't')
+		b_pattern := filter_tabs(k.SideTabs, 'b')
 
 		tp := &BoxTabParms{
 			Wall:      k.Wall,
 			Length:    tab_length,
-			Hole:      false,
 			Clearance: k.Clearance,
 		}
 
@@ -367,6 +414,37 @@ func PanelBox3D(k *PanelBoxParms) []SDF3 {
 		br_tabs := LineOf3D(BoxTab3D(tp), V3{x, 0, z0}, V3{x, 0, z1}, b_pattern)
 		// add tabs to the bottom panel
 		bottom = Union3D(bottom, bl_tabs, br_tabs)
+
+		if k.Hole > 0 {
+			// tabs with holes
+			t_pattern := filter_tabs(k.SideTabs, 'T')
+			b_pattern := filter_tabs(k.SideTabs, 'B')
+
+			tp := &BoxTabParms{
+				Wall:      k.Wall,
+				Length:    tab_length,
+				Hole:      k.Hole,
+				Clearance: k.Clearance,
+			}
+
+			// top panel left side
+			tp.Orientation = "tl"
+			tl_tabs := LineOf3D(BoxTab3D(tp), V3{-x, 0, z0}, V3{-x, 0, z1}, t_pattern)
+			// top panel right side
+			tp.Orientation = "tr"
+			tr_tabs := LineOf3D(BoxTab3D(tp), V3{x, 0, z0}, V3{x, 0, z1}, t_pattern)
+			// add tabs to the top panel
+			top = Union3D(top, tl_tabs, tr_tabs)
+
+			// bottom panel left side
+			tp.Orientation = "bl"
+			bl_tabs := LineOf3D(BoxTab3D(tp), V3{-x, 0, z0}, V3{-x, 0, z1}, b_pattern)
+			// bottom panel right side
+			tp.Orientation = "br"
+			br_tabs := LineOf3D(BoxTab3D(tp), V3{x, 0, z0}, V3{x, 0, z1}, b_pattern)
+			// add tabs to the bottom panel
+			bottom = Union3D(bottom, bl_tabs, br_tabs)
+		}
 	}
 
 	return []SDF3{panel, top, bottom}

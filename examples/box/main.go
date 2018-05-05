@@ -16,7 +16,7 @@ func tab1() {
 	tp := BoxTabParms{
 		Wall:        3,
 		Length:      20,
-		Hole:        true,
+		Hole:        3.0,
 		Orientation: "tl",
 		Clearance:   0.05,
 	}
@@ -33,7 +33,8 @@ func box1() {
 		FrontInset: 5.0,
 		BackInset:  5.0,
 		Clearance:  0.05,
-		SideTabs:   "^v^v^v",
+		Hole:       2.0,
+		SideTabs:   "TbtbtbT",
 	}
 
 	box := PanelBox3D(&bp)
