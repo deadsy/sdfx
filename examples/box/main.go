@@ -12,42 +12,30 @@ import . "github.com/deadsy/sdfx/sdf"
 
 //-----------------------------------------------------------------------------
 
-func tab1() {
-	tp := BoxTabParms{
-		Wall:        3,
-		Length:      20,
-		Hole:        3.0,
-		Orientation: "tl",
-		Clearance:   0.05,
-	}
-	RenderSTL(BoxTab3D(&tp), 400, "tab.stl")
-}
-
 func box1() {
 
 	bp := PanelBoxParms{
-		Size:       V3{100.0, 60.0, 200.0},
-		Wall:       3.0,
+		Size:       V3{50.0, 40.0, 60.0},
+		Wall:       2.5,
 		Panel:      3.0,
 		Rounding:   5.0,
-		FrontInset: 5.0,
-		BackInset:  5.0,
+		FrontInset: 2.0,
+		BackInset:  2.0,
 		Clearance:  0.05,
 		Hole:       2.0,
-		SideTabs:   "TbtbtbT",
+		SideTabs:   "TbtbT",
 	}
 
 	box := PanelBox3D(&bp)
 
-	RenderSTL(box[0], 400, "panel.stl")
-	RenderSTL(box[1], 400, "top.stl")
-	RenderSTL(box[2], 400, "bottom.stl")
+	RenderSTL(box[0], 300, "panel.stl")
+	RenderSTL(box[1], 300, "top.stl")
+	RenderSTL(box[2], 300, "bottom.stl")
 }
 
 //-----------------------------------------------------------------------------
 
 func main() {
-	//tab1()
 	box1()
 }
 

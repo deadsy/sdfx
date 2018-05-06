@@ -222,7 +222,7 @@ func Standoffs3D(k *StandoffParms, positions V3Set) SDF3 {
 
 //-----------------------------------------------------------------------------
 
-type BoxTabParms struct {
+type box_tab_parms struct {
 	Wall        float64 // wall thickness
 	Length      float64 // tab length
 	Hole        float64 // hole diameter >= 0 gives a larger tab with a screw hole
@@ -230,7 +230,8 @@ type BoxTabParms struct {
 	Clearance   float64 // fit clearance (typically 0.05)
 }
 
-func BoxTab3D(k *BoxTabParms) SDF3 {
+// box_tab_3d returns an oriented tab for the box side.
+func box_tab_3d(k *box_tab_parms) SDF3 {
 
 	w := k.Wall
 	l := (1.0 - k.Clearance) * k.Length
@@ -280,6 +281,40 @@ func BoxTab3D(k *BoxTabParms) SDF3 {
 		panic("invalid tab orientation")
 	}
 	return Transform3D(tab, m)
+}
+
+//-----------------------------------------------------------------------------
+
+type box_hole_parms struct {
+	Length      float64 // total hole length
+	Hole        float64 // hole diameter
+	ZOffset     float64 // hole offset in z-direction (along body length)
+	YOffset     float64 // hole offset in y-direction (along body height)
+	Orientation string  // orientation of tab
+}
+
+// box_hole_3d returns an oriented countersunk hole for the box side.
+func box_hole_3d(k *box_hole_parms) SDF3 {
+	hole := CounterSunk_Hole3D(k.Length, 0.5*k.Hole)
+	hole = Transform3D(hole, Translate3d(V3{0, 0, 0.5 * k.Length}))
+	m := Identity3d()
+	switch k.Orientation {
+	case "bl": // bottom, left
+		m = m.Mul(Translate3d(V3{0, -k.YOffset, -k.ZOffset}))
+		m = m.Mul(RotateY(DtoR(-90)))
+	case "tl": // top, left
+		m = m.Mul(Translate3d(V3{0, k.YOffset, -k.ZOffset}))
+		m = m.Mul(RotateY(DtoR(-90)))
+	case "br": // bottom, right
+		m = m.Mul(Translate3d(V3{0, -k.YOffset, -k.ZOffset}))
+		m = m.Mul(RotateY(DtoR(90)))
+	case "tr": // top, right
+		m = m.Mul(Translate3d(V3{0, k.YOffset, -k.ZOffset}))
+		m = m.Mul(RotateY(DtoR(90)))
+	default:
+		panic("invalid hole orientation")
+	}
+	return Transform3D(hole, m)
 }
 
 //-----------------------------------------------------------------------------
@@ -391,7 +426,7 @@ func PanelBox3D(k *PanelBoxParms) []SDF3 {
 		t_pattern := filter_tabs(k.SideTabs, 't')
 		b_pattern := filter_tabs(k.SideTabs, 'b')
 
-		tp := &BoxTabParms{
+		tp := &box_tab_parms{
 			Wall:      k.Wall,
 			Length:    tab_length,
 			Clearance: k.Clearance,
@@ -399,19 +434,19 @@ func PanelBox3D(k *PanelBoxParms) []SDF3 {
 
 		// top panel left side
 		tp.Orientation = "tl"
-		tl_tabs := LineOf3D(BoxTab3D(tp), V3{-x, 0, z0}, V3{-x, 0, z1}, t_pattern)
+		tl_tabs := LineOf3D(box_tab_3d(tp), V3{-x, 0, z0}, V3{-x, 0, z1}, t_pattern)
 		// top panel right side
 		tp.Orientation = "tr"
-		tr_tabs := LineOf3D(BoxTab3D(tp), V3{x, 0, z0}, V3{x, 0, z1}, t_pattern)
+		tr_tabs := LineOf3D(box_tab_3d(tp), V3{x, 0, z0}, V3{x, 0, z1}, t_pattern)
 		// add tabs to the top panel
 		top = Union3D(top, tl_tabs, tr_tabs)
 
 		// bottom panel left side
 		tp.Orientation = "bl"
-		bl_tabs := LineOf3D(BoxTab3D(tp), V3{-x, 0, z0}, V3{-x, 0, z1}, b_pattern)
+		bl_tabs := LineOf3D(box_tab_3d(tp), V3{-x, 0, z0}, V3{-x, 0, z1}, b_pattern)
 		// bottom panel right side
 		tp.Orientation = "br"
-		br_tabs := LineOf3D(BoxTab3D(tp), V3{x, 0, z0}, V3{x, 0, z1}, b_pattern)
+		br_tabs := LineOf3D(box_tab_3d(tp), V3{x, 0, z0}, V3{x, 0, z1}, b_pattern)
 		// add tabs to the bottom panel
 		bottom = Union3D(bottom, bl_tabs, br_tabs)
 
@@ -420,30 +455,59 @@ func PanelBox3D(k *PanelBoxParms) []SDF3 {
 			t_pattern := filter_tabs(k.SideTabs, 'T')
 			b_pattern := filter_tabs(k.SideTabs, 'B')
 
-			tp := &BoxTabParms{
+			// tabs
+			tp := &box_tab_parms{
 				Wall:      k.Wall,
 				Length:    tab_length,
-				Hole:      k.Hole,
+				Hole:      0.85 * k.Hole,
 				Clearance: k.Clearance,
 			}
 
 			// top panel left side
 			tp.Orientation = "tl"
-			tl_tabs := LineOf3D(BoxTab3D(tp), V3{-x, 0, z0}, V3{-x, 0, z1}, t_pattern)
+			tl_tabs := LineOf3D(box_tab_3d(tp), V3{-x, 0, z0}, V3{-x, 0, z1}, t_pattern)
 			// top panel right side
 			tp.Orientation = "tr"
-			tr_tabs := LineOf3D(BoxTab3D(tp), V3{x, 0, z0}, V3{x, 0, z1}, t_pattern)
+			tr_tabs := LineOf3D(box_tab_3d(tp), V3{x, 0, z0}, V3{x, 0, z1}, t_pattern)
 			// add tabs to the top panel
 			top = Union3D(top, tl_tabs, tr_tabs)
 
 			// bottom panel left side
 			tp.Orientation = "bl"
-			bl_tabs := LineOf3D(BoxTab3D(tp), V3{-x, 0, z0}, V3{-x, 0, z1}, b_pattern)
+			bl_tabs := LineOf3D(box_tab_3d(tp), V3{-x, 0, z0}, V3{-x, 0, z1}, b_pattern)
 			// bottom panel right side
 			tp.Orientation = "br"
-			br_tabs := LineOf3D(BoxTab3D(tp), V3{x, 0, z0}, V3{x, 0, z1}, b_pattern)
+			br_tabs := LineOf3D(box_tab_3d(tp), V3{x, 0, z0}, V3{x, 0, z1}, b_pattern)
 			// add tabs to the bottom panel
 			bottom = Union3D(bottom, bl_tabs, br_tabs)
+
+			// holes
+			hp := &box_hole_parms{
+				Length:  k.Wall,
+				Hole:    k.Hole,
+				ZOffset: 0.5 * tab_length,
+				YOffset: 3.0 * k.Wall,
+			}
+
+			// top panel left side
+			hp.Orientation = "tl"
+			tl_holes := LineOf3D(box_hole_3d(hp), V3{-x, 0, z0}, V3{-x, 0, z1}, b_pattern)
+			// top panel right side
+			hp.Orientation = "tr"
+			tr_holes := LineOf3D(box_hole_3d(hp), V3{x, 0, z0}, V3{x, 0, z1}, b_pattern)
+			// add holes to the top panel
+			t_holes := Union3D(tl_holes, tr_holes)
+			top = Difference3D(top, t_holes)
+
+			// bottom panel left side
+			hp.Orientation = "bl"
+			bl_holes := LineOf3D(box_hole_3d(hp), V3{-x, 0, z0}, V3{-x, 0, z1}, t_pattern)
+			// bottom panel right side
+			hp.Orientation = "br"
+			br_holes := LineOf3D(box_hole_3d(hp), V3{x, 0, z0}, V3{x, 0, z1}, t_pattern)
+			// add holes to the bottom panel
+			b_holes := Union3D(bl_holes, br_holes)
+			bottom = Difference3D(bottom, b_holes)
 		}
 	}
 
