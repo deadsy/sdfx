@@ -234,7 +234,7 @@ type box_tab_parms struct {
 func box_tab_3d(k *box_tab_parms) SDF3 {
 
 	w := k.Wall
-	l := (1.0 - k.Clearance) * k.Length
+	l := (1.0 - 2.0*k.Clearance) * k.Length
 
 	var h float64
 	if k.Hole > 0 {
@@ -248,7 +248,7 @@ func box_tab_3d(k *box_tab_parms) SDF3 {
 	tab = Cut3D(tab, V3{0, 0.5 * h, 0.5 * w}, V3{0, -1, 1})
 
 	// add a cutout to give some tab/body clearance
-	w1 := k.Clearance * w
+	w1 := 2.0 * k.Clearance * w
 	cutout := Box3D(V3{l, h - 2.0*k.Wall, w1}, 0)
 	cutout = Transform3D(cutout, Translate3d(V3{0, -w, 0.5 * (w - w1)}))
 	tab = Difference3D(tab, cutout)
@@ -264,18 +264,18 @@ func box_tab_3d(k *box_tab_parms) SDF3 {
 	m := Identity3d()
 	switch k.Orientation {
 	case "bl": // bottom, left
-		m = m.Mul(Translate3d(V3{0.5 * w, 0, -0.5 * k.Length}))
+		m = m.Mul(Translate3d(V3{(0.5 - k.Clearance) * w, 0, -0.5 * k.Length}))
 		m = m.Mul(RotateY(DtoR(90)))
 		m = m.Mul(RotateX(PI))
 	case "tl": // top, left
-		m = m.Mul(Translate3d(V3{0.5 * w, 0, -0.5 * k.Length}))
+		m = m.Mul(Translate3d(V3{(0.5 - k.Clearance) * w, 0, -0.5 * k.Length}))
 		m = m.Mul(RotateY(DtoR(-90)))
 	case "br": // bottom, right
-		m = m.Mul(Translate3d(V3{-0.5 * w, 0, -0.5 * k.Length}))
+		m = m.Mul(Translate3d(V3{(-0.5 + k.Clearance) * w, 0, -0.5 * k.Length}))
 		m = m.Mul(RotateY(DtoR(-90)))
 		m = m.Mul(RotateX(PI))
 	case "tr": // top, right
-		m = m.Mul(Translate3d(V3{-0.5 * w, 0, -0.5 * k.Length}))
+		m = m.Mul(Translate3d(V3{(-0.5 + k.Clearance) * w, 0, -0.5 * k.Length}))
 		m = m.Mul(RotateY(DtoR(90)))
 	default:
 		panic("invalid tab orientation")
@@ -366,6 +366,10 @@ func PanelBox3D(k *PanelBoxParms) []SDF3 {
 	if k.Clearance < 0 || k.Clearance > 1.0 {
 		panic("invalid clearance")
 	}
+	if k.Clearance == 0 {
+		// set a default
+		k.Clearance = 0.05
+	}
 	if k.Hole < 0 {
 		panic("invalid screw hole size")
 	}
@@ -376,7 +380,7 @@ func PanelBox3D(k *PanelBoxParms) []SDF3 {
 	}
 
 	// the panel gap is slightly larger than the panel thickness
-	panel_gap := (1.0 + k.Clearance) * k.Panel
+	panel_gap := (1.0 + (2.5 * k.Clearance)) * k.Panel
 
 	mid_z := k.Size.Z - k.FrontInset - k.BackInset - 2.0*(panel_gap+2.0*k.Wall)
 	if mid_z <= 0.0 {
@@ -387,20 +391,24 @@ func PanelBox3D(k *PanelBoxParms) []SDF3 {
 	inner_size := outer_size.SubScalar(2.0 * k.Wall)
 	ridge_size := inner_size.SubScalar(2.0 * k.Wall)
 
+	inner_plus_size := inner_size.AddScalar(2.0 * k.Clearance * k.Wall)
+	inner_minus_size := inner_size.SubScalar(2.0 * k.Clearance * k.Wall)
+	inner_rounding := Max(0.0, k.Rounding-k.Wall)
+
 	outer := Box2D(outer_size, k.Rounding)
-	inner := Box2D(inner_size, Max(0.0, k.Rounding-k.Wall))
+	inner := Box2D(inner_size, inner_rounding)
+	inner_plus := Box2D(inner_plus_size, inner_rounding)
+	inner_minus := Box2D(inner_minus_size, inner_rounding)
 	ridge := Box2D(ridge_size, Max(0.0, k.Rounding-2.0*k.Wall))
 
-	// front/pack panels - don't shrink the panel thickness (z)
-	shrink := 1.0 - k.Clearance
-	panel := Extrude3D(inner, k.Panel)
-	panel = Transform3D(panel, Scale3d(V3{shrink, shrink, 1.0}))
+	// front/pack panels
+	panel := Extrude3D(inner_minus, k.Panel)
 
 	// box
 	box := Extrude3D(Difference2D(outer, inner), k.Size.Z)
 
 	// add the panel holding ridges
-	pr := Extrude3D(Difference2D(inner, ridge), k.Wall)
+	pr := Extrude3D(Difference2D(inner_plus, ridge), k.Wall)
 	z0 := 0.5*(k.Size.Z-k.Wall) - k.FrontInset
 	z1 := z0 - k.Wall - panel_gap
 	z2 := 0.5*(k.Wall-k.Size.Z) + k.BackInset

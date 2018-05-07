@@ -198,25 +198,25 @@ func mount_kit() {
 // Create the STLs for the axoloti enclosure
 func enclosure() {
 
-	box_wall := 3.0
+	box_wall := 2.5
 	box_width := pcb_length + (2.0 * box_wall)
 
 	bp := PanelBoxParms{
-		Size:       V3{box_width, 60.0, 200.0},
-		Wall:       box_wall,
-		Panel:      box_wall,
-		Rounding:   5.0,
-		FrontInset: 5.0,
-		BackInset:  5.0,
-		Clearance:  0.05,
-		SideTabs:   "v^v^v^v",
+		Size:       V3{box_width, 60.0, 60.0}, // width, height, length
+		Wall:       box_wall,                  // wall thickness
+		Panel:      box_wall,                  // panel thickness
+		Rounding:   4.0,                       // outer corner rounding
+		FrontInset: 0.0,                       // inset for front panel
+		BackInset:  0.0,                       // inset for pack panel
+		Hole:       3.4,                       // #6 screw
+		SideTabs:   "TbtbT",                   // tab pattern
 	}
 
 	box := PanelBox3D(&bp)
 
-	RenderSTL(box[0], 400, "panel.stl")
-	RenderSTL(box[1], 400, "top.stl")
-	RenderSTL(box[2], 400, "bottom.stl")
+	RenderSTL(box[0], 300, "panel.stl")
+	RenderSTL(box[1], 300, "top.stl")
+	RenderSTL(box[2], 300, "bottom.stl")
 }
 
 //-----------------------------------------------------------------------------
