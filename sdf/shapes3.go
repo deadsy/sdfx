@@ -226,6 +226,7 @@ type box_tab_parms struct {
 	Wall        float64 // wall thickness
 	Length      float64 // tab length
 	Hole        float64 // hole diameter >= 0 gives a larger tab with a screw hole
+	HoleOffset  float64 // hole offset
 	Orientation string  // orientation of tab
 	Clearance   float64 // fit clearance (typically 0.05)
 }
@@ -254,11 +255,12 @@ func box_tab_3d(k *box_tab_parms) SDF3 {
 	tab = Difference3D(tab, cutout)
 
 	if k.Hole > 0 {
-		// put a screw hole in the tab
-		hole := Cylinder3D(w, 0.5*k.Hole, 0)
-		hole = Transform3D(hole, Translate3d(V3{0, -2.0 * w, 0}))
-		tab = Difference3D(tab, hole)
+		// adjust the tab, 4 * k.Wall above, 2 * k.Wall below
 		tab = Transform3D(tab, Translate3d(V3{0, -w, 0}))
+		// put a hole in the tab
+		hole := Cylinder3D(w, 0.5*k.Hole, 0)
+		hole = Transform3D(hole, Translate3d(V3{0, -k.HoleOffset, 0}))
+		tab = Difference3D(tab, hole)
 	}
 
 	m := Identity3d()
@@ -463,12 +465,15 @@ func PanelBox3D(k *PanelBoxParms) []SDF3 {
 			t_pattern := filter_tabs(k.SideTabs, 'T')
 			b_pattern := filter_tabs(k.SideTabs, 'B')
 
+			hole_offset := 2.0 * k.Wall
+
 			// tabs
 			tp := &box_tab_parms{
-				Wall:      k.Wall,
-				Length:    tab_length,
-				Hole:      0.85 * k.Hole,
-				Clearance: k.Clearance,
+				Wall:       k.Wall,
+				Length:     tab_length,
+				Hole:       0.85 * k.Hole,
+				HoleOffset: hole_offset,
+				Clearance:  k.Clearance,
 			}
 
 			// top panel left side
@@ -494,7 +499,7 @@ func PanelBox3D(k *PanelBoxParms) []SDF3 {
 				Length:  k.Wall,
 				Hole:    k.Hole,
 				ZOffset: 0.5 * tab_length,
-				YOffset: 3.0 * k.Wall,
+				YOffset: hole_offset,
 			}
 
 			// top panel left side
