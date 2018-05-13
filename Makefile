@@ -16,6 +16,7 @@ DIRS = 3dp_nutbolt \
        gears \
        gas_cap \
        geneva \
+       nordic \
        nutsandbolts \
        phone \
        pool \
