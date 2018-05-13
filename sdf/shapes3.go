@@ -382,7 +382,7 @@ func PanelBox3D(k *PanelBoxParms) []SDF3 {
 	}
 
 	// the panel gap is slightly larger than the panel thickness
-	panel_gap := (1.0 + (2.5 * k.Clearance)) * k.Panel
+	panel_gap := (1.0 + (4.0 * k.Clearance)) * k.Panel
 
 	mid_z := k.Size.Z - k.FrontInset - k.BackInset - 2.0*(panel_gap+2.0*k.Wall)
 	if mid_z <= 0.0 {
@@ -394,7 +394,7 @@ func PanelBox3D(k *PanelBoxParms) []SDF3 {
 	ridge_size := inner_size.SubScalar(2.0 * k.Wall)
 
 	inner_plus_size := inner_size.AddScalar(2.0 * k.Clearance * k.Wall)
-	inner_minus_size := inner_size.SubScalar(2.0 * k.Clearance * k.Wall)
+	inner_minus_size := inner_size.SubScalar(4.0 * k.Clearance * k.Wall)
 	inner_rounding := Max(0.0, k.Rounding-k.Wall)
 
 	outer := Box2D(outer_size, k.Rounding)

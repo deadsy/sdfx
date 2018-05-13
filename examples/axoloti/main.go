@@ -199,16 +199,16 @@ func mount_kit() {
 func enclosure() {
 
 	box_wall := 2.5
-	box_width := pcb_length + (2.0 * box_wall)
+	box_width := pcb_length + (4.0 * box_wall) + 5.0
 
 	bp := PanelBoxParms{
-		Size:       V3{box_width, 60.0, 60.0}, // width, height, length
+		Size:       V3{box_width, 50.0, 70.0}, // width, height, length
 		Wall:       box_wall,                  // wall thickness
 		Panel:      box_wall,                  // panel thickness
-		Rounding:   4.0,                       // outer corner rounding
-		FrontInset: 0.0,                       // inset for front panel
-		BackInset:  0.0,                       // inset for pack panel
-		Hole:       3.4,                       // #6 screw
+		Rounding:   5.0,                       // outer corner rounding
+		FrontInset: 3.0,                       // inset for front panel
+		BackInset:  3.0,                       // inset for pack panel
+		Hole:       2.0,                       // ? screw
 		SideTabs:   "TbtbT",                   // tab pattern
 	}
 
