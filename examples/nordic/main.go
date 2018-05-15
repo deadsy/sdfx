@@ -13,13 +13,17 @@ import . "github.com/deadsy/sdfx/sdf"
 //-----------------------------------------------------------------------------
 
 var base_x = 120.0
-var base_y = 70.0
+var base_y = 64.0
 var base_thickness = 3.0
 
 var pcb_x = 102.0
 var pcb_y = 63.5
 
 var pillar_height = 15.0
+
+// material shrinkage
+var shrink = 1.0 / 0.999 // PLA ~0.1%
+//var shrink = 1.0/0.995; // ABS ~0.5%
 
 //-----------------------------------------------------------------------------
 
@@ -32,7 +36,7 @@ func standoffs() SDF3 {
 		PillarHeight:   pillar_height,
 		PillarDiameter: 6.0,
 		HoleDepth:      10.0,
-		HoleDiameter:   2.4,
+		HoleDiameter:   2.4, // #4 screw
 	}
 
 	z_ofs := 0.5 * (pillar_height + base_thickness)
@@ -64,19 +68,18 @@ func base() SDF3 {
 
 	// cutouts
 	c1 := Box2D(V2{53.0, 35.0}, 3.0)
-	c1 = Transform2D(c1, Translate2d(V2{-22.0, 3.0}))
+	c1 = Transform2D(c1, Translate2d(V2{-22.0, 1.00}))
+	c2 := Box2D(V2{20.0, 40.0}, 3.0)
+	c2 = Transform2D(c2, Translate2d(V2{37.0, 3.0}))
 
-	c2 := Box2D(V2{16.0, 40.0}, 3.0)
-	c2 = Transform2D(c2, Translate2d(V2{35.0, 5.0}))
-
+	// extrude the base
 	s2 := Extrude3D(Difference2D(s0, Union2D(c1, c2)), base_thickness)
 	x_ofs := 0.5 * pcb_x
 	y_ofs := pcb_y - (0.5 * base_y)
 	s2 = Transform3D(s2, Translate3d(V3{x_ofs, y_ofs, 0}))
 
-	// standoffs
+	// add the standoffs
 	s3 := standoffs()
-
 	s4 := Union3D(s2, s3)
 	s4.(*UnionSDF3).SetMin(PolyMin(3.0))
 
@@ -86,7 +89,7 @@ func base() SDF3 {
 //-----------------------------------------------------------------------------
 
 func main() {
-	RenderSTL(base(), 300, "nrf52dk.stl")
+	RenderSTL(Scale3D(base(), shrink), 300, "nrf52dk.stl")
 }
 
 //-----------------------------------------------------------------------------
