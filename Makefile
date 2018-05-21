@@ -22,6 +22,7 @@ DIRS = 3dp_nutbolt \
        pool \
        pottery_wheel \
        simple_stl \
+       square_flange \
        test \
        text \
        voronoi \
