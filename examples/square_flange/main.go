@@ -12,12 +12,13 @@ import . "github.com/deadsy/sdfx/sdf"
 
 //-----------------------------------------------------------------------------
 
-var pipe_diameter = 48.5
-var base_size = V2{60.0, 70.0}
-var base_thickness = 3.0
-var pipe_wall = 3.0
-var pipe_length = 20.0
-var pipe_offset = V2{0, 4.0}
+var pipe_clearance = 1.02                 // ID of pipe holder slightly larger to allow a slip fit
+var pipe_diameter = 48.5 * pipe_clearance // OD of pipe to be fitted
+var base_size = V2{60.0, 70.0}            // size of rectangular base
+var base_thickness = 3.0                  // base thickness
+var pipe_wall = 3.0                       // pipe holder wall thickness
+var pipe_length = 20.0                    // length of pipe holder (from bottom)
+var pipe_offset = V2{0, 4.0}              // offset of pipe holder from base center
 
 var pipe_radius = pipe_diameter / 2.0
 var pipe_fillet = pipe_wall * 0.85
@@ -42,18 +43,23 @@ func flange() SDF3 {
 	}
 	base := Extrude3D(Panel2D(pp), 2.0*base_thickness)
 
-	// pipe
+	// outer pipe
 	outer_pipe := Cylinder3D(2.0*pipe_length, pipe_radius+pipe_wall, 0.0)
-	inner_pipe := Cylinder3D(2.0*pipe_length, pipe_radius, 0.0)
 	outer_pipe = Transform3D(outer_pipe, Translate3d(pipe_offset.ToV3(0)))
+
+	// inner pipe
+	inner_pipe := Cylinder3D(2.0*pipe_length, pipe_radius, 0.0)
 	inner_pipe = Transform3D(inner_pipe, Translate3d(pipe_offset.ToV3(0)))
 
+	// combine the outer pipe and base (with a fillet)
 	s0 := Union3D(base, outer_pipe)
 	s0.(*UnionSDF3).SetMin(PolyMin(pipe_fillet))
 
+	// cut the through hole
 	s := Difference3D(s0, inner_pipe)
-	s = Cut3D(s, V3{0, 0, 0}, V3{0, 0, 1})
-	return s
+
+	// return the upper half
+	return Cut3D(s, V3{0, 0, 0}, V3{0, 0, 1})
 }
 
 //-----------------------------------------------------------------------------
