@@ -12,13 +12,13 @@ import . "github.com/deadsy/sdfx/sdf"
 
 //-----------------------------------------------------------------------------
 
-var pipe_clearance = 1.02                 // ID of pipe holder slightly larger to allow a slip fit
-var pipe_diameter = 48.5 * pipe_clearance // OD of pipe to be fitted
-var base_size = V2{60.0, 70.0}            // size of rectangular base
-var base_thickness = 3.0                  // base thickness
-var pipe_wall = 3.0                       // pipe holder wall thickness
-var pipe_length = 20.0                    // length of pipe holder (from bottom)
-var pipe_offset = V2{0, 4.0}              // offset of pipe holder from base center
+var pipe_clearance = 1.01                  // ID of pipe holder slightly larger to allow a slip fit
+var pipe_diameter = 48.45 * pipe_clearance // OD of pipe to be fitted
+var base_size = V2{60.0, 70.0}             // size of rectangular base
+var base_thickness = 3.0                   // base thickness
+var pipe_wall = 3.0                        // pipe holder wall thickness
+var pipe_length = 20.0                     // length of pipe holder (from bottom)
+var pipe_offset = V2{0, 4.0}               // offset of pipe holder from base center
 
 var pipe_radius = pipe_diameter / 2.0
 var pipe_fillet = pipe_wall * 0.85
