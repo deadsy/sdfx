@@ -49,18 +49,18 @@ func (dc *dcache) write(vi V3i, dist float64) {
 	dc.lock.Unlock()
 }
 
-func (dc *dcache) evaluate(vi V3i) float64 {
+func (dc *dcache) evaluate(vi V3i) (V3, float64) {
+	v := dc.origin.Add(vi.ToV3().MulScalar(dc.resolution))
 	// do we have it in the cache?
 	dist, found := dc.read(vi)
 	if found {
-		return dist
+		return v, dist
 	}
 	// evaluate the SDF3
-	v := dc.origin.Add(vi.ToV3().MulScalar(dc.resolution))
 	dist = dc.s.Evaluate(v)
 	// write it to the cache
 	dc.write(vi, dist)
-	return dist
+	return v, dist
 }
 
 //-----------------------------------------------------------------------------
@@ -83,31 +83,31 @@ func MarchingCubesX(sdf SDF3, resolution float64, output chan<- *Triangle3) {
 func (c *cube) empty(dc *dcache) bool {
 	// evaluate the SDF3 at the center of the cube
 	s := c.s >> 1
-	dist := dc.evaluate(c.v.Add(V3i{s, s, s}))
+	_, d := dc.evaluate(c.v.Add(V3i{s, s, s}))
 	// compare to the center/corner distance
 	x := float64(s) * dc.resolution
-	return Abs(dist) >= math.Sqrt(3.0*x*x)
+	// TODO - optimise the sqrt? Use a LUT?
+	return Abs(d) >= math.Sqrt(3.0*x*x)
 }
 
 // Process a cube. Generate triangles, or more cubes.
 func (c *cube) process(dc *dcache, wq chan<- *cube, output chan<- *Triangle3) {
 	if c.s == 1 {
 		// this cube is at the required resolution
-		values := [8]float64{
-			dc.evaluate(c.v.Add(V3i{0, 0, 0})),
-			dc.evaluate(c.v.Add(V3i{1, 0, 0})),
-			dc.evaluate(c.v.Add(V3i{1, 1, 0})),
-			dc.evaluate(c.v.Add(V3i{0, 1, 0})),
-			dc.evaluate(c.v.Add(V3i{0, 0, 1})),
-			dc.evaluate(c.v.Add(V3i{1, 0, 1})),
-			dc.evaluate(c.v.Add(V3i{1, 1, 1})),
-			dc.evaluate(c.v.Add(V3i{0, 1, 1})),
+		c0, d0 := dc.evaluate(c.v.Add(V3i{0, 0, 0}))
+		c1, d1 := dc.evaluate(c.v.Add(V3i{1, 0, 0}))
+		c2, d2 := dc.evaluate(c.v.Add(V3i{1, 1, 0}))
+		c3, d3 := dc.evaluate(c.v.Add(V3i{0, 1, 0}))
+		c4, d4 := dc.evaluate(c.v.Add(V3i{0, 0, 1}))
+		c5, d5 := dc.evaluate(c.v.Add(V3i{1, 0, 1}))
+		c6, d6 := dc.evaluate(c.v.Add(V3i{1, 1, 1}))
+		c7, d7 := dc.evaluate(c.v.Add(V3i{0, 1, 1}))
+		corners := [8]V3{c0, c1, c2, c3, c4, c5, c6, c7}
+		values := [8]float64{d0, d1, d2, d3, d4, d5, d6, d7}
+		// output the triangle(s) for this cube
+		for _, t := range mc_ToTriangles(corners, values, 0) {
+			output <- t
 		}
-		// TODO - run marching cubes
-
-		_ = values
-
-		output <- &Triangle3{}
 	} else {
 		if !c.empty(dc) {
 			// the cube is not empty- generate the sub cubes
