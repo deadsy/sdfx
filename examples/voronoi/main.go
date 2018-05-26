@@ -23,7 +23,7 @@ func main() {
 	}
 
 	// work out the region we will sample
-	bb := s1.BoundingBox().ScaleAboutCenter(V2{k, k})
+	bb := s1.BoundingBox().ScaleAboutCenter(k)
 
 	fmt.Printf("rendering %s (%dx%d)\n", path, pixels[0], pixels[1])
 	d, err := NewPNG(path, bb, pixels)

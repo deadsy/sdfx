@@ -8,9 +8,7 @@ Render an SDF
 
 package sdf
 
-import (
-	"fmt"
-)
+import "fmt"
 
 //-----------------------------------------------------------------------------
 
@@ -33,6 +31,43 @@ func RenderSTL(
 	fmt.Printf("rendering %s (%dx%dx%d)\n", path, cells[0], cells[1], cells[2])
 
 	m := MarchingCubes(s, bb, mesh_inc)
+	err := SaveSTL(path, m)
+	if err != nil {
+		fmt.Printf("%s", err)
+	}
+}
+
+//-----------------------------------------------------------------------------
+
+func mesh_sink(m *[]*Triangle3) chan<- *Triangle3 {
+	c := make(chan *Triangle3)
+	go func() {
+		for t := range c {
+			*m = append(*m, t)
+		}
+	}()
+	return c
+}
+
+// Render an SDF3 as a STL file.
+func RenderSTL_New(
+	s SDF3, //sdf3 to render
+	mesh_cells int, //number of cells on the longest axis. e.g 200
+	path string, //path to filename
+) {
+
+	resolution := s.BoundingBox().Size().MaxComponent() / float64(mesh_cells)
+	//resolution := 0.5
+
+	fmt.Printf("rendering %s (resolution %.3f)\n", path, resolution)
+
+	var m []*Triangle3
+
+	output := mesh_sink(&m)
+	MarchingCubesX(s, resolution, output)
+	// stop the STL writer reading on the channel
+	close(output)
+
 	err := SaveSTL(path, m)
 	if err != nil {
 		fmt.Printf("%s", err)

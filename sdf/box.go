@@ -92,9 +92,14 @@ func (a Box2) Center() V2 {
 
 //-----------------------------------------------------------------------------
 
-// scale a box about the center point
-func (a Box2) ScaleAboutCenter(s V2) Box2 {
-	return NewBox2(a.Center(), a.Size().Mul(s))
+// ScaleAboutCenter returns a new box scaled about the center of a box.
+func (a Box2) ScaleAboutCenter(k float64) Box2 {
+	return NewBox2(a.Center(), a.Size().MulScalar(k))
+}
+
+// ScaleAboutCenter returns a new box scaled about the center of a box.
+func (a Box3) ScaleAboutCenter(k float64) Box3 {
+	return NewBox3(a.Center(), a.Size().MulScalar(k))
 }
 
 //-----------------------------------------------------------------------------

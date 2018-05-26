@@ -11,27 +11,46 @@ Convert an SDF3 to a triangle mesh.
 package sdf
 
 import (
+	"fmt"
 	"math"
 	"sync"
 )
 
 //-----------------------------------------------------------------------------
+
+type cube struct {
+	v V3i  // origin of cube as integers
+	n uint // level of cube, cube size = 1 << n
+}
+
+//-----------------------------------------------------------------------------
 // Evaluate the SDF3 via a distance cache to avoid repeated evaluations.
 
 type dcache struct {
-	origin     V3              // origin of bounding cube
+	origin     V3              // origin of the overall bounding cube
 	resolution float64         // size of smallest octree cube
+	hdiag      []float64       // lookup table of cube half diagonals
 	s          SDF3            // the SDF3 to be rendered
 	cache      map[V3i]float64 // cache of distances
 	lock       sync.RWMutex    // lock the the cache during reads/writes
 }
 
-func new_dcache(s SDF3) *dcache {
-	return &dcache{
-		cache: make(map[V3i]float64),
-		s:     s,
-		lock:  sync.RWMutex{},
+func new_dcache(s SDF3, origin V3, resolution float64, n uint) *dcache {
+	// TODO heuristic for initial cache size. Maybe k * (1 << n)^3
+	dc := dcache{
+		origin:     origin,
+		resolution: resolution,
+		hdiag:      make([]float64, n),
+		s:          s,
+		cache:      make(map[V3i]float64),
 	}
+	// build a lut for cube half diagonal lengths
+	for i := range dc.hdiag {
+		si := 1 << uint(i)
+		s := float64(si) * dc.resolution
+		dc.hdiag[i] = 0.5 * math.Sqrt(3.0*s*s)
+	}
+	return &dc
 }
 
 // read from the cache
@@ -63,66 +82,79 @@ func (dc *dcache) evaluate(vi V3i) (V3, float64) {
 	return v, dist
 }
 
-//-----------------------------------------------------------------------------
+// is_empty returns true if the cube contains no SDF surface
+func (dc *dcache) is_empty(c *cube) bool {
+	// evaluate the SDF3 at the center of the cube
+	s := 1 << (c.n - 1) // half side
+	_, d := dc.evaluate(c.v.AddScalar(s))
+	// compare to the center/corner distance
+	return Abs(d) >= dc.hdiag[c.n]
+}
 
-type cube struct {
-	v V3i // origin of cube as integers
-	s int // size of cube side as an integer
+// Process a cube. Generate triangles, or more cubes.
+func (dc *dcache) process_cube(c *cube, output chan<- *Triangle3) {
+	if !dc.is_empty(c) {
+		if c.n == 1 {
+			// this cube is at the required resolution
+			c0, d0 := dc.evaluate(c.v.Add(V3i{0, 0, 0}))
+			c1, d1 := dc.evaluate(c.v.Add(V3i{2, 0, 0}))
+			c2, d2 := dc.evaluate(c.v.Add(V3i{2, 2, 0}))
+			c3, d3 := dc.evaluate(c.v.Add(V3i{0, 2, 0}))
+			c4, d4 := dc.evaluate(c.v.Add(V3i{0, 0, 2}))
+			c5, d5 := dc.evaluate(c.v.Add(V3i{2, 0, 2}))
+			c6, d6 := dc.evaluate(c.v.Add(V3i{2, 2, 2}))
+			c7, d7 := dc.evaluate(c.v.Add(V3i{0, 2, 2}))
+			corners := [8]V3{c0, c1, c2, c3, c4, c5, c6, c7}
+			values := [8]float64{d0, d1, d2, d3, d4, d5, d6, d7}
+			// output the triangle(s) for this cube
+			for _, t := range mc_ToTriangles(corners, values, 0) {
+				output <- t
+			}
+		} else {
+			// process the sub cubes
+			n := c.n - 1
+			s := 1 << n
+			// TODO - turn these into throttled go-routines
+			dc.process_cube(&cube{c.v.Add(V3i{0, 0, 0}), n}, output)
+			dc.process_cube(&cube{c.v.Add(V3i{s, 0, 0}), n}, output)
+			dc.process_cube(&cube{c.v.Add(V3i{s, s, 0}), n}, output)
+			dc.process_cube(&cube{c.v.Add(V3i{0, s, 0}), n}, output)
+			dc.process_cube(&cube{c.v.Add(V3i{0, 0, s}), n}, output)
+			dc.process_cube(&cube{c.v.Add(V3i{s, 0, s}), n}, output)
+			dc.process_cube(&cube{c.v.Add(V3i{s, s, s}), n}, output)
+			dc.process_cube(&cube{c.v.Add(V3i{0, s, s}), n}, output)
+		}
+	}
 }
 
 //-----------------------------------------------------------------------------
 
 // MarchingCubes generates a triangle mesh for an SDF3
-func MarchingCubesX(sdf SDF3, resolution float64, output chan<- *Triangle3) {
+func MarchingCubesX(s SDF3, resolution float64, output chan<- *Triangle3) {
 
-}
+	// Scale the bounding box about the center to make sure the boundaries
+	// aren't on the object surface.
+	bb := s.BoundingBox()
+	bb = bb.ScaleAboutCenter(1.01)
+	long_axis := bb.Size().MaxComponent()
 
-//-----------------------------------------------------------------------------
+	fmt.Printf("resolution %f\n", resolution)
+	fmt.Printf("long_axis %f\n", long_axis)
 
-// is the cube empty?
-func (c *cube) empty(dc *dcache) bool {
-	// evaluate the SDF3 at the center of the cube
-	s := c.s >> 1
-	_, d := dc.evaluate(c.v.Add(V3i{s, s, s}))
-	// compare to the center/corner distance
-	x := float64(s) * dc.resolution
-	// TODO - optimise the sqrt? Use a LUT?
-	return Abs(d) >= math.Sqrt(3.0*x*x)
-}
+	// We want to test the smallest cube (side == resolution) for emptiness
+	// so the n = 0 cube is at half resolution.
+	resolution = 0.5 * resolution
 
-// Process a cube. Generate triangles, or more cubes.
-func (c *cube) process(dc *dcache, wq chan<- *cube, output chan<- *Triangle3) {
-	if c.s == 1 {
-		// this cube is at the required resolution
-		c0, d0 := dc.evaluate(c.v.Add(V3i{0, 0, 0}))
-		c1, d1 := dc.evaluate(c.v.Add(V3i{1, 0, 0}))
-		c2, d2 := dc.evaluate(c.v.Add(V3i{1, 1, 0}))
-		c3, d3 := dc.evaluate(c.v.Add(V3i{0, 1, 0}))
-		c4, d4 := dc.evaluate(c.v.Add(V3i{0, 0, 1}))
-		c5, d5 := dc.evaluate(c.v.Add(V3i{1, 0, 1}))
-		c6, d6 := dc.evaluate(c.v.Add(V3i{1, 1, 1}))
-		c7, d7 := dc.evaluate(c.v.Add(V3i{0, 1, 1}))
-		corners := [8]V3{c0, c1, c2, c3, c4, c5, c6, c7}
-		values := [8]float64{d0, d1, d2, d3, d4, d5, d6, d7}
-		// output the triangle(s) for this cube
-		for _, t := range mc_ToTriangles(corners, values, 0) {
-			output <- t
-		}
-	} else {
-		if !c.empty(dc) {
-			// the cube is not empty- generate the sub cubes
-			s := c.s >> 1
-			wq <- &cube{c.v.Add(V3i{0, 0, 0}), s}
-			wq <- &cube{c.v.Add(V3i{s, 0, 0}), s}
-			wq <- &cube{c.v.Add(V3i{s, s, 0}), s}
-			wq <- &cube{c.v.Add(V3i{0, s, 0}), s}
-			wq <- &cube{c.v.Add(V3i{0, 0, s}), s}
-			wq <- &cube{c.v.Add(V3i{s, 0, s}), s}
-			wq <- &cube{c.v.Add(V3i{s, s, s}), s}
-			wq <- &cube{c.v.Add(V3i{0, s, s}), s}
-		}
-	}
+	// how many levels deep for the octree?
+	n := uint(math.Ceil(math.Log2(long_axis / resolution)))
 
+	fmt.Printf("n %d\n", n)
+
+	// create the distance cache
+	dc := new_dcache(s, bb.Min, resolution, n)
+
+	// process the octree
+	dc.process_cube(&cube{V3i{0, 0, 0}, n - 1}, output)
 }
 
 //-----------------------------------------------------------------------------
