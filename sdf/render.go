@@ -8,7 +8,10 @@ Render an SDF
 
 package sdf
 
-import "fmt"
+import (
+	"fmt"
+	"sync"
+)
 
 //-----------------------------------------------------------------------------
 
@@ -39,16 +42,6 @@ func RenderSTL(
 
 //-----------------------------------------------------------------------------
 
-func mesh_sink(m *[]*Triangle3) chan<- *Triangle3 {
-	c := make(chan *Triangle3)
-	go func() {
-		for t := range c {
-			*m = append(*m, t)
-		}
-	}()
-	return c
-}
-
 // Render an SDF3 as a STL file.
 func RenderSTL_New(
 	s SDF3, //sdf3 to render
@@ -61,17 +54,19 @@ func RenderSTL_New(
 
 	fmt.Printf("rendering %s (resolution %.3f)\n", path, resolution)
 
-	var m []*Triangle3
+	// write the triangles to an STL file
+	var wg sync.WaitGroup
+	output, err := WriteSTL(&wg, path)
+	if err != nil {
+		fmt.Printf("%s", err)
+		return
+	}
 
-	output := mesh_sink(&m)
 	MarchingCubesX(s, resolution, output)
 	// stop the STL writer reading on the channel
 	close(output)
-
-	err := SaveSTL(path, m)
-	if err != nil {
-		fmt.Printf("%s", err)
-	}
+	// wait for the file write to complete
+	wg.Wait()
 }
 
 //-----------------------------------------------------------------------------
