@@ -14,14 +14,14 @@ import . "github.com/deadsy/sdfx/sdf"
 
 var pipe_clearance = 1.01                  // ID of pipe holder slightly larger to allow a slip fit
 var pipe_diameter = 48.45 * pipe_clearance // OD of pipe to be fitted
-var base_size = V2{60.0, 70.0}             // size of rectangular base
+var base_size = V2{77.0, 77.0}             // size of rectangular base
 var base_thickness = 3.0                   // base thickness
 var pipe_wall = 3.0                        // pipe holder wall thickness
-var pipe_length = 20.0                     // length of pipe holder (from bottom)
-var pipe_offset = V2{0, 4.0}               // offset of pipe holder from base center
+var pipe_length = 30.0                     // length of pipe holder (from bottom)
+var pipe_offset = V2{0, 0}                 // offset of pipe holder from base center
 
 var pipe_radius = pipe_diameter / 2.0
-var pipe_fillet = pipe_wall * 0.85
+var pipe_fillet = pipe_wall * 0.95
 
 //-----------------------------------------------------------------------------
 
@@ -36,9 +36,9 @@ func flange() SDF3 {
 	// base
 	pp := &PanelParms{
 		Size:         base_size,
-		CornerRadius: 5.0,
-		HoleDiameter: 3.5,
-		HoleMargin:   [4]float64{5.0, 5.0, 5.0, 5.0},
+		CornerRadius: 12.0,
+		HoleDiameter: 3.5, // #6 screw
+		HoleMargin:   [4]float64{8.0, 8.0, 8.0, 8.0},
 		HolePattern:  [4]string{"x", "x", "x", "x"},
 	}
 	base := Extrude3D(Panel2D(pp), 2.0*base_thickness)
