@@ -36,9 +36,9 @@ func flange() SDF3 {
 	// base
 	pp := &PanelParms{
 		Size:         base_size,
-		CornerRadius: 12.0,
+		CornerRadius: 18.0,
 		HoleDiameter: 3.5, // #6 screw
-		HoleMargin:   [4]float64{8.0, 8.0, 8.0, 8.0},
+		HoleMargin:   [4]float64{12.0, 12.0, 12.0, 12.0},
 		HolePattern:  [4]string{"x", "x", "x", "x"},
 	}
 	base := Extrude3D(Panel2D(pp), 2.0*base_thickness)
