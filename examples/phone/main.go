@@ -139,7 +139,7 @@ func clip() SDF3 {
 	p.Add(16.5, 0).Rel()
 	// back to the the start with a closed polygon
 	p.Close()
-	p.Render("clip.dxf")
+	//p.Render("clip.dxf")
 	return Extrude3D(Polygon2D(p.Vertices()), 8.0)
 }
 
@@ -170,8 +170,8 @@ func subtractive() SDF3 {
 
 func main() {
 	RenderSTL(clip(), 300, "clip.stl")
-	//s := Difference3D(additive(), subtractive())
-	//RenderSTL(s, 300, "holder.stl")
+	s := Difference3D(additive(), subtractive())
+	RenderSTL(s, 300, "holder.stl")
 }
 
 //-----------------------------------------------------------------------------

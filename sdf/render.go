@@ -49,10 +49,12 @@ func RenderSTL_New(
 	path string, //path to filename
 ) {
 
-	resolution := s.BoundingBox().Size().MaxComponent() / float64(mesh_cells)
-	//resolution := 0.5
+	// work out the sampling resolution to use
+	bb_size := s.BoundingBox().Size()
+	resolution := bb_size.MaxComponent() / float64(mesh_cells)
+	cells := bb_size.DivScalar(resolution).ToV3i()
 
-	fmt.Printf("rendering %s (resolution %.3f)\n", path, resolution)
+	fmt.Printf("rendering %s (%dx%dx%d, resolution %.2f)\n", path, cells[0], cells[1], cells[2], resolution)
 
 	// write the triangles to an STL file
 	var wg sync.WaitGroup
@@ -62,7 +64,7 @@ func RenderSTL_New(
 		return
 	}
 
-	MarchingCubesX(s, resolution, output)
+	MarchingCubes_Octree(s, resolution, output)
 	// stop the STL writer reading on the channel
 	close(output)
 	// wait for the file write to complete

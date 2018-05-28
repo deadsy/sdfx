@@ -11,7 +11,6 @@ Convert an SDF3 to a triangle mesh.
 package sdf
 
 import (
-	"fmt"
 	"math"
 	"sync"
 )
@@ -25,6 +24,8 @@ type cube struct {
 
 //-----------------------------------------------------------------------------
 // Evaluate the SDF3 via a distance cache to avoid repeated evaluations.
+// Experimentally about 2/3 of lookups get a hit, and the overall speedup
+// is about 2x a non-cached evaluation.
 
 type dcache struct {
 	origin     V3              // origin of the overall bounding cube
@@ -37,6 +38,7 @@ type dcache struct {
 
 func new_dcache(s SDF3, origin V3, resolution float64, n uint) *dcache {
 	// TODO heuristic for initial cache size. Maybe k * (1 << n)^3
+	// Avoiding any resizing of the map seems to be worth 2-5% of speedup.
 	dc := dcache{
 		origin:     origin,
 		resolution: resolution,
@@ -130,31 +132,21 @@ func (dc *dcache) process_cube(c *cube, output chan<- *Triangle3) {
 //-----------------------------------------------------------------------------
 
 // MarchingCubes generates a triangle mesh for an SDF3
-func MarchingCubesX(s SDF3, resolution float64, output chan<- *Triangle3) {
-
+func MarchingCubes_Octree(s SDF3, resolution float64, output chan<- *Triangle3) {
 	// Scale the bounding box about the center to make sure the boundaries
 	// aren't on the object surface.
 	bb := s.BoundingBox()
 	bb = bb.ScaleAboutCenter(1.01)
 	long_axis := bb.Size().MaxComponent()
-
-	fmt.Printf("resolution %f\n", resolution)
-	fmt.Printf("long_axis %f\n", long_axis)
-
 	// We want to test the smallest cube (side == resolution) for emptiness
-	// so the n = 0 cube is at half resolution.
+	// so the level = 0 cube is at half resolution.
 	resolution = 0.5 * resolution
-
-	// how many levels deep for the octree?
-	n := uint(math.Ceil(math.Log2(long_axis / resolution)))
-
-	fmt.Printf("n %d\n", n)
-
+	// how many cube levels for the octree?
+	levels := uint(math.Ceil(math.Log2(long_axis/resolution))) + 1
 	// create the distance cache
-	dc := new_dcache(s, bb.Min, resolution, n)
-
-	// process the octree
-	dc.process_cube(&cube{V3i{0, 0, 0}, n - 1}, output)
+	dc := new_dcache(s, bb.Min, resolution, levels)
+	// process the octree, start at the top level
+	dc.process_cube(&cube{V3i{0, 0, 0}, levels - 1}, output)
 }
 
 //-----------------------------------------------------------------------------
