@@ -64,7 +64,9 @@ func RenderSTL_New(
 		return
 	}
 
+	// run marching cubes to generate the triangle mesh
 	MarchingCubes_Octree(s, resolution, output)
+
 	// stop the STL writer reading on the channel
 	close(output)
 	// wait for the file write to complete
@@ -96,6 +98,39 @@ func RenderDXF(
 	if err != nil {
 		fmt.Printf("%s", err)
 	}
+}
+
+//-----------------------------------------------------------------------------
+
+// Render an SDF2 as a DXF file.
+func RenderDXF_New(
+	s SDF2, //sdf2 to render
+	mesh_cells int, //number of cells on the longest axis. e.g 200
+	path string, //path to filename
+) {
+
+	// work out the sampling resolution to use
+	bb_size := s.BoundingBox().Size()
+	resolution := bb_size.MaxComponent() / float64(mesh_cells)
+	cells := bb_size.DivScalar(resolution).ToV2i()
+
+	fmt.Printf("rendering %s (%dx%d, resolution %.2f)\n", path, cells[0], cells[1], resolution)
+
+	// write the line segments to a DXF file
+	var wg sync.WaitGroup
+	output, err := WriteDXF(&wg, path)
+	if err != nil {
+		fmt.Printf("%s", err)
+		return
+	}
+
+	// run marching squares to generate the line segments
+	MarchingSquares_Quadtree(s, resolution, output)
+
+	// stop the DXF writer reading on the channel
+	close(output)
+	// wait for the file write to complete
+	wg.Wait()
 }
 
 //-----------------------------------------------------------------------------
