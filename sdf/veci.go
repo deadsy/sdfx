@@ -60,6 +60,11 @@ func (a V3) ToV3i() V3i {
 //-----------------------------------------------------------------------------
 
 // Add adds two vectors. Return v = a + b.
+func (a V2i) Add(b V2i) V2i {
+	return V2i{a[0] + b[0], a[1] + b[1]}
+}
+
+// Add adds two vectors. Return v = a + b.
 func (a V3i) Add(b V3i) V3i {
 	return V3i{a[0] + b[0], a[1] + b[1], a[2] + b[2]}
 }

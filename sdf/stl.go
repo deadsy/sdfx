@@ -88,8 +88,8 @@ func WriteSTL(wg *sync.WaitGroup, path string) (chan<- *Triangle3, error) {
 		return nil, err
 	}
 
-	// External code will write triangles to this channel.
-	// This code reads the channel and writes STL triangles to the file.
+	// External code writes triangles to this channel.
+	// This goroutine reads the channel and writes triangles to the file.
 	c := make(chan *Triangle3)
 
 	wg.Add(1)

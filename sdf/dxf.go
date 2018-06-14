@@ -9,6 +9,9 @@ DXF Rendering Code
 package sdf
 
 import (
+	"fmt"
+	"sync"
+
 	"github.com/yofu/dxf"
 	"github.com/yofu/dxf/color"
 	"github.com/yofu/dxf/drawing"
@@ -68,6 +71,7 @@ func (d *DXF) Save() error {
 
 //-----------------------------------------------------------------------------
 
+// SaveDXF writes line segments to a DXF file.
 func SaveDXF(path string, mesh []*Line2_PP) error {
 	d := NewDXF(path)
 	d.drawing.ChangeLayer("Lines")
@@ -81,6 +85,36 @@ func SaveDXF(path string, mesh []*Line2_PP) error {
 		return err
 	}
 	return nil
+}
+
+//-----------------------------------------------------------------------------
+
+// WriteDXF writes a stream of line segments to a DXF file.
+func WriteDXF(wg *sync.WaitGroup, path string) (chan<- *Line2_PP, error) {
+
+	d := NewDXF(path)
+	d.drawing.ChangeLayer("Lines")
+
+	// External code writes line segments to this channel.
+	// This goroutine reads the channel and writes line segments to the file.
+	c := make(chan *Line2_PP)
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for l := range c {
+			p0 := l[0]
+			p1 := l[1]
+			d.drawing.Line(p0.X, p0.Y, 0, p1.X, p1.Y, 0)
+		}
+		err := d.Save()
+		if err != nil {
+			fmt.Printf("%s\n", err)
+			return
+		}
+	}()
+
+	return c, nil
 }
 
 //-----------------------------------------------------------------------------
