@@ -222,6 +222,10 @@ type ExtrudeRoundedSDF3 struct {
 
 // Linear extrude an SDF2 with rounded edges.
 func ExtrudeRounded3D(sdf SDF2, height, round float64) SDF3 {
+	if round == 0.0 {
+		// revert to non-rounded case
+		return Extrude3D(sdf, height)
+	}
 	s := ExtrudeRoundedSDF3{}
 	s.sdf = sdf
 	s.height = (height / 2) - round

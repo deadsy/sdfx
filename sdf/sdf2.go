@@ -343,7 +343,7 @@ func (s *PolySDF2) Vertices() []V2 {
 }
 
 //-----------------------------------------------------------------------------
-// Transform SDF2
+// Transform SDF2 (rotation, translation - distance preserving)
 
 type TransformSDF2 struct {
 	sdf     SDF2
@@ -371,6 +371,33 @@ func (s *TransformSDF2) BoundingBox() Box2 {
 }
 
 //-----------------------------------------------------------------------------
+// Uniform X/Y Scaling of SDF2s (we can work out the distance)
+
+type ScaleUniformSDF2 struct {
+	sdf      SDF2
+	k, inv_k float64
+	bb       Box2
+}
+
+func ScaleUniform2D(sdf SDF2, k float64) SDF2 {
+	m := Scale2d(V2{k, k})
+	return &ScaleUniformSDF2{
+		sdf:   sdf,
+		k:     k,
+		inv_k: 1.0 / k,
+		bb:    m.MulBox(sdf.BoundingBox()),
+	}
+}
+
+func (s *ScaleUniformSDF2) Evaluate(p V2) float64 {
+	return s.sdf.Evaluate(V2{p.X * s.inv_k, p.Y * s.inv_k}) * s.k
+}
+
+func (s *ScaleUniformSDF2) BoundingBox() Box2 {
+	return s.bb
+}
+
+//-----------------------------------------------------------------------------
 
 // Center the origin of an SDF2 on it's bounding box.
 func Center2D(s SDF2) SDF2 {
@@ -378,15 +405,11 @@ func Center2D(s SDF2) SDF2 {
 	return Transform2D(s, Translate2d(ofs))
 }
 
-// Scale an SDF2
-func Scale2D(s SDF2, k float64) SDF2 {
-	return Transform2D(s, Scale2d(V2{k, k}))
-}
-
 // Center and scale an SDF2 on it's bounding box.
-func CenterScale2D(s SDF2, k float64) SDF2 {
+func CenterAndScale2D(s SDF2, k float64) SDF2 {
 	ofs := s.BoundingBox().Center().Neg()
-	return Transform2D(s, Scale2d(V2{k, k}).Mul(Translate2d(ofs)))
+	s = Transform2D(s, Translate2d(ofs))
+	return ScaleUniform2D(s, k)
 }
 
 //-----------------------------------------------------------------------------

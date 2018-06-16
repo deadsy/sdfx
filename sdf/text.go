@@ -189,7 +189,7 @@ func TextSDF2(f *truetype.Font, t *Text, h float64) (SDF2, error) {
 		y_ofs -= ah
 	}
 
-	return CenterScale2D(s0, h/ah), nil
+	return CenterAndScale2D(s0, h/ah), nil
 }
 
 //-----------------------------------------------------------------------------

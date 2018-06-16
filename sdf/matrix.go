@@ -114,6 +114,8 @@ func Translate2d(v V2) M33 {
 		0, 0, 1}
 }
 
+// Scale3d returns a 4x4 scaling matrix.
+// Scaling does not preserve distance. See: ScaleUniform3D()
 func Scale3d(v V3) M44 {
 	return M44{
 		v.X, 0, 0, 0,
@@ -122,6 +124,8 @@ func Scale3d(v V3) M44 {
 		0, 0, 0, 1}
 }
 
+// Scale2d returns a 3x3 scaling matrix.
+// Scaling does not preserve distance. See: ScaleUniform2D()
 func Scale2d(v V2) M33 {
 	return M33{
 		v.X, 0, 0,
