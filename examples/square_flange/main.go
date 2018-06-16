@@ -65,7 +65,7 @@ func flange() SDF3 {
 //-----------------------------------------------------------------------------
 
 func main() {
-	RenderSTL(Scale3D(flange(), shrink), 300, "flange.stl")
+	RenderSTL(ScaleUniform3D(flange(), shrink), 300, "flange.stl")
 }
 
 //-----------------------------------------------------------------------------

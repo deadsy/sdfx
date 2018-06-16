@@ -544,7 +544,7 @@ func (s *ConeSDF3) BoundingBox() Box3 {
 }
 
 //-----------------------------------------------------------------------------
-// Transform SDF3
+// Transform SDF3 (rotation, translation - distance preserving)
 
 type TransformSDF3 struct {
 	sdf     SDF3
@@ -553,6 +553,8 @@ type TransformSDF3 struct {
 	bb      Box3
 }
 
+// Transform3D applies a transformation matrix to an SDF3.
+// Distance is *not* preserved with scaling.
 func Transform3D(sdf SDF3, matrix M44) SDF3 {
 	s := TransformSDF3{}
 	s.sdf = sdf
@@ -570,8 +572,34 @@ func (s *TransformSDF3) BoundingBox() Box3 {
 	return s.bb
 }
 
-func Scale3D(sdf SDF3, k float64) SDF3 {
-	return Transform3D(sdf, Scale3d(V3{k, k, k}))
+//-----------------------------------------------------------------------------
+// Uniform XYZ Scaling of SDF3s (we can work out the distance)
+
+type ScaleUniformSDF3 struct {
+	sdf      SDF3
+	k, inv_k float64
+	bb       Box3
+}
+
+// ScaleUniform3D scales an SDF3 by k on all axes.
+// Distance is correct with scaling.
+func ScaleUniform3D(sdf SDF3, k float64) SDF3 {
+	m := Scale3d(V3{k, k, k})
+	return &ScaleUniformSDF3{
+		sdf:   sdf,
+		k:     k,
+		inv_k: 1.0 / k,
+		bb:    m.MulBox(sdf.BoundingBox()),
+	}
+}
+
+func (s *ScaleUniformSDF3) Evaluate(p V3) float64 {
+	q := p.MulScalar(s.inv_k)
+	return s.sdf.Evaluate(q) * s.k
+}
+
+func (s *ScaleUniformSDF3) BoundingBox() Box3 {
+	return s.bb
 }
 
 //-----------------------------------------------------------------------------

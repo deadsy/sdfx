@@ -36,6 +36,7 @@ func RenderSTL(
 
 	fmt.Printf("rendering %s (%dx%dx%d)\n", path, cells[0], cells[1], cells[2])
 
+	// run marching cubes to generate the triangle mesh
 	m := MarchingCubes(s, bb, mesh_inc)
 	err := SaveSTL(path, m)
 	if err != nil {

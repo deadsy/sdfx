@@ -112,11 +112,11 @@ func Nut(
 func inch() {
 	// bolt
 	bolt_3d := Bolt("unc_5/8", "knurl", INCH_TOLERANCE, 2.0, 0.5)
-	bolt_3d = Scale3D(bolt_3d, MM_PER_INCH)
+	bolt_3d = ScaleUniform3D(bolt_3d, MM_PER_INCH)
 	RenderSTL(bolt_3d, QUALITY, "bolt.stl")
 	// nut
 	nut_3d := Nut("unc_5/8", "knurl", INCH_TOLERANCE)
-	nut_3d = Scale3D(nut_3d, MM_PER_INCH)
+	nut_3d = ScaleUniform3D(nut_3d, MM_PER_INCH)
 	RenderSTL(nut_3d, QUALITY, "nut.stl")
 }
 

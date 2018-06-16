@@ -352,6 +352,8 @@ type TransformSDF2 struct {
 	bb      Box2
 }
 
+// Transform2D applies a transformation matrix to an SDF2.
+// Distance is *not* preserved with scaling.
 func Transform2D(sdf SDF2, matrix M33) SDF2 {
 	s := TransformSDF2{}
 	s.sdf = sdf
@@ -371,7 +373,7 @@ func (s *TransformSDF2) BoundingBox() Box2 {
 }
 
 //-----------------------------------------------------------------------------
-// Uniform X/Y Scaling of SDF2s (we can work out the distance)
+// Uniform XY Scaling of SDF2s (we can work out the distance)
 
 type ScaleUniformSDF2 struct {
 	sdf      SDF2
@@ -379,6 +381,8 @@ type ScaleUniformSDF2 struct {
 	bb       Box2
 }
 
+// ScaleUniform2D scales an SDF2 by k on all axes.
+// Distance is correct with scaling.
 func ScaleUniform2D(sdf SDF2, k float64) SDF2 {
 	m := Scale2d(V2{k, k})
 	return &ScaleUniformSDF2{
@@ -390,7 +394,8 @@ func ScaleUniform2D(sdf SDF2, k float64) SDF2 {
 }
 
 func (s *ScaleUniformSDF2) Evaluate(p V2) float64 {
-	return s.sdf.Evaluate(V2{p.X * s.inv_k, p.Y * s.inv_k}) * s.k
+	q := p.MulScalar(s.inv_k)
+	return s.sdf.Evaluate(q) * s.k
 }
 
 func (s *ScaleUniformSDF2) BoundingBox() Box2 {
