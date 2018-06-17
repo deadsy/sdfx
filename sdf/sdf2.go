@@ -343,28 +343,26 @@ func (s *PolySDF2) Vertices() []V2 {
 }
 
 //-----------------------------------------------------------------------------
-// Transform SDF2 (rotation, translation - distance preserving)
+// Transform SDF2 (rotation and translation are distance preserving)
 
 type TransformSDF2 struct {
-	sdf     SDF2
-	matrix  M33
-	inverse M33
-	bb      Box2
+	sdf   SDF2
+	m_inv M33
+	bb    Box2
 }
 
 // Transform2D applies a transformation matrix to an SDF2.
 // Distance is *not* preserved with scaling.
-func Transform2D(sdf SDF2, matrix M33) SDF2 {
+func Transform2D(sdf SDF2, m M33) SDF2 {
 	s := TransformSDF2{}
 	s.sdf = sdf
-	s.matrix = matrix
-	s.inverse = matrix.Inverse()
-	s.bb = matrix.MulBox(sdf.BoundingBox())
+	s.m_inv = m.Inverse()
+	s.bb = m.MulBox(sdf.BoundingBox())
 	return &s
 }
 
 func (s *TransformSDF2) Evaluate(p V2) float64 {
-	q := s.inverse.MulPosition(p)
+	q := s.m_inv.MulPosition(p)
 	return s.sdf.Evaluate(q)
 }
 

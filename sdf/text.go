@@ -3,7 +3,7 @@
 
 Text Operations
 
-Convert a string and a font specification into an SDF2
+Convert a string and font specification into an SDF2
 
 */
 //-----------------------------------------------------------------------------
@@ -21,10 +21,6 @@ import (
 
 //-----------------------------------------------------------------------------
 
-const POINT_PER_INCH = 72.0
-
-//-----------------------------------------------------------------------------
-
 type align int
 
 const (
@@ -36,13 +32,6 @@ const (
 type Text struct {
 	s      string
 	halign align
-}
-
-func NewText(s string) *Text {
-	return &Text{
-		s:      s,
-		halign: C_ALIGN,
-	}
 }
 
 //-----------------------------------------------------------------------------
@@ -112,12 +101,13 @@ func glyph_convert(g *truetype.GlyphBuf) SDF2 {
 
 //-----------------------------------------------------------------------------
 
-// return the SDF2 for a line of text
+// Return an SDF2 slice for a line of text
 func lineSDF2(f *truetype.Font, l string) ([]SDF2, float64, error) {
-	var ss []SDF2
 	i_prev := truetype.Index(0)
 	scale := fixed.Int26_6(f.FUnitsPerEm())
 	x_ofs := 0.0
+
+	var ss []SDF2
 
 	for _, r := range l {
 		i := f.Index(r)
@@ -152,7 +142,15 @@ func lineSDF2(f *truetype.Font, l string) ([]SDF2, float64, error) {
 //-----------------------------------------------------------------------------
 // public api
 
-// load a truetype (*.ttf) font file
+// NewText returns a text object (text and alignment).
+func NewText(s string) *Text {
+	return &Text{
+		s:      s,
+		halign: C_ALIGN,
+	}
+}
+
+// LoadFont loads a truetype (*.ttf) font file.
 func LoadFont(fname string) (*truetype.Font, error) {
 	// read the font file
 	b, err := ioutil.ReadFile(fname)
@@ -162,7 +160,7 @@ func LoadFont(fname string) (*truetype.Font, error) {
 	return truetype.Parse(b)
 }
 
-// return an SDF2 for the text string
+// TextSDF2 returns a sized SDF2 for a text object.
 func TextSDF2(f *truetype.Font, t *Text, h float64) (SDF2, error) {
 	scale := fixed.Int26_6(f.FUnitsPerEm())
 	lines := strings.Split(t.s, "\n")
