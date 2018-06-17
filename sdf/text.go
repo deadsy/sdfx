@@ -113,9 +113,8 @@ func glyph_convert(g *truetype.GlyphBuf) SDF2 {
 //-----------------------------------------------------------------------------
 
 // return the SDF2 for a line of text
-func lineSDF2(f *truetype.Font, l string) (SDF2, float64, error) {
-
-	var s0 SDF2
+func lineSDF2(f *truetype.Font, l string) ([]SDF2, float64, error) {
+	var ss []SDF2
 	i_prev := truetype.Index(0)
 	scale := fixed.Int26_6(f.FUnitsPerEm())
 	x_ofs := 0.0
@@ -138,16 +137,16 @@ func lineSDF2(f *truetype.Font, l string) (SDF2, float64, error) {
 			return nil, 0, err
 		}
 
-		s1 := glyph_convert(g)
-		if s1 != nil {
-			s1 = Transform2D(s1, Translate2d(V2{x_ofs, 0}))
-			s0 = Union2D(s0, s1)
+		s := glyph_convert(g)
+		if s != nil {
+			s = Transform2D(s, Translate2d(V2{x_ofs, 0}))
+			ss = append(ss, s)
 		}
 
 		x_ofs += float64(hm.AdvanceWidth)
 	}
 
-	return s0, x_ofs, nil
+	return ss, x_ofs, nil
 }
 
 //-----------------------------------------------------------------------------
@@ -165,16 +164,16 @@ func LoadFont(fname string) (*truetype.Font, error) {
 
 // return an SDF2 for the text string
 func TextSDF2(f *truetype.Font, t *Text, h float64) (SDF2, error) {
-
 	scale := fixed.Int26_6(f.FUnitsPerEm())
 	lines := strings.Split(t.s, "\n")
-	var s0 SDF2
 	y_ofs := 0.0
 	vm := f.VMetric(scale, f.Index('\n'))
 	ah := float64(vm.AdvanceHeight)
 
+	var ss []SDF2
+
 	for i := range lines {
-		s1, hlen, err := lineSDF2(f, lines[i])
+		ss_line, hlen, err := lineSDF2(f, lines[i])
 		if err != nil {
 			return nil, err
 		}
@@ -184,12 +183,14 @@ func TextSDF2(f *truetype.Font, t *Text, h float64) (SDF2, error) {
 		} else if t.halign == C_ALIGN {
 			x_ofs = -hlen / 2.0
 		}
-		s1 = Transform2D(s1, Translate2d(V2{x_ofs, y_ofs}))
-		s0 = Union2D(s0, s1)
+		for i := range ss_line {
+			ss_line[i] = Transform2D(ss_line[i], Translate2d(V2{x_ofs, y_ofs}))
+		}
+		ss = append(ss, ss_line...)
 		y_ofs -= ah
 	}
 
-	return CenterAndScale2D(s0, h/ah), nil
+	return CenterAndScale2D(Union2D(ss...), h/ah), nil
 }
 
 //-----------------------------------------------------------------------------
