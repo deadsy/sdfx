@@ -664,13 +664,48 @@ func Union2D(sdf ...SDF2) SDF2 {
 }
 
 // Return the minimum distance to the SDF2 union.
+func (s *UnionSDF2) Evaluate_Fast(p V2) float64 {
+
+	// work out the min/max distance for every bounding box
+	vs := make([]V2, len(s.sdf))
+	min_d2 := -1.0
+	min_i := 0
+	for i := range s.sdf {
+		vs[i] = s.sdf[i].BoundingBox().MinMaxDist2(p)
+		// as we go record the sdf with the minimum minimum d2 value
+		if min_d2 < 0 || vs[i].X < min_d2 {
+			min_d2 = vs[i].X
+			min_i = i
+		}
+	}
+
+	var d float64
+	first := true
+	for i := range s.sdf {
+		// only an sdf whose min/max distances overlap
+		// the minimum box are worthy of consideration
+		if i == min_i || vs[min_i].Overlap(vs[i]) {
+			x := s.sdf[i].Evaluate(p)
+			if first {
+				first = false
+				d = x
+			} else {
+				d = s.min(d, x)
+			}
+		}
+	}
+	return d
+}
+
+// Return the minimum distance to the SDF2 union.
 func (s *UnionSDF2) Evaluate(p V2) float64 {
 	var d float64
-	for i, x := range s.sdf {
+	for i := range s.sdf {
+		x := s.sdf[i].Evaluate(p)
 		if i == 0 {
-			d = x.Evaluate(p)
+			d = x
 		} else {
-			d = s.min(d, x.Evaluate(p))
+			d = s.min(d, x)
 		}
 	}
 	return d

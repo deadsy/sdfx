@@ -695,3 +695,30 @@ func Test_Float_Comparison(t *testing.T) {
 }
 
 //-----------------------------------------------------------------------------
+
+func Test_Box2_Distances(t *testing.T) {
+	b0 := NewBox2(V2{0, 0}, V2{10, 10})
+	b1 := NewBox2(V2{10, 20}, V2{30, 40})
+	tests := []struct {
+		b      Box2
+		p      V2
+		result V2
+	}{
+		{b0, V2{0, 0}, V2{25, 50}},
+		{b0, V2{5, 5}, V2{0, 200}},
+		{b0, V2{20, 0}, V2{225, 650}},
+		{b1, V2{0, 0}, V2{0, 2225}},
+		{b1, V2{10, 20}, V2{225, 625}},
+		{b1, V2{0, -10}, V2{100, 3125}},
+		{b1, V2{0, 5}, V2{25, 1850}},
+	}
+	for _, v := range tests {
+		x := v.b.MinMaxDist2(v.p)
+		if !x.Equals(v.result, TOLERANCE) {
+			t.Logf("expected %v, actual %v\n", v.result, x)
+			t.Error("FAIL")
+		}
+	}
+}
+
+//-----------------------------------------------------------------------------

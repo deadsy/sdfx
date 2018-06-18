@@ -363,6 +363,13 @@ func (a V2) ToV3(z float64) V3 {
 }
 
 //-----------------------------------------------------------------------------
+
+// Do a and b (considered as 1d line segments) overlap?
+func (a V2) Overlap(b V2) bool {
+	return a.Y >= b.X && b.Y >= a.X
+}
+
+//-----------------------------------------------------------------------------
 // Sort By X for a V2Set
 
 type V2SetByX V2Set

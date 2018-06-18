@@ -190,3 +190,35 @@ func (m *Map2) ToV2i(p V2) V2i {
 }
 
 //-----------------------------------------------------------------------------
+// Minimum/Maximum distances from a point to a box
+
+func (a Box2) MinMaxDist2(p V2) V2 {
+
+	max_d2 := 0.0
+	min_d2 := -1.0
+	// consider the vertices
+	vs := a.Vertices()
+	for i := range vs {
+		d2 := p.Sub(vs[i]).Length2()
+		if min_d2 < 0 {
+			min_d2 = d2
+		} else {
+			min_d2 = Min(min_d2, d2)
+		}
+		max_d2 = Max(max_d2, d2)
+	}
+
+	// consider the edges (for the minimum)
+	if p.X > a.Min.X && p.X < a.Max.X {
+		d := Min(Abs(a.Max.Y-p.Y), Abs(a.Min.Y-p.Y))
+		min_d2 = Min(min_d2, d*d)
+	}
+	if p.Y > a.Min.Y && p.Y < a.Max.Y {
+		d := Min(Abs(a.Max.X-p.X), Abs(a.Min.X-p.X))
+		min_d2 = Min(min_d2, d*d)
+	}
+
+	return V2{min_d2, max_d2}
+}
+
+//-----------------------------------------------------------------------------
