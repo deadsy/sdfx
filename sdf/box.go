@@ -192,15 +192,19 @@ func (m *Map2) ToV2i(p V2) V2i {
 //-----------------------------------------------------------------------------
 // Minimum/Maximum distances from a point to a box
 
+// MinMaxDist2 returns the minimum and maximum dist * dist from a point to a box.
 func (a Box2) MinMaxDist2(p V2) V2 {
-
 	max_d2 := 0.0
-	min_d2 := -1.0
+	min_d2 := 0.0
+
+	// translate the box so p is at the origin
+	a = a.Translate(p.Neg())
+
 	// consider the vertices
 	vs := a.Vertices()
 	for i := range vs {
-		d2 := p.Sub(vs[i]).Length2()
-		if min_d2 < 0 {
+		d2 := vs[i].Length2()
+		if i == 0 {
 			min_d2 = d2
 		} else {
 			min_d2 = Min(min_d2, d2)
@@ -209,12 +213,54 @@ func (a Box2) MinMaxDist2(p V2) V2 {
 	}
 
 	// consider the edges (for the minimum)
-	if p.X > a.Min.X && p.X < a.Max.X {
-		d := Min(Abs(a.Max.Y-p.Y), Abs(a.Min.Y-p.Y))
+	if a.Min.X < 0 && a.Max.X > 0 {
+		// within the x edge
+		d := Min(Abs(a.Max.Y), Abs(a.Min.Y))
 		min_d2 = Min(min_d2, d*d)
 	}
-	if p.Y > a.Min.Y && p.Y < a.Max.Y {
-		d := Min(Abs(a.Max.X-p.X), Abs(a.Min.X-p.X))
+	if a.Min.Y < 0 && a.Max.Y > 0 {
+		// within the y edge
+		d := Min(Abs(a.Max.X), Abs(a.Min.X))
+		min_d2 = Min(min_d2, d*d)
+	}
+
+	return V2{min_d2, max_d2}
+}
+
+// MinMaxDist2 returns the minimum and maximum dist * dist from a point to a box.
+func (a Box3) MinMaxDist2(p V3) V2 {
+	max_d2 := 0.0
+	min_d2 := 0.0
+
+	// translate the box so p is at the origin
+	a = a.Translate(p.Neg())
+
+	// consider the vertices
+	vs := a.Vertices()
+	for i := range vs {
+		d2 := vs[i].Length2()
+		if i == 0 {
+			min_d2 = d2
+		} else {
+			min_d2 = Min(min_d2, d2)
+		}
+		max_d2 = Max(max_d2, d2)
+	}
+
+	// consider the faces (for the minimum)
+	if a.Min.X < 0 && a.Max.X > 0 && a.Min.Y < 0 && a.Min.Y > 0 {
+		// within the xy face
+		d := Min(Abs(a.Max.Z), Abs(a.Min.Z))
+		min_d2 = Min(min_d2, d*d)
+	}
+	if a.Min.X < 0 && a.Max.X > 0 && a.Min.Z < 0 && a.Min.Z > 0 {
+		// within the xz face
+		d := Min(Abs(a.Max.Y), Abs(a.Min.Y))
+		min_d2 = Min(min_d2, d*d)
+	}
+	if a.Min.Y < 0 && a.Max.Y > 0 && a.Min.Z < 0 && a.Min.Z > 0 {
+		// within the yz face
+		d := Min(Abs(a.Max.X), Abs(a.Min.X))
 		min_d2 = Min(min_d2, d*d)
 	}
 
