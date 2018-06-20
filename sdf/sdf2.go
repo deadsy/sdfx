@@ -664,7 +664,7 @@ func Union2D(sdf ...SDF2) SDF2 {
 }
 
 // Return the minimum distance to the SDF2 union.
-func (s *UnionSDF2) Evaluate_Fast(p V2) float64 {
+func (s *UnionSDF2) Evaluate(p V2) float64 {
 
 	// work out the min/max distance for every bounding box
 	vs := make([]V2, len(s.sdf))
@@ -698,7 +698,7 @@ func (s *UnionSDF2) Evaluate_Fast(p V2) float64 {
 }
 
 // Return the minimum distance to the SDF2 union.
-func (s *UnionSDF2) Evaluate(p V2) float64 {
+func (s *UnionSDF2) Evaluate_Slow(p V2) float64 {
 	var d float64
 	for i := range s.sdf {
 		x := s.sdf[i].Evaluate(p)

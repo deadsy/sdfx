@@ -212,16 +212,21 @@ func (a Box2) MinMaxDist2(p V2) V2 {
 		max_d2 = Max(max_d2, d2)
 	}
 
-	// consider the edges (for the minimum)
-	if a.Min.X < 0 && a.Max.X > 0 {
-		// within the x edge
-		d := Min(Abs(a.Max.Y), Abs(a.Min.Y))
-		min_d2 = Min(min_d2, d*d)
-	}
-	if a.Min.Y < 0 && a.Max.Y > 0 {
-		// within the y edge
-		d := Min(Abs(a.Max.X), Abs(a.Min.X))
-		min_d2 = Min(min_d2, d*d)
+	// consider the sides (for the minimum)
+	within_x := a.Min.X < 0 && a.Max.X > 0
+	within_y := a.Min.Y < 0 && a.Max.Y > 0
+
+	if within_x && within_y {
+		min_d2 = 0
+	} else {
+		if within_x {
+			d := Min(Abs(a.Max.Y), Abs(a.Min.Y))
+			min_d2 = Min(min_d2, d*d)
+		}
+		if within_y {
+			d := Min(Abs(a.Max.X), Abs(a.Min.X))
+			min_d2 = Min(min_d2, d*d)
+		}
 	}
 
 	return V2{min_d2, max_d2}
@@ -248,20 +253,25 @@ func (a Box3) MinMaxDist2(p V3) V2 {
 	}
 
 	// consider the faces (for the minimum)
-	if a.Min.X < 0 && a.Max.X > 0 && a.Min.Y < 0 && a.Min.Y > 0 {
-		// within the xy face
-		d := Min(Abs(a.Max.Z), Abs(a.Min.Z))
-		min_d2 = Min(min_d2, d*d)
-	}
-	if a.Min.X < 0 && a.Max.X > 0 && a.Min.Z < 0 && a.Min.Z > 0 {
-		// within the xz face
-		d := Min(Abs(a.Max.Y), Abs(a.Min.Y))
-		min_d2 = Min(min_d2, d*d)
-	}
-	if a.Min.Y < 0 && a.Max.Y > 0 && a.Min.Z < 0 && a.Min.Z > 0 {
-		// within the yz face
-		d := Min(Abs(a.Max.X), Abs(a.Min.X))
-		min_d2 = Min(min_d2, d*d)
+	within_x := a.Min.X < 0 && a.Max.X > 0
+	within_y := a.Min.Y < 0 && a.Max.Y > 0
+	within_z := a.Min.Z < 0 && a.Max.Z > 0
+
+	if within_x && within_y && within_z {
+		min_d2 = 0
+	} else {
+		if within_x && within_y {
+			d := Min(Abs(a.Max.Z), Abs(a.Min.Z))
+			min_d2 = Min(min_d2, d*d)
+		}
+		if within_x && within_z {
+			d := Min(Abs(a.Max.Y), Abs(a.Min.Y))
+			min_d2 = Min(min_d2, d*d)
+		}
+		if within_y && within_z {
+			d := Min(Abs(a.Max.X), Abs(a.Min.X))
+			min_d2 = Min(min_d2, d*d)
+		}
 	}
 
 	return V2{min_d2, max_d2}

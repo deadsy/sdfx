@@ -1,3 +1,11 @@
+//-----------------------------------------------------------------------------
+/*
+
+Voronoi Diagram and Delaunay Triangulation
+
+*/
+//-----------------------------------------------------------------------------
+
 package main
 
 import (
@@ -5,6 +13,8 @@ import (
 
 	. "github.com/deadsy/sdfx/sdf"
 )
+
+//-----------------------------------------------------------------------------
 
 func main() {
 	// create a random set of vertices
@@ -15,15 +25,16 @@ func main() {
 	path := "voronoi.png"
 
 	// use a 0 radius circle as a point
-	s0 := Circle2D(0.0)
+	point := Circle2D(0.0)
+
 	// build an SDF for the points
-	var s1 SDF2
-	for _, p := range s {
-		s1 = Union2D(s1, Transform2D(s0, Translate2d(p)))
+	var s0 SDF2
+	for i := range s {
+		s0 = Union2D(s0, Transform2D(point, Translate2d(s[i])))
 	}
 
 	// work out the region we will sample
-	bb := s1.BoundingBox().ScaleAboutCenter(k)
+	bb := s0.BoundingBox().ScaleAboutCenter(k)
 
 	fmt.Printf("rendering %s (%dx%d)\n", path, pixels[0], pixels[1])
 	d, err := NewPNG(path, bb, pixels)
@@ -32,7 +43,7 @@ func main() {
 		return
 	}
 
-	d.RenderSDF2(s1)
+	d.RenderSDF2(s0)
 
 	// create the delaunay triangulation
 	ts, _ := s.Delaunay2d()
@@ -43,3 +54,5 @@ func main() {
 
 	d.Save()
 }
+
+//-----------------------------------------------------------------------------
