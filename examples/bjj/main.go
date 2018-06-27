@@ -54,7 +54,7 @@ func bushing() SDF3 {
 // 4 holes to attach the plate to the gear stack.
 func plate_holes_2d() SDF2 {
 	d := 17.0
-	h := Circle2D(0.6)
+	h := Circle2D(1.2)
 	s0 := Transform2D(h, Translate2d(V2{d, d}))
 	s1 := Transform2D(h, Translate2d(V2{-d, -d}))
 	s2 := Transform2D(h, Translate2d(V2{-d, d}))
@@ -62,7 +62,7 @@ func plate_holes_2d() SDF2 {
 	return Union2D(s0, s1, s2, s3)
 }
 
-const rod_r = (1.0 / 16.0) * MM_PER_INCH
+const rod_r = (1.0 / 16.0) * MM_PER_INCH * 1.10
 
 func locking_rod() SDF3 {
 	l := 62.0

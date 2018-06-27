@@ -18,6 +18,7 @@ DIRS = 3dp_nutbolt \
        geneva \
        nordic \
        nutsandbolts \
+       omnikeys \
        phone \
        pool \
        pottery_wheel \
