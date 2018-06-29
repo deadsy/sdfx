@@ -24,14 +24,14 @@ var panel_h2 = 6.5 // major thickness
 
 var b_r0 = 13.0 * 0.5    // major radius
 var b_r1 = 7.0 * 0.5     // minor radius
-var b_h0 = 6.0           // cavity for button body
+var b_h0 = 6.0           // cavity height for button body
 var b_h1 = 1.5           // thru panel thickness
 var b_dv = 22.0          // vertical inter-button distance
 var b_dh = 20.0          // horizontal inter-button distance
 var b_theta = DtoR(20.0) // button angle
 
-const BUTTONS_V = 3
-const BUTTONS_H = 12
+const BUTTONS_V = 3  // number of vertical buttons
+const BUTTONS_H = 12 // number of horizontal buttons
 
 func button_cavity() SDF3 {
 	p := NewPolygon()
@@ -58,10 +58,9 @@ func buttons() SDF3 {
 	d = BUTTONS_H * b_dh
 	p = V3{d, 0, 0}
 	matrix := LineOf3D(col, V3{}, p, strings.Repeat("x", BUTTONS_H))
-
+	// centered on the origin
 	d = (BUTTONS_V - 1) * b_dv
-	//dx := 0.5 * (((BUTTONS_H - 1) * b_dh) + (d * math.Sin(b_theta)))
-	dx := 0.5 * (BUTTONS_H - 1) * b_dh
+	dx := 0.5 * (((BUTTONS_H - 1) * b_dh) - (d * math.Sin(b_theta)))
 	dy := 0.5 * d * math.Cos(b_theta)
 	return Transform3D(matrix, Translate3d(V3{-dx, -dy, 0}))
 }
@@ -69,13 +68,13 @@ func buttons() SDF3 {
 //-----------------------------------------------------------------------------
 
 func panel() SDF3 {
-
 	v := (BUTTONS_V - 1) * b_dv
 	vx := v * math.Sin(b_theta)
 	vy := v * math.Cos(b_theta)
 
 	sx := ((BUTTONS_H-1)*b_dh + vx) * 1.25
 	sy := vy * 2.0
+
 	pp := &PanelParms{
 		Size:         V2{sx, sy},
 		CornerRadius: 5.0,
@@ -96,7 +95,7 @@ func keys() SDF3 {
 //-----------------------------------------------------------------------------
 
 func main() {
-	RenderSTL(keys(), 300, "keys.stl")
+	RenderSTL(keys(), 400, "keys.stl")
 }
 
 //-----------------------------------------------------------------------------
