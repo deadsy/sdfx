@@ -40,7 +40,7 @@ func main() {
 	RenderDXF(s2d, 600, "shape.dxf")
 
 	s3d := ExtrudeRounded3D(s2d, 1.0, 0.2)
-	RenderSTL_New(s3d, 600, "shape.stl")
+	RenderSTL(s3d, 600, "shape.stl")
 }
 
 //-----------------------------------------------------------------------------

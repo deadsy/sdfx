@@ -70,5 +70,5 @@ func main() {
 	m = RotateZ(PI).Mul(m)
 	ex1 := Transform3D(exhaust_3d, m)
 
-	RenderSTL(Union3D(shaft_3d, ex1, in2, in3, ex4), 200, "camshaft.stl")
+	RenderSTL(Union3D(shaft_3d, ex1, in2, in3, ex4), 400, "camshaft.stl")
 }

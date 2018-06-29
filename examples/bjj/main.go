@@ -145,9 +145,9 @@ func gears() SDF3 {
 //-----------------------------------------------------------------------------
 
 func main() {
-	RenderSTL_New(bushing(), 100, "bushing.stl")
-	RenderSTL_New(gears(), 300, "gear.stl")
-	RenderSTL_New(plate(), 300, "plate.stl")
+	RenderSTL(bushing(), 100, "bushing.stl")
+	RenderSTL(gears(), 300, "gear.stl")
+	RenderSTL(plate(), 300, "plate.stl")
 }
 
 //-----------------------------------------------------------------------------
