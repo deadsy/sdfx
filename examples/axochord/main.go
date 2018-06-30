@@ -17,11 +17,6 @@ import (
 
 //-----------------------------------------------------------------------------
 
-var panel_h1 = 1.5 // minor thickness
-var panel_h2 = 6.5 // major thickness
-
-//-----------------------------------------------------------------------------
-
 var b_r0 = 13.0 * 0.5    // major radius
 var b_r1 = 7.0 * 0.5     // minor radius
 var b_h0 = 6.0           // cavity height for button body
@@ -30,8 +25,8 @@ var b_dv = 22.0          // vertical inter-button distance
 var b_dh = 20.0          // horizontal inter-button distance
 var b_theta = DtoR(20.0) // button angle
 
-const BUTTONS_V = 3  // number of vertical buttons
-const BUTTONS_H = 12 // number of horizontal buttons
+const BUTTONS_V = 3 // number of vertical buttons
+const BUTTONS_H = 3 //12 // number of horizontal buttons
 
 func button_cavity() SDF3 {
 	p := NewPolygon()
@@ -72,8 +67,8 @@ func panel() SDF3 {
 	vx := v * math.Sin(b_theta)
 	vy := v * math.Cos(b_theta)
 
-	sx := ((BUTTONS_H-1)*b_dh + vx) * 1.25
-	sy := vy * 2.0
+	sx := ((BUTTONS_H-1)*b_dh + vx) * 1.5
+	sy := vy * 1.9
 
 	pp := &PanelParms{
 		Size:         V2{sx, sy},
@@ -88,14 +83,13 @@ func panel() SDF3 {
 
 //-----------------------------------------------------------------------------
 
-func keys() SDF3 {
-	return Difference3D(panel(), buttons())
-}
-
-//-----------------------------------------------------------------------------
-
 func main() {
-	RenderSTL(keys(), 400, "keys.stl")
+	s := Difference3D(panel(), buttons())
+	upper := Cut3D(s, V3{}, V3{0, 0, 1})
+	lower := Cut3D(s, V3{}, V3{0, 0, -1})
+
+	RenderSTL(upper, 400, "upper.stl")
+	RenderSTL(lower, 400, "lower.stl")
 }
 
 //-----------------------------------------------------------------------------
