@@ -32,6 +32,14 @@ func main() {
 	m = RotateY(-0.25 * math.Pi).Mul(m)
 	m = Translate3d(V3{0, 0, utronRadius}).Mul(m)
 	baseCutout = Transform3D(baseCutout, m)
+	side := magnetDiam + 2*metalMargin
+	big := 10 * utronEdge
+	boxCutout := Box3D(V3{side, big, side}, 0)
+	m = Translate3d(V3{0, 0.5 * big, -0.5*side - 2*magnetHeight + ssHeight + metalMargin})
+	m = RotateY(-0.25 * math.Pi).Mul(m)
+	m = Translate3d(V3{0, 0, utronRadius}).Mul(m)
+	boxCutout = Transform3D(boxCutout, m)
+	baseCutout = Union3D(baseCutout, boxCutout)
 	base = Difference3D(base, baseCutout)
 
 	halfUtron := half_utron.HalfUtron(utronEdge)
