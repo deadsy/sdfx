@@ -59,13 +59,14 @@ func main() {
 	m = Translate3d(V3{0, 0, utronRadius}).Mul(m)
 	halfMagnetUpper := Transform3D(halfMagnet, m)
 
-	magnet1 := Cylinder3D(magnetHeight, 0.5*magnetDiam, 1)
+	trim := 1.0 // To separate each magnet into its own piece and prevent merging.
+	magnet1 := Cylinder3D(magnetHeight-trim, 0.5*magnetDiam, 1)
 	magnet1 = Transform3D(magnet1, Translate3d(V3{0, 0, -1.5 * magnetHeight}))
-	magnet2 := Cylinder3D(magnetHeight, 0.5*magnetDiam, 1)
+	magnet2 := Cylinder3D(magnetHeight-trim, 0.5*magnetDiam, 1)
 	magnet2 = Transform3D(magnet2, Translate3d(V3{0, 0, -0.5 * magnetHeight}))
-	magnet3 := Cylinder3D(magnetHeight, 0.5*magnetDiam, 1)
+	magnet3 := Cylinder3D(magnetHeight-trim, 0.5*magnetDiam, 1)
 	magnet3 = Transform3D(magnet3, Translate3d(V3{0, 0, 0.5 * magnetHeight}))
-	magnet4 := Cylinder3D(magnetHeight, 0.5*magnetDiam, 1)
+	magnet4 := Cylinder3D(magnetHeight-trim, 0.5*magnetDiam, 1)
 	magnet4 = Transform3D(magnet4, Translate3d(V3{0, 0, 1.5 * magnetHeight}))
 	magnets := Union3D(magnet1, magnet2, magnet3, magnet4)
 	m = Translate3d(V3{-innerGap - magnetDiam, 0, 0})
