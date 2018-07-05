@@ -7,13 +7,8 @@ import (
 )
 
 // All dimensions in mm
-const (
-	magnetMargin = 10.0
-	gapWidth     = 50.0
-	magnetHeight = 101.6
-)
 
-func HalfMagnet(innerGap, magnetDiam float64) SDF3 {
+func HalfMagnet(utronEdge, innerGap, magnetDiam, magnetHeight, magnetMargin float64) SDF3 {
 	r := 0.5 * (innerGap + magnetDiam)
 	torus := torus3D(0.5*magnetDiam, r)
 	block := Box3D(V3{4 * r, 2 * r, 2 * r}, 0)
@@ -21,7 +16,7 @@ func HalfMagnet(innerGap, magnetDiam float64) SDF3 {
 	halfTorus := Difference3D(torus, block)
 
 	// straight section
-	ssHeight := 0.5*(magnetHeight-gapWidth) - magnetMargin
+	ssHeight := 0.5*(4*magnetHeight-utronEdge) - magnetMargin
 	// Add overlap to avoid chamfer at join
 	overlap := 1.0
 	ss := Cylinder3D(ssHeight+overlap, 0.5*magnetDiam, 0)

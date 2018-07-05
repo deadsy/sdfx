@@ -17,20 +17,30 @@ const (
 	magnetHeight = 25.4
 	innerGap     = 70.0
 	magnetDiam   = 50.8
+	metalMargin  = 0.5
+	magnetMargin = 10.0
 )
 
 func main() {
 	utronRadius := 0.5 * math.Sqrt(2*utronEdge*utronEdge)
 
 	base := enclosure.Base(utronEdge)
+	ch := 4 * magnetHeight
+	baseCutout := Cylinder3D(ch, 0.5*magnetDiam+metalMargin, 1)
+	ssHeight := 0.5*(4*magnetHeight-utronEdge) - magnetMargin
+	m := Translate3d(V3{0, 0, -0.5*ch - 2*magnetHeight + ssHeight + metalMargin})
+	m = RotateY(-0.25 * math.Pi).Mul(m)
+	m = Translate3d(V3{0, 0, utronRadius}).Mul(m)
+	baseCutout = Transform3D(baseCutout, m)
+	base = Difference3D(base, baseCutout)
 
 	halfUtron := half_utron.HalfUtron(utronEdge)
 	utronLower := Transform3D(halfUtron, RotateX(math.Pi))
 	utronLower = Transform3D(utronLower, Translate3d(V3{0, 0, utronRadius}))
 	utronUpper := Transform3D(halfUtron, Translate3d(V3{0, 0, utronRadius}))
 
-	halfMagnet := half_magnet.HalfMagnet(innerGap, magnetDiam)
-	m := RotateX(0.5 * math.Pi)
+	halfMagnet := half_magnet.HalfMagnet(utronEdge, innerGap, magnetDiam, magnetHeight, magnetMargin)
+	m = RotateX(0.5 * math.Pi)
 	m = Translate3d(V3{-0.5 * (innerGap + magnetDiam), 0, -2 * magnetHeight}).Mul(m)
 	m = RotateY(-0.25 * math.Pi).Mul(m)
 	m = Translate3d(V3{0, 0, utronRadius}).Mul(m)
