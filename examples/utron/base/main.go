@@ -10,8 +10,9 @@ import (
 
 // All dimensions in mm
 const (
-	utronEdge   = 50.0
-	utronMargin = 5.0
+	utronEdge     = 50.0
+	utronMargin   = 5.0
+	dielectricGap = 1.5
 
 	magnetMargin = 10.0
 	gapWidth     = 50.0
@@ -87,11 +88,111 @@ func main() {
 	bearingCutout := Union3D(bearing, access)
 
 	s := Difference3D(box, bearingCutout)
-	RenderSTL(s, 200, "base.stl")
+	RenderSTL(s, 400, "base.stl")
 }
 
 func addBolt(box SDF3, height float64, basePos V3) SDF3 {
-	shaft := Cylinder3D(height, 0.5*boltDiam, 0)
-	shaft = Transform3D(shaft, Translate3d(basePos.Add(V3{0, 0, 0.5 * height})))
-	return Union3D(box, shaft)
+	// shaft := Cylinder3D(height, 0.5*boltDiam, 0)
+	// shaft = Transform3D(shaft, Translate3d(basePos.Add(V3{0, 0, 0.5 * height})))
+	h := dielectricGap + 1.5*boltHeight
+	// threads := Cylinder3D(h, 0.5*boltDiam, 0)
+	// threads = Transform3D(threads, Translate3d(basePos.Add(V3{0, 0, 0.5*h + height})))
+	// bolt := Union3D(shaft, threads)
+
+	overlap := 1.0 // remove chamfer at connection point
+	bolt := Nut_And_Bolt("M12x1.5", 0, overlap+height+h, overlap+height)
+	bolt = Transform3D(bolt, Translate3d(basePos.Add(V3{0, 0, -overlap})))
+
+	return Union3D(box, bolt)
+}
+
+//////////////////////////////////////////////////////////////////////
+// Nuts and bolts taken from nutsandbolts example
+//////////////////////////////////////////////////////////////////////
+
+func Hex_Bolt(
+	name string, // name of thread
+	tolerance float64, // subtract from external thread radius
+	total_length float64, // threaded length + shank length
+	shank_length float64, //  non threaded length
+) SDF3 {
+
+	t := ThreadLookup(name)
+
+	if total_length < 0 {
+		return nil
+	}
+	if shank_length < 0 {
+		return nil
+	}
+	thread_length := total_length - shank_length
+	if thread_length < 0 {
+		thread_length = 0
+	}
+
+	// 	// hex head
+	hex_r := t.Hex_Radius()
+	// hex_h := t.Hex_Height()
+	// hex_3d := HexHead3D(hex_r, hex_h, "b")
+	//
+	// 	// add a rounded cylinder
+	// 	hex_3d = Union3D(hex_3d, Cylinder3D(hex_h*1.05, hex_r*0.8, hex_r*0.08))
+
+	// shank
+	// shank_length += hex_h / 2
+	shank_ofs := shank_length / 2
+	shank_3d := Cylinder3D(shank_length, t.Radius, hex_r*0.08)
+	shank_3d = Transform3D(shank_3d, Translate3d(V3{0, 0, shank_ofs}))
+
+	// thread
+	r := t.Radius - tolerance
+	l := thread_length
+	screw_ofs := l/2 + shank_length
+	screw_3d := Screw3D(ISOThread(r, t.Pitch, "external"), l, t.Pitch, 1)
+	// chamfer the thread
+	screw_3d = Chamfered_Cylinder(screw_3d, 0, 0.5)
+	screw_3d = Transform3D(screw_3d, Translate3d(V3{0, 0, screw_ofs}))
+
+	// return Union3D(hex_3d, screw_3d, shank_3d)
+	return Union3D(screw_3d, shank_3d)
+}
+
+//-----------------------------------------------------------------------------
+
+// Return a Hex Nut
+func Hex_Nut(
+	name string, // name of thread
+	tolerance float64, // add to internal thread radius
+	height float64, // height of nut
+) SDF3 {
+
+	t := ThreadLookup(name)
+
+	if height < 0 {
+		return nil
+	}
+
+	// hex nut body
+	hex_3d := HexHead3D(t.Hex_Radius(), height, "tb")
+
+	// internal thread
+	thread_3d := Screw3D(ISOThread(t.Radius+tolerance, t.Pitch, "internal"), height, t.Pitch, 1)
+
+	return Difference3D(hex_3d, thread_3d)
+}
+
+//-----------------------------------------------------------------------------
+
+func Nut_And_Bolt(
+	name string, // name of thread
+	tolerance float64, // thread tolerance
+	total_length float64, // threaded length + shank length
+	shank_length float64, //  non threaded length
+) SDF3 {
+	t := ThreadLookup(name)
+	bolt_3d := Hex_Bolt(name, tolerance, total_length, shank_length)
+	nut_3d := Hex_Nut(name, tolerance, t.Hex_Height()/1.5)
+	z_ofs := total_length + t.Hex_Height() + 0.25
+	nut_3d = Transform3D(nut_3d, Translate3d(V3{0, 0, z_ofs}))
+	return Union3D(nut_3d, bolt_3d)
 }
