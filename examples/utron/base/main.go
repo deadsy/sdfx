@@ -22,10 +22,11 @@ const (
 	baseHeight    = 11.0
 	wallThickness = 16.0
 
-	bearingHeight   = 5.0
-	bearingDiam     = 14.0
-	bearingMargin   = 0.75
-	bearingOverhang = 2.0
+	bearingHeight     = 5.0
+	bearingDiam       = 14.0
+	bearingMarginDiam = 0.75
+	bearingMarginZ    = 0.5
+	bearingOverhang   = 2.0
 
 	boltDiam   = 0.75 * wallThickness
 	boltHeight = 10.0
@@ -68,7 +69,13 @@ func main() {
 	h = 0.5*utronDiam + 2*baseHeight
 	box = addBolt(box, h, V3{-0.5 * (outside - wallThickness), -0.5 * (outside - wallThickness), cutPosZ})
 
-	bearing := Cylinder3D(bearingHeight, 0.5*(bearingDiam+bearingMargin), 0)
+	// air duct.
+	airDuct := Cylinder3D(outside, utronDiam/6, 0)
+	airDuct = Transform3D(airDuct, RotateX(0.5*math.Pi))
+	airDuct = Transform3D(airDuct, Translate3d(V3{0.25 * outside, 0, boxTopZ - utronDiam/3}))
+	box = Difference3D(box, airDuct)
+
+	bearing := Cylinder3D(bearingHeight+2*bearingMarginZ, 0.5*(bearingDiam+bearingMarginDiam), 0)
 	access := Cylinder3D(wallThickness, 0.5*(bearingDiam-bearingOverhang), 0)
 	access = Transform3D(access, Translate3d(V3{0, 0, -0.5 * wallThickness}))
 	bearingCutout := Union3D(bearing, access)
