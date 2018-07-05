@@ -1,6 +1,4 @@
-// -*- compile-command: "go build && ./base && fstl base.stl"; -*-
-
-package main
+package enclosure
 
 import (
 	"math"
@@ -10,7 +8,6 @@ import (
 
 // All dimensions in mm
 const (
-	utronEdge     = 50.0
 	utronMargin   = 5.0
 	dielectricGap = 1.5
 
@@ -33,7 +30,7 @@ const (
 	boltHeight = 10.0
 )
 
-func main() {
+func Base(utronEdge float64) SDF3 {
 	utronDiam := math.Sqrt(2 * utronEdge * utronEdge)
 
 	// center of lower bearing is the origin.
@@ -87,8 +84,7 @@ func main() {
 	access = Transform3D(access, Translate3d(V3{0, 0, -0.5 * wallThickness}))
 	bearingCutout := Union3D(bearing, access)
 
-	s := Difference3D(box, bearingCutout)
-	RenderSTL(s, 400, "base.stl")
+	return Difference3D(box, bearingCutout)
 }
 
 func addBolt(box SDF3, height float64, basePos V3) SDF3 {

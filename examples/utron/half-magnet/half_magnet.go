@@ -1,6 +1,4 @@
-// -*- compile-command: "go build && ./half-magnet && fstl half-magnet.stl"; -*-
-
-package main
+package half_magnet
 
 import (
 	"math"
@@ -12,12 +10,10 @@ import (
 const (
 	magnetMargin = 10.0
 	gapWidth     = 50.0
-	innerGap     = 70.0
 	magnetHeight = 101.6
-	magnetDiam   = 50.8
 )
 
-func main() {
+func HalfMagnet(innerGap, magnetDiam float64) SDF3 {
 	r := 0.5 * (innerGap + magnetDiam)
 	torus := torus3D(0.5*magnetDiam, r)
 	block := Box3D(V3{4 * r, 2 * r, 2 * r}, 0)
@@ -26,12 +22,13 @@ func main() {
 
 	// straight section
 	ssHeight := 0.5*(magnetHeight-gapWidth) - magnetMargin
-	ss := Cylinder3D(ssHeight, 0.5*magnetDiam, 0)
+	// Add overlap to avoid chamfer at join
+	overlap := 1.0
+	ss := Cylinder3D(ssHeight+overlap, 0.5*magnetDiam, 0)
 	ss = Transform3D(ss, RotateX(0.5*math.Pi))
-	ss = Transform3D(ss, Translate3d(V3{r, 0.5 * ssHeight, 0}))
+	ss = Transform3D(ss, Translate3d(V3{r, 0.5*ssHeight - overlap, 0}))
 
-	s := Union3D(halfTorus, ss)
-	RenderSTL(s, 200, "half-magnet.stl")
+	return Union3D(halfTorus, ss)
 }
 
 func torus3D(minorRadius, majorRadius float64) SDF3 {

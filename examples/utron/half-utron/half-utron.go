@@ -1,6 +1,4 @@
-// -*- compile-command: "go build && ./half-utron && fstl half-utron.stl"; -*-
-
-package main
+package half_utron
 
 import (
 	"math"
@@ -8,10 +6,12 @@ import (
 	. "github.com/deadsy/sdfx/sdf"
 )
 
-const utronEdge = 50.0   // mm
-const minThickness = 3.0 // mm
+// All dimensions in mm
+const (
+	minThickness = 3.0
+)
 
-func main() {
+func HalfUtron(utronEdge float64) SDF3 {
 	cr := math.Sqrt(0.5 * utronEdge * utronEdge)
 	cone := Cone3D(cr, 0, cr, 0.5)
 	cone = Transform3D(cone, Rotate3d(V3{1, 0, 0}, math.Pi))
@@ -20,6 +20,5 @@ func main() {
 	sd := utronEdge - 2.0*minThickness
 	sphere := Sphere3D(0.5 * sd)
 
-	s := Difference3D(cone, sphere)
-	RenderSTL(s, 200, "half-utron.stl")
+	return Difference3D(cone, sphere)
 }
