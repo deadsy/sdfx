@@ -69,11 +69,17 @@ func main() {
 	h = 0.5*utronDiam + 2*baseHeight
 	box = addBolt(box, h, V3{-0.5 * (outside - wallThickness), -0.5 * (outside - wallThickness), cutPosZ})
 
-	// air duct.
+	// air ducts.
 	airDuct := Cylinder3D(outside, utronDiam/6, 0)
 	airDuct = Transform3D(airDuct, RotateX(0.5*math.Pi))
 	airDuct = Transform3D(airDuct, Translate3d(V3{0.25 * outside, 0, boxTopZ - utronDiam/3}))
 	box = Difference3D(box, airDuct)
+	sideDuct := Cylinder3D(outside, utronDiam/6, 0)
+	sideDuct = Transform3D(sideDuct, RotateY(0.5*math.Pi))
+	sideDuct1 := Transform3D(sideDuct, Translate3d(V3{0, -0.25 * (outside - wallThickness), boxTopZ - utronDiam/3}))
+	sideDuct2 := Transform3D(sideDuct, Translate3d(V3{0, 0.25 * (outside - wallThickness), boxTopZ - utronDiam/3}))
+	box = Difference3D(box, sideDuct1)
+	box = Difference3D(box, sideDuct2)
 
 	bearing := Cylinder3D(bearingHeight+2*bearingMarginZ, 0.5*(bearingDiam+bearingMarginDiam), 0)
 	access := Cylinder3D(wallThickness, 0.5*(bearingDiam-bearingOverhang), 0)
