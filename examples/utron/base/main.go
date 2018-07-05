@@ -3,7 +3,6 @@
 package main
 
 import (
-	"log"
 	"math"
 
 	. "github.com/deadsy/sdfx/sdf"
@@ -47,7 +46,8 @@ func main() {
 	box = Transform3D(box, Translate3d(V3{0, 0, 0.5 * bearingHeight}))
 	// left cutout
 	cutBox := Box3D(V3{outside, outside, outside}, 0)
-	cutBox = Transform3D(cutBox, Translate3d(V3{-0.5 * outside, 0, 0.5*outside + 0.5*utronDiam - baseHeight}))
+	cutPosZ := 0.5*utronDiam - baseHeight
+	cutBox = Transform3D(cutBox, Translate3d(V3{-0.5 * outside, 0, 0.5*outside + cutPosZ}))
 	box = Difference3D(box, cutBox)
 	// lower magnet brace
 	dx := math.Sqrt(2 * utronMargin * utronMargin)
@@ -58,12 +58,15 @@ func main() {
 	// prism = Transform3D(prism,
 	box = Union3D(box, prism)
 
-	boxTopZ := 0.5*bearingHeight + utronDiam
-	box = addBolt(box, V3{0.5 * wallThickness, -0.5 * (outside - wallThickness), boxTopZ})
-	box = addBolt(box, V3{0.5 * (outside - wallThickness), -0.5 * (outside - wallThickness), boxTopZ})
-	box = addBolt(box, V3{0.5 * wallThickness, 0.5 * (outside - wallThickness), boxTopZ})
-	box = addBolt(box, V3{0.5 * (outside - wallThickness), 0.5 * (outside - wallThickness), boxTopZ})
-	box = addBolt(box, V3{0.5 * (outside - wallThickness), 0, boxTopZ})
+	boxTopZ := utronDiam - bearingHeight
+	h := baseHeight + bearingHeight
+	box = addBolt(box, h, V3{0.5 * wallThickness, -0.5 * (outside - wallThickness), boxTopZ})
+	box = addBolt(box, h, V3{0.5 * (outside - wallThickness), -0.5 * (outside - wallThickness), boxTopZ})
+	box = addBolt(box, h, V3{0.5 * wallThickness, 0.5 * (outside - wallThickness), boxTopZ})
+	box = addBolt(box, h, V3{0.5 * (outside - wallThickness), 0.5 * (outside - wallThickness), boxTopZ})
+	box = addBolt(box, h, V3{0.5 * (outside - wallThickness), 0, boxTopZ})
+	h = 0.5*utronDiam + 2*baseHeight
+	box = addBolt(box, h, V3{-0.5 * (outside - wallThickness), -0.5 * (outside - wallThickness), cutPosZ})
 
 	bearing := Cylinder3D(bearingHeight, 0.5*(bearingDiam+bearingMargin), 0)
 	access := Cylinder3D(wallThickness, 0.5*(bearingDiam-bearingOverhang), 0)
@@ -74,9 +77,8 @@ func main() {
 	RenderSTL(s, 200, "base.stl")
 }
 
-func addBolt(box SDF3, basePos V3) SDF3 {
-	log.Printf("basePos=%v", basePos)
-	shaft := Cylinder3D(boltHeight, 0.5*boltDiam, 0)
-	shaft = Transform3D(shaft, Translate3d(basePos.Add(V3{0, 0, -0.5 * boltHeight})))
+func addBolt(box SDF3, height float64, basePos V3) SDF3 {
+	shaft := Cylinder3D(height, 0.5*boltDiam, 0)
+	shaft = Transform3D(shaft, Translate3d(basePos.Add(V3{0, 0, 0.5 * height})))
 	return Union3D(box, shaft)
 }
