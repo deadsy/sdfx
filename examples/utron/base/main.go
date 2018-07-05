@@ -3,6 +3,7 @@
 package main
 
 import (
+	"log"
 	"math"
 
 	. "github.com/deadsy/sdfx/sdf"
@@ -26,6 +27,9 @@ const (
 	bearingDiam     = 14.0
 	bearingMargin   = 0.75
 	bearingOverhang = 2.0
+
+	boltDiam   = 0.75 * wallThickness
+	boltHeight = 10.0
 )
 
 func main() {
@@ -54,6 +58,13 @@ func main() {
 	// prism = Transform3D(prism,
 	box = Union3D(box, prism)
 
+	boxTopZ := 0.5*bearingHeight + utronDiam
+	box = addBolt(box, V3{0.5 * wallThickness, -0.5 * (outside - wallThickness), boxTopZ})
+	box = addBolt(box, V3{0.5 * (outside - wallThickness), -0.5 * (outside - wallThickness), boxTopZ})
+	box = addBolt(box, V3{0.5 * wallThickness, 0.5 * (outside - wallThickness), boxTopZ})
+	box = addBolt(box, V3{0.5 * (outside - wallThickness), 0.5 * (outside - wallThickness), boxTopZ})
+	box = addBolt(box, V3{0.5 * (outside - wallThickness), 0, boxTopZ})
+
 	bearing := Cylinder3D(bearingHeight, 0.5*(bearingDiam+bearingMargin), 0)
 	access := Cylinder3D(wallThickness, 0.5*(bearingDiam-bearingOverhang), 0)
 	access = Transform3D(access, Translate3d(V3{0, 0, -0.5 * wallThickness}))
@@ -61,4 +72,11 @@ func main() {
 
 	s := Difference3D(box, bearingCutout)
 	RenderSTL(s, 200, "base.stl")
+}
+
+func addBolt(box SDF3, basePos V3) SDF3 {
+	log.Printf("basePos=%v", basePos)
+	shaft := Cylinder3D(boltHeight, 0.5*boltDiam, 0)
+	shaft = Transform3D(shaft, Translate3d(basePos.Add(V3{0, 0, -0.5 * boltHeight})))
+	return Union3D(box, shaft)
 }
