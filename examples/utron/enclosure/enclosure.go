@@ -39,7 +39,46 @@ func Top(utronEdge float64) SDF3 {
 	box := Box3D(V3{outside, outside, boxHeight}, 0)
 	box = Transform3D(box, Translate3d(V3{0, 0, utronDiam + 0.5*boxHeight - 0.5*bearingHeight}))
 
+	big := 10 * utronDiam
+	cyl := Cylinder3D(big, 0.5*(boltDiam+1), 0)
+	cyl1 := Transform3D(cyl, Translate3d(hole1(outside, utronDiam)))
+	box = Difference3D(box, cyl1)
+	cyl2 := Transform3D(cyl, Translate3d(hole2(outside, utronDiam)))
+	box = Difference3D(box, cyl2)
+	cyl3 := Transform3D(cyl, Translate3d(hole3(outside, utronDiam)))
+	box = Difference3D(box, cyl3)
+	cyl4 := Transform3D(cyl, Translate3d(hole4(outside, utronDiam)))
+	box = Difference3D(box, cyl4)
+	cyl5 := Transform3D(cyl, Translate3d(hole5(outside, utronDiam)))
+	box = Difference3D(box, cyl5)
+	cyl6 := Transform3D(cyl, Translate3d(hole6(outside, utronDiam)))
+	box = Difference3D(box, cyl6)
+
 	return box
+}
+
+func hole1(outside, z float64) V3 {
+	return V3{0.5 * wallThickness, -0.5 * (outside - wallThickness), z}
+}
+
+func hole2(outside, z float64) V3 {
+	return V3{0.5 * (outside - wallThickness), -0.5 * (outside - wallThickness), z}
+}
+
+func hole3(outside, z float64) V3 {
+	return V3{0.5 * wallThickness, 0.5 * (outside - wallThickness), z}
+}
+
+func hole4(outside, z float64) V3 {
+	return V3{0.5 * (outside - wallThickness), 0.5 * (outside - wallThickness), z}
+}
+
+func hole5(outside, z float64) V3 {
+	return V3{0.5 * (outside - wallThickness), 0, z}
+}
+
+func hole6(outside, z float64) V3 {
+	return V3{-0.5 * (outside - wallThickness), -0.5 * (outside - wallThickness), z}
 }
 
 func Base(utronEdge float64) SDF3 {
@@ -71,13 +110,13 @@ func Base(utronEdge float64) SDF3 {
 
 	boxTopZ := utronDiam - bearingHeight
 	h := baseHeight + bearingHeight
-	box = addBolt(box, h, V3{0.5 * wallThickness, -0.5 * (outside - wallThickness), boxTopZ})
-	box = addBolt(box, h, V3{0.5 * (outside - wallThickness), -0.5 * (outside - wallThickness), boxTopZ})
-	box = addBolt(box, h, V3{0.5 * wallThickness, 0.5 * (outside - wallThickness), boxTopZ})
-	box = addBolt(box, h, V3{0.5 * (outside - wallThickness), 0.5 * (outside - wallThickness), boxTopZ})
-	box = addBolt(box, h, V3{0.5 * (outside - wallThickness), 0, boxTopZ})
+	box = addBolt(box, h, hole1(outside, boxTopZ))
+	box = addBolt(box, h, hole2(outside, boxTopZ))
+	box = addBolt(box, h, hole3(outside, boxTopZ))
+	box = addBolt(box, h, hole4(outside, boxTopZ))
+	box = addBolt(box, h, hole5(outside, boxTopZ))
 	h = 0.5*utronDiam + 2*baseHeight
-	box = addBolt(box, h, V3{-0.5 * (outside - wallThickness), -0.5 * (outside - wallThickness), cutPosZ})
+	box = addBolt(box, h, hole6(outside, cutPosZ))
 
 	// air ducts.
 	airDuct := Cylinder3D(outside, utronDiam/6, 0)
