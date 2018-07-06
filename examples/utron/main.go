@@ -107,4 +107,12 @@ func main() {
 
 	s := Union3D(base, utronLower, utronUpper, halfMagnetLower, halfMagnetUpper, magnets, top)
 	RenderSTL(s, 800, "utron.stl")
+
+	// Write out separate parts.
+	RenderSTL(base, 800, "base.stl")
+	RenderSTL(top, 800, "top.stl")
+	RenderSTL(utronLower, 800, "utron-lower.stl")
+	RenderSTL(utronUpper, 800, "utron-upper.stl")
+	RenderSTL(halfMagnetLower, 800, "magnet-lower.stl")
+	RenderSTL(halfMagnetUpper, 800, "magnet-upper.stl")
 }
