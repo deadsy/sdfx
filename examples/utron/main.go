@@ -21,11 +21,33 @@ const (
 	magnetMargin = 10.0
 )
 
-func main() {
-	utronRadius := 0.5 * math.Sqrt(2*utronEdge*utronEdge)
+var (
+	utronRadius = 0.5 * math.Sqrt(2*utronEdge*utronEdge)
+)
 
+func top() SDF3 {
 	top := enclosure.Top(utronEdge)
+	ch := 4 * magnetHeight
+	topCutout := Cylinder3D(ch, 0.5*magnetDiam+metalMargin, 1)
+	ssHeight := 0.5*(4*magnetHeight-utronEdge) - magnetMargin
+	m := Translate3d(V3{0, 0, 0.5*ch + 2*magnetHeight - ssHeight - metalMargin})
+	m = RotateY(-0.25 * math.Pi).Mul(m)
+	m = Translate3d(V3{0, 0, utronRadius}).Mul(m)
+	topCutout = Transform3D(topCutout, m)
+	side := magnetDiam + 2*metalMargin
+	big := 10 * utronEdge
+	boxCutout := Box3D(V3{side, big, side}, 0)
+	m = Translate3d(V3{0, 0.5 * big, 0.5*side + 2*magnetHeight - ssHeight - metalMargin})
+	m = RotateY(-0.25 * math.Pi).Mul(m)
+	m = Translate3d(V3{0, 0, utronRadius}).Mul(m)
+	boxCutout = Transform3D(boxCutout, m)
+	topCutout = Union3D(topCutout, boxCutout)
+	top = Difference3D(top, topCutout)
 
+	return top
+}
+
+func base() SDF3 {
 	base := enclosure.Base(utronEdge)
 	ch := 4 * magnetHeight
 	baseCutout := Cylinder3D(ch, 0.5*magnetDiam+metalMargin, 1)
@@ -44,13 +66,20 @@ func main() {
 	baseCutout = Union3D(baseCutout, boxCutout)
 	base = Difference3D(base, baseCutout)
 
+	return base
+}
+
+func main() {
+	top := top()
+	base := base()
+
 	halfUtron := half_utron.HalfUtron(utronEdge)
 	utronLower := Transform3D(halfUtron, RotateX(math.Pi))
 	utronLower = Transform3D(utronLower, Translate3d(V3{0, 0, utronRadius}))
 	utronUpper := Transform3D(halfUtron, Translate3d(V3{0, 0, utronRadius}))
 
 	halfMagnet := half_magnet.HalfMagnet(utronEdge, innerGap, magnetDiam, magnetHeight, magnetMargin)
-	m = RotateX(0.5 * math.Pi)
+	m := RotateX(0.5 * math.Pi)
 	m = Translate3d(V3{-0.5 * (innerGap + magnetDiam), 0, -2 * magnetHeight}).Mul(m)
 	m = RotateY(-0.25 * math.Pi).Mul(m)
 	m = Translate3d(V3{0, 0, utronRadius}).Mul(m)
@@ -77,5 +106,5 @@ func main() {
 	magnets = Transform3D(magnets, m)
 
 	s := Union3D(base, utronLower, utronUpper, halfMagnetLower, halfMagnetUpper, magnets, top)
-	RenderSTL(s, 400, "utron.stl")
+	RenderSTL(s, 800, "utron.stl")
 }
