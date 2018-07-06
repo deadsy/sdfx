@@ -30,6 +30,18 @@ const (
 	boltHeight = 10.0
 )
 
+func Top(utronEdge float64) SDF3 {
+	utronDiam := math.Sqrt(2 * utronEdge * utronEdge)
+
+	inside := utronDiam + 2*utronMargin
+	outside := inside + 2*wallThickness
+	boxHeight := baseHeight + 0.5*bearingHeight
+	box := Box3D(V3{outside, outside, boxHeight}, 0)
+	box = Transform3D(box, Translate3d(V3{0, 0, utronDiam + 0.5*boxHeight - 0.5*bearingHeight}))
+
+	return box
+}
+
 func Base(utronEdge float64) SDF3 {
 	utronDiam := math.Sqrt(2 * utronEdge * utronEdge)
 

@@ -24,6 +24,8 @@ const (
 func main() {
 	utronRadius := 0.5 * math.Sqrt(2*utronEdge*utronEdge)
 
+	top := enclosure.Top(utronEdge)
+
 	base := enclosure.Base(utronEdge)
 	ch := 4 * magnetHeight
 	baseCutout := Cylinder3D(ch, 0.5*magnetDiam+metalMargin, 1)
@@ -74,6 +76,6 @@ func main() {
 	m = Translate3d(V3{0, 0, utronRadius}).Mul(m)
 	magnets = Transform3D(magnets, m)
 
-	s := Union3D(base, utronLower, utronUpper, halfMagnetLower, halfMagnetUpper, magnets)
+	s := Union3D(base, utronLower, utronUpper, halfMagnetLower, halfMagnetUpper, magnets, top)
 	RenderSTL(s, 400, "utron.stl")
 }
