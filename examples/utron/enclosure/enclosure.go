@@ -39,6 +39,12 @@ func Top(utronEdge float64) SDF3 {
 	box := Box3D(V3{outside, outside, boxHeight}, 0)
 	box = Transform3D(box, Translate3d(V3{0, 0, utronDiam + 0.5*boxHeight - 0.5*bearingHeight}))
 
+	dx := 3.0
+	wallHeight := 0.5*utronDiam + baseHeight - 0.5*bearingHeight
+	walls := Box3D(V3{0.5*outside - dx, outside, wallHeight}, 0)
+	walls = Transform3D(walls, Translate3d(V3{-0.25*outside - 0.5*dx, 0, utronDiam - 0.5*wallHeight}))
+	box = Union3D(box, walls)
+
 	big := 10 * utronDiam
 	cyl := Cylinder3D(big, 0.5*(boltDiam+1), 0)
 	cyl1 := Transform3D(cyl, Translate3d(hole1(outside, utronDiam)))
