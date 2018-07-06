@@ -78,7 +78,13 @@ func Top(utronEdge float64) SDF3 {
 	box = Difference3D(box, topDuct1)
 	box = Difference3D(box, topDuct2)
 
-	return box
+	bearing := Cylinder3D(bearingHeight+2*bearingMarginZ, 0.5*(bearingDiam+bearingMarginDiam), 0)
+	bearing = Transform3D(bearing, Translate3d(V3{0, 0, utronDiam}))
+	access := Cylinder3D(wallThickness, 0.5*(bearingDiam-bearingOverhang), 0)
+	access = Transform3D(access, Translate3d(V3{0, 0, utronDiam + 0.5*wallThickness}))
+	bearingCutout := Union3D(bearing, access)
+
+	return Difference3D(box, bearingCutout)
 }
 
 func hole1(outside, z float64) V3 {
