@@ -48,6 +48,14 @@ func Top(utronEdge float64) SDF3 {
 	wallCutout = Transform3D(wallCutout, Translate3d(V3{0, 0, utronDiam - 0.5*wallHeight - 0.5*bearingHeight}))
 	box = Difference3D(box, wallCutout)
 
+	// upper magnet brace
+	dx = math.Sqrt(2 * utronMargin * utronMargin)
+	ts := 0.5*outside - wallThickness
+	triangle := Polygon2D([]V2{{-dx, utronDiam}, {-ts - dx, utronDiam}, {-ts - dx, utronDiam - ts}})
+	prism := Extrude3D(triangle, outside)
+	prism = Transform3D(prism, RotateX(0.5*math.Pi))
+	box = Union3D(box, prism)
+
 	big := 10 * utronDiam
 	cyl := Cylinder3D(big, 0.5*(boltDiam+1), 0)
 	cyl1 := Transform3D(cyl, Translate3d(hole1(outside, utronDiam)))
@@ -121,7 +129,6 @@ func Base(utronEdge float64) SDF3 {
 	triangle := Polygon2D([]V2{{dx, 0}, {ts + dx, 0}, {ts + dx, ts}})
 	prism := Extrude3D(triangle, outside)
 	prism = Transform3D(prism, RotateX(0.5*math.Pi))
-	// prism = Transform3D(prism,
 	box = Union3D(box, prism)
 
 	boxTopZ := utronDiam - bearingHeight
