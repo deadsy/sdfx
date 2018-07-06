@@ -54,6 +54,13 @@ func Top(utronEdge float64) SDF3 {
 	cyl6 := Transform3D(cyl, Translate3d(hole6(outside, utronDiam)))
 	box = Difference3D(box, cyl6)
 
+	topDuct := Cylinder3D(big, 0.5*0.45*utronDiam, 0)
+	x := 0.5 * (0.5*wallThickness + 0.5*(outside-wallThickness))
+	topDuct1 := Transform3D(topDuct, Translate3d(V3{x, -0.25 * (outside - wallThickness), utronDiam}))
+	topDuct2 := Transform3D(topDuct, Translate3d(V3{x, 0.25 * (outside - wallThickness), utronDiam}))
+	box = Difference3D(box, topDuct1)
+	box = Difference3D(box, topDuct2)
+
 	return box
 }
 
