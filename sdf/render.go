@@ -41,7 +41,7 @@ func RenderSTL(
 	}
 
 	// run marching cubes to generate the triangle mesh
-	MarchingCubes_Octree(s, resolution, output)
+	marchingCubesOctree(s, resolution, output)
 
 	// stop the STL writer reading on the channel
 	close(output)
@@ -100,7 +100,7 @@ func RenderDXF(
 	}
 
 	// run marching squares to generate the line segments
-	MarchingSquares_Quadtree(s, resolution, output)
+	marchingSquaresQuadtree(s, resolution, output)
 
 	// stop the DXF writer reading on the channel
 	close(output)
