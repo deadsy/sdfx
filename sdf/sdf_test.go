@@ -511,27 +511,27 @@ func Test_CubicSpline(t *testing.T) {
 func Test_Quadratic(t *testing.T) {
 
 	x, rc := quadratic(4, 2, 1)
-	if x != nil || rc != ZERO_SOLN {
+	if x != nil || rc != zeroSoln {
 		t.Error("FAIL")
 	}
 
 	x, rc = quadratic(0, 0, 1)
-	if x != nil || rc != ZERO_SOLN {
+	if x != nil || rc != zeroSoln {
 		t.Error("FAIL")
 	}
 
 	x, rc = quadratic(0, 2, -4)
-	if x[0] != 2 || rc != ONE_SOLN {
+	if x[0] != 2 || rc != oneSoln {
 		t.Error("FAIL")
 	}
 
 	x, rc = quadratic(1, -5, 6)
-	if x[0] != 3 || x[1] != 2 || rc != TWO_SOLN {
+	if x[0] != 3 || x[1] != 2 || rc != twoSoln {
 		t.Error("FAIL")
 	}
 
 	x, rc = quadratic(0, 0, 0)
-	if x != nil || rc != INF_SOLN {
+	if x != nil || rc != infSoln {
 		t.Error("FAIL")
 	}
 }
@@ -553,7 +553,7 @@ func Test_Colinear_Fast(t *testing.T) {
 		{V2{1, 1}, V2{-1, 1}, V2{0, -1}, false},
 	}
 	for _, v := range test {
-		if Colinear_Fast(v.a, v.b, v.c, EPSILON) != v.result {
+		if colinearFast(v.a, v.b, v.c, EPSILON) != v.result {
 			t.Error("FAIL")
 		}
 	}
@@ -704,13 +704,13 @@ func Test_Box2_Distances(t *testing.T) {
 		p      V2
 		result V2
 	}{
-		{b0, V2{0, 0}, V2{25, 50}},
+		{b0, V2{0, 0}, V2{0, 50}},
 		{b0, V2{5, 5}, V2{0, 200}},
 		{b0, V2{20, 0}, V2{225, 650}},
 		{b1, V2{0, 0}, V2{0, 2225}},
-		{b1, V2{10, 20}, V2{225, 625}},
+		{b1, V2{10, 20}, V2{0, 625}},
 		{b1, V2{0, -10}, V2{100, 3125}},
-		{b1, V2{0, 5}, V2{25, 1850}},
+		{b1, V2{0, 5}, V2{0, 1850}},
 	}
 	for _, v := range tests {
 		x := v.b.MinMaxDist2(v.p)

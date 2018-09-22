@@ -161,13 +161,13 @@ func (s *BezierSpline) Sample(p *Polygon, t0, t1 float64, p0, p1 V2, n int) {
 	// test the midpoint
 	tmid := (t0 + t1) / 2
 	pmid := s.f0(tmid)
-	if Colinear_Slow(pmid, p0, p1, s.tolerance) {
+	if colinearSlow(pmid, p0, p1, s.tolerance) {
 		// the curve could be periodic so perturb the midpoint
 		// pick a t value in [0.45,0.55]
 		k := 0.45 + 0.1*rand.Float64()
 		t2 := t0 + k*(t1-t0)
 		p2 := s.f0(t2)
-		if Colinear_Slow(p2, p0, p1, s.tolerance) {
+		if colinearSlow(p2, p0, p1, s.tolerance) {
 			// looks flat enough, add the line segment
 			if t0 == 0 {
 				// add p0 for the first point on the spline
