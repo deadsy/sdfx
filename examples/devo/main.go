@@ -18,6 +18,8 @@ import (
 
 func dome(r, h, w float64) SDF3 {
 
+	fillet := w
+
 	// step heights
 	k := 0.8
 	stepH0 := h
@@ -37,13 +39,13 @@ func dome(r, h, w float64) SDF3 {
 	p := NewPolygon()
 	p.Add(0, 0)
 	p.Add(r, 0).Rel()
-	p.Add(-stepX0, stepH0).Rel()
-	p.Add(-stepX1, 0).Rel()
-	p.Add(-stepX0, stepH1).Rel()
-	p.Add(-stepX1, 0).Rel()
-	p.Add(-stepX0, stepH2).Rel()
-	p.Add(-stepX1, 0).Rel()
-	p.Add(-stepX0, stepH3).Rel()
+	p.Add(-stepX0, stepH0).Rel().Smooth(fillet, 4)
+	p.Add(-stepX1, 0).Rel().Smooth(fillet, 4)
+	p.Add(-stepX0, stepH1).Rel().Smooth(fillet, 4)
+	p.Add(-stepX1, 0).Rel().Smooth(fillet, 4)
+	p.Add(-stepX0, stepH2).Rel().Smooth(fillet, 4)
+	p.Add(-stepX1, 0).Rel().Smooth(fillet, 4)
+	p.Add(-stepX0, stepH3).Rel().Smooth(fillet, 4)
 	p.Add(0, height)
 	outer := Revolve3D(Polygon2D(p.Vertices()))
 
