@@ -10,6 +10,7 @@ DIRS = 3dp_nutbolt \
        camshaft \
        challenge \
        cylinder_head \
+       devo \
        dust_collection \
        extrusion \
        fidget \

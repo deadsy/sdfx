@@ -37,7 +37,7 @@ type dcache3 struct {
 	lock       sync.RWMutex    // lock the the cache during reads/writes
 }
 
-func new_dcache3(s SDF3, origin V3, resolution float64, n uint) *dcache3 {
+func newDcache3(s SDF3, origin V3, resolution float64, n uint) *dcache3 {
 	// TODO heuristic for initial cache size. Maybe k * (1 << n)^3
 	// Avoiding any resizing of the map seems to be worth 2-5% of speedup.
 	dc := dcache3{
@@ -85,8 +85,8 @@ func (dc *dcache3) evaluate(vi V3i) (V3, float64) {
 	return v, dist
 }
 
-// is_empty returns true if the cube contains no SDF surface
-func (dc *dcache3) is_empty(c *cube) bool {
+// isEmpty returns true if the cube contains no SDF surface
+func (dc *dcache3) isEmpty(c *cube) bool {
 	// evaluate the SDF3 at the center of the cube
 	s := 1 << (c.n - 1) // half side
 	_, d := dc.evaluate(c.v.AddScalar(s))
@@ -95,8 +95,8 @@ func (dc *dcache3) is_empty(c *cube) bool {
 }
 
 // Process a cube. Generate triangles, or more cubes.
-func (dc *dcache3) process_cube(c *cube, output chan<- *Triangle3) {
-	if !dc.is_empty(c) {
+func (dc *dcache3) processCube(c *cube, output chan<- *Triangle3) {
+	if !dc.isEmpty(c) {
 		if c.n == 1 {
 			// this cube is at the required resolution
 			c0, d0 := dc.evaluate(c.v.Add(V3i{0, 0, 0}))
@@ -118,36 +118,36 @@ func (dc *dcache3) process_cube(c *cube, output chan<- *Triangle3) {
 			n := c.n - 1
 			s := 1 << n
 			// TODO - turn these into throttled go-routines
-			dc.process_cube(&cube{c.v.Add(V3i{0, 0, 0}), n}, output)
-			dc.process_cube(&cube{c.v.Add(V3i{s, 0, 0}), n}, output)
-			dc.process_cube(&cube{c.v.Add(V3i{s, s, 0}), n}, output)
-			dc.process_cube(&cube{c.v.Add(V3i{0, s, 0}), n}, output)
-			dc.process_cube(&cube{c.v.Add(V3i{0, 0, s}), n}, output)
-			dc.process_cube(&cube{c.v.Add(V3i{s, 0, s}), n}, output)
-			dc.process_cube(&cube{c.v.Add(V3i{s, s, s}), n}, output)
-			dc.process_cube(&cube{c.v.Add(V3i{0, s, s}), n}, output)
+			dc.processCube(&cube{c.v.Add(V3i{0, 0, 0}), n}, output)
+			dc.processCube(&cube{c.v.Add(V3i{s, 0, 0}), n}, output)
+			dc.processCube(&cube{c.v.Add(V3i{s, s, 0}), n}, output)
+			dc.processCube(&cube{c.v.Add(V3i{0, s, 0}), n}, output)
+			dc.processCube(&cube{c.v.Add(V3i{0, 0, s}), n}, output)
+			dc.processCube(&cube{c.v.Add(V3i{s, 0, s}), n}, output)
+			dc.processCube(&cube{c.v.Add(V3i{s, s, s}), n}, output)
+			dc.processCube(&cube{c.v.Add(V3i{0, s, s}), n}, output)
 		}
 	}
 }
 
 //-----------------------------------------------------------------------------
 
-// MarchingCubes_Octree generates a triangle mesh for an SDF3 using octree subdivision.
-func MarchingCubes_Octree(s SDF3, resolution float64, output chan<- *Triangle3) {
+// marchingCubesOctree generates a triangle mesh for an SDF3 using octree subdivision.
+func marchingCubesOctree(s SDF3, resolution float64, output chan<- *Triangle3) {
 	// Scale the bounding box about the center to make sure the boundaries
 	// aren't on the object surface.
 	bb := s.BoundingBox()
 	bb = bb.ScaleAboutCenter(1.01)
-	long_axis := bb.Size().MaxComponent()
+	longAxis := bb.Size().MaxComponent()
 	// We want to test the smallest cube (side == resolution) for emptiness
 	// so the level = 0 cube is at half resolution.
 	resolution = 0.5 * resolution
 	// how many cube levels for the octree?
-	levels := uint(math.Ceil(math.Log2(long_axis/resolution))) + 1
+	levels := uint(math.Ceil(math.Log2(longAxis/resolution))) + 1
 	// create the distance cache
-	dc := new_dcache3(s, bb.Min, resolution, levels)
+	dc := newDcache3(s, bb.Min, resolution, levels)
 	// process the octree, start at the top level
-	dc.process_cube(&cube{V3i{0, 0, 0}, levels - 1}, output)
+	dc.processCube(&cube{V3i{0, 0, 0}, levels - 1}, output)
 }
 
 //-----------------------------------------------------------------------------

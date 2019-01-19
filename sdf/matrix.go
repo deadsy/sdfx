@@ -35,44 +35,44 @@ type M22 struct {
 //-----------------------------------------------------------------------------
 
 func RandomM22(a, b float64) M22 {
-	m := M22{random_range(a, b),
-		random_range(a, b),
-		random_range(a, b),
-		random_range(a, b)}
+	m := M22{randomRange(a, b),
+		randomRange(a, b),
+		randomRange(a, b),
+		randomRange(a, b)}
 	return m
 }
 
 func RandomM33(a, b float64) M33 {
-	m := M33{random_range(a, b),
-		random_range(a, b),
-		random_range(a, b),
-		random_range(a, b),
-		random_range(a, b),
-		random_range(a, b),
-		random_range(a, b),
-		random_range(a, b),
-		random_range(a, b)}
+	m := M33{randomRange(a, b),
+		randomRange(a, b),
+		randomRange(a, b),
+		randomRange(a, b),
+		randomRange(a, b),
+		randomRange(a, b),
+		randomRange(a, b),
+		randomRange(a, b),
+		randomRange(a, b)}
 	return m
 }
 
 func RandomM44(a, b float64) M44 {
 	m := M44{
-		random_range(a, b),
-		random_range(a, b),
-		random_range(a, b),
-		random_range(a, b),
-		random_range(a, b),
-		random_range(a, b),
-		random_range(a, b),
-		random_range(a, b),
-		random_range(a, b),
-		random_range(a, b),
-		random_range(a, b),
-		random_range(a, b),
-		random_range(a, b),
-		random_range(a, b),
-		random_range(a, b),
-		random_range(a, b)}
+		randomRange(a, b),
+		randomRange(a, b),
+		randomRange(a, b),
+		randomRange(a, b),
+		randomRange(a, b),
+		randomRange(a, b),
+		randomRange(a, b),
+		randomRange(a, b),
+		randomRange(a, b),
+		randomRange(a, b),
+		randomRange(a, b),
+		randomRange(a, b),
+		randomRange(a, b),
+		randomRange(a, b),
+		randomRange(a, b),
+		randomRange(a, b)}
 	return m
 }
 

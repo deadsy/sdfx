@@ -193,6 +193,7 @@ func (m *Map2) ToV2i(p V2) V2i {
 // Minimum/Maximum distances from a point to a box
 
 // MinMaxDist2 returns the minimum and maximum dist * dist from a point to a box.
+// Points within the box have minimum distance = 0.
 func (a Box2) MinMaxDist2(p V2) V2 {
 	max_d2 := 0.0
 	min_d2 := 0.0
@@ -202,6 +203,7 @@ func (a Box2) MinMaxDist2(p V2) V2 {
 
 	// consider the vertices
 	vs := a.Vertices()
+
 	for i := range vs {
 		d2 := vs[i].Length2()
 		if i == 0 {
@@ -233,6 +235,7 @@ func (a Box2) MinMaxDist2(p V2) V2 {
 }
 
 // MinMaxDist2 returns the minimum and maximum dist * dist from a point to a box.
+// Points within the box have minimum distance = 0.
 func (a Box3) MinMaxDist2(p V3) V2 {
 	max_d2 := 0.0
 	min_d2 := 0.0

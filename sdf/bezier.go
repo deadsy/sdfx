@@ -15,6 +15,7 @@ import (
 
 //-----------------------------------------------------------------------------
 
+// BezierPolynomial contains the bezier polynomial parameters.
 type BezierPolynomial struct {
 	n             int     // polynomial order
 	a, b, c, d, e float64 // polynomial coefficients
@@ -89,7 +90,7 @@ func (p *BezierPolynomial) f2(t float64) float64 {
 	}
 }
 
-// Given the end/control points calculate the polynomial coefficients.
+// Set calculates bezier polynomial coefficients given the end/control points.
 func (p *BezierPolynomial) Set(x []float64) {
 	p.n = len(x) - 1
 	switch p.n {
@@ -145,6 +146,7 @@ func (p *BezierPolynomial) Set(x []float64) {
 
 //-----------------------------------------------------------------------------
 
+// BezierSpline contains the x/y bezier curves for a 2D spline.
 type BezierSpline struct {
 	tolerance float64          // tolerance for adaptive sampling
 	px, py    BezierPolynomial // x/y bezier polynomials
@@ -155,19 +157,19 @@ func (s *BezierSpline) f0(t float64) V2 {
 	return V2{s.px.f0(t), s.py.f0(t)}
 }
 
-// Generate polygon samples for a bezier spline.
+// Sample generates polygon samples for a bezier spline.
 func (s *BezierSpline) Sample(p *Polygon, t0, t1 float64, p0, p1 V2, n int) {
 
 	// test the midpoint
 	tmid := (t0 + t1) / 2
 	pmid := s.f0(tmid)
-	if Colinear_Slow(pmid, p0, p1, s.tolerance) {
+	if colinearSlow(pmid, p0, p1, s.tolerance) {
 		// the curve could be periodic so perturb the midpoint
 		// pick a t value in [0.45,0.55]
 		k := 0.45 + 0.1*rand.Float64()
 		t2 := t0 + k*(t1-t0)
 		p2 := s.f0(t2)
-		if Colinear_Slow(p2, p0, p1, s.tolerance) {
+		if colinearSlow(p2, p0, p1, s.tolerance) {
 			// looks flat enough, add the line segment
 			if t0 == 0 {
 				// add p0 for the first point on the spline
@@ -192,6 +194,7 @@ func (s *BezierSpline) Sample(p *Polygon, t0, t1 float64, p0, p1 V2, n int) {
 	s.Sample(p, tmid, t1, pmid, p1, n+1)
 }
 
+// NewBezierSpline returns a bezier spline from the provided control/end points.
 func NewBezierSpline(p []V2) *BezierSpline {
 	//fmt.Printf("%v\n", p)
 	s := BezierSpline{}
@@ -211,20 +214,23 @@ func NewBezierSpline(p []V2) *BezierSpline {
 
 //-----------------------------------------------------------------------------
 
-type BezierVertexType int
+// bezierVertexType specifies the type of bezier control/endpoint.
+type bezierVertexType int
 
 const (
-	ENDPOINT BezierVertexType = iota // endpoint
-	MIDPOINT                         // midpoint
+	endpoint bezierVertexType = iota // endpoint
+	midpoint                         // midpoint
 )
 
+// BezierVertex specifies the vertex for a bezier curve.
 type BezierVertex struct {
-	vtype      BezierVertexType // type of bezier vertex
-	vertex     V2               // vertex coordinates
-	handle_fwd V2               // polar coordinates of forward handle
-	handle_rev V2               // polar coordinates of reverse handle
+	vtype     bezierVertexType // type of bezier vertex
+	vertex    V2               // vertex coordinates
+	handleFwd V2               // polar coordinates of forward handle
+	handleRev V2               // polar coordinates of reverse handle
 }
 
+// Bezier curve specification..
 type Bezier struct {
 	closed bool           // is the curve closed or open?
 	vlist  []BezierVertex // list of bezier vertices
@@ -237,14 +243,14 @@ func (b *Bezier) handles() {
 	// new control vertex list
 	var vlist []BezierVertex
 	for _, v := range b.vlist {
-		fwd := v.handle_fwd
-		rev := v.handle_rev
-		v.handle_fwd = V2{}
-		v.handle_rev = V2{}
+		fwd := v.handleFwd
+		rev := v.handleRev
+		v.handleFwd = V2{}
+		v.handleRev = V2{}
 		// add a control midpoint for the reverse handle
 		if rev.X != 0 {
 			cp := BezierVertex{}
-			cp.vtype = MIDPOINT
+			cp.vtype = midpoint
 			cp.vertex = PolarToXY(rev.X, rev.Y).Add(v.vertex)
 			vlist = append(vlist, cp)
 		}
@@ -253,7 +259,7 @@ func (b *Bezier) handles() {
 		// add a control midpoint for the forward handle
 		if fwd.X != 0 {
 			cp := BezierVertex{}
-			cp.vtype = MIDPOINT
+			cp.vtype = midpoint
 			cp.vertex = PolarToXY(fwd.X, fwd.Y).Add(v.vertex)
 			vlist = append(vlist, cp)
 		}
@@ -261,7 +267,7 @@ func (b *Bezier) handles() {
 	// find the first endpoint control vertex
 	i := 0
 	for i = range vlist {
-		if vlist[i].vtype == ENDPOINT {
+		if vlist[i].vtype == endpoint {
 			break
 		}
 	}
@@ -284,16 +290,16 @@ func (b *Bezier) closure() {
 	}
 	first := b.vlist[0]
 	last := b.vlist[len(b.vlist)-1]
-	if first.vtype != ENDPOINT {
+	if first.vtype != endpoint {
 		panic("first control vertex should be an endpoint")
 	}
-	if last.vtype == ENDPOINT {
+	if last.vtype == endpoint {
 		if !last.vertex.Equals(first.vertex, TOLERANCE) {
 			// the first and last vertices aren't equal.
 			// add the first vertex to close the curve
 			b.vlist = append(b.vlist, first)
 		}
-	} else if last.vtype == MIDPOINT {
+	} else if last.vtype == midpoint {
 		// add the first vertex to close the curve
 		b.vlist = append(b.vlist, first)
 	} else {
@@ -308,10 +314,10 @@ func (b *Bezier) validate() {
 	if n < 2 {
 		panic("bezier curve must have at least two points")
 	}
-	if b.vlist[0].vtype != ENDPOINT {
+	if b.vlist[0].vtype != endpoint {
 		panic("bezier curve must start with an endpoint")
 	}
-	if !b.closed && b.vlist[n-1].vtype != ENDPOINT {
+	if !b.closed && b.vlist[n-1].vtype != endpoint {
 		panic("non-closed bezier curve must end with an endpoint")
 	}
 }
@@ -326,7 +332,7 @@ func (b *Bezier) fixups() {
 //-----------------------------------------------------------------------------
 // Public API for Bezier Curves.
 
-// Returns an empty bezier curve.
+// NewBezier returns an empty bezier curve.
 func NewBezier() *Bezier {
 	return &Bezier{}
 }
@@ -336,11 +342,11 @@ func (b *Bezier) Close() {
 	b.closed = true
 }
 
-// Add a V2 vertex to a polygon.
+// AddV2 adds a V2 vertex to a polygon.
 func (b *Bezier) AddV2(x V2) *BezierVertex {
 	v := BezierVertex{}
 	v.vertex = x
-	v.vtype = ENDPOINT
+	v.vtype = endpoint
 	b.vlist = append(b.vlist, v)
 	return &b.vlist[len(b.vlist)-1]
 }
@@ -352,25 +358,25 @@ func (b *Bezier) Add(x, y float64) *BezierVertex {
 
 // Mid marks the vertex as a mid-curve control point.
 func (v *BezierVertex) Mid() *BezierVertex {
-	v.vtype = MIDPOINT
+	v.vtype = midpoint
 	return v
 }
 
-// Set the slope handle in the forward direction.
+// HandleFwd sets the slope handle in the forward direction.
 func (v *BezierVertex) HandleFwd(theta, r float64) *BezierVertex {
-	if v.vtype == MIDPOINT {
+	if v.vtype == midpoint {
 		panic("can't place a handle on a curve midpoint")
 	}
-	v.handle_fwd = V2{Abs(r), theta}
+	v.handleFwd = V2{Abs(r), theta}
 	return v
 }
 
-// Set the slope handle in the reverse direction.
+// HandleRev sets the slope handle in the reverse direction.
 func (v *BezierVertex) HandleRev(theta, r float64) *BezierVertex {
-	if v.vtype == MIDPOINT {
+	if v.vtype == midpoint {
 		panic("can't place a handle on a curve midpoint")
 	}
-	v.handle_rev = V2{Abs(r), theta}
+	v.handleRev = V2{Abs(r), theta}
 	return v
 }
 
@@ -381,7 +387,7 @@ func (v *BezierVertex) Handle(theta, fwd, rev float64) *BezierVertex {
 	return v
 }
 
-// Return a polygon approximating the bezier curve.
+// Polygon returns a polygon approximating the bezier curve.
 func (b *Bezier) Polygon() *Polygon {
 	b.fixups()
 
@@ -390,36 +396,36 @@ func (b *Bezier) Polygon() *Polygon {
 	var vertices []V2
 
 	n := len(b.vlist)
-	state := ENDPOINT
+	state := endpoint
 	i := 0
 	for i < n {
 		v := b.vlist[i]
-		if state == ENDPOINT {
-			if v.vtype == ENDPOINT {
+		if state == endpoint {
+			if v.vtype == endpoint {
 				// start of spline
 				vertices = []V2{v.vertex}
 				// get the midpoints
-				i += 1
-				state = MIDPOINT
+				i++
+				state = midpoint
 			} else {
 				panic("bad vertex type")
 			}
-		} else if state == MIDPOINT {
-			if v.vtype == ENDPOINT {
+		} else if state == midpoint {
+			if v.vtype == endpoint {
 				// end of spline
 				vertices = append(vertices, v.vertex)
 				splines = append(splines, NewBezierSpline(vertices))
 				// this endpoint is the start of the next spline, don't advance
-				state = ENDPOINT
+				state = endpoint
 				// check for the last endpoint
 				if i == n-1 {
 					// end of the list
 					break
 				}
-			} else if v.vtype == MIDPOINT {
+			} else if v.vtype == midpoint {
 				// add a spline midpoint
 				vertices = append(vertices, v.vertex)
-				i += 1
+				i++
 			} else {
 				panic("bad vertex type")
 			}

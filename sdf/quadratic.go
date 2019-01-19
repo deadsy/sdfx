@@ -12,41 +12,40 @@ import "math"
 
 //-----------------------------------------------------------------------------
 
-type QSoln int
+type qSoln int
 
 const (
-	ZERO_SOLN QSoln = iota
-	ONE_SOLN
-	TWO_SOLN
-	INF_SOLN
+	zeroSoln qSoln = iota
+	oneSoln
+	twoSoln
+	infSoln
 )
 
 // Return the real solutions of ax^2 + bx + c = 0
-func quadratic(a, b, c float64) ([]float64, QSoln) {
+func quadratic(a, b, c float64) ([]float64, qSoln) {
 	// TODO Fix all comparisons to 0
 	if a == 0 {
 		if b == 0 {
 			if c == 0 {
 				// a = 0, b = 0, c = 0
-				return nil, INF_SOLN
-			} else {
-				// a = 0, b = 0, c != 0
-				return nil, ZERO_SOLN
+				return nil, infSoln
 			}
-		} else {
-			return []float64{-c / b}, ONE_SOLN
+			// a = 0, b = 0, c != 0
+			return nil, zeroSoln
 		}
+		// a =0, b != 0, c != 0
+		return []float64{-c / b}, oneSoln
 	}
 	det := b*b - 4*a*c
 	if det < 0 {
-		return nil, ZERO_SOLN
+		return nil, zeroSoln
 	}
 	x := -b / (2 * a)
 	if det == 0 {
-		return []float64{x}, ONE_SOLN
+		return []float64{x}, oneSoln
 	}
 	d := math.Sqrt(det) / (2 * a)
-	return []float64{x + d, x - d}, TWO_SOLN
+	return []float64{x + d, x - d}, twoSoln
 }
 
 //-----------------------------------------------------------------------------

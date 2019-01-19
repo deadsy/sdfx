@@ -35,7 +35,7 @@ type dcache2 struct {
 	lock       sync.RWMutex    // lock the the cache during reads/writes
 }
 
-func new_dcache2(s SDF2, origin V2, resolution float64, n uint) *dcache2 {
+func newDcache2(s SDF2, origin V2, resolution float64, n uint) *dcache2 {
 	dc := dcache2{
 		origin:     origin,
 		resolution: resolution,
@@ -81,8 +81,8 @@ func (dc *dcache2) evaluate(vi V2i) (V2, float64) {
 	return v, dist
 }
 
-// is_empty returns true if the square contains no SDF surface
-func (dc *dcache2) is_empty(c *square) bool {
+// isEmpty returns true if the square contains no SDF surface
+func (dc *dcache2) isEmpty(c *square) bool {
 	// evaluate the SDF2 at the center of the square
 	s := 1 << (c.n - 1) // half side
 	_, d := dc.evaluate(c.v.AddScalar(s))
@@ -90,9 +90,9 @@ func (dc *dcache2) is_empty(c *square) bool {
 	return Abs(d) >= dc.hdiag[c.n]
 }
 
-// Process a sqaure. Generate line segments, or more squares.
-func (dc *dcache2) process_square(c *square, output chan<- *Line2_PP) {
-	if !dc.is_empty(c) {
+// Process a square. Generate line segments, or more squares.
+func (dc *dcache2) processSquare(c *square, output chan<- *Line2_PP) {
+	if !dc.isEmpty(c) {
 		if c.n == 1 {
 			// this square is at the required resolution
 			c0, d0 := dc.evaluate(c.v.Add(V2i{0, 0}))
@@ -110,32 +110,32 @@ func (dc *dcache2) process_square(c *square, output chan<- *Line2_PP) {
 			n := c.n - 1
 			s := 1 << n
 			// TODO - turn these into throttled go-routines
-			dc.process_square(&square{c.v.Add(V2i{0, 0}), n}, output)
-			dc.process_square(&square{c.v.Add(V2i{s, 0}), n}, output)
-			dc.process_square(&square{c.v.Add(V2i{s, s}), n}, output)
-			dc.process_square(&square{c.v.Add(V2i{0, s}), n}, output)
+			dc.processSquare(&square{c.v.Add(V2i{0, 0}), n}, output)
+			dc.processSquare(&square{c.v.Add(V2i{s, 0}), n}, output)
+			dc.processSquare(&square{c.v.Add(V2i{s, s}), n}, output)
+			dc.processSquare(&square{c.v.Add(V2i{0, s}), n}, output)
 		}
 	}
 }
 
 //-----------------------------------------------------------------------------
 
-// MarchingSquares_Quadtree generates line segments for an SDF2 using quadtree subdivision.
-func MarchingSquares_Quadtree(s SDF2, resolution float64, output chan<- *Line2_PP) {
+// marchingSquaresQuadtree generates line segments for an SDF2 using quadtree subdivision.
+func marchingSquaresQuadtree(s SDF2, resolution float64, output chan<- *Line2_PP) {
 	// Scale the bounding box about the center to make sure the boundaries
 	// aren't on the object surface.
 	bb := s.BoundingBox()
 	bb = bb.ScaleAboutCenter(1.01)
-	long_axis := bb.Size().MaxComponent()
+	longAxis := bb.Size().MaxComponent()
 	// We want to test the smallest squares (side == resolution) for emptiness
 	// so the level = 0 cube is at half resolution.
 	resolution = 0.5 * resolution
 	// how many cube levels for the quadtree?
-	levels := uint(math.Ceil(math.Log2(long_axis/resolution))) + 1
+	levels := uint(math.Ceil(math.Log2(longAxis/resolution))) + 1
 	// create the distance cache
-	dc := new_dcache2(s, bb.Min, resolution, levels)
+	dc := newDcache2(s, bb.Min, resolution, levels)
 	// process the quadtree, start at the top level
-	dc.process_square(&square{V2i{0, 0}, levels - 1}, output)
+	dc.processSquare(&square{V2i{0, 0}, levels - 1}, output)
 }
 
 //-----------------------------------------------------------------------------
