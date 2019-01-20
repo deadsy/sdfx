@@ -180,6 +180,43 @@ func (s *LineSDF2) BoundingBox() Box2 {
 }
 
 //-----------------------------------------------------------------------------
+// 2D Spiral
+
+type SpiralSDF2 struct {
+	start float64 // start angle (and radius) in radians
+	end   float64 // end angle (and radius) in radians
+	round float64 // rounding
+	bb    Box2    // bounding box
+}
+
+// Spiral2D returns a spiral with the equation `r = θ`
+// starting at radius (and angle) `start` in radians
+// and ending at radius (and angle) `end` in radians.
+// `start` must be less than or equal to `end`.
+func Spiral2D(start, end, round float64) SDF2 {
+	return &SpiralSDF2{
+		start: start,
+		end:   end,
+		round: round,
+		// TODO: clamp down on the bounding box.
+		bb: Box2{V2{-end - round, -end - round}, V2{end + round, end + round}},
+	}
+}
+
+// Evaluate returns the minimum distance to the spiral.
+func (s *SpiralSDF2) Evaluate(p V2) float64 {
+	pr := p.Length()
+	pθ := math.Atan2(p.Y, p.X)
+	dist := pr * math.Sqrt(2*(1-math.Cos(pθ-pr)))
+	return dist - s.round
+}
+
+// BoundingBox returns the bounding box for the spiral.
+func (s *SpiralSDF2) BoundingBox() Box2 {
+	return s.bb
+}
+
+//-----------------------------------------------------------------------------
 
 type OffsetSDF2 struct {
 	sdf    SDF2
