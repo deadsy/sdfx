@@ -180,6 +180,98 @@ func (s *LineSDF2) BoundingBox() Box2 {
 }
 
 //-----------------------------------------------------------------------------
+// 2D Spiral
+
+type SpiralSDF2 struct {
+	start float64 // start angle (and radius) in radians
+	end   float64 // end angle (and radius) in radians
+	sθ    float64 // start normalized angle (-pi <= sθ <= pi)
+	eθ    float64 // end normalized angle (pi <= eθ <= pi)
+	ps    V2      // start point in cartesian coordinates
+	pe    V2      // end point in cartesian coordinates
+	round float64 // rounding
+	bb    Box2    // bounding box
+}
+
+// Spiral2D returns a spiral with the equation `r = θ`
+// starting at radius (and angle) `start` in radians
+// and ending at radius (and angle) `end` in radians.
+// `start` must be less than or equal to `end`.
+func Spiral2D(start, end, round float64) SDF2 {
+	ps := V2{X: start * math.Cos(start), Y: start * math.Sin(start)}
+	pe := V2{X: end * math.Cos(end), Y: end * math.Sin(end)}
+	return &SpiralSDF2{
+		start: start,
+		end:   end,
+		sθ:    math.Atan2(ps.Y, ps.X),
+		eθ:    math.Atan2(pe.Y, pe.X),
+		ps:    ps,
+		pe:    pe,
+		round: round,
+		bb:    Box2{V2{-end - round, -end - round}, V2{end + round, end + round}},
+	}
+}
+
+// Evaluate returns the minimum distance to the spiral.
+func (s *SpiralSDF2) Evaluate(p V2) float64 {
+	pr := p.Length()
+	pθ := math.Atan2(p.Y, p.X)
+	c := 1 - math.Cos(pθ-pr)
+	dist := 0.5 * math.Pi * math.Sqrt(c)
+
+	ds := s.ps.Sub(p).Length()
+	if ds < dist {
+		dist = ds
+	}
+	de := s.pe.Sub(p).Length()
+	if de < dist {
+		dist = de
+	}
+
+	if s.start > 0 && pr < s.start+math.Pi {
+		dist = ds
+		if de < dist {
+			dist = de
+		}
+		delta := pθ - s.sθ
+		for delta < 0 {
+			delta += 2 * math.Pi
+		}
+		angle := s.start + delta
+		if angle <= s.end {
+			sp := V2{X: angle * math.Cos(angle), Y: angle * math.Sin(angle)}
+			d := sp.Sub(p).Length()
+			if d < dist {
+				dist = d
+			}
+		}
+	} else if pr > s.end-math.Pi {
+		dist = de
+		if ds < dist {
+			dist = ds
+		}
+		delta := pθ - s.eθ
+		for delta > 0 {
+			delta -= 2 * math.Pi
+		}
+		angle := s.end + delta
+		if angle >= s.start {
+			sp := V2{X: angle * math.Cos(angle), Y: angle * math.Sin(angle)}
+			d := sp.Sub(p).Length()
+			if d < dist {
+				dist = d
+			}
+		}
+	}
+	return dist - s.round
+}
+
+// BoundingBox returns the bounding box for the spiral.
+func (s *SpiralSDF2) BoundingBox() Box2 {
+	return s.bb
+}
+
+//-----------------------------------------------------------------------------
 
 type OffsetSDF2 struct {
 	sdf    SDF2
