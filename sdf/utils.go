@@ -20,12 +20,12 @@ const EPSILON = 1e-12
 
 //-----------------------------------------------------------------------------
 
-// Degrees to radians
+// DtoR converts degrees to radians
 func DtoR(degrees float64) float64 {
 	return (PI / 180) * degrees
 }
 
-// Radians to degrees
+// RtoD converts radians to degrees
 func RtoD(radians float64) float64 {
 	return (180 / PI) * radians
 }
@@ -43,7 +43,7 @@ func Clamp(x, a, b float64) float64 {
 	return x
 }
 
-// Linear Interpolation from x to y, a = [0,1]
+// Mix does a linear interpolation from x to y, a = [0,1]
 func Mix(x, y, a float64) float64 {
 	return x + (a * (y - x))
 }
@@ -52,7 +52,7 @@ func Mix(x, y, a float64) float64 {
 // Max/Min functions
 // Note: math.Max/math.Min don't inline
 
-// maximum of a and b
+// Max returns the maximum of a and b
 func Max(a, b float64) float64 {
 	if a > b {
 		return a
@@ -60,7 +60,7 @@ func Max(a, b float64) float64 {
 	return b
 }
 
-// minimum of a and b
+// Min returns the minimum of a and b
 func Min(a, b float64) float64 {
 	if a < b {
 		return a
@@ -70,7 +70,7 @@ func Min(a, b float64) float64 {
 
 //-----------------------------------------------------------------------------
 
-// absolute value of x
+// Abs returns the absolute value of x
 func Abs(x float64) float64 {
 	if x < 0 {
 		return -x
@@ -81,7 +81,7 @@ func Abs(x float64) float64 {
 	return x
 }
 
-// sign of x
+// Sign returns the sign of x
 func Sign(x float64) float64 {
 	if x < 0 {
 		return -1
@@ -94,14 +94,14 @@ func Sign(x float64) float64 {
 
 //-----------------------------------------------------------------------------
 
-// Convert Polar to Cartesian Coordinates
+// PolarToXY converts polar to cartesian coordinates.
 func PolarToXY(r, theta float64) V2 {
 	return V2{math.Cos(theta), math.Sin(theta)}.MulScalar(r)
 }
 
 //-----------------------------------------------------------------------------
 
-// sawtooth function: returns [-period/2, period/2)
+// SawTooth generates a sawtooth function. Returns [-period/2, period/2)
 func SawTooth(x, period float64) float64 {
 	x += period / 2
 	t := x / period
@@ -109,11 +109,11 @@ func SawTooth(x, period float64) float64 {
 }
 
 //-----------------------------------------------------------------------------
-// Minimum Functions for SDF blending
 
+// MinFunc is a minimum functions for SDF blending.
 type MinFunc func(a, b float64) float64
 
-// Round Minimum, uses a quarter-circle to join the two objects smoothly.
+// RoundMin returns a minimum function that uses a quarter-circle to join the two objects smoothly.
 func RoundMin(k float64) MinFunc {
 	return func(a, b float64) float64 {
 		u := V2{k - a, k - b}.Max(V2{0, 0})
@@ -121,7 +121,7 @@ func RoundMin(k float64) MinFunc {
 	}
 }
 
-// Chamfer Minimum, makes a 45-degree chamfered edge (the diagonal of a square of size <r>).
+// ChamferMin returns a minimum function that makes a 45-degree chamfered edge (the diagonal of a square of size <r>).
 // TODO: why the holes in the rendering?
 func ChamferMin(k float64) MinFunc {
 	return func(a, b float64) float64 {
@@ -129,14 +129,14 @@ func ChamferMin(k float64) MinFunc {
 	}
 }
 
-// Exponential Smooth Minimum (k = 32).
+// ExpMin returns a minimum function with exponential smoothing (k = 32).
 func ExpMin(k float64) MinFunc {
 	return func(a, b float64) float64 {
 		return -math.Log(math.Exp(-k*a)+math.Exp(-k*b)) / k
 	}
 }
 
-// Power Smooth Minimum (k = 8).
+// PowMin returns  a minimum function (k = 8).
 // TODO - weird results, is this correct?
 func PowMin(k float64) MinFunc {
 	return func(a, b float64) float64 {
@@ -146,41 +146,41 @@ func PowMin(k float64) MinFunc {
 	}
 }
 
-// Polynomial Smooth Minimum (Try k = 0.1, a bigger k gives a bigger fillet).
-func Poly(a, b, k float64) float64 {
+func poly(a, b, k float64) float64 {
 	h := Clamp(0.5+0.5*(b-a)/k, 0.0, 1.0)
 	return Mix(b, a, h) - k*h*(1.0-h)
 }
 
+// PolyMin returns a minimum function (Try k = 0.1, a bigger k gives a bigger fillet).
 func PolyMin(k float64) MinFunc {
 	return func(a, b float64) float64 {
-		return Poly(a, b, k)
+		return poly(a, b, k)
 	}
 }
 
 //-----------------------------------------------------------------------------
-// Maximum Functions for SDF blending
 
+// MaxFunc is a maximum function for SDF blending.
 type MaxFunc func(a, b float64) float64
 
-// Polynomial Smooth Maximum (Try k = 0.1, a bigger k gives a bigger fillet).
+// PolyMax returns a maximum function (Try k = 0.1, a bigger k gives a bigger fillet).
 func PolyMax(k float64) MaxFunc {
 	return func(a, b float64) float64 {
-		return -Poly(-a, -b, k)
+		return -poly(-a, -b, k)
 	}
 }
 
 //-----------------------------------------------------------------------------
-// Extrude Functions: Map a V3 to V2 - the point used to evaluate the SDF2.
 
+// ExtrudeFunc maps V3 to V2 - the point used to evaluate the SDF2.
 type ExtrudeFunc func(p V3) V2
 
-// Normal Extrude
+// NormalExtrude returns an extrusion function.
 func NormalExtrude(p V3) V2 {
 	return V2{p.X, p.Y}
 }
 
-// Return a Twist Extrude function
+// TwistExtrude returns an extrusion function that twists with z.
 func TwistExtrude(height, twist float64) ExtrudeFunc {
 	k := twist / height
 	return func(p V3) V2 {
@@ -189,7 +189,7 @@ func TwistExtrude(height, twist float64) ExtrudeFunc {
 	}
 }
 
-// Return a Scale Extrude function
+// ScaleExtrude returns an extrusion functions that scales with z.
 func ScaleExtrude(height float64, scale V2) ExtrudeFunc {
 	inv := V2{1 / scale.X, 1 / scale.Y}
 	m := inv.Sub(V2{1, 1}).DivScalar(height) // slope
@@ -199,7 +199,7 @@ func ScaleExtrude(height float64, scale V2) ExtrudeFunc {
 	}
 }
 
-// Return a Scale and the Twist Extrude function
+// ScaleTwistExtrude returns an extrusion function that scales and twists with z.
 func ScaleTwistExtrude(height, twist float64, scale V2) ExtrudeFunc {
 	k := twist / height
 	inv := V2{1 / scale.X, 1 / scale.Y}
@@ -218,7 +218,7 @@ func ScaleTwistExtrude(height, twist float64, scale V2) ExtrudeFunc {
 
 //-----------------------------------------------------------------------------
 
-// Return a string that decodes the float64 bitfields.
+// FloatDecode returns a string that decodes the float64 bitfields.
 func FloatDecode(x float64) string {
 	i := math.Float64bits(x)
 	s := int((i >> 63) & 1)
@@ -227,7 +227,7 @@ func FloatDecode(x float64) string {
 	return fmt.Sprintf("s %d f 0x%013x e %d", s, f, e)
 }
 
-// Encode a float64 from sign, fraction and exponent values.
+// FloatEncode encodes a float64 from sign, fraction and exponent values.
 func FloatEncode(s int, f uint64, e int) float64 {
 	s &= 1
 	exp := uint64(e+1023) & ((1 << 11) - 1)
@@ -239,8 +239,9 @@ func FloatEncode(s int, f uint64, e int) float64 {
 // Floating Point Comparisons
 // See: http://floating-point-gui.de/errors/NearlyEqualsTest.java
 
-const min_normal = 2.2250738585072014E-308 // 2**-1022
+const minNormal = 2.2250738585072014E-308 // 2**-1022
 
+// EqualFloat64 compares two float64 values for equality.
 func EqualFloat64(a, b, epsilon float64) bool {
 	if a == b {
 		return true
@@ -248,10 +249,10 @@ func EqualFloat64(a, b, epsilon float64) bool {
 	absA := math.Abs(a)
 	absB := math.Abs(b)
 	diff := math.Abs(a - b)
-	if a == 0 || b == 0 || diff < min_normal {
+	if a == 0 || b == 0 || diff < minNormal {
 		// a or b is zero or both are extremely close to it
 		// relative error is less meaningful here
-		return diff < (epsilon * min_normal)
+		return diff < (epsilon * minNormal)
 	}
 	// use relative error
 	return diff/math.Min((absA+absB), math.MaxFloat64) < epsilon
@@ -259,7 +260,7 @@ func EqualFloat64(a, b, epsilon float64) bool {
 
 //-----------------------------------------------------------------------------
 
-// Zero out values that are small relative to a quantity.
+// ZeroSmall zeroes out values that are small relative to a quantity.
 func ZeroSmall(x, y, epsilon float64) float64 {
 	if Abs(x)/y < epsilon {
 		return 0
@@ -269,8 +270,7 @@ func ZeroSmall(x, y, epsilon float64) float64 {
 
 //-----------------------------------------------------------------------------
 
-// Generate the next k-length combination of 0 to n-1
-// Return false when done
+// NextCombination generates the next k-length combination of 0 to n-1. (returns false when done).
 func NextCombination(n int, a []int) bool {
 	k := len(a)
 	m := 0
@@ -291,8 +291,7 @@ func NextCombination(n int, a []int) bool {
 	}
 }
 
-// Generate k-length combinations of 0 to n-1
-// Call function f for each generated combination.
+// MapCombinations applies a function f to each k-length combination from 0 to n-1.
 func MapCombinations(n, k int, f func([]int)) {
 	if k >= 0 && n >= k {
 		a := make([]int, k)

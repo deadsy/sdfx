@@ -675,15 +675,15 @@ func Test_Float_Comparison(t *testing.T) {
 		a, b, e float64
 		equals  bool
 	}{
-	// Comparisons involving zero
-	//{0.0, 1e-40, 0.01, true},
-	//{1e-40, 0.0, 0.01, true},
-	//{1e-40, 0.0, 0.000001, false},
-	//{0.0, 1e-40, 0.000001, false},
-	//{0.0, -1e-40, 0.1, true},
-	//{-1e-40, 0.0, 0.1, true},
-	//{-1e-40, 0.0, 0.00000001, false},
-	//{0.0, -1e-40, 0.00000001, false},
+		// Comparisons involving zero
+		//{0.0, 1e-40, 0.01, true},
+		//{1e-40, 0.0, 0.01, true},
+		//{1e-40, 0.0, 0.000001, false},
+		//{0.0, 1e-40, 0.000001, false},
+		//{0.0, -1e-40, 0.1, true},
+		//{-1e-40, 0.0, 0.1, true},
+		//{-1e-40, 0.0, 0.00000001, false},
+		//{0.0, -1e-40, 0.00000001, false},
 	}
 
 	for _, v := range test1 {
