@@ -135,3 +135,58 @@ func RenderDXF_Slow(
 }
 
 //-----------------------------------------------------------------------------
+
+// Render an SDF2 as an SVG file. (quadtree sampling)
+func RenderSVG(
+	s SDF2, // sdf2 to render
+	meshCells int, // number of cells on the longest axis. e.g 200
+	path string, // path to filename
+) error {
+	// work out the sampling resolution to use
+	bbSize := s.BoundingBox().Size()
+	resolution := bbSize.MaxComponent() / float64(meshCells)
+	cells := bbSize.DivScalar(resolution).ToV2i()
+
+	fmt.Printf("rendering %s (%dx%d, resolution %.2f)\n", path, cells[0], cells[1], resolution)
+
+	// write the line segments to an SVG file
+	var wg sync.WaitGroup
+	output, err := WriteSVG(&wg, path)
+	if err != nil {
+		return err
+	}
+
+	// run marching squares to generate the line segments
+	marchingSquaresQuadtree(s, resolution, output)
+
+	// stop the SVG writer reading on the channel
+	close(output)
+	// wait for the file write to complete
+	wg.Wait()
+	return nil
+}
+
+// Render an SDF2 as an SVG file. (grid sampling)
+func RenderSVG_Slow(
+	s SDF2, // sdf2 to render
+	meshCells int, // number of cells on the longest axis. e.g 200
+	path string, // path to filename
+) error {
+	// work out the region we will sample
+	bb0 := s.BoundingBox()
+	bb0Size := bb0.Size()
+	meshInc := bb0Size.MaxComponent() / float64(meshCells)
+	bb1Size := bb0Size.DivScalar(meshInc)
+	bb1Size = bb1Size.Ceil().AddScalar(1)
+	cells := bb1Size.ToV2i()
+	bb1Size = bb1Size.MulScalar(meshInc)
+	bb := NewBox2(bb0.Center(), bb1Size)
+
+	fmt.Printf("rendering %s (%dx%d)\n", path, cells[0], cells[1])
+
+	// run marching squares to generate the line segments
+	m := MarchingSquares(s, bb, meshInc)
+	return SaveSVG(path, m)
+}
+
+//-----------------------------------------------------------------------------
