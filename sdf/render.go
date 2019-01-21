@@ -5,6 +5,7 @@ Render an SDF
 
 SDF3 -> STL file
 SDF2 -> DXF file
+SDF2 -> SVG file
 
 */
 //-----------------------------------------------------------------------------
@@ -18,7 +19,7 @@ import (
 
 //-----------------------------------------------------------------------------
 
-// Render an SDF3 as an STL file (octree sampling)
+// RenderSTL renders an SDF3 as an STL file (uses octree sampling).
 func RenderSTL(
 	s SDF3, //sdf3 to render
 	mesh_cells int, //number of cells on the longest axis. e.g 200
@@ -49,8 +50,8 @@ func RenderSTL(
 	wg.Wait()
 }
 
-// Render an SDF3 as an STL file.
-func RenderSTL_Slow(
+// RenderSTLSlow renders an SDF3 as an STL file (uses uniform grid sampling).
+func RenderSTLSlow(
 	s SDF3, //sdf3 to render
 	mesh_cells int, //number of cells on the longest axis. e.g 200
 	path string, //path to filename
@@ -77,7 +78,7 @@ func RenderSTL_Slow(
 
 //-----------------------------------------------------------------------------
 
-// Render an SDF2 as a DXF file. (quadtree sampling)
+// RenderDXF renders an SDF2 as a DXF file. (uses quadtree sampling)
 func RenderDXF(
 	s SDF2, //sdf2 to render
 	mesh_cells int, //number of cells on the longest axis. e.g 200
@@ -108,8 +109,8 @@ func RenderDXF(
 	wg.Wait()
 }
 
-// Render an SDF2 as a DXF file. (grid sampling)
-func RenderDXF_Slow(
+// RenderDXFSlow renders an SDF2 as a DXF file. (uses uniform grid sampling)
+func RenderDXFSlow(
 	s SDF2, //sdf2 to render
 	mesh_cells int, //number of cells on the longest axis. e.g 200
 	path string, //path to filename
@@ -136,7 +137,7 @@ func RenderDXF_Slow(
 
 //-----------------------------------------------------------------------------
 
-// Render an SDF2 as an SVG file. (quadtree sampling)
+// RenderSVG renders an SDF2 as an SVG file. (uses quadtree sampling)
 func RenderSVG(
 	s SDF2, // sdf2 to render
 	meshCells int, // number of cells on the longest axis. e.g 200
@@ -166,8 +167,8 @@ func RenderSVG(
 	return nil
 }
 
-// Render an SDF2 as an SVG file. (grid sampling)
-func RenderSVG_Slow(
+// RenderSVGSlow renders an SDF2 as an SVG file. (uses uniform grid sampling)
+func RenderSVGSlow(
 	s SDF2, // sdf2 to render
 	meshCells int, // number of cells on the longest axis. e.g 200
 	path string, // path to filename

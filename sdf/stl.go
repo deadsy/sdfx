@@ -18,11 +18,13 @@ import (
 
 //-----------------------------------------------------------------------------
 
+// STLHeader defines the STL file header.
 type STLHeader struct {
 	_     [80]uint8 // Header
 	Count uint32    // Number of triangles
 }
 
+// STLTriangle defines the triangle data within an STL file.
 type STLTriangle struct {
 	Normal, Vertex1, Vertex2, Vertex3 [3]float32
 	_                                 uint16 // Attribute byte count
@@ -118,7 +120,7 @@ func WriteSTL(wg *sync.WaitGroup, path string) (chan<- *Triangle3, error) {
 				fmt.Printf("%s\n", err)
 				return
 			}
-			count += 1
+			count++
 		}
 		// flush the triangles
 		buf.Flush()

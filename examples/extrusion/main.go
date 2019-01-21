@@ -50,8 +50,8 @@ func extrude2() SDF3 {
 //-----------------------------------------------------------------------------
 
 func main() {
-	RenderSTL_Slow(extrude1(), 200, "extrude1.stl")
-	RenderSTL_Slow(extrude2(), 200, "extrude2.stl")
+	RenderSTLSlow(extrude1(), 200, "extrude1.stl")
+	RenderSTLSlow(extrude2(), 200, "extrude2.stl")
 }
 
 //-----------------------------------------------------------------------------

@@ -14,6 +14,7 @@ import (
 
 //-----------------------------------------------------------------------------
 
+// M44 is a 4x4 matrix.
 type M44 struct {
 	x00, x01, x02, x03 float64
 	x10, x11, x12, x13 float64
@@ -21,12 +22,14 @@ type M44 struct {
 	x30, x31, x32, x33 float64
 }
 
+// M33 is a 3x3 matrix.
 type M33 struct {
 	x00, x01, x02 float64
 	x10, x11, x12 float64
 	x20, x21, x22 float64
 }
 
+// M22 is a 2x2 matrix.
 type M22 struct {
 	x00, x01 float64
 	x10, x11 float64
@@ -34,6 +37,7 @@ type M22 struct {
 
 //-----------------------------------------------------------------------------
 
+// RandomM22 returns a 2x2 matrix with random elements.
 func RandomM22(a, b float64) M22 {
 	m := M22{randomRange(a, b),
 		randomRange(a, b),
@@ -42,6 +46,7 @@ func RandomM22(a, b float64) M22 {
 	return m
 }
 
+// RandomM33 returns a 3x3 matrix with random elements.
 func RandomM33(a, b float64) M33 {
 	m := M33{randomRange(a, b),
 		randomRange(a, b),
@@ -55,6 +60,7 @@ func RandomM33(a, b float64) M33 {
 	return m
 }
 
+// RandomM44 returns a 4x4 matrix with random elements.
 func RandomM44(a, b float64) M44 {
 	m := M44{
 		randomRange(a, b),
@@ -78,6 +84,7 @@ func RandomM44(a, b float64) M44 {
 
 //-----------------------------------------------------------------------------
 
+// Identity3d returns a 4x4 identity matrix.
 func Identity3d() M44 {
 	return M44{
 		1, 0, 0, 0,
@@ -86,6 +93,7 @@ func Identity3d() M44 {
 		0, 0, 0, 1}
 }
 
+// Identity2d returns a 3x3 identity matrix.
 func Identity2d() M33 {
 	return M33{
 		1, 0, 0,
@@ -93,12 +101,14 @@ func Identity2d() M33 {
 		0, 0, 1}
 }
 
+// Identity returns a 2x2 identity matrix.
 func Identity() M22 {
 	return M22{
 		1, 0,
 		0, 1}
 }
 
+// Translate3d returns a 4x4 translation matrix.
 func Translate3d(v V3) M44 {
 	return M44{
 		1, 0, 0, v.X,
@@ -107,6 +117,7 @@ func Translate3d(v V3) M44 {
 		0, 0, 0, 1}
 }
 
+// Translate2d returns a 3x3 translation matrix.
 func Translate2d(v V2) M33 {
 	return M33{
 		1, 0, v.X,
@@ -125,7 +136,7 @@ func Scale3d(v V3) M44 {
 }
 
 // Scale2d returns a 3x3 scaling matrix.
-// Scaling does not preserve distance. See: ScaleUniform2D()
+// Scaling does not preserve distance. See: ScaleUniform2D().
 func Scale2d(v V2) M33 {
 	return M33{
 		v.X, 0, 0,
@@ -133,7 +144,7 @@ func Scale2d(v V2) M33 {
 		0, 0, 1}
 }
 
-// Return an orthographic 3d rotation matrix (right hand rule)
+// Rotate3d returns an orthographic 4x4 rotation matrix (right hand rule).
 func Rotate3d(v V3, a float64) M44 {
 	v = v.Normalize()
 	s := math.Sin(a)
@@ -146,23 +157,22 @@ func Rotate3d(v V3, a float64) M44 {
 		0, 0, 0, 1}
 }
 
-// Rotate about the X axis.
+// RotateX returns a 4x4 matrix with rotation about the X axis.
 func RotateX(a float64) M44 {
 	return Rotate3d(V3{1, 0, 0}, a)
 }
 
-// Rotate about the Y axis.
+// RotateY returns a 4x4 matrix with rotation about the Y axis.
 func RotateY(a float64) M44 {
 	return Rotate3d(V3{0, 1, 0}, a)
 }
 
-// Rotate about the Z axis.
+// RotateZ returns a 4x4 matrix with rotation about the Z axis.
 func RotateZ(a float64) M44 {
 	return Rotate3d(V3{0, 0, 1}, a)
 }
 
-// TODO - generalise for other mirror planes
-// Mirror across the YZ plane
+// MirrorYZ returns a 4x4 matrix with mirroring across the YZ plane.
 func MirrorYZ() M44 {
 	return M44{
 		-1, 0, 0, 0,
@@ -171,7 +181,7 @@ func MirrorYZ() M44 {
 		0, 0, 0, 1}
 }
 
-// Return an orthographic 2d rotation matrix (right hand rule)
+// Rotate2d returns an orthographic 3x3 rotation matrix (right hand rule).
 func Rotate2d(a float64) M33 {
 	s := math.Sin(a)
 	c := math.Cos(a)
@@ -181,6 +191,7 @@ func Rotate2d(a float64) M33 {
 		0, 0, 1}
 }
 
+// Rotate returns an orthographic 2x2 rotation matrix (right hand rule).
 func Rotate(a float64) M22 {
 	s := math.Sin(a)
 	c := math.Cos(a)
@@ -192,6 +203,7 @@ func Rotate(a float64) M22 {
 
 //-----------------------------------------------------------------------------
 
+// Equals tests the equality of 4x4 matrices.
 func (a M44) Equals(b M44, tolerance float64) bool {
 	return (Abs(a.x00-b.x00) < tolerance &&
 		Abs(a.x01-b.x01) < tolerance &&
@@ -211,6 +223,7 @@ func (a M44) Equals(b M44, tolerance float64) bool {
 		Abs(a.x33-b.x33) < tolerance)
 }
 
+// Equals tests the equality of 3x3 matrices.
 func (a M33) Equals(b M33, tolerance float64) bool {
 	return (Abs(a.x00-b.x00) < tolerance &&
 		Abs(a.x01-b.x01) < tolerance &&
@@ -223,6 +236,7 @@ func (a M33) Equals(b M33, tolerance float64) bool {
 		Abs(a.x22-b.x22) < tolerance)
 }
 
+// Equals tests the equality of 2x2 matrices.
 func (a M22) Equals(b M22, tolerance float64) bool {
 	return (Abs(a.x00-b.x00) < tolerance &&
 		Abs(a.x01-b.x01) < tolerance &&
@@ -232,17 +246,20 @@ func (a M22) Equals(b M22, tolerance float64) bool {
 
 //-----------------------------------------------------------------------------
 
+// MulPosition multiplies a V3 position with a rotate/translate matrix.
 func (a M44) MulPosition(b V3) V3 {
 	return V3{a.x00*b.X + a.x01*b.Y + a.x02*b.Z + a.x03,
 		a.x10*b.X + a.x11*b.Y + a.x12*b.Z + a.x13,
 		a.x20*b.X + a.x21*b.Y + a.x22*b.Z + a.x23}
 }
 
+// MulPosition multiplies a V2 position with a rotate/translate matrix.
 func (a M33) MulPosition(b V2) V2 {
 	return V2{a.x00*b.X + a.x01*b.Y + a.x02,
 		a.x10*b.X + a.x11*b.Y + a.x12}
 }
 
+// MulPosition multiplies a V2 position with a rotate matrix.
 func (a M22) MulPosition(b V2) V2 {
 	return V2{a.x00*b.X + a.x01*b.Y,
 		a.x10*b.X + a.x11*b.Y}
@@ -250,12 +267,14 @@ func (a M22) MulPosition(b V2) V2 {
 
 //-----------------------------------------------------------------------------
 
+// MulVertices multiples a set of V2 vertices by a rotate/translate matrix.
 func (v V2Set) MulVertices(a M33) {
 	for i := range v {
 		v[i] = a.MulPosition(v[i])
 	}
 }
 
+// MulVertices multiples a set of V3 vertices by a rotate/translate matrix.
 func (v V3Set) MulVertices(a M44) {
 	for i := range v {
 		v[i] = a.MulPosition(v[i])
@@ -264,6 +283,7 @@ func (v V3Set) MulVertices(a M44) {
 
 //-----------------------------------------------------------------------------
 
+// Mul multiplies 4x4 matrices.
 func (a M44) Mul(b M44) M44 {
 	m := M44{}
 	m.x00 = a.x00*b.x00 + a.x01*b.x10 + a.x02*b.x20 + a.x03*b.x30
@@ -285,6 +305,7 @@ func (a M44) Mul(b M44) M44 {
 	return m
 }
 
+// Mul multiplies 3x3 matrices.
 func (a M33) Mul(b M33) M33 {
 	m := M33{}
 	m.x00 = a.x00*b.x00 + a.x01*b.x10 + a.x02*b.x20
@@ -299,6 +320,7 @@ func (a M33) Mul(b M33) M33 {
 	return m
 }
 
+// Mul multiplies 2x2 matrices.
 func (a M22) Mul(b M22) M22 {
 	m := M22{}
 	m.x00 = a.x00*b.x00 + a.x01*b.x10
@@ -312,6 +334,7 @@ func (a M22) Mul(b M22) M22 {
 // Transform bounding boxes - keep them axis aligned
 // http://dev.theomader.com/transform-bounding-boxes/
 
+// MulBox rotates/translates a 3d bounding box and resizes for axis-alignment.
 func (a M44) MulBox(box Box3) Box3 {
 	r := V3{a.x00, a.x10, a.x20}
 	u := V3{a.x01, a.x11, a.x21}
@@ -331,6 +354,7 @@ func (a M44) MulBox(box Box3) Box3 {
 	return Box3{min, max}
 }
 
+// MulBox rotates/translates a 2d bounding box and resizes for axis-alignment.
 func (a M33) MulBox(box Box2) Box2 {
 	r := V2{a.x00, a.x10}
 	u := V2{a.x01, a.x11}
@@ -348,6 +372,7 @@ func (a M33) MulBox(box Box2) Box2 {
 
 //-----------------------------------------------------------------------------
 
+// Determinant returns the determinant of a 4x4 matrix.
 func (a M44) Determinant() float64 {
 	return (a.x00*a.x11*a.x22*a.x33 - a.x00*a.x11*a.x23*a.x32 +
 		a.x00*a.x12*a.x23*a.x31 - a.x00*a.x12*a.x21*a.x33 +
@@ -363,18 +388,21 @@ func (a M44) Determinant() float64 {
 		a.x03*a.x12*a.x20*a.x31 + a.x03*a.x12*a.x21*a.x30)
 }
 
+// Determinant returns the determinant of a 3x3 matrix.
 func (a M33) Determinant() float64 {
 	return (a.x00*(a.x11*a.x22-a.x21*a.x12) -
 		a.x01*(a.x10*a.x22-a.x20*a.x12) +
 		a.x02*(a.x10*a.x21-a.x20*a.x11))
 }
 
+// Determinant returns the determinant of a 2x2 matrix.
 func (a M22) Determinant() float64 {
 	return a.x00*a.x11 - a.x01*a.x10
 }
 
 //-----------------------------------------------------------------------------
 
+// Inverse returns the inverse of a 4x4 matrix.
 func (a M44) Inverse() M44 {
 	m := M44{}
 	d := 1 / a.Determinant()
@@ -397,6 +425,7 @@ func (a M44) Inverse() M44 {
 	return m
 }
 
+// Inverse returns the inverse of a 3x3 matrix.
 func (a M33) Inverse() M33 {
 	m := M33{}
 	d := 1 / a.Determinant()
@@ -412,6 +441,7 @@ func (a M33) Inverse() M33 {
 	return m
 }
 
+// Inverse returns the inverse of a 2x2 matrix.
 func (a M22) Inverse() M22 {
 	m := M22{}
 	d := 1 / a.Determinant()

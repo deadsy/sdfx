@@ -15,7 +15,7 @@ import (
 
 //-----------------------------------------------------------------------------
 
-// Counter Bored Hole
+// CounterBored_Hole3D returns the SDF3 for a counterbored hole.
 func CounterBored_Hole3D(
 	l float64, // total length
 	r float64, // hole radius
@@ -28,7 +28,7 @@ func CounterBored_Hole3D(
 	return Union3D(s0, s1)
 }
 
-// Chamfered Hole (45 degrees)
+// Chamfered_Hole3D returns the SDF3 for a chamfered hole (45 degrees).
 func Chamfered_Hole3D(
 	l float64, // total length
 	r float64, // hole radius
@@ -40,7 +40,7 @@ func Chamfered_Hole3D(
 	return Union3D(s0, s1)
 }
 
-// Countersunk Hole (45 degrees)
+// CounterSunk_Hole3D returns the SDF3 for a countersunk hole (45 degrees).
 func CounterSunk_Hole3D(
 	l float64, // total length
 	r float64, // hole radius
@@ -50,7 +50,7 @@ func CounterSunk_Hole3D(
 
 //-----------------------------------------------------------------------------
 
-// Return a rounded hex head for a nut or bolt.
+// HexHead3D returns the rounded hex head for a nut or bolt.
 func HexHead3D(
 	r float64, // radius
 	h float64, // height
@@ -77,7 +77,7 @@ func HexHead3D(
 	return hex_3d
 }
 
-// Return a cylindrical knurled head.
+// KnurledHead3D returns a cylindrical knurled head.
 func KnurledHead3D(
 	r float64, // radius
 	h float64, // height
@@ -92,7 +92,7 @@ func KnurledHead3D(
 
 //-----------------------------------------------------------------------------
 
-// Return a 2D knurl profile.
+// KnurlProfile returns a 2D knurl profile.
 func KnurlProfile(
 	radius float64, // radius of knurled cylinder
 	pitch float64, // pitch of the knurl
@@ -108,7 +108,7 @@ func KnurlProfile(
 	return Polygon2D(knurl.Vertices())
 }
 
-// Return a knurled cylinder.
+// Knurl3D returns a knurled cylinder.
 func Knurl3D(
 	length float64, // length of cylinder
 	radius float64, // radius of cylinder
@@ -130,7 +130,7 @@ func Knurl3D(
 
 //-----------------------------------------------------------------------------
 
-// Return a washer.
+// Washer3D returns a washer.
 func Washer3D(
 	t float64, // thickness
 	r_inner float64, // inner radius
@@ -148,6 +148,7 @@ func Washer3D(
 //-----------------------------------------------------------------------------
 // Board standoffs
 
+// StandoffParms defines the parameters for a board standoff pillar.
 type StandoffParms struct {
 	PillarHeight   float64
 	PillarDiameter float64
@@ -193,7 +194,7 @@ func pillar_hole(k *StandoffParms) SDF3 {
 	return Transform3D(s, Translate3d(V3{0, 0, z_ofs}))
 }
 
-// Return a single board standoff.
+// Standoff3D returns a single board standoff.
 func Standoff3D(k *StandoffParms) SDF3 {
 	s0 := Difference3D(Union3D(pillar(k), pillar_webs(k)), pillar_hole(k))
 	if k.NumberWebs != 0 {
@@ -204,7 +205,7 @@ func Standoff3D(k *StandoffParms) SDF3 {
 	return s0
 }
 
-// Multiple board standoffs at various positions
+// Standoffs3D returns multiple board standoffs at various positions.
 func Standoffs3D(k *StandoffParms, positions V3Set) SDF3 {
 	if len(positions) == 0 {
 		return nil
@@ -335,6 +336,7 @@ func filter_tabs(pattern string, tab rune) string {
 	return string(out)
 }
 
+// PanelBoxParms defines the parameters for a 4 part panel box.
 type PanelBoxParms struct {
 	Size       V3      // outer box dimensions (width, height, length)
 	Wall       float64 // wall thickness
@@ -347,7 +349,7 @@ type PanelBoxParms struct {
 	SideTabs   string  // tab pattern b/B (bottom) t/T (top) . (empty)
 }
 
-// PanelBox3D returns a 4 part panel box
+// PanelBox3D returns a 4 part panel box.
 func PanelBox3D(k *PanelBoxParms) []SDF3 {
 	// sanity checks
 	if k.Size.X <= 0 || k.Size.Y <= 0 || k.Size.Z <= 0 {

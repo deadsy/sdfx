@@ -10,6 +10,7 @@ package sdf
 
 //-----------------------------------------------------------------------------
 
+// PanelParms defines the parameters for a 2D panel.
 type PanelParms struct {
 	Size         V2
 	CornerRadius float64
@@ -18,7 +19,7 @@ type PanelParms struct {
 	HolePattern  [4]string  // top, right, bottom, left
 }
 
-// Return a 2d panel with holes on the edges.
+// Panel2D returns a 2d panel with holes on the edges.
 func Panel2D(k *PanelParms) SDF2 {
 	// panel
 	s0 := Box2D(k.Size, k.CornerRadius)
@@ -48,13 +49,14 @@ func Panel2D(k *PanelParms) SDF2 {
 //-----------------------------------------------------------------------------
 // finger button
 
+// FingerButtonParms defines the parameters for a 2D finger button.
 type FingerButtonParms struct {
 	Width  float64 // finger width
 	Gap    float64 // gap between finger and body
 	Length float64 // length of the finger
 }
 
-// Return the 2D cutout for a finger button.
+// FingerButton2D returns a 2D cutout for a finger button.
 func FingerButton2D(k *FingerButtonParms) SDF2 {
 	r0 := 0.5 * k.Width
 	r1 := r0 - k.Gap
