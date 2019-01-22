@@ -10,23 +10,25 @@ import "errors"
 
 //-----------------------------------------------------------------------------
 
+// Box3 is a 3d bounding box.
 type Box3 struct {
 	Min, Max V3
 }
 
+// Box2 is a 2d bounding box.
 type Box2 struct {
 	Min, Max V2
 }
 
 //-----------------------------------------------------------------------------
 
-// create a new Box with a given center and size
+// NewBox3 creates a 3d box with a given center and size.
 func NewBox3(center, size V3) Box3 {
 	half := size.MulScalar(0.5)
 	return Box3{center.Sub(half), center.Add(half)}
 }
 
-// create a new Box with a given center and size
+// NewBox2 creates a 2d box with a given center and size.
 func NewBox2(center, size V2) Box2 {
 	half := size.MulScalar(0.5)
 	return Box2{center.Sub(half), center.Add(half)}
@@ -34,77 +36,77 @@ func NewBox2(center, size V2) Box2 {
 
 //-----------------------------------------------------------------------------
 
-// are the boxes equal?
+// Equals test the equality of 3d boxes.
 func (a Box3) Equals(b Box3, tolerance float64) bool {
 	return (a.Min.Equals(b.Min, tolerance) && a.Max.Equals(b.Max, tolerance))
 }
 
-// are the boxes equal?
+// Equals test the equality of 2d boxes.
 func (a Box2) Equals(b Box2, tolerance float64) bool {
 	return (a.Min.Equals(b.Min, tolerance) && a.Max.Equals(b.Max, tolerance))
 }
 
 //-----------------------------------------------------------------------------
 
-// return a box that encloses two boxes
+// Extend returns a box that encloses two 3d boxes.
 func (a Box3) Extend(b Box3) Box3 {
 	return Box3{a.Min.Min(b.Min), a.Max.Max(b.Max)}
 }
 
-// return a box that encloses two boxes
+// Extend returns a box that encloses two 2d boxes.
 func (a Box2) Extend(b Box2) Box2 {
 	return Box2{a.Min.Min(b.Min), a.Max.Max(b.Max)}
 }
 
 //-----------------------------------------------------------------------------
 
-// translate a box a distance v
+// Translate translates a 3d box.
 func (a Box3) Translate(v V3) Box3 {
 	return Box3{a.Min.Add(v), a.Max.Add(v)}
 }
 
-// translate a box a distance v
+// Translate translates a 2d box.
 func (a Box2) Translate(v V2) Box2 {
 	return Box2{a.Min.Add(v), a.Max.Add(v)}
 }
 
 //-----------------------------------------------------------------------------
 
-// return the size of the box
+// Size returns the size of a 3d box.
 func (a Box3) Size() V3 {
 	return a.Max.Sub(a.Min)
 }
 
-// return the size of the box
+// Size returns the size of a 2d box.
 func (a Box2) Size() V2 {
 	return a.Max.Sub(a.Min)
 }
 
-// return the center of the box
+// Center returns the center of a 3d box.
 func (a Box3) Center() V3 {
 	return a.Min.Add(a.Size().MulScalar(0.5))
 }
 
-// return the center of the box
+// Center returns the center of a 2d box.
 func (a Box2) Center() V2 {
 	return a.Min.Add(a.Size().MulScalar(0.5))
 }
 
 //-----------------------------------------------------------------------------
 
-// ScaleAboutCenter returns a new box scaled about the center of a box.
+// ScaleAboutCenter returns a new 2d box scaled about the center of a box.
 func (a Box2) ScaleAboutCenter(k float64) Box2 {
 	return NewBox2(a.Center(), a.Size().MulScalar(k))
 }
 
-// ScaleAboutCenter returns a new box scaled about the center of a box.
+// ScaleAboutCenter returns a new 3d box scaled about the center of a box.
 func (a Box3) ScaleAboutCenter(k float64) Box3 {
 	return NewBox3(a.Center(), a.Size().MulScalar(k))
 }
 
 //-----------------------------------------------------------------------------
 
-// Return a slice of box vertices
+// Vertices returns a slice of 2d box corner vertices.
 func (a Box2) Vertices() V2Set {
 	v := make([]V2, 4)
 	v[0] = a.Min                // bl
@@ -114,7 +116,7 @@ func (a Box2) Vertices() V2Set {
 	return v
 }
 
-// Return a slice of box vertices
+// Vertices returns a slice of 3d box corner vertices.
 func (a Box3) Vertices() V3Set {
 	v := make([]V3, 8)
 	v[0] = a.Min
@@ -128,19 +130,19 @@ func (a Box3) Vertices() V3Set {
 	return v
 }
 
-// return the bottom left of a 2d bounding box
+// BottomLeft returns the bottom left corner of a 2d bounding box.
 func (a Box2) BottomLeft() V2 {
 	return a.Min
 }
 
-// return the top left of a 2d bounding box
+// TopLeft returns the top left corner of a 2d bounding box.
 func (a Box2) TopLeft() V2 {
 	return V2{a.Min.X, a.Max.Y}
 }
 
 //-----------------------------------------------------------------------------
-// Map a 2d region to integer grid coordinates
 
+// Map2 maps a 2d region to integer grid coordinates.
 type Map2 struct {
 	bb    Box2 // bounding box
 	grid  V2i  // integral dimension
@@ -148,10 +150,11 @@ type Map2 struct {
 	flipy bool // flip the y-axis
 }
 
+// NewMap2 returns a 2d region to grid coordinates map.
 func NewMap2(bb Box2, grid V2i, flipy bool) (*Map2, error) {
 	// sanity check the bounding box
-	bb_size := bb.Size()
-	if bb_size.X <= 0 || bb_size.Y <= 0 {
+	bbSize := bb.Size()
+	if bbSize.X <= 0 || bbSize.Y <= 0 {
 		return nil, errors.New("bad bounding box")
 	}
 	// sanity check the integer dimensions
@@ -162,10 +165,11 @@ func NewMap2(bb Box2, grid V2i, flipy bool) (*Map2, error) {
 	m.bb = bb
 	m.grid = grid
 	m.flipy = flipy
-	m.delta = bb_size.Div(grid.ToV2())
+	m.delta = bbSize.Div(grid.ToV2())
 	return &m, nil
 }
 
+// ToV2 converts grid integer coordinates to 2d region float coordinates.
 func (m *Map2) ToV2(p V2i) V2 {
 	ofs := p.ToV2().AddScalar(0.5).Mul(m.delta)
 	var origin V2
@@ -178,6 +182,7 @@ func (m *Map2) ToV2(p V2i) V2 {
 	return origin.Add(ofs)
 }
 
+// ToV2i converts 2d region float coordinates to grid integer coordinates.
 func (m *Map2) ToV2i(p V2) V2i {
 	var v V2
 	if m.flipy {
@@ -195,8 +200,8 @@ func (m *Map2) ToV2i(p V2) V2i {
 // MinMaxDist2 returns the minimum and maximum dist * dist from a point to a box.
 // Points within the box have minimum distance = 0.
 func (a Box2) MinMaxDist2(p V2) V2 {
-	max_d2 := 0.0
-	min_d2 := 0.0
+	maxDist2 := 0.0
+	minDist2 := 0.0
 
 	// translate the box so p is at the origin
 	a = a.Translate(p.Neg())
@@ -207,38 +212,38 @@ func (a Box2) MinMaxDist2(p V2) V2 {
 	for i := range vs {
 		d2 := vs[i].Length2()
 		if i == 0 {
-			min_d2 = d2
+			minDist2 = d2
 		} else {
-			min_d2 = Min(min_d2, d2)
+			minDist2 = Min(minDist2, d2)
 		}
-		max_d2 = Max(max_d2, d2)
+		maxDist2 = Max(maxDist2, d2)
 	}
 
 	// consider the sides (for the minimum)
-	within_x := a.Min.X < 0 && a.Max.X > 0
-	within_y := a.Min.Y < 0 && a.Max.Y > 0
+	withinX := a.Min.X < 0 && a.Max.X > 0
+	withinY := a.Min.Y < 0 && a.Max.Y > 0
 
-	if within_x && within_y {
-		min_d2 = 0
+	if withinX && withinY {
+		minDist2 = 0
 	} else {
-		if within_x {
+		if withinX {
 			d := Min(Abs(a.Max.Y), Abs(a.Min.Y))
-			min_d2 = Min(min_d2, d*d)
+			minDist2 = Min(minDist2, d*d)
 		}
-		if within_y {
+		if withinY {
 			d := Min(Abs(a.Max.X), Abs(a.Min.X))
-			min_d2 = Min(min_d2, d*d)
+			minDist2 = Min(minDist2, d*d)
 		}
 	}
 
-	return V2{min_d2, max_d2}
+	return V2{minDist2, maxDist2}
 }
 
 // MinMaxDist2 returns the minimum and maximum dist * dist from a point to a box.
 // Points within the box have minimum distance = 0.
 func (a Box3) MinMaxDist2(p V3) V2 {
-	max_d2 := 0.0
-	min_d2 := 0.0
+	maxDist2 := 0.0
+	minDist2 := 0.0
 
 	// translate the box so p is at the origin
 	a = a.Translate(p.Neg())
@@ -248,36 +253,36 @@ func (a Box3) MinMaxDist2(p V3) V2 {
 	for i := range vs {
 		d2 := vs[i].Length2()
 		if i == 0 {
-			min_d2 = d2
+			minDist2 = d2
 		} else {
-			min_d2 = Min(min_d2, d2)
+			minDist2 = Min(minDist2, d2)
 		}
-		max_d2 = Max(max_d2, d2)
+		maxDist2 = Max(maxDist2, d2)
 	}
 
 	// consider the faces (for the minimum)
-	within_x := a.Min.X < 0 && a.Max.X > 0
-	within_y := a.Min.Y < 0 && a.Max.Y > 0
-	within_z := a.Min.Z < 0 && a.Max.Z > 0
+	withinX := a.Min.X < 0 && a.Max.X > 0
+	withinY := a.Min.Y < 0 && a.Max.Y > 0
+	withinZ := a.Min.Z < 0 && a.Max.Z > 0
 
-	if within_x && within_y && within_z {
-		min_d2 = 0
+	if withinX && withinY && withinZ {
+		minDist2 = 0
 	} else {
-		if within_x && within_y {
+		if withinX && withinY {
 			d := Min(Abs(a.Max.Z), Abs(a.Min.Z))
-			min_d2 = Min(min_d2, d*d)
+			minDist2 = Min(minDist2, d*d)
 		}
-		if within_x && within_z {
+		if withinX && withinZ {
 			d := Min(Abs(a.Max.Y), Abs(a.Min.Y))
-			min_d2 = Min(min_d2, d*d)
+			minDist2 = Min(minDist2, d*d)
 		}
-		if within_y && within_z {
+		if withinY && withinZ {
 			d := Min(Abs(a.Max.X), Abs(a.Min.X))
-			min_d2 = Min(min_d2, d*d)
+			minDist2 = Min(minDist2, d*d)
 		}
 	}
 
-	return V2{min_d2, max_d2}
+	return V2{minDist2, maxDist2}
 }
 
 //-----------------------------------------------------------------------------
