@@ -22,7 +22,7 @@ import (
 
 //-----------------------------------------------------------------------------
 
-// Solve the tridiagonal matrix equation m.x = d, return x
+// TriDiagonal solves the tridiagonal matrix equation m.x = d, returns x.
 // See: https://en.wikipedia.org/wiki/Tridiagonal_matrix_algorithm
 func TriDiagonal(m []V3, d []float64) []float64 {
 	// Sanity checks
@@ -58,6 +58,7 @@ func TriDiagonal(m []V3, d []float64) []float64 {
 
 //-----------------------------------------------------------------------------
 
+// CubicPolynomial is a cubic polynomial
 type CubicPolynomial struct {
 	a, b, c, d float64 // polynomial coefficients
 }
@@ -77,7 +78,7 @@ func (p *CubicPolynomial) f2(t float64) float64 {
 	return 2*p.c + 6*p.d*t
 }
 
-// Set polynomial coefficient values.
+// Set cubic polynomial coefficient values.
 func (p *CubicPolynomial) Set(y0, y1, D0, D1 float64) {
 	p.a = y0
 	p.b = D0
@@ -92,13 +93,14 @@ func (p *CubicPolynomial) Set(y0, y1, D0, D1 float64) {
 }
 
 // Return the t values for f1 == 0 (local minima/maxima)
-func (p *CubicPolynomial) f1_zeroes() []float64 {
+func (p *CubicPolynomial) f1Zeroes() []float64 {
 	t, _ := quadratic(3*p.d, 2*p.c, p.b)
 	return t
 }
 
 //-----------------------------------------------------------------------------
 
+// CubicSpline is a 2d cubic spline.
 type CubicSpline struct {
 	idx    int             // index within spline set
 	p0, p1 V2              // end points of cubic spline
@@ -120,24 +122,25 @@ func (s *CubicSpline) f2(t float64) V2 {
 	return V2{s.px.f2(t), s.py.f2(t)}
 }
 
-// Return the bounding box for a spline.
+// BoundingBox returns the bounding box for a cubic spline.
 func (s *CubicSpline) BoundingBox() Box2 {
 	p := V2Set{s.p0, s.p1}
 	// x minima/maxima
-	for _, t := range s.px.f1_zeroes() {
+	for _, t := range s.px.f1Zeroes() {
 		p = append(p, s.f0(Clamp(t, 0, 1)))
 	}
 	// y minima/maxima
-	for _, t := range s.py.f1_zeroes() {
+	for _, t := range s.py.f1Zeroes() {
 		p = append(p, s.f0(Clamp(t, 0, 1)))
 	}
 	return Box2{p.Min(), p.Max()}
 }
 
-const NR_TOLERANCE = 0.0001
-const NR_MAXITERS = 10
+const nrTolerance = 0.0001
+const nrMaxIters = 10
 
-func (s *CubicSpline) NR_Iterate(t float64, p V2) float64 {
+// nrIterate is Newton-Raphson Iteration for minumum spline distance.
+func (s *CubicSpline) nrIterate(t float64, p V2) float64 {
 	// We are minimising the distance squared function.
 	// We are looking for the zeroes of the first derivative of this function.
 	// dx = x0 - p.X
@@ -156,73 +159,77 @@ func (s *CubicSpline) NR_Iterate(t float64, p V2) float64 {
 
 //-----------------------------------------------------------------------------
 
+// CubicSplineSDF2 is an SDF2 made from a set of cubic splines.
 type CubicSplineSDF2 struct {
 	spline   []CubicSpline // cubic splines
 	maxiters int           // max newton-raphson iterations
 	bb       Box2          // bounding box
 }
 
-// Return the spline and t value for a given t value.
-func (s *CubicSplineSDF2) Find(t float64) (*CubicSpline, float64) {
+// find an individual spline and t value within the set of cubic splines making up the SDF2.
+func (s *CubicSplineSDF2) find(t float64) (*CubicSpline, float64) {
 	n := len(s.spline)
 	t = Clamp(t, 0, float64(n))
 	i := int(t)
 	t -= float64(i)
 	// correct for the last spline
 	if i == n {
-		i -= 1
+		i--
 		t = 1
 	}
 	return &s.spline[i], t
 }
 
-// Return the function value for a given t value.
-func (s *CubicSplineSDF2) F0(t float64) V2 {
-	cs, t := s.Find(t)
+// f0 returns the function value for a given t value.
+func (s *CubicSplineSDF2) f0(t float64) V2 {
+	cs, t := s.find(t)
 	return cs.f0(t)
 }
 
-func (s *CubicSplineSDF2) F1(t float64) V2 {
-	cs, t := s.Find(t)
+// f1 returns the first derivative for a given t value.
+func (s *CubicSplineSDF2) f1(t float64) V2 {
+	cs, t := s.find(t)
 	return cs.f1(t)
 }
 
-func (s *CubicSplineSDF2) F2(t float64) V2 {
-	cs, t := s.Find(t)
+// f2 returns the second derivative for a given t value.
+func (s *CubicSplineSDF2) f2(t float64) V2 {
+	cs, t := s.find(t)
 	return cs.f2(t)
 }
 
-// Return the distance squared between a point and a point on the splines curve.
-func (s *CubicSplineSDF2) D0(t float64, p V2) float64 {
-	f0 := s.F0(t)
+// d0 returns the distance squared between a point and a point on the splines curve.
+func (s *CubicSplineSDF2) d0(t float64, p V2) float64 {
+	f0 := s.f0(t)
 	dx := f0.X - p.X
 	dy := f0.Y - p.Y
 	return dx*dx + dy*dy
 }
 
-func (s *CubicSplineSDF2) D1(t float64, p V2) float64 {
-	f0 := s.F0(t)
-	f1 := s.F1(t)
+func (s *CubicSplineSDF2) d1(t float64, p V2) float64 {
+	f0 := s.f0(t)
+	f1 := s.f1(t)
 	dx := f0.X - p.X
 	dy := f0.Y - p.Y
 	return 2 * (dx*f1.X + dy*f1.Y)
 }
 
-func (s *CubicSplineSDF2) D2(t float64, p V2) float64 {
-	f0 := s.F0(t)
-	f1 := s.F1(t)
-	f2 := s.F2(t)
+func (s *CubicSplineSDF2) d2(t float64, p V2) float64 {
+	f0 := s.f0(t)
+	f1 := s.f1(t)
+	f2 := s.f2(t)
 	dx := f0.X - p.X
 	dy := f0.Y - p.Y
 	return 2 * (dx*f2.X + f1.X*f1.X + dy*f2.Y + f1.Y*f1.Y)
 }
 
+// CubicSpline2D returns an SDF2 made from a set of cubic splines.
 func CubicSpline2D(knot []V2) SDF2 {
 	if len(knot) < 2 {
 		panic("cubic splines need at least 2 knots")
 	}
 	s := CubicSplineSDF2{}
-	s.maxiters = NR_MAXITERS
+	s.maxiters = nrMaxIters
 
 	// Build and solve the tridiagonal matrices
 	n := len(knot)
@@ -265,18 +272,22 @@ func CubicSpline2D(knot []V2) SDF2 {
 	return &s
 }
 
+// Evaluate returns the minimum distance from a point to the cubic spline SDF2.
+// Note: This uses Newton-Raphson minimisation and is unstable in some circumstances.
+// A simple (and slower) solution is to convert the cubic spline SDF2 to a polygon
+// SDF2 and use that for rendering.
 func (s *CubicSplineSDF2) Evaluate(p V2) float64 {
 
 	// initial estimate
 	n := 9 // len(s.spline)
-	cs, t := s.Find(float64(n) / 2)
+	cs, t := s.find(float64(n) / 2)
 
 	var i int
 	for i = 0; i < s.maxiters; i++ {
 
-		t_old := t
-		t = cs.NR_Iterate(t, p)
-		fmt.Printf("%d t_old %f t %f\n", cs.idx, t_old, t)
+		tOld := t
+		t = cs.nrIterate(t, p)
+		fmt.Printf("%d tOld %f t %f\n", cs.idx, tOld, t)
 
 		if t < 0 {
 			// previous spline
@@ -286,7 +297,7 @@ func (s *CubicSplineSDF2) Evaluate(p V2) float64 {
 				break
 			}
 			// find the previous spline
-			cs, t = s.Find(float64(cs.idx) + t)
+			cs, t = s.find(float64(cs.idx) + t)
 		} else if t > 1 {
 			// next spline
 			if cs.idx == n-1 {
@@ -295,47 +306,48 @@ func (s *CubicSplineSDF2) Evaluate(p V2) float64 {
 				break
 			}
 			// find the next spline
-			cs, t = s.Find(float64(cs.idx) + t)
+			cs, t = s.find(float64(cs.idx) + t)
 		} else {
 			// on the same spline
-			if Abs(t-t_old) < NR_TOLERANCE*Abs(t) {
+			if Abs(t-tOld) < nrTolerance*Abs(t) {
 				// The t estimate is within tolerance
 				break
 			}
 		}
 	}
 	t += float64(cs.idx)
-	dmin := math.Sqrt(s.D0(t, p))
+	dmin := math.Sqrt(s.d0(t, p))
 
 	//if i == s.maxiters {
 	//	// deliberately cause rendering problems
 	//	dmin = 0
 	//}
 
-	fmt.Printf("p %v F0 %v t %f\n", p, s.F0(t), t)
+	fmt.Printf("p %v f0 %v t %f\n", p, s.f0(t), t)
 
 	return dmin
 }
 
+// BoundingBox returns the 2d bounding box of a cubic spline.
 func (s *CubicSplineSDF2) BoundingBox() Box2 {
 	return s.bb
 }
 
 //-----------------------------------------------------------------------------
 
-// Return a polygon approximating the cubic spline.
+// Polygonize returns a polygon approximating the cubic spline SDF2.
 func (s *CubicSplineSDF2) Polygonize(n int) *Polygon {
 	p := NewPolygon()
 	dt := float64(len(s.spline)) / float64(n-1)
 	t := 0.0
 	for i := 0; i < n; i++ {
-		p.AddV2(s.F0(t))
+		p.AddV2(s.f0(t))
 		t += dt
 	}
 	return p
 }
 
-// Turn a CubicSplineSDF2 into a polygon based SDF2.
+// PolySpline2D returns a polygon SDF2 approximating a cubic spline SDF2.
 func (s *CubicSplineSDF2) PolySpline2D(n int) SDF2 {
 	p := s.Polygonize(n)
 	return Polygon2D(p.Vertices())
