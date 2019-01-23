@@ -14,6 +14,7 @@ import (
 
 //-----------------------------------------------------------------------------
 
+// SDF3 is the interface to a 3d signed distance function object.
 type SDF3 interface {
 	Evaluate(p V3) float64
 	BoundingBox() Box3
@@ -23,13 +24,13 @@ type SDF3 interface {
 // Basic SDF Functions
 
 /*
-func sdf_box3d(p, s V3) float64 {
+func sdfBox3d(p, s V3) float64 {
 	d := p.Abs().Sub(s)
 	return d.Max(V3{0, 0, 0}).Length() + Min(d.MaxComponent(), 0)
 }
 */
 
-func sdf_box3d(p, s V3) float64 {
+func sdfBox3d(p, s V3) float64 {
 	d := p.Abs().Sub(s)
 	if d.X > 0 && d.Y > 0 && d.Z > 0 {
 		return d.Length()
@@ -357,7 +358,7 @@ func Box3D(size V3, round float64) SDF3 {
 
 // Return the minimum distance to a box.
 func (s *BoxSDF3) Evaluate(p V3) float64 {
-	return sdf_box3d(p, s.size) - s.round
+	return sdfBox3d(p, s.size) - s.round
 }
 
 // Return the bounding box for a box.
@@ -422,7 +423,7 @@ func Capsule3D(radius, height float64) SDF3 {
 
 // Return the minimum distance to a cylinder.
 func (s *CylinderSDF3) Evaluate(p V3) float64 {
-	d := sdf_box2d(V2{V2{p.X, p.Y}.Length(), p.Z}, V2{s.radius, s.height})
+	d := sdfBox2d(V2{V2{p.X, p.Y}.Length(), p.Z}, V2{s.radius, s.height})
 	return d - s.round
 }
 
@@ -461,7 +462,7 @@ func (s *MultiCylinderSDF3) Evaluate(p V3) float64 {
 	d := math.MaxFloat64
 	for _, posn := range s.positions {
 		l := V2{p.X, p.Y}.Sub(posn).Length()
-		d = Min(d, sdf_box2d(V2{l, p.Z}, V2{s.radius, s.height}))
+		d = Min(d, sdfBox2d(V2{l, p.Z}, V2{s.radius, s.height}))
 	}
 	return d
 }

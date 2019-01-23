@@ -15,33 +15,34 @@ import (
 
 //-----------------------------------------------------------------------------
 
+// SDF2 is the interface to a 2d signed distance function object.
 type SDF2 interface {
 	Evaluate(p V2) float64
 	BoundingBox() Box2
 }
 
 //-----------------------------------------------------------------------------
-// SDF2 Evaluation Caching
+// SDF2 Evaluation Caching (experimental)
 
-type SDF2Cache struct {
+type sdf2Cache struct {
 	cache map[V2]float64
 	hits  uint
 }
 
-func (c *SDF2Cache) lookup(p V2) (float64, error) {
+func (c *sdf2Cache) lookup(p V2) (float64, error) {
 	if d, ok := c.cache[p]; ok {
-		c.hits += 1
+		c.hits++
 		return d, nil
 	}
-	return 0.0, errors.New("not found")
+	return 0, errors.New("not found")
 }
 
-func (c *SDF2Cache) store(p V2, d float64) {
+func (c *sdf2Cache) store(p V2, d float64) {
 	c.cache[p] = d
 }
 
-func cache_setup() *SDF2Cache {
-	c := SDF2Cache{}
+func newSdf2Cache() *sdf2Cache {
+	c := sdf2Cache{}
 	c.cache = make(map[V2]float64)
 	return &c
 }
@@ -49,7 +50,7 @@ func cache_setup() *SDF2Cache {
 //-----------------------------------------------------------------------------
 // Basic SDF Functions
 
-func sdf_box2d(p, s V2) float64 {
+func sdfBox2d(p, s V2) float64 {
 	p = p.Abs()
 	d := p.Sub(s)
 	k := s.Y - s.X
@@ -65,11 +66,13 @@ func sdf_box2d(p, s V2) float64 {
 //-----------------------------------------------------------------------------
 // 2D Circle
 
+// CircleSDF2 is the 2d signed distance object for a circle.
 type CircleSDF2 struct {
 	radius float64
 	bb     Box2
 }
 
+// Circle2D returns the SDF2 for a 2d circle.
 func Circle2D(radius float64) SDF2 {
 	s := CircleSDF2{}
 	s.radius = radius
@@ -78,24 +81,26 @@ func Circle2D(radius float64) SDF2 {
 	return &s
 }
 
+// Evaluate returns the minimum distance to a 2d circle.
 func (s *CircleSDF2) Evaluate(p V2) float64 {
 	return p.Length() - s.radius
 }
 
+// BoundingBox returns the bounding box of a 2d circle.
 func (s *CircleSDF2) BoundingBox() Box2 {
 	return s.bb
 }
 
 //-----------------------------------------------------------------------------
 
-// Multiple Circles
+// MultiCircleSDF2 is an SDF2 made from multiple circles (used for hole patterns).
 type MultiCircleSDF2 struct {
 	radius    float64
 	positions V2Set
 	bb        Box2
 }
 
-// Return an SDF2 for multiple circles.
+// MultiCircle2D returns an SDF2 for multiple circles.
 func MultiCircle2D(radius float64, positions V2Set) SDF2 {
 	s := MultiCircleSDF2{}
 	s.radius = radius
@@ -107,7 +112,7 @@ func MultiCircle2D(radius float64, positions V2Set) SDF2 {
 	return &s
 }
 
-// Return the minimum distance to multiple circles.
+// Evaluate returns the minimum distance to multiple circles.
 func (s *MultiCircleSDF2) Evaluate(p V2) float64 {
 	d := math.MaxFloat64
 	for _, posn := range s.positions {
@@ -116,7 +121,7 @@ func (s *MultiCircleSDF2) Evaluate(p V2) float64 {
 	return d
 }
 
-// Return the bounding box for multiple circles.
+// BoundingBox returns the bounding box for multiple circles.
 func (s *MultiCircleSDF2) BoundingBox() Box2 {
 	return s.bb
 }
@@ -124,12 +129,14 @@ func (s *MultiCircleSDF2) BoundingBox() Box2 {
 //-----------------------------------------------------------------------------
 // 2D Box (rounded corners with round > 0)
 
+// BoxSDF2 is the 2d signed distance object for a rectangular box.
 type BoxSDF2 struct {
 	size  V2
 	round float64
 	bb    Box2
 }
 
+// Box2D returns a 2d box.
 func Box2D(size V2, round float64) SDF2 {
 	size = size.MulScalar(0.5)
 	s := BoxSDF2{}
@@ -139,10 +146,12 @@ func Box2D(size V2, round float64) SDF2 {
 	return &s
 }
 
+// Evaluate returns the minimum distance to a 2d box.
 func (s *BoxSDF2) Evaluate(p V2) float64 {
-	return sdf_box2d(p, s.size) - s.round
+	return sdfBox2d(p, s.size) - s.round
 }
 
+// BoundingBox returns the bounding box for a 2d box.
 func (s *BoxSDF2) BoundingBox() Box2 {
 	return s.bb
 }
@@ -150,13 +159,14 @@ func (s *BoxSDF2) BoundingBox() Box2 {
 //-----------------------------------------------------------------------------
 // 2D Line
 
+// LineSDF2 is the 2d signed distance object for a line.
 type LineSDF2 struct {
 	l     float64 // line length
 	round float64 // rounding
 	bb    Box2    // bounding box
 }
 
-// Return a line from (-l/2,0) to (l/2,0)
+// Line2D returns a line from (-l/2,0) to (l/2,0).
 func Line2D(l, round float64) SDF2 {
 	s := LineSDF2{}
 	s.l = l / 2
@@ -165,7 +175,7 @@ func Line2D(l, round float64) SDF2 {
 	return &s
 }
 
-// Return the minimum distance to the line
+// Evaluate returns the minimum distance to a 2d line.
 func (s *LineSDF2) Evaluate(p V2) float64 {
 	p = p.Abs()
 	if p.X <= s.l {
@@ -174,20 +184,21 @@ func (s *LineSDF2) Evaluate(p V2) float64 {
 	return p.Sub(V2{s.l, 0}).Length() - s.round
 }
 
-// Return the bounding box for the line
+// BoundingBox returns the bounding box for a 2d line.
 func (s *LineSDF2) BoundingBox() Box2 {
 	return s.bb
 }
 
 //-----------------------------------------------------------------------------
 
+// OffsetSDF2 offsets the distance function of an existing SDF2.
 type OffsetSDF2 struct {
 	sdf    SDF2
 	offset float64
 	bb     Box2
 }
 
-// Offset an SDF2 - add a constant to the distance function
+// Offset2D returns an SDF2 that offsets the distance function of another SDF2.
 func Offset2D(sdf SDF2, offset float64) SDF2 {
 	s := OffsetSDF2{}
 	s.sdf = sdf
@@ -198,10 +209,12 @@ func Offset2D(sdf SDF2, offset float64) SDF2 {
 	return &s
 }
 
+// Evaluate returns the offset minimum distance to an SDF2.
 func (s *OffsetSDF2) Evaluate(p V2) float64 {
 	return s.sdf.Evaluate(p) - s.offset
 }
 
+// BoundingBox returns the bounding box for the offset SDF2.
 func (s *OffsetSDF2) BoundingBox() Box2 {
 	return s.bb
 }
@@ -313,13 +326,13 @@ func (s *PolySDF2) Evaluate(p V2) float64 {
 		if a.Y <= p.Y {
 			if b.Y > p.Y { // upward crossing
 				if dn < 0 { // p is to the left of the line segment
-					wn += 1 // up intersect
+					wn++ // up intersect
 				}
 			}
 		} else {
 			if b.Y <= p.Y { // downward crossing
 				if dn > 0 { // p is to the right of the line segment
-					wn -= 1 // down intersect
+					wn-- // down intersect
 				}
 			}
 		}
@@ -373,29 +386,31 @@ func (s *TransformSDF2) BoundingBox() Box2 {
 //-----------------------------------------------------------------------------
 // Uniform XY Scaling of SDF2s (we can work out the distance)
 
+// ScaleUniformSDF2 scales another SDF2 on each axis.
 type ScaleUniformSDF2 struct {
-	sdf      SDF2
-	k, inv_k float64
-	bb       Box2
+	sdf     SDF2
+	k, invk float64
+	bb      Box2
 }
 
-// ScaleUniform2D scales an SDF2 by k on all axes.
-// Distance is correct with scaling.
+// ScaleUniform2D scales an SDF2 by k on each axis. Distance is correct with scaling.
 func ScaleUniform2D(sdf SDF2, k float64) SDF2 {
 	m := Scale2d(V2{k, k})
 	return &ScaleUniformSDF2{
-		sdf:   sdf,
-		k:     k,
-		inv_k: 1.0 / k,
-		bb:    m.MulBox(sdf.BoundingBox()),
+		sdf:  sdf,
+		k:    k,
+		invk: 1.0 / k,
+		bb:   m.MulBox(sdf.BoundingBox()),
 	}
 }
 
+// Evaluate returns the minimum distance to an SDF2 with uniform scaling.
 func (s *ScaleUniformSDF2) Evaluate(p V2) float64 {
-	q := p.MulScalar(s.inv_k)
+	q := p.MulScalar(s.invk)
 	return s.sdf.Evaluate(q) * s.k
 }
 
+// BoundingBox returns the bounding box of an SDF2 with uniform scaling.
 func (s *ScaleUniformSDF2) BoundingBox() Box2 {
 	return s.bb
 }
@@ -487,14 +502,14 @@ func RotateUnion2D(sdf SDF2, num int, step M33) SDF2 {
 	s.min = Min
 	// work out the bounding box
 	v := sdf.BoundingBox().Vertices()
-	bb_min := v[0]
-	bb_max := v[0]
+	bbMin := v[0]
+	bbMax := v[0]
 	for i := 0; i < s.num; i++ {
-		bb_min = bb_min.Min(v.Min())
-		bb_max = bb_max.Max(v.Max())
+		bbMin = bbMin.Min(v.Min())
+		bbMax = bbMax.Max(v.Max())
 		v.MulVertices(step)
 	}
-	s.bb = Box2{bb_min, bb_max}
+	s.bb = Box2{bbMin, bbMax}
 	return &s
 }
 
