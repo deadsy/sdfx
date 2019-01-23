@@ -102,7 +102,7 @@ func (dc *dcache2) processSquare(c *square, output chan<- *Line2_PP) {
 			corners := [4]V2{c0, c1, c2, c3}
 			values := [4]float64{d0, d1, d2, d3}
 			// output the line(s) for this square
-			for _, l := range ms_ToLines(corners, values, 0) {
+			for _, l := range msToLines(corners, values, 0) {
 				output <- l
 			}
 		} else {

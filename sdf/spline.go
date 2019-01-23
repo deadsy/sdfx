@@ -139,7 +139,7 @@ func (s *CubicSpline) BoundingBox() Box2 {
 const nrTolerance = 0.0001
 const nrMaxIters = 10
 
-// nrIterate is Newton-Raphson Iteration for minumum spline distance.
+// nrIterate is Newton-Raphson Iteration for minimum spline distance.
 func (s *CubicSpline) nrIterate(t float64, p V2) float64 {
 	// We are minimising the distance squared function.
 	// We are looking for the zeroes of the first derivative of this function.

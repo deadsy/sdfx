@@ -128,7 +128,7 @@ func RenderDXFSlow(
 	fmt.Printf("rendering %s (%dx%d)\n", path, cells[0], cells[1])
 
 	// run marching squares to generate the line segments
-	m := MarchingSquares(s, bb, mesh_inc)
+	m := marchingSquares(s, bb, mesh_inc)
 	err := SaveDXF(path, m)
 	if err != nil {
 		fmt.Printf("%s", err)
@@ -186,7 +186,7 @@ func RenderSVGSlow(
 	fmt.Printf("rendering %s (%dx%d)\n", path, cells[0], cells[1])
 
 	// run marching squares to generate the line segments
-	m := MarchingSquares(s, bb, meshInc)
+	m := marchingSquares(s, bb, meshInc)
 	return SaveSVG(path, m)
 }
 

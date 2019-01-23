@@ -12,7 +12,8 @@ package sdf
 
 //-----------------------------------------------------------------------------
 
-type LineCache struct {
+// lineCache is a cache of SDF2 evaluations samples over a 2d line.
+type lineCache struct {
 	base  V2        // base coordinate of line
 	inc   V2        // dx, dy for each step
 	steps V2i       // number of x,y steps
@@ -20,12 +21,13 @@ type LineCache struct {
 	val1  []float64 // SDF values for x + dx line
 }
 
-func NewLineCache(base, inc V2, steps V2i) *LineCache {
-	return &LineCache{base, inc, steps, nil, nil}
+// newLineCache returns a line cache.
+func newLineCache(base, inc V2, steps V2i) *lineCache {
+	return &lineCache{base, inc, steps, nil, nil}
 }
 
-// Evaluate the SDF for a given Y line
-func (l *LineCache) Evaluate(sdf SDF2, x int) {
+// evaluate the SDF2 over a given x line.
+func (l *lineCache) evaluate(sdf SDF2, x int) {
 
 	// Swap the layers
 	l.val0, l.val1 = l.val1, l.val0
@@ -47,12 +49,13 @@ func (l *LineCache) Evaluate(sdf SDF2, x int) {
 	p.Y = l.base.Y
 	for y := 0; y < ny+1; y++ {
 		l.val1[idx] = sdf.Evaluate(p)
-		idx += 1
+		idx++
 		p.Y += dy
 	}
 }
 
-func (l *LineCache) Get(x, y int) float64 {
+// get a value from a line cache.
+func (l *lineCache) get(x, y int) float64 {
 	if x == 0 {
 		return l.val0[y]
 	}
@@ -61,7 +64,7 @@ func (l *LineCache) Get(x, y int) float64 {
 
 //-----------------------------------------------------------------------------
 
-func MarchingSquares(sdf SDF2, box Box2, step float64) []*Line2_PP {
+func marchingSquares(sdf SDF2, box Box2, step float64) []*Line2_PP {
 
 	var lines []*Line2_PP
 	size := box.Size()
@@ -70,9 +73,9 @@ func MarchingSquares(sdf SDF2, box Box2, step float64) []*Line2_PP {
 	inc := size.Div(steps.ToV2())
 
 	// create the line cache
-	l := NewLineCache(base, inc, steps)
+	l := newLineCache(base, inc, steps)
 	// evaluate the SDF for x = 0
-	l.Evaluate(sdf, 0)
+	l.evaluate(sdf, 0)
 
 	nx, ny := steps[0], steps[1]
 	dx, dy := inc.X, inc.Y
@@ -81,7 +84,7 @@ func MarchingSquares(sdf SDF2, box Box2, step float64) []*Line2_PP {
 	p.X = base.X
 	for x := 0; x < nx; x++ {
 		// read the x + 1 layer
-		l.Evaluate(sdf, x+1)
+		l.evaluate(sdf, x+1)
 		// process all squares in the x and x + 1 layers
 		p.Y = base.Y
 		for y := 0; y < ny; y++ {
@@ -94,12 +97,12 @@ func MarchingSquares(sdf SDF2, box Box2, step float64) []*Line2_PP {
 				{x0, y1},
 			}
 			values := [4]float64{
-				l.Get(0, y),
-				l.Get(1, y),
-				l.Get(1, y+1),
-				l.Get(0, y+1),
+				l.get(0, y),
+				l.get(1, y),
+				l.get(1, y+1),
+				l.get(0, y+1),
 			}
-			lines = append(lines, ms_ToLines(corners, values, 0)...)
+			lines = append(lines, msToLines(corners, values, 0)...)
 			p.Y += dy
 		}
 		p.X += dx
@@ -111,7 +114,7 @@ func MarchingSquares(sdf SDF2, box Box2, step float64) []*Line2_PP {
 //-----------------------------------------------------------------------------
 
 // generate the line segments for a square
-func ms_ToLines(p [4]V2, v [4]float64, x float64) []*Line2_PP {
+func msToLines(p [4]V2, v [4]float64, x float64) []*Line2_PP {
 	// which of the 0..15 patterns do we have?
 	index := 0
 	for i := 0; i < 4; i++ {
@@ -120,21 +123,21 @@ func ms_ToLines(p [4]V2, v [4]float64, x float64) []*Line2_PP {
 		}
 	}
 	// do we have any lines to create?
-	if ms_edge_table[index] == 0 {
+	if msEdgeTable[index] == 0 {
 		return nil
 	}
 	// work out the interpolated points on the edges
 	var points [4]V2
 	for i := 0; i < 4; i++ {
 		bit := 1 << uint(i)
-		if ms_edge_table[index]&bit != 0 {
-			a := ms_pair_table[i][0]
-			b := ms_pair_table[i][1]
-			points[i] = ms_Interpolate(p[a], p[b], v[a], v[b], x)
+		if msEdgeTable[index]&bit != 0 {
+			a := msPairTable[i][0]
+			b := msPairTable[i][1]
+			points[i] = msInterpolate(p[a], p[b], v[a], v[b], x)
 		}
 	}
 	// create the line segments
-	table := ms_line_table[index]
+	table := msLineTable[index]
 	count := len(table) / 2
 	result := make([]*Line2_PP, count)
 	for i := 0; i < count; i++ {
@@ -148,7 +151,7 @@ func ms_ToLines(p [4]V2, v [4]float64, x float64) []*Line2_PP {
 
 //-----------------------------------------------------------------------------
 
-func ms_Interpolate(p1, p2 V2, v1, v2, x float64) V2 {
+func msInterpolate(p1, p2 V2, v1, v2, x float64) V2 {
 	if Abs(x-v1) < EPS {
 		return p1
 	}
@@ -168,7 +171,7 @@ func ms_Interpolate(p1, p2 V2, v1, v2, x float64) V2 {
 //-----------------------------------------------------------------------------
 
 // These are the vertex pairs for the edges
-var ms_pair_table = [4][2]int{
+var msPairTable = [4][2]int{
 	{0, 1}, // 0
 	{1, 2}, // 1
 	{2, 3}, // 2
@@ -178,7 +181,7 @@ var ms_pair_table = [4][2]int{
 // 4 vertices -> 16 possible inside/outside combinations
 // A 1 bit in the value indicates an edge with a line end point.
 // 4 edges -> 4 bit values, note the fwd/rev symmetry
-var ms_edge_table = [16]int{
+var msEdgeTable = [16]int{
 	0x0, 0x9, 0x3, 0xa,
 	0x6, 0xf, 0x5, 0xc,
 	0xc, 0x5, 0xf, 0x6,
@@ -186,7 +189,7 @@ var ms_edge_table = [16]int{
 }
 
 // specify the edges used to create the line(s)
-var ms_line_table = [16][]int{
+var msLineTable = [16][]int{
 	{},           // 0
 	{0, 3},       // 1
 	{0, 1},       // 2
