@@ -1,5 +1,9 @@
 //-----------------------------------------------------------------------------
+/*
 
+Report benchmarking results for evaluations on SDF2/SDF3 objects.
+
+*/
 //-----------------------------------------------------------------------------
 
 package sdf
@@ -11,11 +15,12 @@ import (
 
 //-----------------------------------------------------------------------------
 
-const N_EVALS = 10000000
+const nEvals = 10000000
 
 //-----------------------------------------------------------------------------
 
-func fmt_eps(eps float64) string {
+// fmtEPS returns a string with a formatted evaluations per second.
+func fmtEPS(eps float64) string {
 	if eps > 1000000000.0 {
 		return fmt.Sprintf("%.2f G evals/sec", eps/1000000000.0)
 	} else if eps > 1000000.0 {
@@ -28,11 +33,11 @@ func fmt_eps(eps float64) string {
 
 //-----------------------------------------------------------------------------
 
-// Benchmark evaluation speed for an SDF2.
+// BenchmarkSDF2 reports the evaluation speed for an SDF2.
 func BenchmarkSDF2(description string, s SDF2) {
 	// sample over a region larger than the bounding box
 	box := NewBox2(s.BoundingBox().Center(), s.BoundingBox().Size().MulScalar(1.2))
-	points := box.RandomSet(N_EVALS)
+	points := box.RandomSet(nEvals)
 
 	start := time.Now()
 	for _, p := range points {
@@ -40,17 +45,17 @@ func BenchmarkSDF2(description string, s SDF2) {
 	}
 	elapsed := time.Since(start)
 
-	eps := float64(N_EVALS) * float64(time.Second) / float64(elapsed)
-	fmt.Printf("%s %s\n", description, fmt_eps(eps))
+	eps := float64(nEvals) * float64(time.Second) / float64(elapsed)
+	fmt.Printf("%s %s\n", description, fmtEPS(eps))
 }
 
 //-----------------------------------------------------------------------------
 
-// Benchmark evaluation speed for an SDF3.
+// BenchmarkSDF3 reports the evaluation speed for an SDF3.
 func BenchmarkSDF3(description string, s SDF3) {
 	// sample over a region larger than the bounding box
 	box := NewBox3(s.BoundingBox().Center(), s.BoundingBox().Size().MulScalar(1.2))
-	points := box.RandomSet(N_EVALS)
+	points := box.RandomSet(nEvals)
 
 	start := time.Now()
 	for _, p := range points {
@@ -58,8 +63,8 @@ func BenchmarkSDF3(description string, s SDF3) {
 	}
 	elapsed := time.Since(start)
 
-	eps := float64(N_EVALS) * float64(time.Second) / float64(elapsed)
-	fmt.Printf("%s %s\n", description, fmt_eps(eps))
+	eps := float64(nEvals) * float64(time.Second) / float64(elapsed)
+	fmt.Printf("%s %s\n", description, fmtEPS(eps))
 }
 
 //-----------------------------------------------------------------------------

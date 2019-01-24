@@ -20,15 +20,15 @@ import (
 
 //-----------------------------------------------------------------------------
 
-// 2d/3d triangle referencing a list of vertices
+// TriangleI is a 2d/3d triangle referencing a list of vertices.
 type TriangleI [3]int
 
-// Given vertex indices and the vertex array, return the triangle with real vertices.
+// ToTriangle2 given vertex indices and the vertex array, return the triangle with real vertices.
 func (t TriangleI) ToTriangle2(p []V2) Triangle2 {
 	return Triangle2{p[t[0]], p[t[1]], p[t[2]]}
 }
 
-// triangle sorting by index
+// TriangleIByIndex sorts triangles by index.
 type TriangleIByIndex []TriangleI
 
 func (a TriangleIByIndex) Len() int {
@@ -50,7 +50,7 @@ func (a TriangleIByIndex) Less(i, j int) bool {
 	return false
 }
 
-// Convert a triangle to it's lowest index first form.
+// Canonical converts a triangle to it's lowest index first form.
 // Preserve the winding order.
 func (t *TriangleI) Canonical() {
 	if t[0] < t[1] && t[0] < t[2] {
@@ -72,9 +72,10 @@ func (t *TriangleI) Canonical() {
 	t[0] = tmp
 }
 
+// TriangleISet is a set of triangles defined by vertice indices.
 type TriangleISet []TriangleI
 
-// Convert a triangle set to it's canonical form.
+// Canonical converts a triangle set to it's canonical form.
 // This common form is used to facilitate comparison
 // between the results of different implementations.
 func (ts TriangleISet) Canonical() []TriangleI {
@@ -87,17 +88,17 @@ func (ts TriangleISet) Canonical() []TriangleI {
 	return ts
 }
 
-// Test two triangle sets for equality.
-func (a TriangleISet) Equals(b TriangleISet) bool {
-	if len(a) != len(b) {
+// Equals tests two triangle sets for equality.
+func (ts TriangleISet) Equals(s TriangleISet) bool {
+	if len(ts) != len(s) {
 		return false
 	}
-	a = a.Canonical()
-	b = b.Canonical()
-	for i := range a {
-		if (a[i][0] != b[i][0]) ||
-			(a[i][1] != b[i][1]) ||
-			(a[i][2] != b[i][2]) {
+	ts = ts.Canonical()
+	s = s.Canonical()
+	for i := range ts {
+		if (ts[i][0] != s[i][0]) ||
+			(ts[i][1] != s[i][1]) ||
+			(ts[i][2] != s[i][2]) {
 			return false
 		}
 	}
@@ -106,30 +107,30 @@ func (a TriangleISet) Equals(b TriangleISet) bool {
 
 //-----------------------------------------------------------------------------
 
-// 2d/3d edge referencing a list of vertices
+// EdgeI is a 2d/3d edge referencing a list of vertices.
 type EdgeI [2]int
 
 //-----------------------------------------------------------------------------
 
-// Return the super triangle of the point set, ie: 3 vertices enclosing all points
-func (s V2Set) SuperTriangle() (Triangle2, error) {
+// SuperTriangle return the super triangle of a point set, ie: 3 vertices enclosing all points.
+func (vs V2Set) SuperTriangle() (Triangle2, error) {
 
-	if len(s) == 0 {
+	if len(vs) == 0 {
 		return Triangle2{}, errors.New("no vertices")
 	}
 
 	var p V2
 	var k float64
 
-	if len(s) == 1 {
+	if len(vs) == 1 {
 		// a single point
-		p := s[0]
+		p := vs[0]
 		k = p.MaxComponent() * 0.125
 		if k == 0 {
 			k = 1
 		}
 	} else {
-		b := Box2{s.Min(), s.Max()}
+		b := Box2{vs.Min(), vs.Max()}
 		p = b.Center()
 		k = b.Size().MaxComponent() * 2.0
 	}
@@ -147,7 +148,7 @@ func (s V2Set) SuperTriangle() (Triangle2, error) {
 
 //-----------------------------------------------------------------------------
 
-// Return the circumcenter of a triangle
+// Circumcenter returns the circumcenter of a triangle.
 func (t Triangle2) Circumcenter() (V2, error) {
 
 	var m1, m2, mx1, mx2, my1, my2 float64
@@ -199,8 +200,8 @@ func (t Triangle2) Circumcenter() (V2, error) {
 	return V2{xc, yc}, nil
 }
 
-// Return inside = true if the point is inside the circumcircle of the triangle.
-// Return done = true if the vertex and the subsequent x-ordered vertices are outside the circumcircle.
+// InCircumcircle return inside == true if the point is inside the circumcircle of the triangle.
+// Returns done == true if the vertex and the subsequent x-ordered vertices are outside the circumcircle.
 func (t Triangle2) InCircumcircle(p V2) (inside, done bool) {
 	c, err := t.Circumcenter()
 	if err != nil {
@@ -232,7 +233,7 @@ func (t Triangle2) InCircumcircle(p V2) (inside, done bool) {
 
 //-----------------------------------------------------------------------------
 
-// return the delaunay triangulation of a 2d point set
+// Delaunay2d returns the delaunay triangulation of a 2d point set.
 func (vs V2Set) Delaunay2d() (TriangleISet, error) {
 
 	// number of vertices
@@ -287,8 +288,8 @@ func (vs V2Set) Delaunay2d() (TriangleISet, error) {
 				// remove the triangle (copy in the tail)
 				ts[j] = ts[nt-1]
 				done[j] = done[nt-1]
-				nt -= 1
-				j -= 1
+				nt--
+				j--
 			}
 		}
 
@@ -324,8 +325,8 @@ func (vs V2Set) Delaunay2d() (TriangleISet, error) {
 		if t[0] >= n || t[1] >= n || t[2] >= n {
 			// remove the triangle (copy in the tail)
 			ts[j] = ts[nt-1]
-			nt -= 1
-			j -= 1
+			nt--
+			j--
 		}
 	}
 
@@ -338,10 +339,10 @@ func (vs V2Set) Delaunay2d() (TriangleISet, error) {
 
 //-----------------------------------------------------------------------------
 
-// Return the delaunay triangulation of a 2d point set.
+// Delaunay2dSlow returns the delaunay triangulation of a 2d point set.
 // This is a slow reference implementation for testing faster algorithms.
 // See: Computational Geometry, Joseph O'Rourke, 2nd edition, Code 5.1
-func (vs V2Set) Delaunay2d_Slow() (TriangleISet, error) {
+func (vs V2Set) Delaunay2dSlow() (TriangleISet, error) {
 
 	// number of vertices
 	n := len(vs)

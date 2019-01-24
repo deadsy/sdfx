@@ -441,7 +441,7 @@ func test46() {
 	}
 	d.Save()
 
-	ts2, _ := s.Delaunay2d_Slow()
+	ts2, _ := s.Delaunay2dSlow()
 	fmt.Printf("ts2 %d triangles\n", len(ts2))
 	d = NewDXF("test2.dxf")
 	for _, t := range ts2 {
@@ -476,7 +476,7 @@ func test47() {
 	}
 	d.Save()
 
-	ts2, _ := s.Delaunay2d_Slow()
+	ts2, _ := s.Delaunay2dSlow()
 	fmt.Printf("ts2 %d triangles\n", len(ts2))
 	d = NewDXF("test2.dxf")
 	for _, t := range ts2 {
