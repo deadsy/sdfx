@@ -142,6 +142,7 @@ func RenderSVG(
 	s SDF2, // sdf2 to render
 	meshCells int, // number of cells on the longest axis. e.g 200
 	path string, // path to filename
+	lineStyle string, // SVG line style
 ) error {
 	// work out the sampling resolution to use
 	bbSize := s.BoundingBox().Size()
@@ -152,7 +153,7 @@ func RenderSVG(
 
 	// write the line segments to an SVG file
 	var wg sync.WaitGroup
-	output, err := WriteSVG(&wg, path)
+	output, err := WriteSVG(&wg, path, lineStyle)
 	if err != nil {
 		return err
 	}
@@ -172,6 +173,7 @@ func RenderSVGSlow(
 	s SDF2, // sdf2 to render
 	meshCells int, // number of cells on the longest axis. e.g 200
 	path string, // path to filename
+	lineStyle string, // SVG line style
 ) error {
 	// work out the region we will sample
 	bb0 := s.BoundingBox()
@@ -187,7 +189,7 @@ func RenderSVGSlow(
 
 	// run marching squares to generate the line segments
 	m := marchingSquares(s, bb, meshInc)
-	return SaveSVG(path, m)
+	return SaveSVG(path, lineStyle, m)
 }
 
 //-----------------------------------------------------------------------------

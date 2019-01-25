@@ -12,31 +12,25 @@ import (
 	"fmt"
 	"os"
 	"sync"
-)
 
-const (
-	svgHeader = `<?xml version="1.0" encoding="utf-8"?>
-<!-- Generator: http://github.com/gmlewis/sdfx -->
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-  width="%[1]vpx" height="%[2]vpx" viewBox="0 0 %[1]v %[2]v" enable-background="new 0 0 %[1]v %[2]v"
-  xml:space="preserve">
-`
+	svg "github.com/ajstarks/svgo/float"
 )
 
 //-----------------------------------------------------------------------------
 
 // SVG represents an SVG renderer.
 type SVG struct {
-	name     string
-	p0s, p1s []V2
-	min, max V2
+	filename  string
+	lineStyle string
+	p0s, p1s  []V2
+	min, max  V2
 }
 
 // NewSVG returns an SVG renderer.
-func NewSVG(name string) *SVG {
+func NewSVG(filename, lineStyle string) *SVG {
 	return &SVG{
-		name: name,
+		filename:  filename,
+		lineStyle: lineStyle,
 	}
 }
 
@@ -57,24 +51,28 @@ func (s *SVG) Line(p0, p1 V2) {
 
 // Save closes the SVG file.
 func (s *SVG) Save() error {
-	f, err := os.Create(s.name)
+	f, err := os.Create(s.filename)
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(f, svgHeader, s.max.X-s.min.X, s.max.Y-s.min.Y)
+
+	width := s.max.X - s.min.X
+	height := s.max.Y - s.min.Y
+	canvas := svg.New(f)
+	canvas.Start(width, height)
 	for i, p0 := range s.p0s {
 		p1 := s.p1s[i]
-		fmt.Fprintf(f, `<line x1="%v" y1="%v" x2="%v" y2="%v"/>`+"\n", p0.X-s.min.X, s.max.Y-p0.Y, p1.X-s.min.X, s.max.Y-p1.Y)
+		canvas.Line(p0.X-s.min.X, s.max.Y-p0.Y, p1.X-s.min.X, s.max.Y-p1.Y, s.lineStyle)
 	}
-	fmt.Fprintln(f, "</svg>")
+	canvas.End()
 	return f.Close()
 }
 
 //-----------------------------------------------------------------------------
 
 // SaveSVG writes line segments to an SVG file.
-func SaveSVG(path string, mesh []*Line2_PP) error {
-	s := NewSVG(path)
+func SaveSVG(path, lineStyle string, mesh []*Line2_PP) error {
+	s := NewSVG(path, lineStyle)
 	for _, v := range mesh {
 		s.Line(v[0], v[1])
 	}
@@ -87,9 +85,9 @@ func SaveSVG(path string, mesh []*Line2_PP) error {
 //-----------------------------------------------------------------------------
 
 // WriteSVG writes a stream of line segments to an SVG file.
-func WriteSVG(wg *sync.WaitGroup, path string) (chan<- *Line2_PP, error) {
+func WriteSVG(wg *sync.WaitGroup, path, lineStyle string) (chan<- *Line2_PP, error) {
 
-	s := NewSVG(path)
+	s := NewSVG(path, lineStyle)
 
 	// External code writes line segments to this channel.
 	// This goroutine reads the channel and writes line segments to the file.
