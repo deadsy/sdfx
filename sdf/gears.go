@@ -13,7 +13,7 @@ import "math"
 //-----------------------------------------------------------------------------
 
 // return the involute coordinate for a given angle
-func involute_xy(
+func involuteXY(
 	r float64, // base radius
 	theta float64, // involute angle
 ) V2 {
@@ -26,7 +26,7 @@ func involute_xy(
 }
 
 // return the involute angle for a given radial distance
-func involute_theta(
+func involuteTheta(
 	r float64, // base radius
 	d float64, // involute radial distance
 ) float64 {
@@ -38,35 +38,35 @@ func involute_theta(
 
 // InvoluteGearTooth returns a 2D profile for a single involute tooth.
 func InvoluteGearTooth(
-	number_teeth int, // number of gear teeth
-	gear_module float64, // pitch circle diameter / number of gear teeth
-	root_radius float64, // radius at tooth root
-	base_radius float64, // radius at the base of the involute
-	outer_radius float64, // radius at the outside of the tooth
+	numberTeeth int, // number of gear teeth
+	gearModule float64, // pitch circle diameter / number of gear teeth
+	rootRadius float64, // radius at tooth root
+	baseRadius float64, // radius at the base of the involute
+	outerRadius float64, // radius at the outside of the tooth
 	backlash float64, // backlash expressed as units of pitch circumference
 	facets int, // number of facets for involute flank
 ) SDF2 {
 
-	pitch_radius := float64(number_teeth) * gear_module / 2.0
+	pitchRadius := float64(numberTeeth) * gearModule / 2.0
 
 	// work out the angular extent of the tooth on the base radius
-	pitch_point := involute_xy(base_radius, involute_theta(base_radius, pitch_radius))
-	face_angle := math.Atan2(pitch_point.Y, pitch_point.X)
-	backlash_angle := backlash / (2.0 * pitch_radius)
-	center_angle := PI/(2.0*float64(number_teeth)) + face_angle - backlash_angle
+	pitchPoint := involuteXY(baseRadius, involuteTheta(baseRadius, pitchRadius))
+	faceAngle := math.Atan2(pitchPoint.Y, pitchPoint.X)
+	backlashAngle := backlash / (2.0 * pitchRadius)
+	centerAngle := PI/(2.0*float64(numberTeeth)) + faceAngle - backlashAngle
 
 	// work out the angles over which the involute will be used
-	start_angle := involute_theta(base_radius, Max(base_radius, root_radius))
-	stop_angle := involute_theta(base_radius, outer_radius)
-	dtheta := (stop_angle - start_angle) / float64(facets)
+	startAngle := involuteTheta(baseRadius, Max(baseRadius, rootRadius))
+	stopAngle := involuteTheta(baseRadius, outerRadius)
+	dtheta := (stopAngle - startAngle) / float64(facets)
 
 	v := make([]V2, 2*(facets+1)+1)
 
 	// lower tooth face
-	m := Rotate(-center_angle)
-	angle := start_angle
+	m := Rotate(-centerAngle)
+	angle := startAngle
 	for i := 0; i <= facets; i++ {
-		v[i] = m.MulPosition(involute_xy(base_radius, angle))
+		v[i] = m.MulPosition(involuteXY(baseRadius, angle))
 		angle += dtheta
 	}
 
@@ -86,43 +86,43 @@ func InvoluteGearTooth(
 
 // InvoluteGear returns an 2D polygon for an involute gear.
 func InvoluteGear(
-	number_teeth int, // number of gear teeth
-	gear_module float64, // pitch circle diameter / number of gear teeth
-	pressure_angle float64, // gear pressure angle (radians)
+	numberTeeth int, // number of gear teeth
+	gearModule float64, // pitch circle diameter / number of gear teeth
+	pressureAngle float64, // gear pressure angle (radians)
 	backlash float64, // backlash expressed as per-tooth distance at pitch circumference
 	clearance float64, // additional root clearance
-	ring_width float64, // width of ring wall (from root circle)
+	ringWidth float64, // width of ring wall (from root circle)
 	facets int, // number of facets for involute flank
 ) SDF2 {
 
 	// pitch radius
-	pitch_radius := float64(number_teeth) * gear_module / 2.0
+	pitchRadius := float64(numberTeeth) * gearModule / 2.0
 
 	// base circle radius
-	base_radius := pitch_radius * math.Cos(pressure_angle)
+	baseRadius := pitchRadius * math.Cos(pressureAngle)
 
 	// addendum: radial distance from pitch circle to outside circle
-	addendum := gear_module * 1.0
+	addendum := gearModule * 1.0
 	// dedendum: radial distance from pitch circle to root circle
 	dedendum := addendum + clearance
 
-	outer_radius := pitch_radius + addendum
-	root_radius := pitch_radius - dedendum
-	ring_radius := root_radius - ring_width
+	outerRadius := pitchRadius + addendum
+	rootRadius := pitchRadius - dedendum
+	ringRadius := rootRadius - ringWidth
 
 	tooth := InvoluteGearTooth(
-		number_teeth,
-		gear_module,
-		root_radius,
-		base_radius,
-		outer_radius,
+		numberTeeth,
+		gearModule,
+		rootRadius,
+		baseRadius,
+		outerRadius,
 		backlash,
 		facets,
 	)
 
-	gear := RotateCopy2D(tooth, number_teeth)
-	root := Circle2D(root_radius)
-	ring := Circle2D(ring_radius)
+	gear := RotateCopy2D(tooth, numberTeeth)
+	root := Circle2D(rootRadius)
+	ring := Circle2D(ringRadius)
 
 	return Difference2D(Union2D(gear, root), ring)
 }
@@ -130,6 +130,7 @@ func InvoluteGear(
 //-----------------------------------------------------------------------------
 // 2D Gear Rack
 
+// GearRackSDF2 is a 2d linear gear rack.
 type GearRackSDF2 struct {
 	tooth  SDF2    // polygon for rack tooth
 	pitch  float64 // tooth to tooth pitch
@@ -139,25 +140,25 @@ type GearRackSDF2 struct {
 
 // GearRack2D returns the 2D profile for a gear rack.
 func GearRack2D(
-	number_teeth float64, // number of rack teeth
-	gear_module float64, // pitch circle diameter / number of gear teeth
-	pressure_angle float64, // gear pressure angle (radians)
+	numberTeeth float64, // number of rack teeth
+	gearModule float64, // pitch circle diameter / number of gear teeth
+	pressureAngle float64, // gear pressure angle (radians)
 	backlash float64, // backlash expressed as units of pitch circumference
-	base_height float64, // height of rack base
+	baseHeight float64, // height of rack base
 ) SDF2 {
 	s := GearRackSDF2{}
 
 	// addendum: distance from pitch line to top of tooth
-	addendum := gear_module * 1.0
+	addendum := gearModule * 1.0
 	// dedendum: distance from pitch line to root of tooth
-	dedendum := gear_module * 1.25
+	dedendum := gearModule * 1.25
 	// total tooth height
-	tooth_height := base_height + addendum + dedendum
+	toothHeight := baseHeight + addendum + dedendum
 	// tooth_pitch: tooth to tooth distance along pitch line
-	pitch := gear_module * PI
+	pitch := gearModule * PI
 
 	// x size of tooth flank
-	dx := (addendum + dedendum) * math.Tan(pressure_angle)
+	dx := (addendum + dedendum) * math.Tan(pressureAngle)
 	// 1/2 x size of tooth top
 	dxt := ((pitch / 2.0) - dx) / 2.0
 	// x size of backlash
@@ -166,17 +167,17 @@ func GearRack2D(
 	// create a half tooth profile centered on the y-axis
 	tooth := []V2{
 		{pitch, 0},
-		{pitch, base_height},
-		{dx + dxt - bl, base_height},
-		{dxt - bl, tooth_height},
-		{-pitch, tooth_height},
+		{pitch, baseHeight},
+		{dx + dxt - bl, baseHeight},
+		{dxt - bl, toothHeight},
+		{-pitch, toothHeight},
 		{-pitch, 0},
 	}
 
 	s.tooth = Polygon2D(tooth)
 	s.pitch = pitch
-	s.length = pitch * number_teeth / 2.0
-	s.bb = Box2{V2{-s.length, 0}, V2{s.length, tooth_height}}
+	s.length = pitch * numberTeeth / 2.0
+	s.bb = Box2{V2{-s.length, 0}, V2{s.length, toothHeight}}
 	return &s
 }
 

@@ -14,21 +14,22 @@ import "fmt"
 
 //-----------------------------------------------------------------------------
 
-// 2D point/point line segment
+// Line2_PP is a 2d line segment defined with 2 points.
 type Line2_PP [2]V2
 
 //-----------------------------------------------------------------------------
 // 2D Line Segment
 
+// Line2 is a 2d line.
 type Line2 struct {
-	segment bool    // is this a line segment
+	segment bool    // is this a line segment?
 	length  float64 // segment length
 	a       V2      // line start point
 	b       V2      // line end point point (if segment)
 	v       V2      // normalized line vector
 }
 
-// Create a new 2d line given a point and vector
+// NewLine2_PV returns a 2d line given a point and vector.
 func NewLine2_PV(p, v V2) Line2 {
 	l := Line2{}
 	l.segment = false
@@ -38,7 +39,7 @@ func NewLine2_PV(p, v V2) Line2 {
 	return l
 }
 
-// Create a new 2d line given a point and a point
+// NewLine2_PP returns a 2d line segment given 2 points.
 func NewLine2_PP(a, b V2) Line2 {
 	l := Line2{}
 	v := b.Sub(a)
@@ -50,12 +51,12 @@ func NewLine2_PP(a, b V2) Line2 {
 	return l
 }
 
-// Return the position given the t value
+// Position returns the position on the line given the t value.
 func (l Line2) Position(t float64) V2 {
 	return l.a.Add(l.v.MulScalar(t))
 }
 
-// Return the t parameters for the intersection between lines l0 and l1
+// Intersect returns the t parameters for the intersection between lines l0 and l1
 func (l0 Line2) Intersect(l1 Line2) (float64, float64, error) {
 	m := M22{l0.v.X, -l1.v.X, l0.v.Y, -l1.v.Y}
 	if m.Determinant() == 0 {
@@ -66,7 +67,8 @@ func (l0 Line2) Intersect(l1 Line2) (float64, float64, error) {
 	return t.X, t.Y, nil
 }
 
-// return the distance to the line, > 0 implies to the right of the line vector
+// Distance returns the distance to the line.
+// Greater than 0 implies to the right of the line vector.
 func (l Line2) Distance(p V2) float64 {
 
 	n := V2{l.v.Y, -l.v.X} // normal to line
