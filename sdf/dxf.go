@@ -20,11 +20,13 @@ import (
 
 //-----------------------------------------------------------------------------
 
+// DXF is a dxf drawing object.
 type DXF struct {
 	name    string
 	drawing *drawing.Drawing
 }
 
+// NewDXF returns an empty dxf drawing object.
 func NewDXF(name string) *DXF {
 	d := dxf.NewDrawing()
 	d.AddLayer("Lines", dxf.DefaultColor, dxf.DefaultLineType, true)
@@ -35,11 +37,13 @@ func NewDXF(name string) *DXF {
 	}
 }
 
+// Line adds a line to a dxf drawing object.
 func (d *DXF) Line(p0, p1 V2) {
 	d.drawing.ChangeLayer("Lines")
 	d.drawing.Line(p0.X, p0.Y, 0, p1.X, p1.Y, 0)
 }
 
+// Lines adds a set of lines to a dxf drawing object.
 func (d *DXF) Lines(s V2Set) {
 	d.drawing.ChangeLayer("Lines")
 	p1 := s[0]
@@ -50,6 +54,7 @@ func (d *DXF) Lines(s V2Set) {
 	}
 }
 
+// Points adds a set of points to a dxf drawing object.
 func (d *DXF) Points(s V2Set, r float64) {
 	d.drawing.ChangeLayer("Points")
 	for _, p := range s {
@@ -57,10 +62,12 @@ func (d *DXF) Points(s V2Set, r float64) {
 	}
 }
 
+// Triangle adds a triangle to a dxf drawing object.
 func (d *DXF) Triangle(t Triangle2) {
 	d.Lines([]V2{t[0], t[1], t[2], t[0]})
 }
 
+// Save writes a dxf drawing object to a file.
 func (d *DXF) Save() error {
 	err := d.drawing.SaveAs(d.name)
 	if err != nil {
