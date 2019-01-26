@@ -19,6 +19,7 @@ import (
 
 //-----------------------------------------------------------------------------
 
+// PNG is a png image object.
 type PNG struct {
 	name   string
 	bb     Box2
@@ -27,6 +28,7 @@ type PNG struct {
 	img    *image.RGBA
 }
 
+// NewPNG returns an empty PNG object.
 func NewPNG(name string, bb Box2, pixels V2i) (*PNG, error) {
 	d := PNG{}
 	d.name = name
@@ -41,7 +43,7 @@ func NewPNG(name string, bb Box2, pixels V2i) (*PNG, error) {
 	return &d, nil
 }
 
-// render a 2d signed distance field as gray scale
+// RenderSDF2 renders a 2d signed distance field as gray scale.
 func (d *PNG) RenderSDF2(s SDF2) {
 	// sample the distance field
 	var dmax, dmin float64
@@ -67,6 +69,7 @@ func (d *PNG) RenderSDF2(s SDF2) {
 	}
 }
 
+// Line adds a line to a png object.
 func (d *PNG) Line(p0, p1 V2) {
 	gc := draw2dimg.NewGraphicContext(d.img)
 	gc.SetFillColor(color.RGBA{0xff, 0, 0, 0xff})
@@ -80,6 +83,7 @@ func (d *PNG) Line(p0, p1 V2) {
 	gc.Stroke()
 }
 
+// Lines adds a a set of lines line to a png object.
 func (d *PNG) Lines(s V2Set) {
 	gc := draw2dimg.NewGraphicContext(d.img)
 	gc.SetFillColor(color.RGBA{0xff, 0, 0, 0xff})
@@ -95,10 +99,12 @@ func (d *PNG) Lines(s V2Set) {
 	gc.Stroke()
 }
 
+// Triangle adds a triangle to a png object.
 func (d *PNG) Triangle(t Triangle2) {
 	d.Lines([]V2{t[0], t[1], t[2], t[0]})
 }
 
+// Save saves a png object to a file.
 func (d *PNG) Save() error {
 	f, err := os.Create(d.name)
 	if err != nil {

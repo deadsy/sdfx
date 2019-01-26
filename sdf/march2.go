@@ -64,9 +64,9 @@ func (l *lineCache) get(x, y int) float64 {
 
 //-----------------------------------------------------------------------------
 
-func marchingSquares(sdf SDF2, box Box2, step float64) []*Line2_PP {
+func marchingSquares(sdf SDF2, box Box2, step float64) []*lineSegment {
 
-	var lines []*Line2_PP
+	var lines []*lineSegment
 	size := box.Size()
 	base := box.Min
 	steps := size.DivScalar(step).Ceil().ToV2i()
@@ -114,7 +114,7 @@ func marchingSquares(sdf SDF2, box Box2, step float64) []*Line2_PP {
 //-----------------------------------------------------------------------------
 
 // generate the line segments for a square
-func msToLines(p [4]V2, v [4]float64, x float64) []*Line2_PP {
+func msToLines(p [4]V2, v [4]float64, x float64) []*lineSegment {
 	// which of the 0..15 patterns do we have?
 	index := 0
 	for i := 0; i < 4; i++ {
@@ -139,9 +139,9 @@ func msToLines(p [4]V2, v [4]float64, x float64) []*Line2_PP {
 	// create the line segments
 	table := msLineTable[index]
 	count := len(table) / 2
-	result := make([]*Line2_PP, count)
+	result := make([]*lineSegment, count)
 	for i := 0; i < count; i++ {
-		line := Line2_PP{}
+		line := lineSegment{}
 		line[1] = points[table[i*2+0]]
 		line[0] = points[table[i*2+1]]
 		result[i] = &line

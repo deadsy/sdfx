@@ -14,11 +14,11 @@ import "fmt"
 
 //-----------------------------------------------------------------------------
 
-// Line2_PP is a 2d line segment defined with 2 points.
-type Line2_PP [2]V2
+// LineSegment is a 2d line segment defined with 2 points.
+type lineSegment [2]V2
 
 //-----------------------------------------------------------------------------
-// 2D Line Segment
+// 2D Lines
 
 // Line2 is a 2d line.
 type Line2 struct {
@@ -29,8 +29,8 @@ type Line2 struct {
 	v       V2      // normalized line vector
 }
 
-// NewLine2_PV returns a 2d line given a point and vector.
-func NewLine2_PV(p, v V2) Line2 {
+// NewLinePV returns a 2d line defined by a point and vector.
+func newLinePV(p, v V2) Line2 {
 	l := Line2{}
 	l.segment = false
 	l.length = 0.0
@@ -39,8 +39,8 @@ func NewLine2_PV(p, v V2) Line2 {
 	return l
 }
 
-// NewLine2_PP returns a 2d line segment given 2 points.
-func NewLine2_PP(a, b V2) Line2 {
+// NewLinePP returns a 2d line segment defined by 2 points.
+func newLinePP(a, b V2) Line2 {
 	l := Line2{}
 	v := b.Sub(a)
 	l.segment = true
@@ -56,13 +56,13 @@ func (l Line2) Position(t float64) V2 {
 	return l.a.Add(l.v.MulScalar(t))
 }
 
-// Intersect returns the t parameters for the intersection between lines l0 and l1
-func (l0 Line2) Intersect(l1 Line2) (float64, float64, error) {
-	m := M22{l0.v.X, -l1.v.X, l0.v.Y, -l1.v.Y}
+// Intersect returns the t parameters for the intersection between lines l and lx
+func (l Line2) Intersect(lx Line2) (float64, float64, error) {
+	m := M22{l.v.X, -lx.v.X, l.v.Y, -lx.v.Y}
 	if m.Determinant() == 0 {
 		return 0, 0, fmt.Errorf("zero/many")
 	}
-	p := l1.a.Sub(l0.a)
+	p := lx.a.Sub(l.a)
 	t := m.Inverse().MulPosition(p)
 	return t.X, t.Y, nil
 }

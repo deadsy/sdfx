@@ -22,14 +22,14 @@ import (
 // RenderSTL renders an SDF3 as an STL file (uses octree sampling).
 func RenderSTL(
 	s SDF3, //sdf3 to render
-	mesh_cells int, //number of cells on the longest axis. e.g 200
+	meshCells int, //number of cells on the longest axis. e.g 200
 	path string, //path to filename
 ) {
 
 	// work out the sampling resolution to use
-	bb_size := s.BoundingBox().Size()
-	resolution := bb_size.MaxComponent() / float64(mesh_cells)
-	cells := bb_size.DivScalar(resolution).ToV3i()
+	bbSize := s.BoundingBox().Size()
+	resolution := bbSize.MaxComponent() / float64(meshCells)
+	cells := bbSize.DivScalar(resolution).ToV3i()
 
 	fmt.Printf("rendering %s (%dx%dx%d, resolution %.2f)\n", path, cells[0], cells[1], cells[2], resolution)
 
@@ -53,23 +53,23 @@ func RenderSTL(
 // RenderSTLSlow renders an SDF3 as an STL file (uses uniform grid sampling).
 func RenderSTLSlow(
 	s SDF3, //sdf3 to render
-	mesh_cells int, //number of cells on the longest axis. e.g 200
+	meshCells int, //number of cells on the longest axis. e.g 200
 	path string, //path to filename
 ) {
 	// work out the region we will sample
 	bb0 := s.BoundingBox()
-	bb0_size := bb0.Size()
-	mesh_inc := bb0_size.MaxComponent() / float64(mesh_cells)
-	bb1_size := bb0_size.DivScalar(mesh_inc)
-	bb1_size = bb1_size.Ceil().AddScalar(1)
-	cells := bb1_size.ToV3i()
-	bb1_size = bb1_size.MulScalar(mesh_inc)
-	bb := NewBox3(bb0.Center(), bb1_size)
+	bb0Size := bb0.Size()
+	meshInc := bb0Size.MaxComponent() / float64(meshCells)
+	bb1Size := bb0Size.DivScalar(meshInc)
+	bb1Size = bb1Size.Ceil().AddScalar(1)
+	cells := bb1Size.ToV3i()
+	bb1Size = bb1Size.MulScalar(meshInc)
+	bb := NewBox3(bb0.Center(), bb1Size)
 
 	fmt.Printf("rendering %s (%dx%dx%d)\n", path, cells[0], cells[1], cells[2])
 
 	// run marching cubes to generate the triangle mesh
-	m := MarchingCubes(s, bb, mesh_inc)
+	m := MarchingCubes(s, bb, meshInc)
 	err := SaveSTL(path, m)
 	if err != nil {
 		fmt.Printf("%s", err)
@@ -81,14 +81,14 @@ func RenderSTLSlow(
 // RenderDXF renders an SDF2 as a DXF file. (uses quadtree sampling)
 func RenderDXF(
 	s SDF2, //sdf2 to render
-	mesh_cells int, //number of cells on the longest axis. e.g 200
+	meshCells int, //number of cells on the longest axis. e.g 200
 	path string, //path to filename
 ) {
 
 	// work out the sampling resolution to use
-	bb_size := s.BoundingBox().Size()
-	resolution := bb_size.MaxComponent() / float64(mesh_cells)
-	cells := bb_size.DivScalar(resolution).ToV2i()
+	bbSize := s.BoundingBox().Size()
+	resolution := bbSize.MaxComponent() / float64(meshCells)
+	cells := bbSize.DivScalar(resolution).ToV2i()
 
 	fmt.Printf("rendering %s (%dx%d, resolution %.2f)\n", path, cells[0], cells[1], resolution)
 
@@ -112,23 +112,23 @@ func RenderDXF(
 // RenderDXFSlow renders an SDF2 as a DXF file. (uses uniform grid sampling)
 func RenderDXFSlow(
 	s SDF2, //sdf2 to render
-	mesh_cells int, //number of cells on the longest axis. e.g 200
+	meshCells int, //number of cells on the longest axis. e.g 200
 	path string, //path to filename
 ) {
 	// work out the region we will sample
 	bb0 := s.BoundingBox()
-	bb0_size := bb0.Size()
-	mesh_inc := bb0_size.MaxComponent() / float64(mesh_cells)
-	bb1_size := bb0_size.DivScalar(mesh_inc)
-	bb1_size = bb1_size.Ceil().AddScalar(1)
-	cells := bb1_size.ToV2i()
-	bb1_size = bb1_size.MulScalar(mesh_inc)
-	bb := NewBox2(bb0.Center(), bb1_size)
+	bb0Size := bb0.Size()
+	meshInc := bb0Size.MaxComponent() / float64(meshCells)
+	bb1Size := bb0Size.DivScalar(meshInc)
+	bb1Size = bb1Size.Ceil().AddScalar(1)
+	cells := bb1Size.ToV2i()
+	bb1Size = bb1Size.MulScalar(meshInc)
+	bb := NewBox2(bb0.Center(), bb1Size)
 
 	fmt.Printf("rendering %s (%dx%d)\n", path, cells[0], cells[1])
 
 	// run marching squares to generate the line segments
-	m := marchingSquares(s, bb, mesh_inc)
+	m := marchingSquares(s, bb, meshInc)
 	err := SaveDXF(path, m)
 	if err != nil {
 		fmt.Printf("%s", err)

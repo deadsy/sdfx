@@ -15,106 +15,106 @@ import (
 
 //-----------------------------------------------------------------------------
 
+// Polygon stores a set of 2d polygon vertices.
 type Polygon struct {
-	closed  bool // is the polygon closed or open?
-	reverse bool // return the vertices in reverse order
-	vlist   []PV // list of polygon vertices
+	closed  bool            // is the polygon closed or open?
+	reverse bool            // return the vertices in reverse order
+	vlist   []PolygonVertex // list of polygon vertices
 }
 
-// polygon vertex
-type PV struct {
+// PolygonVertex is a polygon vertex.
+type PolygonVertex struct {
 	relative bool    // vertex position is relative to previous vertex
-	vtype    PVType  // type of polygon vertex
+	vtype    pvType  // type of polygon vertex
 	vertex   V2      // vertex coordinates
 	facets   int     // number of polygon facets to create when smoothing
 	radius   float64 // radius of smoothing (0 == none)
 }
 
-type PVType int
+// pvType is the type of a polygon vertex.
+type pvType int
 
 const (
-	NORMAL PVType = iota // normal vertex
-	HIDE                 // hide the line segment in rendering
-	SMOOTH               // smooth the vertex
-	ARC                  // replace the line segment with an arc
+	pvNormal pvType = iota // normal vertex
+	pvHide                 // hide the line segment in rendering
+	pvSmooth               // smooth the vertex
+	pvArc                  // replace the line segment with an arc
 )
 
 //-----------------------------------------------------------------------------
 // Operations on Polygon Vertices
 
 // Rel positions the polygon vertex relative to the prior vertex.
-func (v *PV) Rel() *PV {
+func (v *PolygonVertex) Rel() *PolygonVertex {
 	v.relative = true
 	return v
 }
 
 // Polar treats the polygon vertex values as polar coordinates (r, theta).
-func (v *PV) Polar() *PV {
+func (v *PolygonVertex) Polar() *PolygonVertex {
 	v.vertex = PolarToXY(v.vertex.X, v.vertex.Y)
 	return v
 }
 
 // Hide hides the line segment for this vertex in the dxf render.
-func (v *PV) Hide() *PV {
-	v.vtype = HIDE
+func (v *PolygonVertex) Hide() *PolygonVertex {
+	v.vtype = pvHide
 	return v
 }
 
 // Smooth marks the polygon vertex for smoothing.
-func (v *PV) Smooth(radius float64, facets int) *PV {
+func (v *PolygonVertex) Smooth(radius float64, facets int) *PolygonVertex {
 	if radius != 0 && facets != 0 {
 		v.radius = radius
 		v.facets = facets
-		v.vtype = SMOOTH
+		v.vtype = pvSmooth
 	}
 	return v
 }
 
 // Chamfer marks the polygon vertex for chamfering.
-func (v *PV) Chamfer(size float64) *PV {
+func (v *PolygonVertex) Chamfer(size float64) *PolygonVertex {
 	// Fake it with a 1 facet smoothing.
 	// The size will be inaccurate for anything other than
 	// 90 degree segments, but this is easy, and I'm lazy ...
 	if size != 0 {
 		v.radius = size * SQRT_HALF
 		v.facets = 1
-		v.vtype = SMOOTH
+		v.vtype = pvSmooth
 	}
 	return v
 }
 
 // Arc replaces a line segment with a circular arc.
-func (v *PV) Arc(radius float64, facets int) *PV {
+func (v *PolygonVertex) Arc(radius float64, facets int) *PolygonVertex {
 	if radius != 0 && facets != 0 {
 		v.radius = radius
 		v.facets = facets
-		v.vtype = ARC
+		v.vtype = pvArc
 	}
 	return v
 }
 
 //-----------------------------------------------------------------------------
 
-// Return the next vertex in the polygon.
-func (p *Polygon) next_vertex(i int) *PV {
+// nextVertex returns the next vertex in the polygon.
+func (p *Polygon) nextVertex(i int) *PolygonVertex {
 	if i == len(p.vlist)-1 {
 		if p.closed {
 			return &p.vlist[0]
-		} else {
-			return nil
 		}
+		return nil
 	}
 	return &p.vlist[i+1]
 }
 
-// Return the previous vertex in the polygon.
-func (p *Polygon) prev_vertex(i int) *PV {
+// prevVertex returns the previous vertex in the polygon.
+func (p *Polygon) prevVertex(i int) *PolygonVertex {
 	if i == 0 {
 		if p.closed {
 			return &p.vlist[len(p.vlist)-1]
-		} else {
-			return nil
 		}
+		return nil
 	}
 	return &p.vlist[i-1]
 }
@@ -122,17 +122,17 @@ func (p *Polygon) prev_vertex(i int) *PV {
 //-----------------------------------------------------------------------------
 // convert line segments to arcs
 
-// Replace a line segment with a circular arc.
-func (p *Polygon) arc_vertex(i int) bool {
+// arcVertex replaces a line segment with a circular arc.
+func (p *Polygon) arcVertex(i int) bool {
 	// check the vertex
 	v := &p.vlist[i]
-	if v.vtype != ARC {
+	if v.vtype != pvArc {
 		return false
 	}
 	// now it's a normal vertex
-	v.vtype = NORMAL
+	v.vtype = pvNormal
 	// check for the previous vertex
-	pv := p.prev_vertex(i)
+	pv := p.prevVertex(i)
 	if pv == nil {
 		return false
 	}
@@ -148,11 +148,11 @@ func (p *Polygon) arc_vertex(i int) bool {
 	// midpoint
 	mid := a.Add(b).MulScalar(0.5)
 	// distance from a to midpoint
-	d_mid := mid.Sub(a).Length()
+	dMid := mid.Sub(a).Length()
 	// distance from midpoint to center of arc
-	d_center := math.Sqrt((radius * radius) - (d_mid * d_mid))
+	dCenter := math.Sqrt((radius * radius) - (dMid * dMid))
 	// center of arc
-	c := mid.Add(n.MulScalar(d_center))
+	c := mid.Add(n.MulScalar(dCenter))
 	// work out the angle
 	ac := a.Sub(c).Normalize()
 	bc := b.Sub(c).Normalize()
@@ -162,9 +162,9 @@ func (p *Polygon) arc_vertex(i int) bool {
 	// radius vector
 	rv := m.MulPosition(a.Sub(c))
 	// work out the new vertices
-	vlist := make([]PV, v.facets-1)
+	vlist := make([]PolygonVertex, v.facets-1)
 	for j := range vlist {
-		vlist[j] = PV{vertex: c.Add(rv)}
+		vlist[j] = PolygonVertex{vertex: c.Add(rv)}
 		rv = m.MulPosition(rv)
 	}
 	// insert the new vertices between the arc endpoints
@@ -172,13 +172,13 @@ func (p *Polygon) arc_vertex(i int) bool {
 	return true
 }
 
-// Convert polygon line segments to arcs.
-func (p *Polygon) create_arcs() {
+// createArcs converts polygon line segments to arcs.
+func (p *Polygon) createArcs() {
 	done := false
 	for done == false {
 		done = true
 		for i := range p.vlist {
-			if p.arc_vertex(i) {
+			if p.arcVertex(i) {
 				done = false
 			}
 		}
@@ -189,16 +189,16 @@ func (p *Polygon) create_arcs() {
 // vertex smoothing
 
 // Smooth the i-th vertex, return true if we smoothed it.
-func (p *Polygon) smooth_vertex(i int) bool {
+func (p *Polygon) smoothVertex(i int) bool {
 	// check the vertex
 	v := p.vlist[i]
-	if v.vtype != SMOOTH {
+	if v.vtype != pvSmooth {
 		// fixed point
 		return false
 	}
 	// get the next and previous points
-	vn := p.next_vertex(i)
-	vp := p.prev_vertex(i)
+	vn := p.nextVertex(i)
+	vp := p.prevVertex(i)
 	if vp == nil || vn == nil {
 		// can't smooth the endpoints of an open polygon
 		return false
@@ -227,9 +227,9 @@ func (p *Polygon) smooth_vertex(i int) bool {
 	// radius vector
 	rv := p0.Sub(c)
 	// work out the new points
-	points := make([]PV, v.facets+1)
+	points := make([]PolygonVertex, v.facets+1)
 	for j := range points {
-		points[j] = PV{vertex: c.Add(rv)}
+		points[j] = PolygonVertex{vertex: c.Add(rv)}
 		rv = rm.MulPosition(rv)
 	}
 	// replace the old point with the new points
@@ -237,13 +237,13 @@ func (p *Polygon) smooth_vertex(i int) bool {
 	return true
 }
 
-// Smooth the vertices of a polygon.
-func (p *Polygon) smooth_vertices() {
+// smoothVertices smoothes the vertices of a polygon.
+func (p *Polygon) smoothVertices() {
 	done := false
 	for done == false {
 		done = true
 		for i := range p.vlist {
-			if p.smooth_vertex(i) {
+			if p.smoothVertex(i) {
 				done = false
 			}
 		}
@@ -252,12 +252,12 @@ func (p *Polygon) smooth_vertices() {
 
 //-----------------------------------------------------------------------------
 
-// Converts relative vertices to absolute vertices.
-func (p *Polygon) relative_to_absolute() {
+// relToAbs converts relative vertices to absolute vertices.
+func (p *Polygon) relToAbs() {
 	for i := range p.vlist {
 		v := &p.vlist[i]
 		if v.relative {
-			pv := p.prev_vertex(i)
+			pv := p.prevVertex(i)
 			if pv.relative {
 				panic("relative vertex needs an absolute reference")
 			}
@@ -270,9 +270,9 @@ func (p *Polygon) relative_to_absolute() {
 //-----------------------------------------------------------------------------
 
 func (p *Polygon) fixups() {
-	p.relative_to_absolute()
-	p.create_arcs()
-	p.smooth_vertices()
+	p.relToAbs()
+	p.createArcs()
+	p.smoothVertices()
 }
 
 //-----------------------------------------------------------------------------
@@ -293,16 +293,16 @@ func NewPolygon() *Polygon {
 	return &Polygon{}
 }
 
-// Add a V2 vertex to a polygon.
-func (p *Polygon) AddV2(x V2) *PV {
-	v := PV{}
+// AddV2 adds a V2 vertex to a polygon.
+func (p *Polygon) AddV2(x V2) *PolygonVertex {
+	v := PolygonVertex{}
 	v.vertex = x
-	v.vtype = NORMAL
+	v.vtype = pvNormal
 	p.vlist = append(p.vlist, v)
 	return &p.vlist[len(p.vlist)-1]
 }
 
-// Add a set of V2 vertices to a polygon.
+// AddV2Set adds a set of V2 vertices to a polygon.
 func (p *Polygon) AddV2Set(x []V2) {
 	for _, v := range x {
 		p.AddV2(v)
@@ -310,7 +310,7 @@ func (p *Polygon) AddV2Set(x []V2) {
 }
 
 // Add an x,y vertex to a polygon.
-func (p *Polygon) Add(x, y float64) *PV {
+func (p *Polygon) Add(x, y float64) *PolygonVertex {
 	return p.AddV2(V2{x, y})
 }
 
@@ -348,7 +348,7 @@ func (p *Polygon) Render(path string) error {
 	fmt.Printf("rendering %s\n", path)
 	d := NewDXF(path)
 	for i := 0; i < len(p.vlist)-1; i++ {
-		if p.vlist[i+1].vtype != HIDE {
+		if p.vlist[i+1].vtype != pvHide {
 			p0 := p.vlist[i].vertex
 			p1 := p.vlist[i+1].vertex
 			d.Line(p0, p1)
@@ -371,7 +371,7 @@ func (p *Polygon) Render(path string) error {
 
 //-----------------------------------------------------------------------------
 
-// Return the vertices of a N sided regular polygon
+// Nagon return the vertices of a N sided regular polygon.
 func Nagon(n int, radius float64) V2Set {
 	if n < 3 {
 		return nil

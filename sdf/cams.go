@@ -229,7 +229,7 @@ func MakeThreeArcCam(
 	theta := (PI - duration) / 2.0
 	p0 := V2{math.Cos(theta), math.Sin(theta)}.MulScalar(baseRadius)
 	// This gives us a line back to the flank arc center
-	l0 := NewLine2_PV(p0, p0.Negate())
+	l0 := newLinePV(p0, p0.Negate())
 
 	//The flank arc intersects the y axis above the lift height.
 	p1 := V2{0, k * (baseRadius + lift)}
@@ -237,7 +237,7 @@ func MakeThreeArcCam(
 	// The perpendicular bisector of p0 and p1 passes through the flank arc center.
 	pMid := p1.Add(p0).MulScalar(0.5)
 	u := p1.Sub(p0)
-	l1 := NewLine2_PV(pMid, V2{u.Y, -u.X})
+	l1 := newLinePV(pMid, V2{u.Y, -u.X})
 
 	// Intersect to find the flank arc center.
 	flankRadius, _, err := l0.Intersect(l1)
