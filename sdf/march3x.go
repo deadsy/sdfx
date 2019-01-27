@@ -110,7 +110,7 @@ func (dc *dcache3) processCube(c *cube, output chan<- *Triangle3) {
 			corners := [8]V3{c0, c1, c2, c3, c4, c5, c6, c7}
 			values := [8]float64{d0, d1, d2, d3, d4, d5, d6, d7}
 			// output the triangle(s) for this cube
-			for _, t := range mc_ToTriangles(corners, values, 0) {
+			for _, t := range mcToTriangles(corners, values, 0) {
 				output <- t
 			}
 		} else {

@@ -166,17 +166,17 @@ func (t Triangle2) Circumcenter() (V2, error) {
 	fabsy2y3 := Abs(y2 - y3)
 
 	// Check for coincident points
-	if fabsy1y2 < EPSILON && fabsy2y3 < EPSILON {
+	if fabsy1y2 < epsilon && fabsy2y3 < epsilon {
 		return V2{}, errors.New("coincident points")
 	}
 
-	if fabsy1y2 < EPSILON {
+	if fabsy1y2 < epsilon {
 		m2 = -(x3 - x2) / (y3 - y2)
 		mx2 = (x2 + x3) / 2.0
 		my2 = (y2 + y3) / 2.0
 		xc = (x2 + x1) / 2.0
 		yc = m2*(xc-mx2) + my2
-	} else if fabsy2y3 < EPSILON {
+	} else if fabsy2y3 < epsilon {
 		m1 = -(x2 - x1) / (y2 - y1)
 		mx1 = (x1 + x2) / 2.0
 		my1 = (y1 + y2) / 2.0
@@ -221,7 +221,7 @@ func (t Triangle2) InCircumcircle(p V2) (inside, done bool) {
 	d2 := dx*dx + dy*dy
 
 	// is the point within the circumcircle?
-	inside = d2-r2 <= EPSILON
+	inside = d2-r2 <= epsilon
 
 	// If this vertex has an x-value beyond the circumcenter and the distance based on the x-delta
 	// is greater than the circumradius, then this triangle is done for this and all subsequent vertices

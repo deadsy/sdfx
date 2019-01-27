@@ -8,12 +8,16 @@ Finials for pillar decorations.
 
 package main
 
-import . "github.com/deadsy/sdfx/sdf"
+import (
+	"math"
+
+	. "github.com/deadsy/sdfx/sdf"
+)
 
 //-----------------------------------------------------------------------------
 
 func square1(l float64) SDF2 {
-	return Polygon2D(Nagon(4, l*SQRT_HALF))
+	return Polygon2D(Nagon(4, l*math.Sqrt(0.5)))
 }
 
 func square2(l float64) SDF2 {
@@ -59,7 +63,7 @@ func finial2() {
 	bc_3d := Union3D(column_3d, ball_3d)
 	bc_3d.(*UnionSDF3).SetMin(PolyMin(round))
 
-	RenderSTL(Union3D(bc_3d, base_3d), 300, "f2.stl")
+	RenderSTLSlow(Union3D(bc_3d, base_3d), 300, "f2.stl")
 }
 
 //-----------------------------------------------------------------------------
@@ -74,7 +78,7 @@ func finial1() {
 	ball_ofs := (base_height / 2) + column_height + ball_radius*0.8
 	round := ball_radius / 5
 
-	s0 := Polygon2D(Nagon(4, base*SQRT_HALF))
+	s0 := Polygon2D(Nagon(4, base*math.Sqrt(0.5)))
 	s1 := Circle2D(column_radius)
 
 	column_3d := Loft3D(s0, s1, column_height, 0)
@@ -88,13 +92,13 @@ func finial1() {
 	bc_3d := Union3D(column_3d, ball_3d)
 	bc_3d.(*UnionSDF3).SetMin(PolyMin(round))
 
-	RenderSTL(Union3D(bc_3d, base_3d), 300, "f1.stl")
+	RenderSTLSlow(Union3D(bc_3d, base_3d), 300, "f1.stl")
 }
 
 //-----------------------------------------------------------------------------
 
 func main() {
-	//finial1()
+	finial1()
 	finial2()
 }
 

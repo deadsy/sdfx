@@ -69,7 +69,7 @@ func RenderSTLSlow(
 	fmt.Printf("rendering %s (%dx%dx%d)\n", path, cells[0], cells[1], cells[2])
 
 	// run marching cubes to generate the triangle mesh
-	m := MarchingCubes(s, bb, meshInc)
+	m := marchingCubes(s, bb, meshInc)
 	err := SaveSTL(path, m)
 	if err != nil {
 		fmt.Printf("%s", err)

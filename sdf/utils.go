@@ -10,24 +10,31 @@ import (
 )
 
 //-----------------------------------------------------------------------------
+// constants
 
-const PI = math.Pi
-const TAU = 2 * math.Pi
-const SQRT_HALF = 0.7071067811865476
-const MM_PER_INCH = 25.4
-const TOLERANCE = 1e-9
-const EPSILON = 1e-12
+// Pi (3.14159...)
+const Pi = math.Pi
+
+// Tau (2 * Pi).
+const Tau = 2 * math.Pi
+
+// MillimetresPerInch is millimetres per inch (25.4)
+const MillimetresPerInch = 25.4
+
+const sqrtHalf = 0.7071067811865476
+const tolerance = 1e-9
+const epsilon = 1e-12
 
 //-----------------------------------------------------------------------------
 
 // DtoR converts degrees to radians
 func DtoR(degrees float64) float64 {
-	return (PI / 180) * degrees
+	return (Pi / 180) * degrees
 }
 
 // RtoD converts radians to degrees
 func RtoD(radians float64) float64 {
-	return (180 / PI) * radians
+	return (180 / Pi) * radians
 }
 
 //-----------------------------------------------------------------------------
@@ -125,7 +132,7 @@ func RoundMin(k float64) MinFunc {
 // TODO: why the holes in the rendering?
 func ChamferMin(k float64) MinFunc {
 	return func(a, b float64) float64 {
-		return Min(Min(a, b), (a-k+b)*SQRT_HALF)
+		return Min(Min(a, b), (a-k+b)*sqrtHalf)
 	}
 }
 

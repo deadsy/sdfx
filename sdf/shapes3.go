@@ -119,7 +119,7 @@ func Knurl3D(
 	// A knurl is the the intersection of left and right hand
 	// multistart "threads". Work out the number of starts using
 	// the desired helix angle.
-	n := int(TAU * radius * math.Tan(theta) / pitch)
+	n := int(Tau * radius * math.Tan(theta) / pitch)
 	// build the knurl profile.
 	knurl_2d := KnurlProfile(radius, pitch, height)
 	// create the left/right hand spirals
@@ -269,14 +269,14 @@ func box_tab_3d(k *box_tab_parms) SDF3 {
 	case "bl": // bottom, left
 		m = m.Mul(Translate3d(V3{(0.5 - k.Clearance) * w, 0, -0.5 * k.Length}))
 		m = m.Mul(RotateY(DtoR(90)))
-		m = m.Mul(RotateX(PI))
+		m = m.Mul(RotateX(Pi))
 	case "tl": // top, left
 		m = m.Mul(Translate3d(V3{(0.5 - k.Clearance) * w, 0, -0.5 * k.Length}))
 		m = m.Mul(RotateY(DtoR(-90)))
 	case "br": // bottom, right
 		m = m.Mul(Translate3d(V3{(-0.5 + k.Clearance) * w, 0, -0.5 * k.Length}))
 		m = m.Mul(RotateY(DtoR(-90)))
-		m = m.Mul(RotateX(PI))
+		m = m.Mul(RotateX(Pi))
 	case "tr": // top, right
 		m = m.Mul(Translate3d(V3{(-0.5 + k.Clearance) * w, 0, -0.5 * k.Length}))
 		m = m.Mul(RotateY(DtoR(90)))

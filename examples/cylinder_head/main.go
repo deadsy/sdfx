@@ -31,7 +31,7 @@ const abs_shrink = 1.0 / 0.995 //~0.5%
 
 // dimension scaling
 func dim(x float64) float64 {
-	return x * desired_scale * MM_PER_INCH * al_shrink * pla_shrink
+	return x * desired_scale * MillimetresPerInch * al_shrink * pla_shrink
 }
 
 var general_round = dim(0.1)
@@ -131,7 +131,7 @@ func sparkplug(mode string, x_ofs float64) SDF3 {
 	}
 	s0 := Polygon2D(vlist)
 	s := Revolve3D(s0)
-	m := RotateX(PI/2 - sp_theta)
+	m := RotateX(Pi/2 - sp_theta)
 	m = Translate3d(V3{x_ofs, sp_y_ofs, sp_z_ofs}).Mul(m)
 	s = Transform3D(s, m)
 	return s

@@ -25,15 +25,15 @@ var clearance = 0.0
 //-----------------------------------------------------------------------------
 
 // ball bearing counterweights
-var bb_large_d = (1.0 / 2.0) * MM_PER_INCH
-var bb_small_d = (5.0 / 16.0) * MM_PER_INCH
+var bb_large_d = (1.0 / 2.0) * MillimetresPerInch
+var bb_small_d = (5.0 / 16.0) * MillimetresPerInch
 
 //-----------------------------------------------------------------------------
 
 // Return an N petal bezier flower.
 func flower(n int, r0, r1, r2 float64) SDF2 {
 
-	theta := TAU / float64(n)
+	theta := Tau / float64(n)
 	b := NewBezier()
 
 	p0 := V2{r1, 0}.Add(PolarToXY(r0, DtoR(-135)))

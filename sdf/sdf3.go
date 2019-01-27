@@ -71,7 +71,7 @@ func RevolveTheta3D(sdf SDF2, theta float64) SDF3 {
 	s := SorSDF3{}
 	s.sdf = sdf
 	// normalize theta
-	s.theta = math.Mod(Abs(theta), TAU)
+	s.theta = math.Mod(Abs(theta), Tau)
 	sin := math.Sin(s.theta)
 	cos := math.Cos(s.theta)
 	// pre-calculate the normal to the theta line
@@ -82,13 +82,13 @@ func RevolveTheta3D(sdf SDF2, theta float64) SDF3 {
 		vset = []V2{{1, 1}, {-1, -1}}
 	} else {
 		vset = []V2{{0, 0}, {1, 0}, {cos, sin}}
-		if s.theta > 0.5*PI {
+		if s.theta > 0.5*Pi {
 			vset = append(vset, V2{0, 1})
 		}
-		if s.theta > PI {
+		if s.theta > Pi {
 			vset = append(vset, V2{-1, 0})
 		}
-		if s.theta > 1.5*PI {
+		if s.theta > 1.5*Pi {
 			vset = append(vset, V2{0, -1})
 		}
 	}
@@ -113,7 +113,7 @@ func (s *SorSDF3) Evaluate(p V3) float64 {
 	if s.theta != 0 {
 		// combine two vertical planes to give an intersection wedge
 		d := s.norm.Dot(V2{p.X, p.Y})
-		if s.theta < PI {
+		if s.theta < Pi {
 			b = Max(-p.Y, d) // intersect
 		} else {
 			b = Min(-p.Y, d) // union
@@ -901,7 +901,7 @@ func RotateCopy3D(
 	}
 	s := RotateCopySDF3{}
 	s.sdf = sdf
-	s.theta = TAU / float64(num)
+	s.theta = Tau / float64(num)
 	// work out the bounding box
 	bb := sdf.BoundingBox()
 	zmax := bb.Max.Z

@@ -20,7 +20,7 @@ import . "github.com/deadsy/sdfx/sdf"
 // const MM_TOLERANCE = 0.2 // very tight
 // const MM_TOLERANCE = 0.3 // good plastic to plastic fit
 const MM_TOLERANCE = 0.3
-const INCH_TOLERANCE = MM_TOLERANCE / MM_PER_INCH
+const INCH_TOLERANCE = MM_TOLERANCE / MillimetresPerInch
 
 // Quality: The long axis of the model is rendered with N STL cells. A larger
 // value will take longer to generate, give a better model resolution and a
@@ -112,11 +112,11 @@ func Nut(
 func inch() {
 	// bolt
 	bolt_3d := Bolt("unc_5/8", "knurl", INCH_TOLERANCE, 2.0, 0.5)
-	bolt_3d = ScaleUniform3D(bolt_3d, MM_PER_INCH)
+	bolt_3d = ScaleUniform3D(bolt_3d, MillimetresPerInch)
 	RenderSTL(bolt_3d, QUALITY, "bolt.stl")
 	// nut
 	nut_3d := Nut("unc_5/8", "knurl", INCH_TOLERANCE)
-	nut_3d = ScaleUniform3D(nut_3d, MM_PER_INCH)
+	nut_3d = ScaleUniform3D(nut_3d, MillimetresPerInch)
 	RenderSTL(nut_3d, QUALITY, "nut.stl")
 }
 

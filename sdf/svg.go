@@ -71,7 +71,7 @@ func (s *SVG) Save() error {
 //-----------------------------------------------------------------------------
 
 // SaveSVG writes line segments to an SVG file.
-func SaveSVG(path, lineStyle string, mesh []*lineSegment) error {
+func SaveSVG(path, lineStyle string, mesh []*Line) error {
 	s := NewSVG(path, lineStyle)
 	for _, v := range mesh {
 		s.Line(v[0], v[1])
@@ -85,13 +85,13 @@ func SaveSVG(path, lineStyle string, mesh []*lineSegment) error {
 //-----------------------------------------------------------------------------
 
 // WriteSVG writes a stream of line segments to an SVG file.
-func WriteSVG(wg *sync.WaitGroup, path, lineStyle string) (chan<- *lineSegment, error) {
+func WriteSVG(wg *sync.WaitGroup, path, lineStyle string) (chan<- *Line, error) {
 
 	s := NewSVG(path, lineStyle)
 
 	// External code writes line segments to this channel.
 	// This goroutine reads the channel and writes line segments to the file.
-	c := make(chan *lineSegment)
+	c := make(chan *Line)
 
 	wg.Add(1)
 	go func() {

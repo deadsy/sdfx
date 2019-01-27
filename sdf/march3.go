@@ -17,11 +17,7 @@ import (
 
 //-----------------------------------------------------------------------------
 
-const EPS = 1e-9
-
-//-----------------------------------------------------------------------------
-
-type LayerYZ struct {
+type layerYZ struct {
 	base  V3        // base coordinate of layer
 	inc   V3        // dx, dy, dz for each step
 	steps V3i       // number of x,y,z steps
@@ -29,8 +25,8 @@ type LayerYZ struct {
 	val1  []float64 // SDF values for x + dx layer
 }
 
-func NewLayerYZ(base, inc V3, steps V3i) *LayerYZ {
-	return &LayerYZ{base, inc, steps, nil, nil}
+func newLayerYZ(base, inc V3, steps V3i) *layerYZ {
+	return &layerYZ{base, inc, steps, nil, nil}
 }
 
 // evalReq is used for processing evaluations in parallel.
@@ -62,7 +58,7 @@ func init() {
 }
 
 // Evaluate the SDF for a given XY layer
-func (l *LayerYZ) Evaluate(sdf SDF3, x int) {
+func (l *layerYZ) Evaluate(sdf SDF3, x int) {
 
 	// Swap the layers
 	l.val0, l.val1 = l.val1, l.val0
@@ -120,7 +116,7 @@ func (l *LayerYZ) Evaluate(sdf SDF3, x int) {
 	eReq.wg.Wait()
 }
 
-func (l *LayerYZ) Get(x, y, z int) float64 {
+func (l *layerYZ) Get(x, y, z int) float64 {
 	idx := y*(l.steps[2]+1) + z
 	if x == 0 {
 		return l.val0[idx]
@@ -130,7 +126,7 @@ func (l *LayerYZ) Get(x, y, z int) float64 {
 
 //-----------------------------------------------------------------------------
 
-func MarchingCubes(sdf SDF3, box Box3, step float64) []*Triangle3 {
+func marchingCubes(sdf SDF3, box Box3, step float64) []*Triangle3 {
 
 	var triangles []*Triangle3
 	size := box.Size()
@@ -139,7 +135,7 @@ func MarchingCubes(sdf SDF3, box Box3, step float64) []*Triangle3 {
 	inc := size.Div(steps.ToV3())
 
 	// create the SDF layer cache
-	l := NewLayerYZ(base, inc, steps)
+	l := newLayerYZ(base, inc, steps)
 	// evaluate the SDF for x = 0
 	l.Evaluate(sdf, 0)
 
@@ -176,7 +172,7 @@ func MarchingCubes(sdf SDF3, box Box3, step float64) []*Triangle3 {
 					l.Get(1, y, z+1),
 					l.Get(1, y+1, z+1),
 					l.Get(0, y+1, z+1)}
-				triangles = append(triangles, mc_ToTriangles(corners, values, 0)...)
+				triangles = append(triangles, mcToTriangles(corners, values, 0)...)
 				p.Z += dz
 			}
 			p.Y += dy
@@ -189,7 +185,7 @@ func MarchingCubes(sdf SDF3, box Box3, step float64) []*Triangle3 {
 
 //-----------------------------------------------------------------------------
 
-func mc_ToTriangles(p [8]V3, v [8]float64, x float64) []*Triangle3 {
+func mcToTriangles(p [8]V3, v [8]float64, x float64) []*Triangle3 {
 	// which of the 0..255 patterns do we have?
 	index := 0
 	for i := 0; i < 8; i++ {
@@ -198,21 +194,21 @@ func mc_ToTriangles(p [8]V3, v [8]float64, x float64) []*Triangle3 {
 		}
 	}
 	// do we have any triangles to create?
-	if mc_edge_table[index] == 0 {
+	if mcEdgeTable[index] == 0 {
 		return nil
 	}
 	// work out the interpolated points on the edges
 	var points [12]V3
 	for i := 0; i < 12; i++ {
 		bit := 1 << uint(i)
-		if mc_edge_table[index]&bit != 0 {
-			a := mc_pair_table[i][0]
-			b := mc_pair_table[i][1]
-			points[i] = mc_Interpolate(p[a], p[b], v[a], v[b], x)
+		if mcEdgeTable[index]&bit != 0 {
+			a := mcPairTable[i][0]
+			b := mcPairTable[i][1]
+			points[i] = mcInterpolate(p[a], p[b], v[a], v[b], x)
 		}
 	}
 	// create the triangles
-	table := mc_triangle_table[index]
+	table := mcTriangleTable[index]
 	count := len(table) / 3
 	result := make([]*Triangle3, count)
 	for i := 0; i < count; i++ {
@@ -227,14 +223,14 @@ func mc_ToTriangles(p [8]V3, v [8]float64, x float64) []*Triangle3 {
 
 //-----------------------------------------------------------------------------
 
-func mc_Interpolate(p1, p2 V3, v1, v2, x float64) V3 {
-	if Abs(x-v1) < EPS {
+func mcInterpolate(p1, p2 V3, v1, v2, x float64) V3 {
+	if Abs(x-v1) < epsilon {
 		return p1
 	}
-	if Abs(x-v2) < EPS {
+	if Abs(x-v2) < epsilon {
 		return p2
 	}
-	if Abs(v1-v2) < EPS {
+	if Abs(v1-v2) < epsilon {
 		return p1
 	}
 	t := (x - v1) / (v2 - v1)
@@ -248,7 +244,7 @@ func mc_Interpolate(p1, p2 V3, v1, v2, x float64) V3 {
 //-----------------------------------------------------------------------------
 
 // These are the vertex pairs for the edges
-var mc_pair_table = [12][2]int{
+var mcPairTable = [12][2]int{
 	{0, 1}, // 0
 	{1, 2}, // 1
 	{2, 3}, // 2
@@ -266,7 +262,7 @@ var mc_pair_table = [12][2]int{
 // 8 vertices -> 256 possible inside/outside combinations
 // A 1 bit in the value indicates an edge with a line end point.
 // 12 edges -> 12 bit values, note the fwd/rev symmetry
-var mc_edge_table = [256]int{
+var mcEdgeTable = [256]int{
 	0x0000, 0x0109, 0x0203, 0x030a, 0x0406, 0x050f, 0x0605, 0x070c,
 	0x080c, 0x0905, 0x0a0f, 0x0b06, 0x0c0a, 0x0d03, 0x0e09, 0x0f00,
 	0x0190, 0x0099, 0x0393, 0x029a, 0x0596, 0x049f, 0x0795, 0x069c,
@@ -302,7 +298,7 @@ var mc_edge_table = [256]int{
 }
 
 // specify the edges used to create the triangle(s)
-var mc_triangle_table = [256][]int{
+var mcTriangleTable = [256][]int{
 	{},
 	{0, 8, 3},
 	{0, 1, 9},

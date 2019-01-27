@@ -14,13 +14,13 @@ import "fmt"
 
 //-----------------------------------------------------------------------------
 
-// LineSegment is a 2d line segment defined with 2 points.
-type lineSegment [2]V2
+// Line is a 2d line segment defined with 2 points.
+type Line [2]V2
 
 //-----------------------------------------------------------------------------
 // 2D Lines
 
-// Line2 is a 2d line.
+// Line2 is a 2d line defined as either point/point or point/vector.
 type Line2 struct {
 	segment bool    // is this a line segment?
 	length  float64 // segment length

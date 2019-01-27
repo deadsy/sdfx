@@ -35,18 +35,18 @@ var draft_angle = DtoR(4.0)       // standard overall draft
 var core_draft_angle = DtoR(10.0) // draft angle for the core print
 
 // nominal size values (mm)
-var wheel_diameter = dim(MM_PER_INCH * 8.0) // total wheel diameter
-var hub_diameter = dim(40.0)                // base diameter of central shaft hub
-var hub_height = dim(53.0)                  // height of cental shaft hub
-var shaft_diameter = dim(21.0)              // 1" target size - reduced for machining allowance
-var shaft_length = dim(45.0)                // length of shaft bore
-var wall_height = dim(35.0)                 // height of wheel side walls
-var wall_thickness = dim(4.0)               // base thickness of outer wheel walls
-var plate_thickness = dim(7.0)              // thickness of wheel top plate
-var web_width = dim(2.0)                    // thickness of reinforcing webs
-var web_height = dim(25.0)                  // height of reinforcing webs
-var core_height = dim(15.0)                 // height of core print
-var number_of_webs = 6                      // number of reinforcing webs
+var wheel_diameter = dim(MillimetresPerInch * 8.0) // total wheel diameter
+var hub_diameter = dim(40.0)                       // base diameter of central shaft hub
+var hub_height = dim(53.0)                         // height of cental shaft hub
+var shaft_diameter = dim(21.0)                     // 1" target size - reduced for machining allowance
+var shaft_length = dim(45.0)                       // length of shaft bore
+var wall_height = dim(35.0)                        // height of wheel side walls
+var wall_thickness = dim(4.0)                      // base thickness of outer wheel walls
+var plate_thickness = dim(7.0)                     // thickness of wheel top plate
+var web_width = dim(2.0)                           // thickness of reinforcing webs
+var web_height = dim(25.0)                         // height of reinforcing webs
+var core_height = dim(15.0)                        // height of core print
+var number_of_webs = 6                             // number of reinforcing webs
 
 // derived values
 var wheel_radius = wheel_diameter / 2
@@ -173,7 +173,7 @@ func core_box() {
 	// holes in the box
 	dy := w * 0.37
 	dx := h * 0.4
-	hole_radius := ((3.0 / 16.0) * MM_PER_INCH) / 2.0
+	hole_radius := ((3.0 / 16.0) * MillimetresPerInch) / 2.0
 	positions := []V2{
 		{dx, dy},
 		{-dx, dy},

@@ -62,12 +62,12 @@ func main() {
 
 	z_ofs += (11.0 / 16.0) + cam_width
 	m = Translate3d(V3{0, 0, z_ofs})
-	m = RotateZ(inlet_theta + PI).Mul(m)
+	m = RotateZ(inlet_theta + Pi).Mul(m)
 	in2 := Transform3D(inlet_3d, m)
 
 	z_ofs += (5.0 / 16.0) + cam_width
 	m = Translate3d(V3{0, 0, z_ofs})
-	m = RotateZ(PI).Mul(m)
+	m = RotateZ(Pi).Mul(m)
 	ex1 := Transform3D(exhaust_3d, m)
 
 	RenderSTL(Union3D(shaft_3d, ex1, in2, in3, ex4), 400, "camshaft.stl")

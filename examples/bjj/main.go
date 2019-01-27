@@ -15,7 +15,7 @@ import . "github.com/deadsy/sdfx/sdf"
 //-----------------------------------------------------------------------------
 
 // center hole
-const ch_d = 0.755 * MM_PER_INCH
+const ch_d = 0.755 * MillimetresPerInch
 const ch_r = ch_d / 2.0
 
 //-----------------------------------------------------------------------------
@@ -23,11 +23,11 @@ const ch_r = ch_d / 2.0
 func bushing() SDF3 {
 
 	// R6-2RS 3/8 x 7/8 x 9/32 bearing
-	bearing_outer_od := (7.0 / 8.0) * MM_PER_INCH // outer diameter of outer race
+	bearing_outer_od := (7.0 / 8.0) * MillimetresPerInch // outer diameter of outer race
 	//bearing_outer_id := 19.0                        // inner diameter of outer race
-	bearing_inner_id := (3.0 / 8.0) * MM_PER_INCH   // inner diameter of inner race
-	bearing_inner_od := 12.0                        // outer diameter of inner race
-	bearing_thickness := (9.0 / 32.0) * MM_PER_INCH // bearing thickness
+	bearing_inner_id := (3.0 / 8.0) * MillimetresPerInch   // inner diameter of inner race
+	bearing_inner_od := 12.0                               // outer diameter of inner race
+	bearing_thickness := (9.0 / 32.0) * MillimetresPerInch // bearing thickness
 
 	// Adjust clearance to give good interference fits for the bearing
 	clearance := 0.0
@@ -62,7 +62,7 @@ func plate_holes_2d() SDF2 {
 	return Union2D(s0, s1, s2, s3)
 }
 
-const rod_r = (1.0 / 16.0) * MM_PER_INCH * 1.10
+const rod_r = (1.0 / 16.0) * MillimetresPerInch * 1.10
 
 func locking_rod() SDF3 {
 	l := 62.0

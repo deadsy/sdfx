@@ -86,10 +86,10 @@ func (p *CubicPolynomial) Set(y0, y1, D0, D1 float64) {
 	p.d = 2*(y0-y1) + D0 + D1
 	// Zero out any coefficients that are small relative to the others.
 	sum := Abs(p.a) + Abs(p.b) + Abs(p.c) + Abs(p.d)
-	p.a = ZeroSmall(p.a, sum, EPSILON)
-	p.b = ZeroSmall(p.b, sum, EPSILON)
-	p.c = ZeroSmall(p.c, sum, EPSILON)
-	p.d = ZeroSmall(p.d, sum, EPSILON)
+	p.a = ZeroSmall(p.a, sum, epsilon)
+	p.b = ZeroSmall(p.b, sum, epsilon)
+	p.c = ZeroSmall(p.c, sum, epsilon)
+	p.d = ZeroSmall(p.d, sum, epsilon)
 }
 
 // Return the t values for f1 == 0 (local minima/maxima)

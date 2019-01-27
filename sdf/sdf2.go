@@ -270,7 +270,7 @@ func Polygon2D(vertex []V2) SDF2 {
 
 	// Close the loop (if necessary)
 	s.vertex = vertex
-	if !vertex[0].Equals(vertex[n-1], TOLERANCE) {
+	if !vertex[0].Equals(vertex[n-1], tolerance) {
 		s.vertex = append(s.vertex, vertex[0])
 	}
 
@@ -543,7 +543,7 @@ type RotateCopySDF2 struct {
 	bb    Box2
 }
 
-// Rotate and copy an SDF2 TAU radians about the origin.
+// Rotate and copy an SDF2 Tau radians about the origin.
 // sdf = SDF2 to rotate and copy
 // num = numer of copies
 func RotateCopy2D(sdf SDF2, num int) SDF2 {
@@ -553,7 +553,7 @@ func RotateCopy2D(sdf SDF2, num int) SDF2 {
 	}
 	s := RotateCopySDF2{}
 	s.sdf = sdf
-	s.theta = TAU / float64(num)
+	s.theta = Tau / float64(num)
 	// work out the bounding box
 	bb := sdf.BoundingBox()
 	rmax := 0.0

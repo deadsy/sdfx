@@ -20,8 +20,8 @@ func extrude1() SDF3 {
 
 	// make the extrusions
 	s_linear := Extrude3D(Offset2D(hex(), 8), 100)
-	s_fwd := TwistExtrude3D(Offset2D(hex(), 8), 100, TAU)
-	s_rev := TwistExtrude3D(Offset2D(hex(), 8), 100, -TAU)
+	s_fwd := TwistExtrude3D(Offset2D(hex(), 8), 100, Tau)
+	s_rev := TwistExtrude3D(Offset2D(hex(), 8), 100, -Tau)
 	s_combo := Union3D(s_fwd, s_rev)
 
 	// position them on the y-axis
@@ -37,7 +37,7 @@ func extrude1() SDF3 {
 
 func extrude2() SDF3 {
 	s0 := ScaleExtrude3D(Offset2D(hex(), 8), 80, V2{.25, .5})
-	s1 := ScaleTwistExtrude3D(Offset2D(hex(), 8), 80, PI, V2{.25, .5})
+	s1 := ScaleTwistExtrude3D(Offset2D(hex(), 8), 80, Pi, V2{.25, .5})
 
 	// position them on the y-axis
 	d := 30.0

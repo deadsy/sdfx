@@ -27,8 +27,8 @@ var vh_clearance = 0.6
 var vh_taper = DtoR(0.4)
 
 // pvc pipe outside diameters
-var pvc3_od = 3.26 * MM_PER_INCH
-var pvc2_od = 2.375 * MM_PER_INCH
+var pvc3_od = 3.26 * MillimetresPerInch
+var pvc2_od = 2.375 * MillimetresPerInch
 
 var wall_thickness = 4.0
 

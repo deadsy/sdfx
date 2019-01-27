@@ -124,11 +124,11 @@ func (p *BezierPolynomial) Set(x []float64) {
 	}
 	// zero out any very small coefficients
 	sum := Abs(p.a) + Abs(p.b) + Abs(p.c) + Abs(p.d) + Abs(p.e)
-	p.a = ZeroSmall(p.a, sum, EPSILON)
-	p.b = ZeroSmall(p.b, sum, EPSILON)
-	p.c = ZeroSmall(p.c, sum, EPSILON)
-	p.d = ZeroSmall(p.d, sum, EPSILON)
-	p.e = ZeroSmall(p.e, sum, EPSILON)
+	p.a = ZeroSmall(p.a, sum, epsilon)
+	p.b = ZeroSmall(p.b, sum, epsilon)
+	p.c = ZeroSmall(p.c, sum, epsilon)
+	p.d = ZeroSmall(p.d, sum, epsilon)
+	p.e = ZeroSmall(p.e, sum, epsilon)
 	// reduce the polynomial to the lowest order
 	if p.n == 4 && p.e == 0 {
 		p.n = 3
@@ -294,7 +294,7 @@ func (b *Bezier) closure() {
 		panic("first control vertex should be an endpoint")
 	}
 	if last.vtype == endpoint {
-		if !last.vertex.Equals(first.vertex, TOLERANCE) {
+		if !last.vertex.Equals(first.vertex, tolerance) {
 			// the first and last vertices aren't equal.
 			// add the first vertex to close the curve
 			b.vlist = append(b.vlist, first)
@@ -383,7 +383,7 @@ func (v *BezierVertex) HandleRev(theta, r float64) *BezierVertex {
 // Handle marks the vertex with a slope control handle.
 func (v *BezierVertex) Handle(theta, fwd, rev float64) *BezierVertex {
 	v.HandleFwd(theta, fwd)
-	v.HandleRev(theta+PI, rev)
+	v.HandleRev(theta+Pi, rev)
 	return v
 }
 

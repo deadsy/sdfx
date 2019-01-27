@@ -329,7 +329,7 @@ func (s *ScrewSDF3) Evaluate(p V3) float64 {
 	// the x/y angle and the z-height map to the 2d x-axis
 	// ie: the position along thread pitch
 	theta := math.Atan2(p.Y, p.X)
-	z := p.Z + s.lead*theta/TAU
+	z := p.Z + s.lead*theta/Tau
 	p0.X = SawTooth(z, s.pitch)
 	// get the thread profile distance
 	d0 := s.thread.Evaluate(p0)

@@ -53,7 +53,7 @@ func InvoluteGearTooth(
 	pitchPoint := involuteXY(baseRadius, involuteTheta(baseRadius, pitchRadius))
 	faceAngle := math.Atan2(pitchPoint.Y, pitchPoint.X)
 	backlashAngle := backlash / (2.0 * pitchRadius)
-	centerAngle := PI/(2.0*float64(numberTeeth)) + faceAngle - backlashAngle
+	centerAngle := Pi/(2.0*float64(numberTeeth)) + faceAngle - backlashAngle
 
 	// work out the angles over which the involute will be used
 	startAngle := involuteTheta(baseRadius, Max(baseRadius, rootRadius))
@@ -155,7 +155,7 @@ func GearRack2D(
 	// total tooth height
 	toothHeight := baseHeight + addendum + dedendum
 	// tooth_pitch: tooth to tooth distance along pitch line
-	pitch := gearModule * PI
+	pitch := gearModule * Pi
 
 	// x size of tooth flank
 	dx := (addendum + dedendum) * math.Tan(pressureAngle)

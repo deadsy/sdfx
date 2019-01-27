@@ -97,7 +97,7 @@ func MakeFlatFlankCam(
 	if lift <= 0 {
 		return nil, fmt.Errorf("lift <= 0")
 	}
-	if duration <= 0 || duration >= PI {
+	if duration <= 0 || duration >= Pi {
 		return nil, fmt.Errorf("invalid duration")
 	}
 
@@ -226,7 +226,7 @@ func MakeThreeArcCam(
 	}
 
 	// Given the duration we know where the flank arc intersects the base circle.
-	theta := (PI - duration) / 2.0
+	theta := (Pi - duration) / 2.0
 	p0 := V2{math.Cos(theta), math.Sin(theta)}.MulScalar(baseRadius)
 	// This gives us a line back to the flank arc center
 	l0 := newLinePV(p0, p0.Negate())
@@ -287,7 +287,7 @@ func MakeGenevaCam(
 	}
 
 	// work out the pin offset from the center of the driver wheel
-	theta := TAU / (2.0 * float64(numSectors))
+	theta := Tau / (2.0 * float64(numSectors))
 	d := centerDistance
 	r := drivenRadius
 	pinOffset := math.Sqrt((d * d) + (r * r) - (2 * d * r * math.Cos(theta)))

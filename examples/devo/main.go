@@ -28,7 +28,7 @@ func dome(r, h, w float64) SDF3 {
 	stepH3 := stepH2 * k
 
 	height := stepH0 + stepH1 + stepH2 + stepH3
-	fmt.Printf("height %f inches\n", height/MM_PER_INCH)
+	fmt.Printf("height %f inches\n", height/MillimetresPerInch)
 
 	// step ledges
 	stepX := (r / 4.0) * 0.75
@@ -85,8 +85,8 @@ func dome(r, h, w float64) SDF3 {
 //-----------------------------------------------------------------------------
 
 func main() {
-	radius := (9.5 * MM_PER_INCH) / 2.0
-	h0 := 2.05 * MM_PER_INCH
+	radius := (9.5 * MillimetresPerInch) / 2.0
+	h0 := 2.05 * MillimetresPerInch
 	wall := 4.0
 
 	s := dome(radius, h0, wall)

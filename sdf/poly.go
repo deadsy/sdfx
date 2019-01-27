@@ -78,7 +78,7 @@ func (v *PolygonVertex) Chamfer(size float64) *PolygonVertex {
 	// The size will be inaccurate for anything other than
 	// 90 degree segments, but this is easy, and I'm lazy ...
 	if size != 0 {
-		v.radius = size * SQRT_HALF
+		v.radius = size * sqrtHalf
 		v.facets = 1
 		v.vtype = pvSmooth
 	}
@@ -221,7 +221,7 @@ func (p *Polygon) smoothVertex(i int) bool {
 	vc := v0.Add(v1).Normalize()
 	c := v.vertex.Add(vc.MulScalar(d2))
 	// rotation angle
-	dtheta := Sign(v1.Cross(v0)) * (PI - theta) / float64(v.facets)
+	dtheta := Sign(v1.Cross(v0)) * (Pi - theta) / float64(v.facets)
 	// rotation matrix
 	rm := Rotate(dtheta)
 	// radius vector
@@ -358,7 +358,7 @@ func (p *Polygon) Render(path string) error {
 	if p.closed {
 		p0 := p.vlist[len(p.vlist)-1].vertex
 		p1 := p.vlist[0].vertex
-		if !p0.Equals(p1, TOLERANCE) {
+		if !p0.Equals(p1, tolerance) {
 			d.Line(p0, p1)
 		}
 	}
@@ -376,7 +376,7 @@ func Nagon(n int, radius float64) V2Set {
 	if n < 3 {
 		return nil
 	}
-	m := Rotate(TAU / float64(n))
+	m := Rotate(Tau / float64(n))
 	v := make(V2Set, n)
 	p := V2{radius, 0}
 	for i := 0; i < n; i++ {
