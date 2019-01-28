@@ -51,8 +51,8 @@ func Bolt(
 	}
 
 	var head_3d SDF3
-	head_r := t.Hex_Radius()
-	head_h := t.Hex_Height()
+	head_r := t.HexRadius()
+	head_h := t.HexHeight()
 	if style == "hex" {
 		head_3d = HexHead3D(head_r, head_h, "b")
 	} else if style == "knurl" {
@@ -91,8 +91,8 @@ func Nut(
 	t := ThreadLookup(name)
 
 	var nut_3d SDF3
-	nut_r := t.Hex_Radius()
-	nut_h := t.Hex_Height()
+	nut_r := t.HexRadius()
+	nut_h := t.HexHeight()
 	if style == "hex" {
 		nut_3d = HexHead3D(nut_r, nut_h, "tb")
 	} else if style == "knurl" {

@@ -25,52 +25,54 @@ import "math"
 //-----------------------------------------------------------------------------
 // Thread Database - lookup standard screw threads by name
 
+// ThreadParameters stores the values that define a thread.
 type ThreadParameters struct {
-	Name          string  // name of screw thread
-	Radius        float64 // nominal major radius of screw
-	Pitch         float64 // thread to thread distance of screw
-	Hex_Flat2Flat float64 // hex head flat to flat distance
-	Units         string  // "inch" or "mm"
+	Name         string  // name of screw thread
+	Radius       float64 // nominal major radius of screw
+	Pitch        float64 // thread to thread distance of screw
+	HexFlat2Flat float64 // hex head flat to flat distance
+	Units        string  // "inch" or "mm"
 }
 
-type ThreadDatabase map[string]*ThreadParameters
+type threadDatabase map[string]*ThreadParameters
 
-var thread_db = Init_ThreadLookup()
+var threadDB = initThreadLookup()
 
 // UTSAdd adds a Unified Thread Standard to the thread database.
-func (m ThreadDatabase) UTSAdd(
+func (m threadDatabase) UTSAdd(
 	name string, // thread name
 	diameter float64, // screw major diameter
 	tpi float64, // threads per inch
-	hex_f2f float64, // hex head flat to flat distance
+	ftof float64, // hex head flat to flat distance
 ) {
 	t := ThreadParameters{}
 	t.Name = name
 	t.Radius = diameter / 2.0
 	t.Pitch = 1.0 / tpi
-	t.Hex_Flat2Flat = hex_f2f
+	t.HexFlat2Flat = ftof
 	t.Units = "inch"
 	m[name] = &t
 }
 
 // ISOAdd adds an ISO Thread Standard to the thread database.
-func (m ThreadDatabase) ISOAdd(
+func (m threadDatabase) ISOAdd(
 	name string, // thread name
 	diameter float64, // screw major diamater
 	pitch float64, // thread pitch
-	hex_f2f float64, // hex head flat to flat distance
+	ftof float64, // hex head flat to flat distance
 ) {
 	t := ThreadParameters{}
 	t.Name = name
 	t.Radius = diameter / 2.0
 	t.Pitch = pitch
-	t.Hex_Flat2Flat = hex_f2f
+	t.HexFlat2Flat = ftof
 	t.Units = "mm"
 	m[name] = &t
 }
 
-func Init_ThreadLookup() ThreadDatabase {
-	m := make(ThreadDatabase)
+// initThreadLookup adds a collection of standard threads to the thread database.
+func initThreadLookup() threadDatabase {
+	m := make(threadDatabase)
 	// UTS Coarse
 	m.UTSAdd("unc_1/4", 1.0/4.0, 20, 7.0/16.0)
 	m.UTSAdd("unc_5/16", 5.0/16.0, 18, 1.0/2.0)
@@ -140,51 +142,50 @@ func Init_ThreadLookup() ThreadDatabase {
 	return m
 }
 
-// lookup the parameters for a thread by name
+// ThreadLookup lookups the parameters for a thread by name.
 func ThreadLookup(name string) *ThreadParameters {
-	t, ok := thread_db[name]
+	t, ok := threadDB[name]
 	if !ok {
 		panic("thread name not found")
 	}
 	return t
 }
 
-// Hex Head Radius
-func (t *ThreadParameters) Hex_Radius() float64 {
-	if t.Hex_Flat2Flat < 0 {
+// HexRadius returns the hex head radius.
+func (t *ThreadParameters) HexRadius() float64 {
+	if t.HexFlat2Flat < 0 {
 		panic("no hex head flat to flat distance defined for this thread")
 	}
-	return t.Hex_Flat2Flat / (2.0 * math.Cos(DtoR(30)))
+	return t.HexFlat2Flat / (2.0 * math.Cos(DtoR(30)))
 }
 
-// Hex Head Height (empirical)
-func (t *ThreadParameters) Hex_Height() float64 {
-	hex_r := t.Hex_Radius()
-	hex_h := 2.0 * hex_r * (5.0 / 12.0)
-	return hex_h
+// HexHeight returns the hex head height (empirical).
+func (t *ThreadParameters) HexHeight() float64 {
+	return 2.0 * t.HexRadius() * (5.0 / 12.0)
 }
 
 //-----------------------------------------------------------------------------
 // Thread Profiles
 
-// Return a 2d profile for an acme thread.
-// radius = radius of thread
-// pitch = thread to thread distance
-func AcmeThread(radius, pitch float64) SDF2 {
+// AcmeThread returns the 2d profile for an acme thread.
+func AcmeThread(
+	radius float64, // radius of thread
+	pitch float64, // thread to thread distance
+) SDF2 {
 
 	h := radius - 0.5*pitch
 	theta := DtoR(29.0 / 2.0)
 	delta := 0.25 * pitch * math.Tan(theta)
-	x_ofs0 := 0.25*pitch - delta
-	x_ofs1 := 0.25*pitch + delta
+	xOfs0 := 0.25*pitch - delta
+	xOfs1 := 0.25*pitch + delta
 
 	acme := NewPolygon()
 	acme.Add(radius, 0)
 	acme.Add(radius, h)
-	acme.Add(x_ofs1, h)
-	acme.Add(x_ofs0, radius)
-	acme.Add(-x_ofs0, radius)
-	acme.Add(-x_ofs1, h)
+	acme.Add(xOfs1, h)
+	acme.Add(xOfs0, radius)
+	acme.Add(-xOfs0, radius)
+	acme.Add(-xOfs1, h)
 	acme.Add(-radius, h)
 	acme.Add(-radius, 0)
 
@@ -192,41 +193,42 @@ func AcmeThread(radius, pitch float64) SDF2 {
 	return Polygon2D(acme.Vertices())
 }
 
-// Return the 2d profile for an ISO/UTS thread.
+// ISOThread returns the 2d profile for an ISO/UTS thread.
 // https://en.wikipedia.org/wiki/ISO_metric_screw_thread
 // https://en.wikipedia.org/wiki/Unified_Thread_Standard
-// radius = radius of thread
-// pitch = thread to thread distance
-// mode = internal/external thread
-func ISOThread(radius, pitch float64, mode string) SDF2 {
+func ISOThread(
+	radius float64, // radius of thread
+	pitch float64, // thread to thread distance
+	mode string, // internal/external thread
+) SDF2 {
 
 	theta := DtoR(30.0)
 	h := pitch / (2.0 * math.Tan(theta))
-	r_major := radius
-	r0 := r_major - (7.0/8.0)*h
+	rMajor := radius
+	r0 := rMajor - (7.0/8.0)*h
 
 	iso := NewPolygon()
 	if mode == "external" {
-		r_root := (pitch / 8.0) / math.Cos(theta)
-		x_ofs := (1.0 / 16.0) * pitch
+		rRoot := (pitch / 8.0) / math.Cos(theta)
+		xOfs := (1.0 / 16.0) * pitch
 		iso.Add(pitch, 0)
 		iso.Add(pitch, r0+h)
-		iso.Add(pitch/2.0, r0).Smooth(r_root, 5)
-		iso.Add(x_ofs, r_major)
-		iso.Add(-x_ofs, r_major)
-		iso.Add(-pitch/2.0, r0).Smooth(r_root, 5)
+		iso.Add(pitch/2.0, r0).Smooth(rRoot, 5)
+		iso.Add(xOfs, rMajor)
+		iso.Add(-xOfs, rMajor)
+		iso.Add(-pitch/2.0, r0).Smooth(rRoot, 5)
 		iso.Add(-pitch, r0+h)
 		iso.Add(-pitch, 0)
 	} else if mode == "internal" {
-		r_minor := r0 + (1.0/4.0)*h
-		r_crest := (pitch / 16.0) / math.Cos(theta)
-		x_ofs := (1.0 / 8.0) * pitch
+		rMinor := r0 + (1.0/4.0)*h
+		rCrest := (pitch / 16.0) / math.Cos(theta)
+		xOfs := (1.0 / 8.0) * pitch
 		iso.Add(pitch, 0)
-		iso.Add(pitch, r_minor)
-		iso.Add(pitch/2-x_ofs, r_minor)
-		iso.Add(0, r0+h).Smooth(r_crest, 5)
-		iso.Add(-pitch/2+x_ofs, r_minor)
-		iso.Add(-pitch, r_minor)
+		iso.Add(pitch, rMinor)
+		iso.Add(pitch/2-xOfs, rMinor)
+		iso.Add(0, r0+h).Smooth(rCrest, 5)
+		iso.Add(-pitch/2+xOfs, rMinor)
+		iso.Add(-pitch, rMinor)
 		iso.Add(-pitch, 0)
 	} else {
 		panic("bad mode")
@@ -235,13 +237,13 @@ func ISOThread(radius, pitch float64, mode string) SDF2 {
 	return Polygon2D(iso.Vertices())
 }
 
-// Return the 2d profile for an ANSI 45/7 buttress thread.
+// ANSIButtressThread returns the 2d profile for an ANSI 45/7 buttress thread.
 // https://en.wikipedia.org/wiki/Buttress_thread
 // AMSE B1.9-1973
-// radius = radius of thread
-// pitch = thread to thread distance
-func ANSIButtressThread(radius, pitch float64) SDF2 {
-
+func ANSIButtressThread(
+	radius float64, // radius of thread
+	pitch float64, // thread to thread distance
+) SDF2 {
 	t0 := math.Tan(DtoR(45.0))
 	t1 := math.Tan(DtoR(7.0))
 	b := 0.6 // thread engagement
@@ -263,12 +265,12 @@ func ANSIButtressThread(radius, pitch float64) SDF2 {
 	return Polygon2D(tp.Vertices())
 }
 
-// Return the 2d profile for a screw top style plastic buttress thread.
+// PlasticButtressThread returns the 2d profile for a screw top style plastic buttress thread.
 // Similar to ANSI 45/7 - but with more corner rounding
-// radius = radius of thread
-// pitch = thread to thread distance
-func PlasticButtressThread(radius, pitch float64) SDF2 {
-
+func PlasticButtressThread(
+	radius float64, // radius of thread
+	pitch float64, // thread to thread distance
+) SDF2 {
 	t0 := math.Tan(DtoR(45.0))
 	t1 := math.Tan(DtoR(7.0))
 	b := 0.6 // thread engagement
@@ -292,6 +294,7 @@ func PlasticButtressThread(radius, pitch float64) SDF2 {
 
 //-----------------------------------------------------------------------------
 
+// ScrewSDF3 is a 3d screw form.
 type ScrewSDF3 struct {
 	thread SDF2    // 2D thread profile
 	pitch  float64 // thread to thread distance
@@ -301,7 +304,7 @@ type ScrewSDF3 struct {
 	bb     Box3    // bounding box
 }
 
-// Return a screw SDF3
+// Screw3D returns a screw SDF3.
 func Screw3D(
 	thread SDF2, // 2D thread profile
 	length float64, // length of screw
@@ -321,6 +324,7 @@ func Screw3D(
 	return &s
 }
 
+// Evaluate returns the minimum distance to a 3d screw form.
 func (s *ScrewSDF3) Evaluate(p V3) float64 {
 	// map the 3d point back to the xy space of the profile
 	p0 := V2{}
@@ -339,6 +343,7 @@ func (s *ScrewSDF3) Evaluate(p V3) float64 {
 	return Max(d0, d1)
 }
 
+// BoundingBox returns the bounding box for a 3d screw form.
 func (s *ScrewSDF3) BoundingBox() Box3 {
 	return s.bb
 }
