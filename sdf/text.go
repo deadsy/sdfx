@@ -24,11 +24,12 @@ import (
 type align int
 
 const (
-	L_ALIGN align = iota // left hand side x = 0
-	R_ALIGN              // right hand side x = 0
-	C_ALIGN              // center x = 0
+	lAlign align = iota // left hand side x = 0
+	rAlign              // right hand side x = 0
+	cAlign              // center x = 0
 )
 
+// Text stores a UTF8 string and it's rendering parameters.
 type Text struct {
 	s      string
 	halign align
@@ -36,15 +37,15 @@ type Text struct {
 
 //-----------------------------------------------------------------------------
 
-// convert a truetype point to a V2
-func p_to_V2(p truetype.Point) V2 {
+// pToV2 converts a truetype point to a V2
+func pToV2(p truetype.Point) V2 {
 	return V2{float64(p.X), float64(p.Y)}
 }
 
 //-----------------------------------------------------------------------------
 
-// return the SDF2 for the n-th curve of the glyph
-func glyph_curve(g *truetype.GlyphBuf, n int) (SDF2, bool) {
+// glyphCurve returns the SDF2 for the n-th curve of the glyph
+func glyphCurve(g *truetype.GlyphBuf, n int) (SDF2, bool) {
 	// get the start and end point
 	start := 0
 	if n != 0 {
@@ -56,18 +57,18 @@ func glyph_curve(g *truetype.GlyphBuf, n int) (SDF2, bool) {
 	// work out the cw/ccw direction
 	b := NewBezier()
 	sum := 0.0
-	off_prev := false
-	v_prev := p_to_V2(g.Points[end])
+	offPrev := false
+	vPrev := pToV2(g.Points[end])
 
 	for i := start; i <= end; i++ {
 		p := g.Points[i]
-		v := p_to_V2(p)
+		v := pToV2(p)
 		// is the point off/on the curve?
 		off := p.Flags&1 == 0
 		// do we have an implicit on point?
-		if off && off_prev {
+		if off && offPrev {
 			// implicit on point at the midpoint of the 2 off points
-			b.AddV2(v.Add(v_prev).MulScalar(0.5))
+			b.AddV2(v.Add(vPrev).MulScalar(0.5))
 		}
 		// add the point
 		x := b.AddV2(v)
@@ -75,21 +76,21 @@ func glyph_curve(g *truetype.GlyphBuf, n int) (SDF2, bool) {
 			x.Mid()
 		}
 		// accumulate the cw/ccw direction
-		sum += (v.X - v_prev.X) * (v.Y + v_prev.Y)
+		sum += (v.X - vPrev.X) * (v.Y + vPrev.Y)
 		// next point...
-		v_prev = v
-		off_prev = off
+		vPrev = v
+		offPrev = off
 	}
 	b.Close()
 
 	return Polygon2D(b.Polygon().Vertices()), sum > 0
 }
 
-// return the SDF2 for a glyph
-func glyph_convert(g *truetype.GlyphBuf) SDF2 {
+// glyphConvert returns the SDF2 for a glyph
+func glyphConvert(g *truetype.GlyphBuf) SDF2 {
 	var s0 SDF2
 	for n := 0; n < len(g.Ends); n++ {
-		s1, cw := glyph_curve(g, n)
+		s1, cw := glyphCurve(g, n)
 		if cw {
 			s0 = Union2D(s0, s1)
 		} else {
@@ -101,11 +102,11 @@ func glyph_convert(g *truetype.GlyphBuf) SDF2 {
 
 //-----------------------------------------------------------------------------
 
-// Return an SDF2 slice for a line of text
+// lineSDF2 returns an SDF2 slice for a line of text
 func lineSDF2(f *truetype.Font, l string) ([]SDF2, float64, error) {
-	i_prev := truetype.Index(0)
+	iPrev := truetype.Index(0)
 	scale := fixed.Int26_6(f.FUnitsPerEm())
-	x_ofs := 0.0
+	xOfs := 0.0
 
 	var ss []SDF2
 
@@ -116,9 +117,9 @@ func lineSDF2(f *truetype.Font, l string) ([]SDF2, float64, error) {
 		hm := f.HMetric(scale, i)
 
 		// apply kerning
-		k := f.Kern(scale, i_prev, i)
-		x_ofs += float64(k)
-		i_prev = i
+		k := f.Kern(scale, iPrev, i)
+		xOfs += float64(k)
+		iPrev = i
 
 		// load the glyph
 		g := &truetype.GlyphBuf{}
@@ -127,16 +128,16 @@ func lineSDF2(f *truetype.Font, l string) ([]SDF2, float64, error) {
 			return nil, 0, err
 		}
 
-		s := glyph_convert(g)
+		s := glyphConvert(g)
 		if s != nil {
-			s = Transform2D(s, Translate2d(V2{x_ofs, 0}))
+			s = Transform2D(s, Translate2d(V2{xOfs, 0}))
 			ss = append(ss, s)
 		}
 
-		x_ofs += float64(hm.AdvanceWidth)
+		xOfs += float64(hm.AdvanceWidth)
 	}
 
-	return ss, x_ofs, nil
+	return ss, xOfs, nil
 }
 
 //-----------------------------------------------------------------------------
@@ -146,7 +147,7 @@ func lineSDF2(f *truetype.Font, l string) ([]SDF2, float64, error) {
 func NewText(s string) *Text {
 	return &Text{
 		s:      s,
-		halign: C_ALIGN,
+		halign: cAlign,
 	}
 }
 
@@ -164,28 +165,28 @@ func LoadFont(fname string) (*truetype.Font, error) {
 func TextSDF2(f *truetype.Font, t *Text, h float64) (SDF2, error) {
 	scale := fixed.Int26_6(f.FUnitsPerEm())
 	lines := strings.Split(t.s, "\n")
-	y_ofs := 0.0
+	yOfs := 0.0
 	vm := f.VMetric(scale, f.Index('\n'))
 	ah := float64(vm.AdvanceHeight)
 
 	var ss []SDF2
 
 	for i := range lines {
-		ss_line, hlen, err := lineSDF2(f, lines[i])
+		ssLine, hlen, err := lineSDF2(f, lines[i])
 		if err != nil {
 			return nil, err
 		}
-		x_ofs := 0.0
-		if t.halign == R_ALIGN {
-			x_ofs = -hlen
-		} else if t.halign == C_ALIGN {
-			x_ofs = -hlen / 2.0
+		xOfs := 0.0
+		if t.halign == rAlign {
+			xOfs = -hlen
+		} else if t.halign == cAlign {
+			xOfs = -hlen / 2.0
 		}
-		for i := range ss_line {
-			ss_line[i] = Transform2D(ss_line[i], Translate2d(V2{x_ofs, y_ofs}))
+		for i := range ssLine {
+			ssLine[i] = Transform2D(ssLine[i], Translate2d(V2{xOfs, yOfs}))
 		}
-		ss = append(ss, ss_line...)
-		y_ofs -= ah
+		ss = append(ss, ssLine...)
+		yOfs -= ah
 	}
 
 	return CenterAndScale2D(Union2D(ss...), h/ah), nil
