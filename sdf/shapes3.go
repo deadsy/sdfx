@@ -15,37 +15,37 @@ import (
 
 //-----------------------------------------------------------------------------
 
-// CounterBored_Hole3D returns the SDF3 for a counterbored hole.
-func CounterBored_Hole3D(
+// CounterBoredHole3D returns the SDF3 for a counterbored hole.
+func CounterBoredHole3D(
 	l float64, // total length
 	r float64, // hole radius
-	cb_r float64, // counter bore radius
-	cb_d float64, // counter bore depth
+	cbRadius float64, // counter bore radius
+	cbDepth float64, // counter bore depth
 ) SDF3 {
 	s0 := Cylinder3D(l, r, 0)
-	s1 := Cylinder3D(cb_d, cb_r, 0)
-	s1 = Transform3D(s1, Translate3d(V3{0, 0, (l - cb_d) / 2}))
+	s1 := Cylinder3D(cbDepth, cbRadius, 0)
+	s1 = Transform3D(s1, Translate3d(V3{0, 0, (l - cbDepth) / 2}))
 	return Union3D(s0, s1)
 }
 
-// Chamfered_Hole3D returns the SDF3 for a chamfered hole (45 degrees).
-func Chamfered_Hole3D(
+// ChamferedHole3D returns the SDF3 for a chamfered hole (45 degrees).
+func ChamferedHole3D(
 	l float64, // total length
 	r float64, // hole radius
-	ch_r float64, // chamfer radius
+	chRadius float64, // chamfer radius
 ) SDF3 {
 	s0 := Cylinder3D(l, r, 0)
-	s1 := Cone3D(ch_r, r, r+ch_r, 0)
-	s1 = Transform3D(s1, Translate3d(V3{0, 0, (l - ch_r) / 2}))
+	s1 := Cone3D(chRadius, r, r+chRadius, 0)
+	s1 = Transform3D(s1, Translate3d(V3{0, 0, (l - chRadius) / 2}))
 	return Union3D(s0, s1)
 }
 
-// CounterSunk_Hole3D returns the SDF3 for a countersunk hole (45 degrees).
-func CounterSunk_Hole3D(
+// CounterSunkHole3D returns the SDF3 for a countersunk hole (45 degrees).
+func CounterSunkHole3D(
 	l float64, // total length
 	r float64, // hole radius
 ) SDF3 {
-	return Chamfered_Hole3D(l, r, r)
+	return ChamferedHole3D(l, r, r)
 }
 
 //-----------------------------------------------------------------------------
@@ -57,24 +57,24 @@ func HexHead3D(
 	round string, // (t)top, (b)bottom, (tb)top/bottom
 ) SDF3 {
 	// basic hex body
-	corner_round := r * 0.08
-	hex_2d := Polygon2D(Nagon(6, r-corner_round))
-	hex_2d = Offset2D(hex_2d, corner_round)
-	hex_3d := Extrude3D(hex_2d, h)
+	cornerRound := r * 0.08
+	hex2d := Polygon2D(Nagon(6, r-cornerRound))
+	hex2d = Offset2D(hex2d, cornerRound)
+	hex3d := Extrude3D(hex2d, h)
 	// round out the top and/or bottom as required
 	if round != "" {
-		top_round := r * 1.6
+		topRound := r * 1.6
 		d := r * math.Cos(DtoR(30))
-		sphere_3d := Sphere3D(top_round)
-		z_ofs := math.Sqrt(top_round*top_round-d*d) - h/2
+		sphere3d := Sphere3D(topRound)
+		zOfs := math.Sqrt(topRound*topRound-d*d) - h/2
 		if round == "t" || round == "tb" {
-			hex_3d = Intersect3D(hex_3d, Transform3D(sphere_3d, Translate3d(V3{0, 0, -z_ofs})))
+			hex3d = Intersect3D(hex3d, Transform3D(sphere3d, Translate3d(V3{0, 0, -zOfs})))
 		}
 		if round == "b" || round == "tb" {
-			hex_3d = Intersect3D(hex_3d, Transform3D(sphere_3d, Translate3d(V3{0, 0, z_ofs})))
+			hex3d = Intersect3D(hex3d, Transform3D(sphere3d, Translate3d(V3{0, 0, zOfs})))
 		}
 	}
-	return hex_3d
+	return hex3d
 }
 
 // KnurledHead3D returns a cylindrical knurled head.
@@ -84,10 +84,10 @@ func KnurledHead3D(
 	pitch float64, // knurl pitch
 ) SDF3 {
 	theta := DtoR(45)
-	cylinder_round := r * 0.05
-	knurl_h := pitch * math.Floor((h-cylinder_round)/pitch)
-	knurl_3d := Knurl3D(knurl_h, r, pitch, pitch*0.3, theta)
-	return Union3D(Cylinder3D(h, r, cylinder_round), knurl_3d)
+	cylinderRound := r * 0.05
+	knurlH := pitch * math.Floor((h-cylinderRound)/pitch)
+	knurl3d := Knurl3D(knurlH, r, pitch, pitch*0.3, theta)
+	return Union3D(Cylinder3D(h, r, cylinderRound), knurl3d)
 }
 
 //-----------------------------------------------------------------------------
@@ -121,10 +121,10 @@ func Knurl3D(
 	// the desired helix angle.
 	n := int(Tau * radius * math.Tan(theta) / pitch)
 	// build the knurl profile.
-	knurl_2d := KnurlProfile(radius, pitch, height)
+	knurl2d := KnurlProfile(radius, pitch, height)
 	// create the left/right hand spirals
-	knurl0_3d := Screw3D(knurl_2d, length, pitch, n)
-	knurl1_3d := Screw3D(knurl_2d, length, pitch, -n)
+	knurl0_3d := Screw3D(knurl2d, length, pitch, n)
+	knurl1_3d := Screw3D(knurl2d, length, pitch, -n)
 	return Intersect3D(knurl0_3d, knurl1_3d)
 }
 
@@ -133,16 +133,16 @@ func Knurl3D(
 // Washer3D returns a washer.
 func Washer3D(
 	t float64, // thickness
-	r_inner float64, // inner radius
-	r_outer float64, // outer radius
+	innerRadius float64, // inner radius
+	outerRadius float64, // outer radius
 ) SDF3 {
 	if t <= 0 {
 		panic("t <= 0")
 	}
-	if r_inner >= r_outer {
-		panic("r_inner >= r_outer")
+	if innerRadius >= outerRadius {
+		panic("innerRadius >= outerRadius")
 	}
-	return Difference3D(Cylinder3D(t, r_outer, 0), Cylinder3D(t, r_inner, 0))
+	return Difference3D(Cylinder3D(t, outerRadius, 0), Cylinder3D(t, innerRadius, 0))
 }
 
 //-----------------------------------------------------------------------------
@@ -161,7 +161,7 @@ type StandoffParms struct {
 }
 
 // single web
-func pillar_web(k *StandoffParms) SDF3 {
+func pillarWeb(k *StandoffParms) SDF3 {
 	w := NewPolygon()
 	w.Add(0, 0)
 	w.Add(0.5*k.WebDiameter, 0)
@@ -172,11 +172,11 @@ func pillar_web(k *StandoffParms) SDF3 {
 }
 
 // multiple webs
-func pillar_webs(k *StandoffParms) SDF3 {
+func pillarWebs(k *StandoffParms) SDF3 {
 	if k.NumberWebs == 0 {
 		return nil
 	}
-	return RotateCopy3D(pillar_web(k), k.NumberWebs)
+	return RotateCopy3D(pillarWeb(k), k.NumberWebs)
 }
 
 // pillar
@@ -185,18 +185,18 @@ func pillar(k *StandoffParms) SDF3 {
 }
 
 // pillar hole
-func pillar_hole(k *StandoffParms) SDF3 {
+func pillarHole(k *StandoffParms) SDF3 {
 	if k.HoleDiameter == 0.0 || k.HoleDepth == 0.0 {
 		return nil
 	}
 	s := Cylinder3D(k.HoleDepth, 0.5*k.HoleDiameter, 0)
-	z_ofs := 0.5 * (k.PillarHeight - k.HoleDepth)
-	return Transform3D(s, Translate3d(V3{0, 0, z_ofs}))
+	zOfs := 0.5 * (k.PillarHeight - k.HoleDepth)
+	return Transform3D(s, Translate3d(V3{0, 0, zOfs}))
 }
 
 // Standoff3D returns a single board standoff.
 func Standoff3D(k *StandoffParms) SDF3 {
-	s0 := Difference3D(Union3D(pillar(k), pillar_webs(k)), pillar_hole(k))
+	s0 := Difference3D(Union3D(pillar(k), pillarWebs(k)), pillarHole(k))
 	if k.NumberWebs != 0 {
 		// Cut off any part of the webs that protrude from the top of the pillar
 		s1 := Cylinder3D(k.PillarHeight, k.WebDiameter, 0)
@@ -223,7 +223,7 @@ func Standoffs3D(k *StandoffParms, positions V3Set) SDF3 {
 
 //-----------------------------------------------------------------------------
 
-type box_tab_parms struct {
+type boxTabParms struct {
 	Wall        float64 // wall thickness
 	Length      float64 // tab length
 	Hole        float64 // hole diameter >= 0 gives a larger tab with a screw hole
@@ -232,8 +232,8 @@ type box_tab_parms struct {
 	Clearance   float64 // fit clearance (typically 0.05)
 }
 
-// box_tab_3d returns an oriented tab for the box side.
-func box_tab_3d(k *box_tab_parms) SDF3 {
+// boxTab3d returns an oriented tab for the box side.
+func boxTab3d(k *boxTabParms) SDF3 {
 
 	w := k.Wall
 	l := (1.0 - 2.0*k.Clearance) * k.Length
@@ -288,7 +288,7 @@ func box_tab_3d(k *box_tab_parms) SDF3 {
 
 //-----------------------------------------------------------------------------
 
-type box_hole_parms struct {
+type boxHoleParms struct {
 	Length      float64 // total hole length
 	Hole        float64 // hole diameter
 	ZOffset     float64 // hole offset in z-direction (along body length)
@@ -296,9 +296,9 @@ type box_hole_parms struct {
 	Orientation string  // orientation of tab
 }
 
-// box_hole_3d returns an oriented countersunk hole for the box side.
-func box_hole_3d(k *box_hole_parms) SDF3 {
-	hole := CounterSunk_Hole3D(k.Length, 0.5*k.Hole)
+// boxHole3d returns an oriented countersunk hole for the box side.
+func boxHole3d(k *boxHoleParms) SDF3 {
+	hole := CounterSunkHole3D(k.Length, 0.5*k.Hole)
 	hole = Transform3D(hole, Translate3d(V3{0, 0, 0.5 * k.Length}))
 	m := Identity3d()
 	switch k.Orientation {
@@ -324,7 +324,7 @@ func box_hole_3d(k *box_hole_parms) SDF3 {
 // 4 part panel box
 
 // Convert the tab pattern to "..x.." form with the tab type of interest.
-func filter_tabs(pattern string, tab rune) string {
+func filterTabs(pattern string, tab rune) string {
 	out := make([]byte, len(pattern))
 	for i, c := range pattern {
 		if c == tab {
@@ -384,39 +384,39 @@ func PanelBox3D(k *PanelBoxParms) []SDF3 {
 	}
 
 	// the panel gap is slightly larger than the panel thickness
-	panel_gap := (1.0 + (4.0 * k.Clearance)) * k.Panel
+	panelGap := (1.0 + (4.0 * k.Clearance)) * k.Panel
 
-	mid_z := k.Size.Z - k.FrontInset - k.BackInset - 2.0*(panel_gap+2.0*k.Wall)
-	if mid_z <= 0.0 {
+	midZ := k.Size.Z - k.FrontInset - k.BackInset - 2.0*(panelGap+2.0*k.Wall)
+	if midZ <= 0.0 {
 		panic("the front and back panel depths exceed the total box length")
 	}
 
-	outer_size := V2{k.Size.X, k.Size.Y}
-	inner_size := outer_size.SubScalar(2.0 * k.Wall)
-	ridge_size := inner_size.SubScalar(2.0 * k.Wall)
+	outerSize := V2{k.Size.X, k.Size.Y}
+	innerSize := outerSize.SubScalar(2.0 * k.Wall)
+	ridgeSize := innerSize.SubScalar(2.0 * k.Wall)
 
-	inner_plus_size := inner_size.AddScalar(2.0 * k.Clearance * k.Wall)
-	inner_minus_size := inner_size.SubScalar(4.0 * k.Clearance * k.Wall)
-	inner_rounding := Max(0.0, k.Rounding-k.Wall)
+	innerPlusSize := innerSize.AddScalar(2.0 * k.Clearance * k.Wall)
+	innerMinusSize := innerSize.SubScalar(4.0 * k.Clearance * k.Wall)
+	innerRounding := Max(0.0, k.Rounding-k.Wall)
 
-	outer := Box2D(outer_size, k.Rounding)
-	inner := Box2D(inner_size, inner_rounding)
-	inner_plus := Box2D(inner_plus_size, inner_rounding)
-	inner_minus := Box2D(inner_minus_size, inner_rounding)
-	ridge := Box2D(ridge_size, Max(0.0, k.Rounding-2.0*k.Wall))
+	outer := Box2D(outerSize, k.Rounding)
+	inner := Box2D(innerSize, innerRounding)
+	innerPlus := Box2D(innerPlusSize, innerRounding)
+	innerMinus := Box2D(innerMinusSize, innerRounding)
+	ridge := Box2D(ridgeSize, Max(0.0, k.Rounding-2.0*k.Wall))
 
 	// front/pack panels
-	panel := Extrude3D(inner_minus, k.Panel)
+	panel := Extrude3D(innerMinus, k.Panel)
 
 	// box
 	box := Extrude3D(Difference2D(outer, inner), k.Size.Z)
 
 	// add the panel holding ridges
-	pr := Extrude3D(Difference2D(inner_plus, ridge), k.Wall)
+	pr := Extrude3D(Difference2D(innerPlus, ridge), k.Wall)
 	z0 := 0.5*(k.Size.Z-k.Wall) - k.FrontInset
-	z1 := z0 - k.Wall - panel_gap
+	z1 := z0 - k.Wall - panelGap
 	z2 := 0.5*(k.Wall-k.Size.Z) + k.BackInset
-	z3 := z2 + k.Wall + panel_gap
+	z3 := z2 + k.Wall + panelGap
 	pr0 := Transform3D(pr, Translate3d(V3{0, 0, z0}))
 	pr1 := Transform3D(pr, Translate3d(V3{0, 0, z1}))
 	pr2 := Transform3D(pr, Translate3d(V3{0, 0, z2}))
@@ -430,99 +430,99 @@ func PanelBox3D(k *PanelBoxParms) []SDF3 {
 	if k.SideTabs != "" {
 		// tabs with no holes
 
-		tab_length := mid_z / float64(len(k.SideTabs))
+		tabLength := midZ / float64(len(k.SideTabs))
 		z0 := 0.5*k.Size.Z - k.FrontInset - 2.0*k.Wall - k.Panel
 		z1 := -0.5*k.Size.Z + k.BackInset + 2.0*k.Wall + k.Panel
 		x := 0.5*k.Size.X - k.Wall
 
-		t_pattern := filter_tabs(k.SideTabs, 't')
-		b_pattern := filter_tabs(k.SideTabs, 'b')
+		tPattern := filterTabs(k.SideTabs, 't')
+		bPattern := filterTabs(k.SideTabs, 'b')
 
-		tp := &box_tab_parms{
+		tp := &boxTabParms{
 			Wall:      k.Wall,
-			Length:    tab_length,
+			Length:    tabLength,
 			Clearance: k.Clearance,
 		}
 
 		// top panel left side
 		tp.Orientation = "tl"
-		tl_tabs := LineOf3D(box_tab_3d(tp), V3{-x, 0, z0}, V3{-x, 0, z1}, t_pattern)
+		tlTabs := LineOf3D(boxTab3d(tp), V3{-x, 0, z0}, V3{-x, 0, z1}, tPattern)
 		// top panel right side
 		tp.Orientation = "tr"
-		tr_tabs := LineOf3D(box_tab_3d(tp), V3{x, 0, z0}, V3{x, 0, z1}, t_pattern)
+		trTabs := LineOf3D(boxTab3d(tp), V3{x, 0, z0}, V3{x, 0, z1}, tPattern)
 		// add tabs to the top panel
-		top = Union3D(top, tl_tabs, tr_tabs)
+		top = Union3D(top, tlTabs, trTabs)
 
 		// bottom panel left side
 		tp.Orientation = "bl"
-		bl_tabs := LineOf3D(box_tab_3d(tp), V3{-x, 0, z0}, V3{-x, 0, z1}, b_pattern)
+		blTabs := LineOf3D(boxTab3d(tp), V3{-x, 0, z0}, V3{-x, 0, z1}, bPattern)
 		// bottom panel right side
 		tp.Orientation = "br"
-		br_tabs := LineOf3D(box_tab_3d(tp), V3{x, 0, z0}, V3{x, 0, z1}, b_pattern)
+		brTabs := LineOf3D(boxTab3d(tp), V3{x, 0, z0}, V3{x, 0, z1}, bPattern)
 		// add tabs to the bottom panel
-		bottom = Union3D(bottom, bl_tabs, br_tabs)
+		bottom = Union3D(bottom, blTabs, brTabs)
 
 		if k.Hole > 0 {
 			// tabs with holes
-			t_pattern := filter_tabs(k.SideTabs, 'T')
-			b_pattern := filter_tabs(k.SideTabs, 'B')
+			tPattern := filterTabs(k.SideTabs, 'T')
+			bPattern := filterTabs(k.SideTabs, 'B')
 
-			hole_offset := 2.0 * k.Wall
+			holeOffset := 2.0 * k.Wall
 
 			// tabs
-			tp := &box_tab_parms{
+			tp := &boxTabParms{
 				Wall:       k.Wall,
-				Length:     tab_length,
+				Length:     tabLength,
 				Hole:       0.85 * k.Hole,
-				HoleOffset: hole_offset,
+				HoleOffset: holeOffset,
 				Clearance:  k.Clearance,
 			}
 
 			// top panel left side
 			tp.Orientation = "tl"
-			tl_tabs := LineOf3D(box_tab_3d(tp), V3{-x, 0, z0}, V3{-x, 0, z1}, t_pattern)
+			tlTabs := LineOf3D(boxTab3d(tp), V3{-x, 0, z0}, V3{-x, 0, z1}, tPattern)
 			// top panel right side
 			tp.Orientation = "tr"
-			tr_tabs := LineOf3D(box_tab_3d(tp), V3{x, 0, z0}, V3{x, 0, z1}, t_pattern)
+			trTabs := LineOf3D(boxTab3d(tp), V3{x, 0, z0}, V3{x, 0, z1}, tPattern)
 			// add tabs to the top panel
-			top = Union3D(top, tl_tabs, tr_tabs)
+			top = Union3D(top, tlTabs, trTabs)
 
 			// bottom panel left side
 			tp.Orientation = "bl"
-			bl_tabs := LineOf3D(box_tab_3d(tp), V3{-x, 0, z0}, V3{-x, 0, z1}, b_pattern)
+			blTabs := LineOf3D(boxTab3d(tp), V3{-x, 0, z0}, V3{-x, 0, z1}, bPattern)
 			// bottom panel right side
 			tp.Orientation = "br"
-			br_tabs := LineOf3D(box_tab_3d(tp), V3{x, 0, z0}, V3{x, 0, z1}, b_pattern)
+			brTabs := LineOf3D(boxTab3d(tp), V3{x, 0, z0}, V3{x, 0, z1}, bPattern)
 			// add tabs to the bottom panel
-			bottom = Union3D(bottom, bl_tabs, br_tabs)
+			bottom = Union3D(bottom, blTabs, brTabs)
 
 			// holes
-			hp := &box_hole_parms{
+			hp := &boxHoleParms{
 				Length:  k.Wall,
 				Hole:    k.Hole,
-				ZOffset: 0.5 * tab_length,
-				YOffset: hole_offset,
+				ZOffset: 0.5 * tabLength,
+				YOffset: holeOffset,
 			}
 
 			// top panel left side
 			hp.Orientation = "tl"
-			tl_holes := LineOf3D(box_hole_3d(hp), V3{-x, 0, z0}, V3{-x, 0, z1}, b_pattern)
+			tlHoles := LineOf3D(boxHole3d(hp), V3{-x, 0, z0}, V3{-x, 0, z1}, bPattern)
 			// top panel right side
 			hp.Orientation = "tr"
-			tr_holes := LineOf3D(box_hole_3d(hp), V3{x, 0, z0}, V3{x, 0, z1}, b_pattern)
+			trHoles := LineOf3D(boxHole3d(hp), V3{x, 0, z0}, V3{x, 0, z1}, bPattern)
 			// add holes to the top panel
-			t_holes := Union3D(tl_holes, tr_holes)
-			top = Difference3D(top, t_holes)
+			tHoles := Union3D(tlHoles, trHoles)
+			top = Difference3D(top, tHoles)
 
 			// bottom panel left side
 			hp.Orientation = "bl"
-			bl_holes := LineOf3D(box_hole_3d(hp), V3{-x, 0, z0}, V3{-x, 0, z1}, t_pattern)
+			blHoles := LineOf3D(boxHole3d(hp), V3{-x, 0, z0}, V3{-x, 0, z1}, tPattern)
 			// bottom panel right side
 			hp.Orientation = "br"
-			br_holes := LineOf3D(box_hole_3d(hp), V3{x, 0, z0}, V3{x, 0, z1}, t_pattern)
+			brHoles := LineOf3D(boxHole3d(hp), V3{x, 0, z0}, V3{x, 0, z1}, tPattern)
 			// add holes to the bottom panel
-			b_holes := Union3D(bl_holes, br_holes)
-			bottom = Difference3D(bottom, b_holes)
+			bHoles := Union3D(blHoles, brHoles)
+			bottom = Difference3D(bottom, bHoles)
 		}
 	}
 

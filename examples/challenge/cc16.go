@@ -44,7 +44,7 @@ func cc16a() SDF3 {
 	block_2d = Cut2D(block_2d, V2{0, 0}, V2{0, 1})
 	block_3d := Extrude3D(block_2d, block_w)
 
-	cb_3d := CounterBored_Hole3D(block_w, hole_radius, cb_radius, cb_depth)
+	cb_3d := CounterBoredHole3D(block_w, hole_radius, cb_radius, cb_depth)
 	cb_3d = Transform3D(cb_3d, Translate3d(V3{block_l / 2, 0, 0}))
 	block_3d = Difference3D(block_3d, cb_3d)
 
@@ -153,7 +153,7 @@ func cc16b() SDF3 {
 	hole_h := 84.0 - base_h
 	hole_r := 35.0 / 2.0
 	chamfer_d := 2.0
-	hole_3d := Chamfered_Hole3D(support_w, hole_r, chamfer_d)
+	hole_3d := ChamferedHole3D(support_w, hole_r, chamfer_d)
 	q = Translate3d(V3{0, hole_h, 0})
 	hole_3d = Transform3D(hole_3d, q)
 	support_3d = Difference3D(support_3d, hole_3d)
