@@ -23,34 +23,34 @@ func Test_Determinant(t *testing.T) {
 
 func Test_Inverse(t *testing.T) {
 	a := M33{2, 1, 1, 3, 2, 1, 2, 1, 2}
-	a_inv := M33{3, -1, -1, -4, 2, 1, -1, 0, 1}
-	if a.Inverse().Equals(a_inv, TOLERANCE) == false {
+	aInv := M33{3, -1, -1, -4, 2, 1, -1, 0, 1}
+	if a.Inverse().Equals(aInv, tolerance) == false {
 		t.Error("FAIL")
 	}
-	if a.Mul(a_inv).Equals(Identity2d(), TOLERANCE) == false {
+	if a.Mul(aInv).Equals(Identity2d(), tolerance) == false {
 		t.Error("FAIL")
 	}
 
 	for i := 0; i < 100; i++ {
 		a = RandomM33(-5, 5)
-		a_inv = a.Inverse()
-		if a.Mul(a_inv).Equals(Identity2d(), TOLERANCE) == false {
+		aInv = a.Inverse()
+		if a.Mul(aInv).Equals(Identity2d(), tolerance) == false {
 			t.Error("FAIL")
 		}
 	}
 
 	for i := 0; i < 100; i++ {
 		b := RandomM44(-1, 1)
-		b_inv := b.Inverse()
-		if b.Mul(b_inv).Equals(Identity3d(), TOLERANCE) == false {
+		bInv := b.Inverse()
+		if b.Mul(bInv).Equals(Identity3d(), tolerance) == false {
 			t.Error("FAIL")
 		}
 	}
 
 	for i := 0; i < 100; i++ {
 		c := RandomM22(-7, 7)
-		c_inv := c.Inverse()
-		if c.Mul(c_inv).Equals(Identity(), TOLERANCE) == false {
+		cInv := c.Inverse()
+		if c.Mul(cInv).Equals(Identity(), tolerance) == false {
 			t.Error("FAIL")
 		}
 	}
@@ -70,7 +70,7 @@ func Test_MulBox(t *testing.T) {
 		m1 := Translate2d(v.Negate())
 		b1 := m0.MulBox(b2d)
 		b2 := m1.MulBox(b1)
-		if b2d.Equals(b2, TOLERANCE) == false {
+		if b2d.Equals(b2, tolerance) == false {
 			t.Error("FAIL")
 		}
 		// scaling
@@ -78,7 +78,7 @@ func Test_MulBox(t *testing.T) {
 		m1 = Scale2d(V2{1 / v.X, 1 / v.Y})
 		b1 = m0.MulBox(b2d)
 		b2 = m1.MulBox(b1)
-		if b2d.Equals(b2, TOLERANCE) == false {
+		if b2d.Equals(b2, tolerance) == false {
 			t.Error("FAIL")
 		}
 	}
@@ -93,7 +93,7 @@ func Test_MulBox(t *testing.T) {
 		m1 := Translate3d(v.Negate())
 		b1 := m0.MulBox(b3d)
 		b2 := m1.MulBox(b1)
-		if b3d.Equals(b2, TOLERANCE) == false {
+		if b3d.Equals(b2, tolerance) == false {
 			t.Error("FAIL")
 		}
 		// scaling
@@ -101,7 +101,7 @@ func Test_MulBox(t *testing.T) {
 		m1 = Scale3d(V3{1 / v.X, 1 / v.Y, 1 / v.Z})
 		b1 = m0.MulBox(b3d)
 		b2 = m1.MulBox(b1)
-		if b3d.Equals(b2, TOLERANCE) == false {
+		if b3d.Equals(b2, tolerance) == false {
 			t.Error("FAIL")
 		}
 	}
@@ -113,7 +113,7 @@ func Test_ScaleBox(t *testing.T) {
 	b0 := Box3{V3{-1, -1, -1}, V3{1, 1, 1}}
 	b1 := Box3{V3{-2, -2, -2}, V3{2, 2, 2}}
 	b2 := NewBox3(b0.Center(), b0.Size().MulScalar(2))
-	if b1.Equals(b2, TOLERANCE) == false {
+	if b1.Equals(b2, tolerance) == false {
 		t.Error("FAIL")
 	}
 }
@@ -122,7 +122,7 @@ func Test_ScaleBox(t *testing.T) {
 
 func Test_Line(t *testing.T) {
 
-	l := NewLine2_PP(V2{0, 1}, V2{0, 2})
+	l := newLinePP(V2{0, 1}, V2{0, 2})
 	points := []struct {
 		p V2
 		d float64
@@ -143,13 +143,13 @@ func Test_Line(t *testing.T) {
 	}
 	for _, p := range points {
 		d := l.Distance(p.p)
-		if Abs(d-p.d) > TOLERANCE {
+		if Abs(d-p.d) > tolerance {
 			fmt.Printf("%+v %f (expected) %f (actual)\n", p.p, p.d, d)
 			t.Error("FAIL")
 		}
 	}
 
-	line_tests := []struct {
+	lineTests := []struct {
 		p0, v0 V2
 		p1, v1 V2
 		t0     float64
@@ -162,9 +162,9 @@ func Test_Line(t *testing.T) {
 		{V2{0, 0}, V2{1, 1}, V2{0, 10}, V2{1, -1}, 5 * math.Sqrt(2), 5 * math.Sqrt(2), ""},
 		{V2{0, 0}, V2{1, 1}, V2{10, 0}, V2{0, 1}, 10 * math.Sqrt(2), 10, ""},
 	}
-	for _, test := range line_tests {
-		l0 := NewLine2_PV(test.p0, test.v0)
-		l1 := NewLine2_PV(test.p1, test.v1)
+	for _, test := range lineTests {
+		l0 := newLinePV(test.p0, test.v0)
+		l1 := newLinePV(test.p1, test.v1)
 		t0, t1, err := l0.Intersect(l1)
 		if err != nil {
 			if err.Error() != test.err {
@@ -174,7 +174,7 @@ func Test_Line(t *testing.T) {
 				t.Error("FAIL")
 			}
 		} else {
-			if Abs(test.t0-t0) > TOLERANCE || Abs(test.t1-t1) > TOLERANCE {
+			if Abs(test.t0-t0) > tolerance || Abs(test.t1-t1) > tolerance {
 				fmt.Printf("l0: %+v\n", l0)
 				fmt.Printf("l1: %+v\n", l1)
 				fmt.Printf("%f %f (expected) %f %f (actual)\n", test.t0, test.t1, t0, t1)
@@ -185,15 +185,15 @@ func Test_Line(t *testing.T) {
 
 	for i := 0; i < 10000; i++ {
 		b := NewBox2(V2{0, 0}, V2{20, 20})
-		l0 := NewLine2_PV(b.Random(), b.Random())
-		l1 := NewLine2_PP(b.Random(), b.Random())
+		l0 := newLinePV(b.Random(), b.Random())
+		l1 := newLinePP(b.Random(), b.Random())
 		t0, t1, err := l0.Intersect(l1)
 		if err != nil {
 			continue
 		}
 		i0 := l0.Position(t0)
 		i1 := l1.Position(t1)
-		if !i0.Equals(i1, TOLERANCE) {
+		if !i0.Equals(i1, tolerance) {
 			fmt.Printf("l0: %+v\n", l0)
 			fmt.Printf("l1: %+v\n", l1)
 			t.Error("FAIL")
@@ -207,14 +207,14 @@ func Test_Polygon1(t *testing.T) {
 	s := Polygon2D([]V2{{0, 0}, {1, 0}, {0, 1}})
 	b := s.BoundingBox()
 	b0 := Box2{V2{0, 0}, V2{1, 1}}
-	if b.Equals(b0, TOLERANCE) == false {
+	if b.Equals(b0, tolerance) == false {
 		t.Error("FAIL")
 	}
 
 	s = Polygon2D([]V2{{0, -2}, {1, 1}, {-2, 2}})
 	b = s.BoundingBox()
 	b0 = Box2{V2{-2, -2}, V2{1, 2}}
-	if b.Equals(b0, TOLERANCE) == false {
+	if b.Equals(b0, tolerance) == false {
 		t.Error("FAIL")
 	}
 
@@ -228,11 +228,11 @@ func Test_Polygon1(t *testing.T) {
 
 	b = s.BoundingBox()
 	b0 = Box2{V2{-1, -1}, V2{1, 1}}
-	if b.Equals(b0, TOLERANCE) == false {
+	if b.Equals(b0, tolerance) == false {
 		t.Error("FAIL")
 	}
 
-	test_points := []struct {
+	testPoints := []struct {
 		p V2
 		d float64
 	}{
@@ -249,7 +249,7 @@ func Test_Polygon1(t *testing.T) {
 		{V2{-3, 0}, math.Sqrt(5)},
 	}
 
-	for _, p := range test_points {
+	for _, p := range testPoints {
 		d := s.Evaluate(p.p)
 		if d != p.d {
 			fmt.Printf("%+v %f (expected) %f (actual)\n", p.p, p.d, d)
@@ -272,7 +272,7 @@ func Test_Polygon2(t *testing.T) {
 	for i := 0; i < 10000; i++ {
 		b := NewBox2(V2{0, 0}, V2{20 * k, 20 * k})
 		p := b.Random()
-		if Abs(s0.Evaluate(p)-s1.Evaluate(p)) > TOLERANCE {
+		if Abs(s0.Evaluate(p)-s1.Evaluate(p)) > tolerance {
 			t.Error("FAIL")
 		}
 	}
@@ -309,7 +309,7 @@ func Test_Polygon3(t *testing.T) {
 	for i := 0; i < 1000; i++ {
 		b := NewBox2(V2{0, 0}, V2{10 * b, 10 * b})
 		p := b.Random()
-		if Abs(s0.Evaluate(p)-s1.Evaluate(p)) > TOLERANCE {
+		if Abs(s0.Evaluate(p)-s1.Evaluate(p)) > tolerance {
 			t.Error("FAIL")
 		}
 	}
@@ -321,10 +321,10 @@ func Test_ArraySDF2(t *testing.T) {
 	r := 0.5
 	s := Circle2D(r)
 	bb := s.BoundingBox()
-	if bb.Min.Equals(V2{-r, -r}, TOLERANCE) == false {
+	if bb.Min.Equals(V2{-r, -r}, tolerance) == false {
 		t.Error("FAIL")
 	}
-	if bb.Max.Equals(V2{r, r}, TOLERANCE) == false {
+	if bb.Max.Equals(V2{r, r}, tolerance) == false {
 		t.Error("FAIL")
 	}
 
@@ -333,11 +333,11 @@ func Test_ArraySDF2(t *testing.T) {
 	dx := 2.0
 	dy := 7.0
 	sa := Array2D(s, V2i{j, k}, V2{dx, dy})
-	sa_bb := sa.BoundingBox()
-	if sa_bb.Min.Equals(V2{-r, -r}, TOLERANCE) == false {
+	saBox := sa.BoundingBox()
+	if saBox.Min.Equals(V2{-r, -r}, tolerance) == false {
 		t.Error("FAIL")
 	}
-	if sa_bb.Max.Equals(V2{r + (float64(j-1) * dx), r + (float64(k-1) * dy)}, TOLERANCE) == false {
+	if saBox.Max.Equals(V2{r + (float64(j-1) * dx), r + (float64(k-1) * dy)}, tolerance) == false {
 		t.Error("FAIL")
 	}
 
@@ -346,11 +346,11 @@ func Test_ArraySDF2(t *testing.T) {
 	dx = -3.0
 	dy = -5.0
 	sa = Array2D(s, V2i{j, k}, V2{dx, dy})
-	sa_bb = sa.BoundingBox()
-	if sa_bb.Min.Equals(V2{-r + (float64(j-1) * dx), -r + (float64(k-1) * dy)}, TOLERANCE) == false {
+	saBox = sa.BoundingBox()
+	if saBox.Min.Equals(V2{-r + (float64(j-1) * dx), -r + (float64(k-1) * dy)}, tolerance) == false {
 		t.Error("FAIL")
 	}
-	if sa_bb.Max.Equals(V2{r, r}, TOLERANCE) == false {
+	if saBox.Max.Equals(V2{r, r}, tolerance) == false {
 		t.Error("FAIL")
 	}
 
@@ -359,11 +359,11 @@ func Test_ArraySDF2(t *testing.T) {
 	dx = 5.0
 	dy = -3.0
 	sa = Array2D(s, V2i{j, k}, V2{dx, dy})
-	sa_bb = sa.BoundingBox()
-	if sa_bb.Min.Equals(V2{-r, -r + (float64(k-1) * dy)}, TOLERANCE) == false {
+	saBox = sa.BoundingBox()
+	if saBox.Min.Equals(V2{-r, -r + (float64(k-1) * dy)}, tolerance) == false {
 		t.Error("FAIL")
 	}
-	if sa_bb.Max.Equals(V2{r + (float64(j-1) * dx), r}, TOLERANCE) == false {
+	if saBox.Max.Equals(V2{r + (float64(j-1) * dx), r}, tolerance) == false {
 		t.Error("FAIL")
 	}
 
@@ -372,11 +372,11 @@ func Test_ArraySDF2(t *testing.T) {
 	dx = -0.5
 	dy = 6.5
 	sa = Array2D(s, V2i{j, k}, V2{dx, dy})
-	sa_bb = sa.BoundingBox()
-	if sa_bb.Min.Equals(V2{-r + (float64(j-1) * dx), -r}, TOLERANCE) == false {
+	saBox = sa.BoundingBox()
+	if saBox.Min.Equals(V2{-r + (float64(j-1) * dx), -r}, tolerance) == false {
 		t.Error("FAIL")
 	}
-	if sa_bb.Max.Equals(V2{r, r + (float64(k-1) * dy)}, TOLERANCE) == false {
+	if saBox.Max.Equals(V2{r, r + (float64(k-1) * dy)}, tolerance) == false {
 		t.Error("FAIL")
 	}
 }
@@ -387,7 +387,7 @@ func Test_Rotation2d(t *testing.T) {
 	r := Rotate2d(DtoR(90))
 	v := V2{1, 0}
 	v = r.MulPosition(v)
-	if v.Equals(V2{0, 1}, TOLERANCE) == false {
+	if v.Equals(V2{0, 1}, tolerance) == false {
 		t.Error("FAIL")
 	}
 }
@@ -396,7 +396,7 @@ func Test_Rotation3d(t *testing.T) {
 	r := Rotate3d(V3{0, 0, 1}, DtoR(90))
 	v := V3{1, 0, 0}
 	v = r.MulPosition(v)
-	if v.Equals(V3{0, 1, 0}, TOLERANCE) == false {
+	if v.Equals(V3{0, 1, 0}, tolerance) == false {
 		t.Error("FAIL")
 	}
 }
@@ -420,7 +420,7 @@ func Test_TriDiagonal(t *testing.T) {
 	x0 := []float64{-1.0 / 12.0, 1.0 / 6.0, 5.0 / 12.0, 1.0 / 6.0, 23.0 / 12.0}
 	x := TriDiagonal(m, d)
 	for i := 0; i < n; i++ {
-		if Abs(x[i]-x0[i]) > TOLERANCE {
+		if Abs(x[i]-x0[i]) > tolerance {
 			t.Error("FAIL")
 		}
 	}
@@ -429,7 +429,7 @@ func Test_TriDiagonal(t *testing.T) {
 	x0 = []float64{15.0 / 4.0, 5.0 / 2.0, 25.0 / 4.0, 5.0 / 2.0, 95.0 / 4.0}
 	x = TriDiagonal(m, d)
 	for i := 0; i < n; i++ {
-		if Abs(x[i]-x0[i]) > TOLERANCE {
+		if Abs(x[i]-x0[i]) > tolerance {
 			t.Error("FAIL")
 		}
 	}
@@ -443,7 +443,7 @@ func Test_TriDiagonal(t *testing.T) {
 	x0 = []float64{60.0 / 49.0, -275.0 / 49.0, -12.0 / 49.0, 33.0 / 49.0, 158.0 / 49.0}
 	x = TriDiagonal(m, d)
 	for i := 0; i < n; i++ {
-		if Abs(x[i]-x0[i]) > TOLERANCE {
+		if Abs(x[i]-x0[i]) > tolerance {
 			t.Error("FAIL")
 		}
 	}
@@ -471,8 +471,8 @@ func Test_CubicSpline(t *testing.T) {
 	}
 	// check interpolation of the knots
 	for i, k := range knot {
-		p := s.F0(float64(i))
-		if !k.Equals(p, TOLERANCE) {
+		p := s.f0(float64(i))
+		if !k.Equals(p, tolerance) {
 			t.Error("FAIL")
 		}
 	}
@@ -482,24 +482,24 @@ func Test_CubicSpline(t *testing.T) {
 		if i == 0 {
 			// 2nd derivative at start == 0
 			f2 := cs.f2(0)
-			if !f2.Equals(V2{0, 0}, TOLERANCE) {
+			if !f2.Equals(V2{0, 0}, tolerance) {
 				t.Error("FAIL")
 			}
 		}
 		if i == n-1 {
 			// 2nd derivative at end == 0
 			f2 := cs.f2(1)
-			if !f2.Equals(V2{0, 0}, TOLERANCE) {
+			if !f2.Equals(V2{0, 0}, tolerance) {
 				t.Error("FAIL")
 			}
 		} else {
-			cs_next := s.spline[i+1]
+			csNext := s.spline[i+1]
 			// check continuity of 1st derivative
-			if !cs.f1(1).Equals(cs_next.f1(0), TOLERANCE) {
+			if !cs.f1(1).Equals(csNext.f1(0), tolerance) {
 				t.Error("FAIL")
 			}
 			// check continuity of 2nd derivative
-			if !cs.f2(1).Equals(cs_next.f2(0), TOLERANCE) {
+			if !cs.f2(1).Equals(csNext.f2(0), tolerance) {
 				t.Error("FAIL")
 			}
 		}
@@ -553,7 +553,7 @@ func Test_Colinear_Fast(t *testing.T) {
 		{V2{1, 1}, V2{-1, 1}, V2{0, -1}, false},
 	}
 	for _, v := range test {
-		if colinearFast(v.a, v.b, v.c, EPSILON) != v.result {
+		if colinearFast(v.a, v.b, v.c, epsilon) != v.result {
 			t.Error("FAIL")
 		}
 	}
@@ -563,11 +563,11 @@ func Test_Colinear_Fast(t *testing.T) {
 
 func Test_Float_Comparison(t *testing.T) {
 
-	negative_infinity := math.Inf(-1)
-	positive_infinity := math.Inf(1)
+	nInf := math.Inf(-1)
+	pInf := math.Inf(1)
 	nan := math.NaN()
-	max_value := math.MaxFloat64
-	min_value := math.SmallestNonzeroFloat64
+	maxValue := math.MaxFloat64
+	minValue := math.SmallestNonzeroFloat64
 
 	epsilon := 0.00001
 
@@ -618,51 +618,51 @@ func Test_Float_Comparison(t *testing.T) {
 		{-1.0, 1.000000001, false},
 		{-1.000000001, 1.0, false},
 		{1.0, -1.000000001, false},
-		//{10 * min_value, 10 * -min_value, true},        // problem
-		//{10000 * min_value, 10000 * -min_value, false}, // problem
+		//{10 * minValue, 10 * -minValue, true},        // problem
+		//{10000 * minValue, 10000 * -minValue, false}, // problem
 		// The really tricky part - comparisons of numbers very close to zero.
-		{min_value, min_value, true},
-		{min_value, -min_value, true},
-		{-min_value, min_value, true},
-		{min_value, 0, true},
-		{0, min_value, true},
-		{-min_value, 0, true},
-		{0, -min_value, true},
-		{0.000000001, -min_value, false},
-		{0.000000001, min_value, false},
-		{min_value, 0.000000001, false},
-		{-min_value, 0.000000001, false},
+		{minValue, minValue, true},
+		{minValue, -minValue, true},
+		{-minValue, minValue, true},
+		{minValue, 0, true},
+		{0, minValue, true},
+		{-minValue, 0, true},
+		{0, -minValue, true},
+		{0.000000001, -minValue, false},
+		{0.000000001, minValue, false},
+		{minValue, 0.000000001, false},
+		{-minValue, 0.000000001, false},
 		// Comparisons involving NaN values
 		{nan, nan, false},
 		{nan, 0.0, false},
 		{-0.0, nan, false},
 		{nan, -0.0, false},
 		{0.0, nan, false},
-		{nan, positive_infinity, false},
-		{positive_infinity, nan, false},
-		{nan, negative_infinity, false},
-		{negative_infinity, nan, false},
-		{nan, max_value, false},
-		{max_value, nan, false},
-		{nan, -max_value, false},
-		{-max_value, nan, false},
-		{nan, min_value, false},
-		{min_value, nan, false},
-		{nan, -min_value, false},
-		{-min_value, nan, false},
+		{nan, pInf, false},
+		{pInf, nan, false},
+		{nan, nInf, false},
+		{nInf, nan, false},
+		{nan, maxValue, false},
+		{maxValue, nan, false},
+		{nan, -maxValue, false},
+		{-maxValue, nan, false},
+		{nan, minValue, false},
+		{minValue, nan, false},
+		{nan, -minValue, false},
+		{-minValue, nan, false},
 		// Comparisons involving extreme values (overflow potential)
-		{max_value, max_value, true},
-		{max_value, -max_value, false},
-		{-max_value, max_value, false},
-		{max_value, max_value / 2, false},
-		{max_value, -max_value / 2, false},
-		{-max_value, max_value / 2, false},
+		{maxValue, maxValue, true},
+		{maxValue, -maxValue, false},
+		{-maxValue, maxValue, false},
+		{maxValue, maxValue / 2, false},
+		{maxValue, -maxValue / 2, false},
+		{-maxValue, maxValue / 2, false},
 		// Comparisons involving infinities
-		{positive_infinity, positive_infinity, true},
-		{negative_infinity, negative_infinity, true},
-		{negative_infinity, positive_infinity, false},
-		{positive_infinity, max_value, false},
-		{negative_infinity, -max_value, false},
+		{pInf, pInf, true},
+		{nInf, nInf, true},
+		{nInf, pInf, false},
+		{pInf, maxValue, false},
+		{nInf, -maxValue, false},
 	}
 
 	for _, v := range test0 {
@@ -714,7 +714,7 @@ func Test_Box2_Distances(t *testing.T) {
 	}
 	for _, v := range tests {
 		x := v.b.MinMaxDist2(v.p)
-		if !x.Equals(v.result, TOLERANCE) {
+		if !x.Equals(v.result, tolerance) {
 			t.Logf("expected %v, actual %v\n", v.result, x)
 			t.Error("FAIL")
 		}
