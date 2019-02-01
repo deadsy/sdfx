@@ -599,6 +599,7 @@ func (s *RotateCopySDF2) BoundingBox() Box2 {
 
 //-----------------------------------------------------------------------------
 
+// SliceSDF2 creates an SDF2 from a planar slice through an SDF3.
 type SliceSDF2 struct {
 	sdf SDF3 // the sdf3 being sliced
 	a   V3   // 3d point for 2d origin
@@ -607,11 +608,12 @@ type SliceSDF2 struct {
 	bb  Box2 // bounding box
 }
 
-// Create an SDF2 from a plane sliced through an SDF3.
-// sdf = SDF3 to be sliced
-// a = point on plane
-// n = normal to plane
-func Slice2D(sdf SDF3, a, n V3) SDF2 {
+// Slice2D returns an SDF2 created from a planar slice through an SDF3.
+func Slice2D(
+	sdf SDF3, // SDF3 to be sliced
+	a V3, // point on slicing plane
+	n V3, // normal to slicing plane
+) SDF2 {
 	s := SliceSDF2{}
 	s.sdf = sdf
 	s.a = a
@@ -646,19 +648,20 @@ func Slice2D(sdf SDF3, a, n V3) SDF2 {
 	return &s
 }
 
-// Return the minimum distance to the object.
+// Evaluate returns the minimum distance to the sliced SDF2.
 func (s *SliceSDF2) Evaluate(p V2) float64 {
 	pnew := s.a.Add(s.u.MulScalar(p.X)).Add(s.v.MulScalar(p.Y))
 	return s.sdf.Evaluate(pnew)
 }
 
-// Return the bounding box.
+// BoundingBox returns the bounding box of the sliced SDF2.
 func (s *SliceSDF2) BoundingBox() Box2 {
 	return s.bb
 }
 
 //-----------------------------------------------------------------------------
 
+// UnionSDF2 is a union of multiple SDF2 objects.
 type UnionSDF2 struct {
 	sdf []SDF2
 	min MinFunc
@@ -695,19 +698,19 @@ func Union2D(sdf ...SDF2) SDF2 {
 	return &s
 }
 
-// Return the minimum distance to the SDF2 union.
+// Evaluate returns the minimum distance to the SDF2 union.
 func (s *UnionSDF2) Evaluate(p V2) float64 {
 
 	// work out the min/max distance for every bounding box
 	vs := make([]V2, len(s.sdf))
-	min_d2 := -1.0
-	min_i := 0
+	minDist2 := -1.0
+	minIndex := 0
 	for i := range s.sdf {
 		vs[i] = s.sdf[i].BoundingBox().MinMaxDist2(p)
 		// as we go record the sdf with the minimum minimum d2 value
-		if min_d2 < 0 || vs[i].X < min_d2 {
-			min_d2 = vs[i].X
-			min_i = i
+		if minDist2 < 0 || vs[i].X < minDist2 {
+			minDist2 = vs[i].X
+			minIndex = i
 		}
 	}
 
@@ -716,7 +719,7 @@ func (s *UnionSDF2) Evaluate(p V2) float64 {
 	for i := range s.sdf {
 		// only an sdf whose min/max distances overlap
 		// the minimum box are worthy of consideration
-		if i == min_i || vs[min_i].Overlap(vs[i]) {
+		if i == minIndex || vs[minIndex].Overlap(vs[i]) {
 			x := s.sdf[i].Evaluate(p)
 			if first {
 				first = false
@@ -729,8 +732,8 @@ func (s *UnionSDF2) Evaluate(p V2) float64 {
 	return d
 }
 
-// Return the minimum distance to the SDF2 union.
-func (s *UnionSDF2) Evaluate_Slow(p V2) float64 {
+// EvaluateSlow returns the minimum distance to the SDF2 union.
+func (s *UnionSDF2) EvaluateSlow(p V2) float64 {
 	var d float64
 	for i := range s.sdf {
 		x := s.sdf[i].Evaluate(p)
@@ -743,19 +746,19 @@ func (s *UnionSDF2) Evaluate_Slow(p V2) float64 {
 	return d
 }
 
-// Set the minimum function to control blending.
+// SetMin sets the minimum function to control SDF2 blending.
 func (s *UnionSDF2) SetMin(min MinFunc) {
 	s.min = min
 }
 
-// Return the bounding box.
+// BoundingBox returns the bounding box of an SDF2 union.
 func (s *UnionSDF2) BoundingBox() Box2 {
 	return s.bb
 }
 
 //-----------------------------------------------------------------------------
 
-// Difference of SDF2s
+// DifferenceSDF2 is the difference of two SDF2s.
 type DifferenceSDF2 struct {
 	s0  SDF2
 	s1  SDF2
@@ -763,7 +766,7 @@ type DifferenceSDF2 struct {
 	bb  Box2
 }
 
-// Return the difference of two SDF2 objects, s0 - s1.
+// Difference2D returns the difference of two SDF2 objects, s0 - s1.
 func Difference2D(s0, s1 SDF2) SDF2 {
 	if s1 == nil {
 		return s0
@@ -779,24 +782,24 @@ func Difference2D(s0, s1 SDF2) SDF2 {
 	return &s
 }
 
-// Return the minimum distance to the object.
+// Evaluate returns the minimum distance to the difference of two SDF2s.
 func (s *DifferenceSDF2) Evaluate(p V2) float64 {
 	return s.max(s.s0.Evaluate(p), -s.s1.Evaluate(p))
 }
 
-// Set the maximum function to control blending.
+// SetMax sets the maximum function to control blending.
 func (s *DifferenceSDF2) SetMax(max MaxFunc) {
 	s.max = max
 }
 
-// Return the bounding box.
+// BoundingBox returns the bounding box of the difference of two SDF2s.
 func (s *DifferenceSDF2) BoundingBox() Box2 {
 	return s.bb
 }
 
 //-----------------------------------------------------------------------------
 
-// Generate a set of internal mesh points for an SDF2
+// GenerateMesh2D generates a set of internal mesh points for an SDF2.
 func GenerateMesh2D(s SDF2, grid V2i) (V2Set, error) {
 
 	// create the grid mapping for the bounding box
