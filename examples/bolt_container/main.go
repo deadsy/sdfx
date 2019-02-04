@@ -33,7 +33,7 @@ func bolt_container() SDF3 {
 	l := screw_length
 	screw := Screw3D(ISOThread(r, thread_pitch, "external"), l, thread_pitch, 1)
 	// chamfer the thread
-	screw = Chamfered_Cylinder(screw, 0, 0.25)
+	screw = ChamferedCylinder(screw, 0, 0.25)
 	screw = Transform3D(screw, Translate3d(V3{0, 0, l / 2}))
 
 	// build the internal cavity

@@ -162,7 +162,7 @@ func spincap_double(mode string) SDF3 {
 		// Add an external screw thread.
 		t := ISOThread(thread_r-thread_tolerance, thread_pitch, "external")
 		screw := Screw3D(t, bearing_thickness, thread_pitch, 1)
-		screw = Chamfered_Cylinder(screw, 0, 0.5)
+		screw = ChamferedCylinder(screw, 0, 0.5)
 		screw = Transform3D(screw, Translate3d(V3{0, 0, 1.5 * l}))
 		return Union3D(spincap(r, l+0.5), screw)
 

@@ -667,7 +667,7 @@ func (s *UnionSDF3) BoundingBox() Box3 {
 
 //-----------------------------------------------------------------------------
 
-// Difference of SDF3s
+// DifferenceSDF3 is the difference of two SDF3s, s0 - s1.
 type DifferenceSDF3 struct {
 	s0  SDF3
 	s1  SDF3
@@ -675,7 +675,7 @@ type DifferenceSDF3 struct {
 	bb  Box3
 }
 
-// Return the difference of two SDF3 objects, s0 - s1.
+// Difference3D returns the difference of two SDF3s, s0 - s1.
 func Difference3D(s0, s1 SDF3) SDF3 {
 	if s1 == nil {
 		return s0
@@ -691,24 +691,24 @@ func Difference3D(s0, s1 SDF3) SDF3 {
 	return &s
 }
 
-// Return the minimum distance to the object.
+// Evaluate returns the minimum distance to the SDF3 difference.
 func (s *DifferenceSDF3) Evaluate(p V3) float64 {
 	return s.max(s.s0.Evaluate(p), -s.s1.Evaluate(p))
 }
 
-// Set the maximum function to control blending.
+// SetMax sets the maximum function to control blending.
 func (s *DifferenceSDF3) SetMax(max MaxFunc) {
 	s.max = max
 }
 
-// Return the bounding box.
+// BoundingBox returns the bounding box of the SDF3 difference.
 func (s *DifferenceSDF3) BoundingBox() Box3 {
 	return s.bb
 }
 
 //-----------------------------------------------------------------------------
 
-// Intersection of SDF3s
+// IntersectionSDF3 is the intersection of two SDF3s.
 type IntersectionSDF3 struct {
 	s0  SDF3
 	s1  SDF3
@@ -716,7 +716,7 @@ type IntersectionSDF3 struct {
 	bb  Box3
 }
 
-// Return the intersection of two SDF3 objects, s0 with s1.
+// Intersect3D returns the intersection of two SDF3s.
 func Intersect3D(s0, s1 SDF3) SDF3 {
 	if s0 == nil || s1 == nil {
 		return nil
@@ -730,24 +730,24 @@ func Intersect3D(s0, s1 SDF3) SDF3 {
 	return &s
 }
 
-// Return the minimum distance to the object.
+// Evaluate returns the minimum distance to the SDF3 intersection.
 func (s *IntersectionSDF3) Evaluate(p V3) float64 {
 	return s.max(s.s0.Evaluate(p), s.s1.Evaluate(p))
 }
 
-// Set the maximum function to control blending.
+// SetMax sets the maximum function to control blending.
 func (s *IntersectionSDF3) SetMax(max MaxFunc) {
 	s.max = max
 }
 
-// Return the bounding box.
+// BoundingBox returns the bounding box of an SDF3 intersection.
 func (s *IntersectionSDF3) BoundingBox() Box3 {
 	return s.bb
 }
 
 //-----------------------------------------------------------------------------
-// Cut an SDF3 along a plane
 
+// CutSDF3 makes a planar cut through an SDF3.
 type CutSDF3 struct {
 	sdf SDF3
 	a   V3   // point on plane
@@ -767,19 +767,19 @@ func Cut3D(sdf SDF3, a, n V3) SDF3 {
 	return &s
 }
 
+// Evaluate returns the minimum distance to the cut SDF3.
 func (s *CutSDF3) Evaluate(p V3) float64 {
 	return Max(p.Sub(s.a).Dot(s.n), s.sdf.Evaluate(p))
 }
 
+// BoundingBox returns the bounding box of the cut SDF3.
 func (s *CutSDF3) BoundingBox() Box3 {
 	return s.bb
 }
 
 //-----------------------------------------------------------------------------
-// ArraySDF3: Create an X by Y by Z array of a given SDF3
-// num = the array size
-// size = the step size
 
+// ArraySDF3 stores an XYZ array of a given SDF3
 type ArraySDF3 struct {
 	sdf  SDF3
 	num  V3i
@@ -788,6 +788,7 @@ type ArraySDF3 struct {
 	bb   Box3
 }
 
+// Array3D returns an XYZ array of a given SDF3
 func Array3D(sdf SDF3, num V3i, step V3) SDF3 {
 	// check the number of steps
 	if num[0] <= 0 || num[1] <= 0 || num[2] <= 0 {
@@ -805,11 +806,12 @@ func Array3D(sdf SDF3, num V3i, step V3) SDF3 {
 	return &s
 }
 
-// set the minimum function to control blending
+// SetMin sets the minimum function to control blending.
 func (s *ArraySDF3) SetMin(min MinFunc) {
 	s.min = min
 }
 
+// Evaluate returns the minimum distance to an XYZ SDF3 array.
 func (s *ArraySDF3) Evaluate(p V3) float64 {
 	d := math.MaxFloat64
 	for j := 0; j < s.num[0]; j++ {
@@ -823,12 +825,14 @@ func (s *ArraySDF3) Evaluate(p V3) float64 {
 	return d
 }
 
+// BoundingBox returns the bounding box of an XYZ SDF3 array.
 func (s *ArraySDF3) BoundingBox() Box3 {
 	return s.bb
 }
 
 //-----------------------------------------------------------------------------
 
+// RotateUnionSDF3 creates a union of SDF3s rotated about the z-axis.
 type RotateUnionSDF3 struct {
 	sdf  SDF3
 	num  int
@@ -837,6 +841,7 @@ type RotateUnionSDF3 struct {
 	bb   Box3
 }
 
+// RotateUnion3D creates a union of SDF3s rotated about the z-axis.
 func RotateUnion3D(sdf SDF3, num int, step M44) SDF3 {
 	// check the number of steps
 	if num <= 0 {
@@ -849,18 +854,18 @@ func RotateUnion3D(sdf SDF3, num int, step M44) SDF3 {
 	s.min = Min
 	// work out the bounding box
 	v := sdf.BoundingBox().Vertices()
-	bb_min := v[0]
-	bb_max := v[0]
+	bbMin := v[0]
+	bbMax := v[0]
 	for i := 0; i < s.num; i++ {
-		bb_min = bb_min.Min(v.Min())
-		bb_max = bb_max.Max(v.Max())
+		bbMin = bbMin.Min(v.Min())
+		bbMax = bbMax.Max(v.Max())
 		v.MulVertices(step)
 	}
-	s.bb = Box3{bb_min, bb_max}
+	s.bb = Box3{bbMin, bbMax}
 	return &s
 }
 
-// Return the minimum distance to the object.
+// Evaluate returns the minimum distance to a rotate/union object.
 func (s *RotateUnionSDF3) Evaluate(p V3) float64 {
 	d := math.MaxFloat64
 	rot := Identity3d()
@@ -872,25 +877,26 @@ func (s *RotateUnionSDF3) Evaluate(p V3) float64 {
 	return d
 }
 
-// Set the minimum function to control blending.
+// SetMin sets the minimum function to control blending.
 func (s *RotateUnionSDF3) SetMin(min MinFunc) {
 	s.min = min
 }
 
-// Return the bounding box.
+// BoundingBox returns the bounding box of a rotate/union object.
 func (s *RotateUnionSDF3) BoundingBox() Box3 {
 	return s.bb
 }
 
 //-----------------------------------------------------------------------------
 
+// RotateCopySDF3 rotates and creates N copies of an SDF3 about the z-axis.
 type RotateCopySDF3 struct {
 	sdf   SDF3
 	theta float64
 	bb    Box3
 }
 
-// RotateCopy3D rotate and creates N copies of an SDF3 about the z-axis.
+// RotateCopy3D rotates and creates N copies of an SDF3 about the z-axis.
 func RotateCopy3D(
 	sdf SDF3, // SDF3 to rotate and copy
 	num int, // number of copies
@@ -919,7 +925,7 @@ func RotateCopy3D(
 	return &s
 }
 
-// Evaluate returns the minimum distance to the SDF3.
+// Evaluate returns the minimum distance to a rotate/copy SDF3.
 func (s *RotateCopySDF3) Evaluate(p V3) float64 {
 	// Map p to a point in the first copy sector.
 	p2 := V2{p.X, p.Y}
@@ -927,15 +933,15 @@ func (s *RotateCopySDF3) Evaluate(p V3) float64 {
 	return s.sdf.Evaluate(V3{p2.X, p2.Y, p.Z})
 }
 
-// BoundingBox returns the bounding box of the SDF3.
+// BoundingBox returns the bounding box of a rotate/copy SDF3.
 func (s *RotateCopySDF3) BoundingBox() Box3 {
 	return s.bb
 }
 
 //-----------------------------------------------------------------------------
 
-// Intersect a chamfered cylinder with an SDF3
-func Chamfered_Cylinder(s SDF3, kb, kt float64) SDF3 {
+// ChamferedCylinder intersects a chamfered cylinder with an SDF3.
+func ChamferedCylinder(s SDF3, kb, kt float64) SDF3 {
 	// get the length and radius from the bounding box
 	l := s.BoundingBox().Max.Z
 	r := s.BoundingBox().Max.X

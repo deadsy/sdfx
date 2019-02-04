@@ -73,7 +73,7 @@ func Bolt(
 	screw_ofs := l/2 + shank_length
 	screw_3d := Screw3D(ISOThread(r, t.Pitch, "external"), l, t.Pitch, 1)
 	// chamfer the thread
-	screw_3d = Chamfered_Cylinder(screw_3d, 0, 0.5)
+	screw_3d = ChamferedCylinder(screw_3d, 0, 0.5)
 	screw_3d = Transform3D(screw_3d, Translate3d(V3{0, 0, screw_ofs}))
 
 	return Union3D(head_3d, screw_3d, shank_3d)
