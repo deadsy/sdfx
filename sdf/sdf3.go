@@ -58,7 +58,7 @@ func sdfBox3d(p, s V3) float64 {
 
 //-----------------------------------------------------------------------------
 
-// Solid of Revolution, SDF2 to SDF3
+// SorSDF3 solid of revolution, SDF2 to SDF3.
 type SorSDF3 struct {
 	sdf   SDF2
 	theta float64 // angle for partial revolutions
@@ -66,7 +66,7 @@ type SorSDF3 struct {
 	bb    Box3
 }
 
-// Return an SDF3 for a solid of revolution.
+// RevolveTheta3D returns an SDF3 for a solid of revolution.
 func RevolveTheta3D(sdf SDF2, theta float64) SDF3 {
 	s := SorSDF3{}
 	s.sdf = sdf
@@ -100,12 +100,12 @@ func RevolveTheta3D(sdf SDF2, theta float64) SDF3 {
 	return &s
 }
 
-// Return an SDF3 for a solid of revolution.
+// Revolve3D returns an SDF3 for a solid of revolution.
 func Revolve3D(sdf SDF2) SDF3 {
 	return RevolveTheta3D(sdf, 0)
 }
 
-// Return the minimum distance to a solid of revolution.
+// Evaluate returna the minimum distance to a solid of revolution.
 func (s *SorSDF3) Evaluate(p V3) float64 {
 	x := math.Sqrt(p.X*p.X + p.Y*p.Y)
 	a := s.sdf.Evaluate(V2{x, p.Z})
@@ -123,7 +123,7 @@ func (s *SorSDF3) Evaluate(p V3) float64 {
 	return Max(a, b)
 }
 
-// Return the bounding box for a solid of revolution.
+// BoundingBox returns the bounding box for a solid of revolution.
 func (s *SorSDF3) BoundingBox() Box3 {
 	return s.bb
 }
@@ -521,15 +521,15 @@ func (s *ConeSDF3) Evaluate(p V3) float64 {
 	}
 	// distance to slope line
 	v := p2.Sub(V2{s.r0, -s.height})
-	d_slope := v.Dot(s.n)
+	dSlope := v.Dot(s.n)
 	// is p2 inside the cone?
-	if d_slope < 0 && Abs(p2.Y) < s.height {
-		return -Min(-d_slope, s.height-Abs(p2.Y)) - s.round
+	if dSlope < 0 && Abs(p2.Y) < s.height {
+		return -Min(-dSlope, s.height-Abs(p2.Y)) - s.round
 	}
 	// is p2 closest to the slope line?
 	t := v.Dot(s.u)
 	if t >= 0 && t <= s.l {
-		return d_slope - s.round
+		return dSlope - s.round
 	}
 	// is p2 closest to the base radius vertex?
 	if t < 0 {
@@ -547,6 +547,7 @@ func (s *ConeSDF3) BoundingBox() Box3 {
 //-----------------------------------------------------------------------------
 // Transform SDF3 (rotation, translation - distance preserving)
 
+// TransformSDF3 is an SDF3 transformed with a 4x4 transformation matrix.
 type TransformSDF3 struct {
 	sdf     SDF3
 	matrix  M44
@@ -555,7 +556,6 @@ type TransformSDF3 struct {
 }
 
 // Transform3D applies a transformation matrix to an SDF3.
-// Distance is *not* preserved with scaling.
 func Transform3D(sdf SDF3, matrix M44) SDF3 {
 	s := TransformSDF3{}
 	s.sdf = sdf
@@ -565,10 +565,13 @@ func Transform3D(sdf SDF3, matrix M44) SDF3 {
 	return &s
 }
 
+// Evaluate returns the minimum distance to a transformed SDF3.
+// Distance is *not* preserved with scaling.
 func (s *TransformSDF3) Evaluate(p V3) float64 {
 	return s.sdf.Evaluate(s.inverse.MulPosition(p))
 }
 
+// BoundingBox returns the bounding box of a transformed SDF3.
 func (s *TransformSDF3) BoundingBox() Box3 {
 	return s.bb
 }
@@ -576,36 +579,39 @@ func (s *TransformSDF3) BoundingBox() Box3 {
 //-----------------------------------------------------------------------------
 // Uniform XYZ Scaling of SDF3s (we can work out the distance)
 
+// ScaleUniformSDF3 is an SDF3 scaled uniformly in XYZ directions.
 type ScaleUniformSDF3 struct {
-	sdf      SDF3
-	k, inv_k float64
-	bb       Box3
+	sdf     SDF3
+	k, invK float64
+	bb      Box3
 }
 
-// ScaleUniform3D scales an SDF3 by k on all axes.
-// Distance is correct with scaling.
+// ScaleUniform3D uniformly scales an SDF3 on all axes.
 func ScaleUniform3D(sdf SDF3, k float64) SDF3 {
 	m := Scale3d(V3{k, k, k})
 	return &ScaleUniformSDF3{
-		sdf:   sdf,
-		k:     k,
-		inv_k: 1.0 / k,
-		bb:    m.MulBox(sdf.BoundingBox()),
+		sdf:  sdf,
+		k:    k,
+		invK: 1.0 / k,
+		bb:   m.MulBox(sdf.BoundingBox()),
 	}
 }
 
+// Evaluate returns the minimum distance to a uniformly scaled SDF3.
+// The distance is correct with scaling.
 func (s *ScaleUniformSDF3) Evaluate(p V3) float64 {
-	q := p.MulScalar(s.inv_k)
+	q := p.MulScalar(s.invK)
 	return s.sdf.Evaluate(q) * s.k
 }
 
+// BoundingBox returns the bounding box of a uniformly scaled SDF3.
 func (s *ScaleUniformSDF3) BoundingBox() Box3 {
 	return s.bb
 }
 
 //-----------------------------------------------------------------------------
-// Union of SDF3s
 
+// UnionSDF3 is a union of SDF3s.
 type UnionSDF3 struct {
 	sdf []SDF3
 	min MinFunc
@@ -642,7 +648,7 @@ func Union3D(sdf ...SDF3) SDF3 {
 	return &s
 }
 
-// Return the minimum distance to the SDF3 union.
+// Evaluate returns the minimum distance to an SDF3 union.
 func (s *UnionSDF3) Evaluate(p V3) float64 {
 	var d float64
 	for i, x := range s.sdf {
@@ -655,12 +661,12 @@ func (s *UnionSDF3) Evaluate(p V3) float64 {
 	return d
 }
 
-// Set the minimum function to control blending.
+// SetMin sets the minimum function to control blending.
 func (s *UnionSDF3) SetMin(min MinFunc) {
 	s.min = min
 }
 
-// Return the bounding box.
+// BoundingBox returns the bounding box of an SDF3 union.
 func (s *UnionSDF3) BoundingBox() Box3 {
 	return s.bb
 }
