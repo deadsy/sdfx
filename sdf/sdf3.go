@@ -105,7 +105,7 @@ func Revolve3D(sdf SDF2) SDF3 {
 	return RevolveTheta3D(sdf, 0)
 }
 
-// Evaluate returna the minimum distance to a solid of revolution.
+// Evaluate returns the minimum distance to a solid of revolution.
 func (s *SorSDF3) Evaluate(p V3) float64 {
 	x := math.Sqrt(p.X*p.X + p.Y*p.Y)
 	a := s.sdf.Evaluate(V2{x, p.Z})
@@ -130,7 +130,7 @@ func (s *SorSDF3) BoundingBox() Box3 {
 
 //-----------------------------------------------------------------------------
 
-// Extrude, SDF2 to SDF3
+// ExtrudeSDF3 extrudes an SDF2 to an SDF3.
 type ExtrudeSDF3 struct {
 	sdf     SDF2
 	height  float64
@@ -138,7 +138,7 @@ type ExtrudeSDF3 struct {
 	bb      Box3
 }
 
-// Linear Extrude
+// Extrude3D does a linear extrude on an SDF3.
 func Extrude3D(sdf SDF2, height float64) SDF3 {
 	s := ExtrudeSDF3{}
 	s.sdf = sdf
@@ -150,7 +150,7 @@ func Extrude3D(sdf SDF2, height float64) SDF3 {
 	return &s
 }
 
-// Twist Extrude - rotate by twist radians over the height of the extrusion
+// TwistExtrude3D extrudes an SDF2 while rotating by twist radians over the height of the extrusion.
 func TwistExtrude3D(sdf SDF2, height, twist float64) SDF3 {
 	s := ExtrudeSDF3{}
 	s.sdf = sdf
@@ -163,7 +163,7 @@ func TwistExtrude3D(sdf SDF2, height, twist float64) SDF3 {
 	return &s
 }
 
-// Scale Extrude - scale over the height of the extrusion
+// ScaleExtrude3D extrudes an SDF2 and scales it over the height of the extrusion.
 func ScaleExtrude3D(sdf SDF2, height float64, scale V2) SDF3 {
 	s := ExtrudeSDF3{}
 	s.sdf = sdf
@@ -176,7 +176,7 @@ func ScaleExtrude3D(sdf SDF2, height float64, scale V2) SDF3 {
 	return &s
 }
 
-// Scale + Twist Extrude - scale and then twist over the height of the extrusion
+// ScaleTwistExtrude3D extrudes an SDF2 and scales and twists it over the height of the extrusion.
 func ScaleTwistExtrude3D(sdf SDF2, height, twist float64, scale V2) SDF3 {
 	s := ExtrudeSDF3{}
 	s.sdf = sdf
@@ -190,6 +190,7 @@ func ScaleTwistExtrude3D(sdf SDF2, height, twist float64, scale V2) SDF3 {
 	return &s
 }
 
+// Evaluate returns the minimum distance to an extrusion.
 func (s *ExtrudeSDF3) Evaluate(p V3) float64 {
 	// sdf for the projected 2d surface
 	a := s.sdf.Evaluate(s.extrude(p))
@@ -199,11 +200,12 @@ func (s *ExtrudeSDF3) Evaluate(p V3) float64 {
 	return Max(a, b)
 }
 
-// Set the evaluation function to control extrusion.
+// SetExtrude sets the extrusion control function.
 func (s *ExtrudeSDF3) SetExtrude(extrude ExtrudeFunc) {
 	s.extrude = extrude
 }
 
+// BoundingBox returns the bounding box for an extrusion.
 func (s *ExtrudeSDF3) BoundingBox() Box3 {
 	return s.bb
 }
@@ -213,7 +215,7 @@ func (s *ExtrudeSDF3) BoundingBox() Box3 {
 // Note: The height of the extrusion is adjusted for the rounding.
 // The underlying SDF2 shape is not modified.
 
-// Extrude, SDF2 to SDF3 with rounded edges.
+// ExtrudeRoundedSDF3 extrudes an SDF2 to an SDF3 with rounded edges.
 type ExtrudeRoundedSDF3 struct {
 	sdf    SDF2
 	height float64
@@ -221,7 +223,7 @@ type ExtrudeRoundedSDF3 struct {
 	bb     Box3
 }
 
-// Linear extrude an SDF2 with rounded edges.
+// ExtrudeRounded3D does a linear extrude ao SDF2 with rounded edges.
 func ExtrudeRounded3D(sdf SDF2, height, round float64) SDF3 {
 	if round == 0.0 {
 		// revert to non-rounded case
@@ -240,6 +242,7 @@ func ExtrudeRounded3D(sdf SDF2, height, round float64) SDF3 {
 	return &s
 }
 
+// Evaluate returns the minimum distance to a rounded extrusion.
 func (s *ExtrudeRoundedSDF3) Evaluate(p V3) float64 {
 	// sdf for the projected 2d surface
 	a := s.sdf.Evaluate(V2{p.X, p.Y})
@@ -267,6 +270,7 @@ func (s *ExtrudeRoundedSDF3) Evaluate(p V3) float64 {
 	return d - s.round
 }
 
+// BoundingBox returns the bounding box for a rounded extrusion.
 func (s *ExtrudeRoundedSDF3) BoundingBox() Box3 {
 	return s.bb
 }
@@ -275,6 +279,7 @@ func (s *ExtrudeRoundedSDF3) BoundingBox() Box3 {
 // Extrude/Loft (with rounded edges)
 // Blend between sdf0 and sdf1 as we move from bottom to top.
 
+// LoftSDF3 is an extrusion between two SDF2s.
 type LoftSDF3 struct {
 	sdf0, sdf1 SDF2
 	height     float64
@@ -282,6 +287,7 @@ type LoftSDF3 struct {
 	bb         Box3
 }
 
+// Loft3D extrudes an SDF3 that transitions between two SDF2 shapes.
 func Loft3D(sdf0, sdf1 SDF2, height, round float64) SDF3 {
 	s := LoftSDF3{
 		sdf0:   sdf0,
@@ -300,6 +306,7 @@ func Loft3D(sdf0, sdf1 SDF2, height, round float64) SDF3 {
 	return &s
 }
 
+// Evaluate returns the minimum distance to a loft extrusion.
 func (s *LoftSDF3) Evaluate(p V3) float64 {
 	// work out the mix value as a function of height
 	k := Clamp((0.5*p.Z/s.height)+0.5, 0, 1)
@@ -332,6 +339,7 @@ func (s *LoftSDF3) Evaluate(p V3) float64 {
 	return d - s.round
 }
 
+// BoundingBox returns the bounding box for a loft extrusion.
 func (s *LoftSDF3) BoundingBox() Box3 {
 	return s.bb
 }
@@ -339,14 +347,14 @@ func (s *LoftSDF3) BoundingBox() Box3 {
 //-----------------------------------------------------------------------------
 // Box (exact distance field)
 
-// Box
+// BoxSDF3 is a 3d box.
 type BoxSDF3 struct {
 	size  V3
 	round float64
 	bb    Box3
 }
 
-// Return an SDF3 for a box (rounded corners with round > 0).
+// Box3D return an SDF3 for a 3d box (rounded corners with round > 0).
 func Box3D(size V3, round float64) SDF3 {
 	size = size.MulScalar(0.5)
 	s := BoxSDF3{}
@@ -356,12 +364,12 @@ func Box3D(size V3, round float64) SDF3 {
 	return &s
 }
 
-// Return the minimum distance to a box.
+// Evaluate returns the minimum distance to a 3d box.
 func (s *BoxSDF3) Evaluate(p V3) float64 {
 	return sdfBox3d(p, s.size) - s.round
 }
 
-// Return the bounding box for a box.
+// BoundingBox returns the bounding box for a 3d box.
 func (s *BoxSDF3) BoundingBox() Box3 {
 	return s.bb
 }
@@ -369,13 +377,13 @@ func (s *BoxSDF3) BoundingBox() Box3 {
 //-----------------------------------------------------------------------------
 // Sphere (exact distance field)
 
-// Sphere
+// SphereSDF3 is a sphere.
 type SphereSDF3 struct {
 	radius float64
 	bb     Box3
 }
 
-// Return an SDF3 for a sphere.
+// Sphere3D return an SDF3 for a sphere.
 func Sphere3D(radius float64) SDF3 {
 	s := SphereSDF3{}
 	s.radius = radius
@@ -384,12 +392,12 @@ func Sphere3D(radius float64) SDF3 {
 	return &s
 }
 
-// Return the minimum distance to a sphere.
+// Evaluate returns the minimum distance to a sphere.
 func (s *SphereSDF3) Evaluate(p V3) float64 {
 	return p.Length() - s.radius
 }
 
-// Return the bounding box for a sphere.
+// BoundingBox returns the bounding box for a sphere.
 func (s *SphereSDF3) BoundingBox() Box3 {
 	return s.bb
 }
@@ -397,7 +405,7 @@ func (s *SphereSDF3) BoundingBox() Box3 {
 //-----------------------------------------------------------------------------
 // Cylinder (exact distance field)
 
-// Cylinder
+// CylinderSDF3 is a cylinder.
 type CylinderSDF3 struct {
 	height float64
 	radius float64
@@ -405,7 +413,7 @@ type CylinderSDF3 struct {
 	bb     Box3
 }
 
-// Return an SDF3 for a cylinder (rounded edges with round > 0).
+// Cylinder3D return an SDF3 for a cylinder (rounded edges with round > 0).
 func Cylinder3D(height, radius, round float64) SDF3 {
 	s := CylinderSDF3{}
 	s.height = (height / 2) - round
@@ -416,18 +424,18 @@ func Cylinder3D(height, radius, round float64) SDF3 {
 	return &s
 }
 
-// Return an SDF3 for a capsule.
+// Capsule3D return an SDF3 for a capsule.
 func Capsule3D(radius, height float64) SDF3 {
 	return Cylinder3D(radius, height, radius)
 }
 
-// Return the minimum distance to a cylinder.
+// Evaluate returns the minimum distance to a cylinder.
 func (s *CylinderSDF3) Evaluate(p V3) float64 {
 	d := sdfBox2d(V2{V2{p.X, p.Y}.Length(), p.Z}, V2{s.radius, s.height})
 	return d - s.round
 }
 
-// Return the bounding box for a cylinder.
+// BoundingBox returns the bounding box for a cylinder.
 func (s *CylinderSDF3) BoundingBox() Box3 {
 	return s.bb
 }
@@ -436,7 +444,7 @@ func (s *CylinderSDF3) BoundingBox() Box3 {
 // Cylinders of the same radius and height at various x/y positions
 // (E.g. drilling patterns) are useful enough to warrant their own SDF3 function.
 
-// Multiple Cylinders
+// MultiCylinderSDF3 is an SDF3 containing multiple cylinders.
 type MultiCylinderSDF3 struct {
 	height    float64
 	radius    float64
@@ -444,7 +452,7 @@ type MultiCylinderSDF3 struct {
 	bb        Box3
 }
 
-// Return an SDF3 for multiple cylinders.
+// MultiCylinder3D return an SDF3 for multiple cylinders.
 func MultiCylinder3D(height, radius float64, positions V2Set) SDF3 {
 	s := MultiCylinderSDF3{}
 	s.height = height / 2
@@ -457,7 +465,7 @@ func MultiCylinder3D(height, radius float64, positions V2Set) SDF3 {
 	return &s
 }
 
-// Return the minimum distance to multiple cylinders.
+// Evaluate return the minimum distance to multiple cylinders.
 func (s *MultiCylinderSDF3) Evaluate(p V3) float64 {
 	d := math.MaxFloat64
 	for _, posn := range s.positions {
@@ -467,7 +475,7 @@ func (s *MultiCylinderSDF3) Evaluate(p V3) float64 {
 	return d
 }
 
-// Return the bounding box for multiple cylinders.
+// BoundingBox return the bounding box for multiple cylinders.
 func (s *MultiCylinderSDF3) BoundingBox() Box3 {
 	return s.bb
 }
@@ -475,7 +483,7 @@ func (s *MultiCylinderSDF3) BoundingBox() Box3 {
 //-----------------------------------------------------------------------------
 // Truncated Cone (exact distance field)
 
-// Truncated Cone
+// ConeSDF3 is a truncated cone.
 type ConeSDF3 struct {
 	r0     float64 // base radius
 	r1     float64 // top radius
@@ -487,7 +495,7 @@ type ConeSDF3 struct {
 	bb     Box3    // bounding box
 }
 
-// Return a new trucated cone (round > 0 gives rounded edges)
+// Cone3D returns the SDF3 for a trucated cone (round > 0 gives rounded edges).
 func Cone3D(height, r0, r1, round float64) SDF3 {
 	s := ConeSDF3{}
 	s.height = (height / 2) - round
@@ -507,7 +515,7 @@ func Cone3D(height, r0, r1, round float64) SDF3 {
 	return &s
 }
 
-// Return the minimum distance to the trucated cone.
+// Evaluate returns the minimum distance to a trucated cone.
 func (s *ConeSDF3) Evaluate(p V3) float64 {
 	// convert to SoR 2d coordinates
 	p2 := V2{V2{p.X, p.Y}.Length(), p.Z}
@@ -539,7 +547,7 @@ func (s *ConeSDF3) Evaluate(p V3) float64 {
 	return p2.Sub(V2{s.r1, s.height}).Length() - s.round
 }
 
-// Return the bounding box for the trucated cone.
+// BoundingBox return the bounding box for the trucated cone..
 func (s *ConeSDF3) BoundingBox() Box3 {
 	return s.bb
 }
