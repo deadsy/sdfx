@@ -24,6 +24,7 @@ DIRS = 3dp_nutbolt \
        pool \
        pottery_wheel \
        simple_stl \
+       spiral \
        square_flange \
        test \
        text \

@@ -15,20 +15,25 @@ import (
 
 //-----------------------------------------------------------------------------
 
-// V3 is a 3D float64 vector.
+// V3 is a 3d float64 cartesian vector.
 type V3 struct {
 	X, Y, Z float64
 }
 
-// V2 is a 2D float64 vector.
+// V2 is a 2d float64 cartesian vector.
 type V2 struct {
 	X, Y float64
 }
 
-// V2Set is a set of 2D float64 vectors.
+// P2 is a 2d float64 polar vector.
+type P2 struct {
+	R, Theta float64
+}
+
+// V2Set is a set of 2d float64 vectors.
 type V2Set []V2
 
-// V3Set is a set of 3D float64 vectors.
+// V3Set is a set of 3d float64 vectors.
 type V3Set []V3
 
 //-----------------------------------------------------------------------------
@@ -381,6 +386,23 @@ func (a V2) ToV3(z float64) V3 {
 // Overlap returns true if 1D line segments a and b overlap.
 func (a V2) Overlap(b V2) bool {
 	return a.Y >= b.X && b.Y >= a.X
+}
+
+//-----------------------------------------------------------------------------
+
+// PolarToCartesian converts a polar to a cartesian coordinate.
+func (a P2) PolarToCartesian() V2 {
+	return V2{a.R * math.Cos(a.Theta), a.R * math.Sin(a.Theta)}
+}
+
+// CartesianToPolar converts a cartesian to a polar coordinate.
+func (a V2) CartesianToPolar() P2 {
+	return P2{a.Length(), math.Atan2(a.Y, a.X)}
+}
+
+// PolarToXY converts polar to cartesian coordinates. (TODO remove)
+func PolarToXY(r, theta float64) V2 {
+	return P2{r, theta}.PolarToCartesian()
 }
 
 //-----------------------------------------------------------------------------
