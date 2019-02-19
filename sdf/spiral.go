@@ -10,7 +10,9 @@ https://math.stackexchange.com/questions/175106/distance-between-point-and-a-spi
 
 package sdf
 
-import "math"
+import (
+	"math"
+)
 
 //-----------------------------------------------------------------------------
 
@@ -62,10 +64,12 @@ func ArcSpiral2D(
 // Evaluate returns the minimum distance to a 2d Archimedean spiral.
 func (s *ArcSpiralSDF2) Evaluate(p V2) float64 {
 	pp := p.CartesianToPolar()
+	d2 := Min(polarDist2(pp, s.start), polarDist2(pp, s.end))
+
 	sTheta := s.theta(pp.R)
 	n := math.Round((pp.Theta - sTheta) / Tau)
 	sTheta = pp.Theta - (Tau * n)
-	d2 := Min(polarDist2(pp, s.start), polarDist2(pp, s.end))
+
 	if sTheta > s.start.Theta && sTheta < s.end.Theta {
 		d2 = Min(d2, polarDist2(pp, P2{s.radius(sTheta), sTheta}))
 	}
