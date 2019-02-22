@@ -47,14 +47,30 @@ func ArcSpiral2D(
 	start, end float64, // start/end angle (radians)
 	d float64, // offset distance
 ) SDF2 {
+
+	// sanity checking
+	if start == end {
+		panic("start == end")
+	}
+	if m == 0 {
+		panic("m == 0")
+	}
+
 	s := ArcSpiralSDF2{
 		m: m,
 		b: b,
 		d: d,
 	}
+
 	// start and end points
-	s.start = P2{s.radius(start), start}
-	s.end = P2{s.radius(end), end}
+	if start <= end {
+		s.start = P2{s.radius(start), start}
+		s.end = P2{s.radius(end), end}
+	} else {
+		s.end = P2{s.radius(start), start}
+		s.start = P2{s.radius(end), end}
+	}
+
 	// bounding box
 	rMax := Max(Abs(s.radius(start)), Abs(s.radius(end))) + d
 	s.bb = Box2{V2{-rMax, -rMax}, V2{rMax, rMax}}
@@ -64,15 +80,26 @@ func ArcSpiral2D(
 // Evaluate returns the minimum distance to a 2d Archimedean spiral.
 func (s *ArcSpiralSDF2) Evaluate(p V2) float64 {
 	pp := p.CartesianToPolar()
+
+	// end points
 	d2 := Min(polarDist2(pp, s.start), polarDist2(pp, s.end))
 
+	// positive radius
 	sTheta := s.theta(pp.R)
 	n := math.Round((pp.Theta - sTheta) / Tau)
 	sTheta = pp.Theta - (Tau * n)
-
 	if sTheta > s.start.Theta && sTheta < s.end.Theta {
 		d2 = Min(d2, polarDist2(pp, P2{s.radius(sTheta), sTheta}))
 	}
+
+	// negative radius
+	sTheta = s.theta(-pp.R)
+	n = math.Round((pp.Theta - sTheta) / Tau)
+	sTheta = pp.Theta - (Tau * n)
+	if sTheta > s.start.Theta && sTheta < s.end.Theta {
+		d2 = Min(d2, polarDist2(pp, P2{s.radius(sTheta), sTheta}))
+	}
+
 	return math.Sqrt(d2) - s.d
 }
 
