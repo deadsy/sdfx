@@ -23,6 +23,44 @@ func polarDist2(p0, p1 P2) float64 {
 
 //-----------------------------------------------------------------------------
 
+// arcSpiral is an archimedean spiral.
+type arcSpiral struct {
+	a, n, k float64 // r = a * pow(theta, 1/n) + k
+}
+
+// radius returns the radius for a given theta.
+func (s *arcSpiral) radius(theta float64) float64 {
+	var r float64
+	if s.a == 0 {
+		r = s.k
+	} else {
+		if s.n == 1.0 {
+			r = s.a*theta + s.k
+		} else {
+			r = math.Pow(theta, 1.0/s.n) + s.k
+		}
+	}
+	return r
+}
+
+// theta returns the theta(s) for a given radius.
+func (s *arcSpiral) theta(radius float64) (int, []float64) {
+	if s.a == 0 {
+		if s.k == radius {
+			// infinite solutions
+			return -1, nil
+		}
+		// no solutions
+		return 0, nil
+	}
+	if s.n == 1.0 {
+		return 1, []float64{(radius - s.k) / s.a}
+	}
+	return 1, []float64{math.Exp(s.n * math.Log((radius-s.k)/s.a))}
+}
+
+//-----------------------------------------------------------------------------
+
 // ArcSpiralSDF2 is a 2d Archimedean spiral.
 type ArcSpiralSDF2 struct {
 	m, b       float64 // r = m*theta + b
