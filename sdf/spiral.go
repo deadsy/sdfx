@@ -11,6 +11,7 @@ https://math.stackexchange.com/questions/175106/distance-between-point-and-a-spi
 package sdf
 
 import (
+	"errors"
 	"math"
 )
 
@@ -44,44 +45,34 @@ func (s *arcSpiral) radius(theta float64) float64 {
 }
 
 // theta returns the theta(s) for a given radius.
-func (s *arcSpiral) theta(radius float64) (int, []float64) {
+func (s *arcSpiral) theta(radius float64) ([]float64, error) {
 	if s.a == 0 {
 		if s.k == radius {
 			// infinite solutions
-			return -1, nil
+			return nil, errors.New("inf")
 		}
 		// no solutions
-		return 0, nil
+		return nil, nil
 	}
 	if s.n == 1.0 {
-		return 1, []float64{(radius - s.k) / s.a}
+		return []float64{(radius - s.k) / s.a}, nil
 	}
-	return 1, []float64{math.Exp(s.n * math.Log((radius-s.k)/s.a))}
+	return []float64{math.Exp(s.n * math.Log((radius-s.k)/s.a))}, nil
 }
 
 //-----------------------------------------------------------------------------
 
 // ArcSpiralSDF2 is a 2d Archimedean spiral.
 type ArcSpiralSDF2 struct {
-	m, b       float64 // r = m*theta + b
+	spiral     arcSpiral
 	d          float64 // offset distance
 	start, end P2      // start/end positions
 	bb         Box2
 }
 
-// radius returns the spiral radius for a given theta value.
-func (s *ArcSpiralSDF2) radius(theta float64) float64 {
-	return (s.m * theta) + s.b
-}
-
-// theta returns the spiral theta for a given radius value.
-func (s *ArcSpiralSDF2) theta(radius float64) float64 {
-	return (radius - s.b) / s.m
-}
-
 // ArcSpiral2D returns a 2d Archimedean spiral (r = m*theta + b).
 func ArcSpiral2D(
-	m, b float64, // r = m*theta + b
+	a, k float64, // r = m*theta + b
 	start, end float64, // start/end angle (radians)
 	d float64, // offset distance
 ) SDF2 {
@@ -90,27 +81,24 @@ func ArcSpiral2D(
 	if start == end {
 		panic("start == end")
 	}
-	if m == 0 {
-		panic("m == 0")
+	if a == 0 {
+		panic("a == 0")
 	}
 
 	s := ArcSpiralSDF2{
-		m: m,
-		b: b,
-		d: d,
+		spiral: arcSpiral{a, 1.0, k},
+		d:      d,
 	}
 
 	// start and end points
-	if start <= end {
-		s.start = P2{s.radius(start), start}
-		s.end = P2{s.radius(end), end}
-	} else {
-		s.end = P2{s.radius(start), start}
-		s.start = P2{s.radius(end), end}
+	if start > end {
+		start, end = end, start
 	}
+	s.start = P2{s.spiral.radius(start), start}
+	s.end = P2{s.spiral.radius(end), end}
 
 	// bounding box
-	rMax := Max(Abs(s.radius(start)), Abs(s.radius(end))) + d
+	rMax := Max(Abs(s.spiral.radius(start)), Abs(s.spiral.radius(end))) + d
 	s.bb = Box2{V2{-rMax, -rMax}, V2{rMax, rMax}}
 	return &s
 }
@@ -122,20 +110,17 @@ func (s *ArcSpiralSDF2) Evaluate(p V2) float64 {
 	// end points
 	d2 := Min(polarDist2(pp, s.start), polarDist2(pp, s.end))
 
-	// positive radius
-	sTheta := s.theta(pp.R)
-	n := math.Round((pp.Theta - sTheta) / Tau)
-	sTheta = pp.Theta - (Tau * n)
-	if sTheta > s.start.Theta && sTheta < s.end.Theta {
-		d2 = Min(d2, polarDist2(pp, P2{s.radius(sTheta), sTheta}))
-	}
-
-	// negative radius
-	sTheta = s.theta(-pp.R)
-	n = math.Round((pp.Theta - sTheta) / Tau)
-	sTheta = pp.Theta - (Tau * n)
-	if sTheta > s.start.Theta && sTheta < s.end.Theta {
-		d2 = Min(d2, polarDist2(pp, P2{s.radius(sTheta), sTheta}))
+	for _, r := range []float64{pp.R, -pp.R} {
+		thetas, err := s.spiral.theta(r)
+		if err == nil {
+			for _, theta := range thetas {
+				n := math.Round((pp.Theta - theta) / Tau)
+				theta = pp.Theta - (Tau * n)
+				if theta > s.start.Theta && theta < s.end.Theta {
+					d2 = Min(d2, polarDist2(pp, P2{s.spiral.radius(theta), theta}))
+				}
+			}
+		}
 	}
 
 	return math.Sqrt(d2) - s.d
