@@ -16,7 +16,7 @@ import (
 
 func main() {
 	s2 := ArcSpiral2D(1.0, 20.0, 0.25*Pi, 8*Tau, 1.0)
-	RenderDXFSlow(s2, 400, "spiral.dxf")
+	RenderDXF(s2, 400, "spiral.dxf")
 }
 
 //-----------------------------------------------------------------------------

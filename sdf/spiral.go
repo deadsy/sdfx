@@ -110,15 +110,34 @@ func (s *ArcSpiralSDF2) Evaluate(p V2) float64 {
 	// end points
 	d2 := Min(polarDist2(pp, s.start), polarDist2(pp, s.end))
 
-	for _, r := range []float64{pp.R, -pp.R} {
-		thetas, err := s.spiral.theta(r)
-		if err == nil {
-			for _, theta := range thetas {
-				n := math.Round((pp.Theta - theta) / Tau)
-				theta = pp.Theta - (Tau * n)
-				if theta > s.start.Theta && theta < s.end.Theta {
-					d2 = Min(d2, polarDist2(pp, P2{s.spiral.radius(theta), theta}))
+	thetas, err := s.spiral.theta(pp.R)
+	if err == nil {
+		for _, theta := range thetas {
+			n := math.Round((pp.Theta - theta) / Tau)
+			theta = pp.Theta - (Tau * n)
+
+			if theta >= s.start.Theta && theta <= s.end.Theta {
+				d2 = Min(d2, polarDist2(pp, P2{s.spiral.radius(theta), theta}))
+			} else {
+
+				if theta < s.start.Theta {
+					for theta < s.start.Theta {
+						theta += Tau
+					}
+					if theta < s.end.Theta {
+						d2 = Min(d2, polarDist2(pp, P2{s.spiral.radius(theta), theta}))
+					}
 				}
+
+				if theta > s.end.Theta {
+					for theta > s.end.Theta {
+						theta -= Tau
+					}
+					if theta > s.start.Theta {
+						d2 = Min(d2, polarDist2(pp, P2{s.spiral.radius(theta), theta}))
+					}
+				}
+
 			}
 		}
 	}
