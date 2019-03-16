@@ -152,7 +152,7 @@ func Washer3D(
 type StandoffParms struct {
 	PillarHeight   float64
 	PillarDiameter float64
-	HoleDepth      float64
+	HoleDepth      float64 // > 0 is a hole, < 0 is a support stub
 	HoleDiameter   float64
 	NumberWebs     int
 	WebHeight      float64
@@ -189,18 +189,23 @@ func pillarHole(k *StandoffParms) SDF3 {
 	if k.HoleDiameter == 0.0 || k.HoleDepth == 0.0 {
 		return nil
 	}
-	s := Cylinder3D(k.HoleDepth, 0.5*k.HoleDiameter, 0)
+	s := Cylinder3D(Abs(k.HoleDepth), 0.5*k.HoleDiameter, 0)
 	zOfs := 0.5 * (k.PillarHeight - k.HoleDepth)
 	return Transform3D(s, Translate3d(V3{0, 0, zOfs}))
 }
 
 // Standoff3D returns a single board standoff.
 func Standoff3D(k *StandoffParms) SDF3 {
-	s0 := Difference3D(Union3D(pillar(k), pillarWebs(k)), pillarHole(k))
+	s0 := Union3D(pillar(k), pillarWebs(k))
 	if k.NumberWebs != 0 {
 		// Cut off any part of the webs that protrude from the top of the pillar
-		s1 := Cylinder3D(k.PillarHeight, k.WebDiameter, 0)
-		return Intersect3D(s0, s1)
+		s0 = Intersect3D(s0, Cylinder3D(k.PillarHeight, k.WebDiameter, 0))
+	}
+	// Add the pillar hole/stub
+	if k.HoleDepth >= 0.0 {
+		s0 = Difference3D(s0, pillarHole(k))
+	} else {
+		s0 = Union3D(s0, pillarHole(k))
 	}
 	return s0
 }

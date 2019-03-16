@@ -21,6 +21,9 @@ const Tau = 2 * math.Pi
 // MillimetresPerInch is millimetres per inch (25.4)
 const MillimetresPerInch = 25.4
 
+// Mil is millimetres per 1/1000 of an inch
+const Mil = MillimetresPerInch / 1000.0
+
 const sqrtHalf = 0.7071067811865476
 const tolerance = 1e-9
 const epsilon = 1e-12

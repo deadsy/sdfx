@@ -12,14 +12,14 @@ import . "github.com/deadsy/sdfx/sdf"
 
 //-----------------------------------------------------------------------------
 
-var base_x = 120.0
-var base_y = 64.0
-var base_thickness = 3.0
+var baseX = 120.0
+var baseY = 64.0
+var baseThickness = 3.0
 
-var pcb_x = 102.0
-var pcb_y = 63.5
+var pcbX = 102.0
+var pcbY = 63.5
 
-var pillar_height = 15.0
+var pillarHeight = 15.0
 
 // material shrinkage
 var shrink = 1.0 / 0.999 // PLA ~0.1%
@@ -27,30 +27,58 @@ var shrink = 1.0 / 0.999 // PLA ~0.1%
 
 //-----------------------------------------------------------------------------
 
-const MIL = (25.4 / 1000.0)
+// standoffs1 (all with screw holes)
+func standoffs1() SDF3 {
 
-// multiple standoffs
-func standoffs() SDF3 {
+	zOfs := 0.5 * (pillarHeight + baseThickness)
 
 	k := &StandoffParms{
-		PillarHeight:   pillar_height,
+		PillarHeight:   pillarHeight,
 		PillarDiameter: 6.0,
 		HoleDepth:      10.0,
 		HoleDiameter:   2.4, // #4 screw
 	}
 
-	z_ofs := 0.5 * (pillar_height + base_thickness)
-
 	// from the board gerbers
 	positions := V3Set{
-		{550.0 * MIL, 300.0 * MIL, z_ofs},
-		{600.0 * MIL, 2200.0 * MIL, z_ofs},
-		{2600.0 * MIL, 1600.0 * MIL, z_ofs},
-		{2600.0 * MIL, 500.0 * MIL, z_ofs},
-		{3800.0 * MIL, 300.0 * MIL, z_ofs},
+		{550.0 * Mil, 300.0 * Mil, zOfs},
+		{600.0 * Mil, 2200.0 * Mil, zOfs},
+		{2600.0 * Mil, 1600.0 * Mil, zOfs},
+		{2600.0 * Mil, 500.0 * Mil, zOfs},
+		{3800.0 * Mil, 300.0 * Mil, zOfs},
 	}
 
 	return Standoffs3D(k, positions)
+}
+
+// standoffs2 (one with a support stub)
+func standoffs2() SDF3 {
+
+	zOfs := 0.5 * (pillarHeight + baseThickness)
+
+	// standoffs with screw holes
+	k := &StandoffParms{
+		PillarHeight:   pillarHeight,
+		PillarDiameter: 6.0,
+		HoleDepth:      10.0,
+		HoleDiameter:   2.4, // #4 screw
+	}
+	positions0 := V3Set{
+		{550.0 * Mil, 300.0 * Mil, zOfs},
+		{2600.0 * Mil, 1600.0 * Mil, zOfs},
+		{2600.0 * Mil, 500.0 * Mil, zOfs},
+		{3800.0 * Mil, 300.0 * Mil, zOfs},
+	}
+	s0 := Standoffs3D(k, positions0)
+
+	// standoffs with support stubs
+	k.HoleDepth = -2.0
+	positions1 := V3Set{
+		{600.0 * Mil, 2200.0 * Mil, zOfs},
+	}
+	s1 := Standoffs3D(k, positions1)
+
+	return Union3D(s0, s1)
 }
 
 //-----------------------------------------------------------------------------
@@ -58,7 +86,7 @@ func standoffs() SDF3 {
 func base() SDF3 {
 	// base
 	pp := &PanelParms{
-		Size:         V2{base_x, base_y},
+		Size:         V2{baseX, baseY},
 		CornerRadius: 5.0,
 		HoleDiameter: 3.5,
 		HoleMargin:   [4]float64{5.0, 5.0, 5.0, 5.0},
@@ -73,13 +101,14 @@ func base() SDF3 {
 	c2 = Transform2D(c2, Translate2d(V2{37.0, 3.0}))
 
 	// extrude the base
-	s2 := Extrude3D(Difference2D(s0, Union2D(c1, c2)), base_thickness)
-	x_ofs := 0.5 * pcb_x
-	y_ofs := pcb_y - (0.5 * base_y)
-	s2 = Transform3D(s2, Translate3d(V3{x_ofs, y_ofs, 0}))
+	s2 := Extrude3D(Difference2D(s0, Union2D(c1, c2)), baseThickness)
+	xOfs := 0.5 * pcbX
+	yOfs := pcbY - (0.5 * baseY)
+	s2 = Transform3D(s2, Translate3d(V3{xOfs, yOfs, 0}))
 
 	// add the standoffs
-	s3 := standoffs()
+	//s3 := standoffs1() // all pillars have screw holes
+	s3 := standoffs2() // one pillar has a support stub
 	s4 := Union3D(s2, s3)
 	s4.(*UnionSDF3).SetMin(PolyMin(3.0))
 
