@@ -154,7 +154,7 @@ type StandoffParms struct {
 	PillarDiameter float64
 	HoleDepth      float64 // > 0 is a hole, < 0 is a support stub
 	HoleDiameter   float64
-	NumberWebs     int
+	NumberWebs     int // number of triangular gussets around the standoff base
 	WebHeight      float64
 	WebDiameter    float64
 	WebWidth       float64
@@ -203,8 +203,10 @@ func Standoff3D(k *StandoffParms) SDF3 {
 	}
 	// Add the pillar hole/stub
 	if k.HoleDepth >= 0.0 {
+		// hole
 		s0 = Difference3D(s0, pillarHole(k))
 	} else {
+		// support stub
 		s0 = Union3D(s0, pillarHole(k))
 	}
 	return s0
