@@ -12,6 +12,12 @@ import . "github.com/deadsy/sdfx/sdf"
 
 //-----------------------------------------------------------------------------
 
+// material shrinkage
+var shrink = 1.0 / 0.999 // PLA ~0.1%
+//var shrink = 1.0/0.995; // ABS ~0.5%
+
+//-----------------------------------------------------------------------------
+
 var frontPanelThickness = 3.0
 var frontPanelLength = 170.0
 var frontPanelHeight = 50.0
@@ -183,15 +189,19 @@ func frontPanel() SDF3 {
 // mountingKit creates the STLs for the axoloti mount kit
 func mountingKit() {
 
+	// front panel
 	s0 := frontPanel()
-	RenderSTL(Transform3D(s0, RotateY(DtoR(180.0))), 400, "panel.stl")
+	sx := Transform3D(s0, RotateY(DtoR(180.0)))
+	RenderSTL(ScaleUniform3D(sx, shrink), 400, "panel.stl")
 
+	// base
 	s1 := base()
-	RenderSTL(s1, 400, "base.stl")
+	RenderSTL(ScaleUniform3D(s1, shrink), 400, "base.stl")
 
 	// both together
 	s0 = Transform3D(s0, Translate3d(V3{0, 80, 0}))
-	RenderSTL(Union3D(s0, s1), 400, "panel_and_base.stl")
+	s3 := Union3D(s0, s1)
+	RenderSTL(ScaleUniform3D(s3, shrink), 400, "panel_and_base.stl")
 }
 
 //-----------------------------------------------------------------------------
