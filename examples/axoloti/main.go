@@ -27,7 +27,7 @@ var baseFootCornerRadius = 3.0
 var pcbWidth = 50.0
 var pcbLength = 160.0
 
-var pillar_height = 16.8
+var pillarHeight = 16.8
 
 //-----------------------------------------------------------------------------
 
@@ -35,13 +35,13 @@ var pillar_height = 16.8
 func standoffs() SDF3 {
 
 	k := &StandoffParms{
-		PillarHeight:   pillar_height,
+		PillarHeight:   pillarHeight,
 		PillarDiameter: 6.0,
 		HoleDepth:      10.0,
 		HoleDiameter:   2.4,
 	}
 
-	zOfs := 0.5 * (pillar_height + baseThickness)
+	zOfs := 0.5 * (pillarHeight + baseThickness)
 
 	// from the board mechanicals
 	positions := V3Set{
@@ -106,34 +106,34 @@ var pbX = 53.0
 var pb0 = V2{pbX, 0.8}
 var pb1 = V2{pbX + 5.334, 0.8}
 
-// fp_cutouts returns the 2D front panel cutouts
-func fp_cutouts() SDF2 {
+// panelCutouts returns the 2D front panel cutouts
+func panelCutouts() SDF2 {
 
-	s_midi := Circle2D(0.5 * 17.0)
-	s_jack := Circle2D(0.5 * 11.5)
-	s_led := Box2D(V2{1.6, 1.6}, 0)
+	sMidi := Circle2D(0.5 * 17.0)
+	sJack := Circle2D(0.5 * 11.5)
+	sLed := Box2D(V2{1.6, 1.6}, 0)
 
 	fb := &FingerButtonParms{
 		Width:  4.0,
 		Gap:    0.6,
 		Length: 20.0,
 	}
-	s_button := Transform2D(FingerButton2D(fb), Rotate2d(DtoR(-90)))
+	sButton := Transform2D(FingerButton2D(fb), Rotate2d(DtoR(-90)))
 
-	jack_x := 123.0
-	midi_x := 18.8
-	led_x := 62.9
+	jackX := 123.0
+	midiX := 18.8
+	ledX := 62.9
 
 	holes := []panelHole{
-		{V2{midi_x, 10.2}, s_midi},               // MIDI DIN Jack
-		{V2{midi_x + 20.32, 10.2}, s_midi},       // MIDI DIN Jack
-		{V2{jack_x, 8.14}, s_jack},               // 1/4" Stereo Jack
-		{V2{jack_x + 19.5, 8.14}, s_jack},        // 1/4" Stereo Jack
+		{V2{midiX, 10.2}, sMidi},                 // MIDI DIN Jack
+		{V2{midiX + 20.32, 10.2}, sMidi},         // MIDI DIN Jack
+		{V2{jackX, 8.14}, sJack},                 // 1/4" Stereo Jack
+		{V2{jackX + 19.5, 8.14}, sJack},          // 1/4" Stereo Jack
 		{V2{107.6, 2.3}, Circle2D(0.5 * 5.5)},    // 3.5 mm Headphone Jack
-		{V2{led_x, 0.5}, s_led},                  // LED
-		{V2{led_x + 3.635, 0.5}, s_led},          // LED
-		{pb0, s_button},                          // Push Button
-		{pb1, s_button},                          // Push Button
+		{V2{ledX, 0.5}, sLed},                    // LED
+		{V2{ledX + 3.635, 0.5}, sLed},            // LED
+		{pb0, sButton},                           // Push Button
+		{pb1, sButton},                           // Push Button
 		{V2{84.1, 1.0}, Box2D(V2{16.0, 7.5}, 0)}, // micro SD card
 		{V2{96.7, 1.0}, Box2D(V2{11.0, 7.5}, 0)}, // micro USB connector
 		{V2{73.1, 7.1}, Box2D(V2{7.5, 15.0}, 0)}, // fullsize USB connector
@@ -167,13 +167,13 @@ func frontPanel() SDF3 {
 	panel = Transform2D(panel, Translate2d(V2{xOfs, yOfs}))
 
 	// extrude to 3d
-	fp := Extrude3D(Difference2D(panel, fp_cutouts()), frontPanelThickness)
+	fp := Extrude3D(Difference2D(panel, panelCutouts()), frontPanelThickness)
 
 	// Add buttons to the finger button
-	b_height := 4.0
-	b := Cylinder3D(b_height, 1.4, 0)
-	b0 := Transform3D(b, Translate3d(pb0.ToV3(-0.5*b_height)))
-	b1 := Transform3D(b, Translate3d(pb1.ToV3(-0.5*b_height)))
+	bHeight := 4.0
+	b := Cylinder3D(bHeight, 1.4, 0)
+	b0 := Transform3D(b, Translate3d(pb0.ToV3(-0.5*bHeight)))
+	b1 := Transform3D(b, Translate3d(pb1.ToV3(-0.5*bHeight)))
 
 	return Union3D(fp, b0, b1)
 }
@@ -190,8 +190,8 @@ func mountingKit() {
 	RenderSTL(s1, 400, "base.stl")
 
 	// both together
-	//s0 = Transform3D(s0, Translate3d(V3{0, 80, 0}))
-	//RenderSTL(Union3D(s0, s1), 400, "panel_and_base.stl")
+	s0 = Transform3D(s0, Translate3d(V3{0, 80, 0}))
+	RenderSTL(Union3D(s0, s1), 400, "panel_and_base.stl")
 }
 
 //-----------------------------------------------------------------------------
