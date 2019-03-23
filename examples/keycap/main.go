@@ -14,27 +14,45 @@ import (
 
 //-----------------------------------------------------------------------------
 
-const stemDiameter = 5.6
-const stemCrossLength = 4.1
-const stemCrossWidth = 1.35
+const stemX = 6.0
+const stemY = 5.0
 
-// stem2d returns the 2D profile of a keycap stem.
-func stem2d() sdf.SDF2 {
-	s0 := sdf.Circle2D(stemDiameter * 0.5)
-	s1 := sdf.Box2D(sdf.V2{stemCrossLength, stemCrossWidth}, 0.1*stemCrossWidth)
-	s2 := sdf.Transform2D(s1, sdf.Rotate2d(sdf.DtoR(90)))
-	return sdf.Difference2D(s0, sdf.Union2D(s1, s2))
+const crossDepth = 4.0
+const crossWidth = 1.0
+const crossX = 4.0
+const stemRound = 0.05
+
+// keyStem returns a keycap stem of a given length.
+func keyStem(length float64) sdf.SDF3 {
+	ofs := length - crossDepth
+	s0 := sdf.Box3D(sdf.V3{crossX, crossWidth, length}, crossX*stemRound)
+	s1 := sdf.Box3D(sdf.V3{crossWidth, stemY * (1.0 + 2.0*stemRound), length}, crossX*stemRound)
+	cavity := sdf.Transform3D(sdf.Union3D(s0, s1), sdf.Translate3d(sdf.V3{0, 0, ofs}))
+	stem := sdf.Box3D(sdf.V3{stemX, stemY, length}, stemX*stemRound)
+	return sdf.Difference3D(stem, cavity)
 }
 
-// stem3d returns a keycap stem of a given length.
-func stem3d(length float64) sdf.SDF3 {
-	return sdf.Extrude3D(stem2d(), length)
+//-----------------------------------------------------------------------------
+
+// roundCap returns a round keycap.
+func roundCap(diameter, height, wall float64) sdf.SDF3 {
+	rOuter := 0.5 * diameter
+	rInner := 0.5 * (diameter - (2.0 * wall))
+
+	outer := sdf.Cylinder3D(height, rOuter, 0)
+	inner := sdf.Cylinder3D(height, rInner, 0)
+	inner = sdf.Transform3D(inner, sdf.Translate3d(sdf.V3{0, 0, wall}))
+
+	keycap := sdf.Difference3D(outer, inner)
+	stem := keyStem(height)
+
+	return sdf.Union3D(keycap, stem)
 }
 
 //-----------------------------------------------------------------------------
 
 func main() {
-	sdf.RenderSTL(stem3d(5.0), 200, "stem.stl")
+	sdf.RenderSTL(roundCap(18, 6, 1.5), 200, "round_cap.stl")
 }
 
 //-----------------------------------------------------------------------------
