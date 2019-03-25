@@ -14,6 +14,12 @@ import (
 
 //-----------------------------------------------------------------------------
 
+// material shrinkage
+var shrink = 1.0 / 0.999 // PLA ~0.1%
+//var shrink = 1.0/0.995; // ABS ~0.5%
+
+//-----------------------------------------------------------------------------
+
 const stemX = 6.0
 const stemY = 5.0
 
@@ -34,6 +40,8 @@ func keyStem(length float64) sdf.SDF3 {
 
 //-----------------------------------------------------------------------------
 
+const stemLength = 15.0
+
 // roundCap returns a round keycap.
 func roundCap(diameter, height, wall float64) sdf.SDF3 {
 	rOuter := 0.5 * diameter
@@ -44,7 +52,10 @@ func roundCap(diameter, height, wall float64) sdf.SDF3 {
 	inner = sdf.Transform3D(inner, sdf.Translate3d(sdf.V3{0, 0, wall}))
 
 	keycap := sdf.Difference3D(outer, inner)
-	stem := keyStem(height)
+
+	stem := keyStem(stemLength)
+	ofs := (stemLength - height) * 0.5
+	stem = sdf.Transform3D(stem, sdf.Translate3d(sdf.V3{0, 0, ofs}))
 
 	return sdf.Union3D(keycap, stem)
 }
@@ -52,7 +63,8 @@ func roundCap(diameter, height, wall float64) sdf.SDF3 {
 //-----------------------------------------------------------------------------
 
 func main() {
-	sdf.RenderSTL(roundCap(18, 6, 1.5), 200, "round_cap.stl")
+	s := roundCap(18, 6, 1.5)
+	sdf.RenderSTL(sdf.ScaleUniform3D(s, shrink), 150, "round_cap.stl")
 }
 
 //-----------------------------------------------------------------------------
