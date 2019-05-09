@@ -8,40 +8,49 @@ Replacement Cap for Plastic Gas/Oil Can
 
 package main
 
-import . "github.com/deadsy/sdfx/sdf"
+import "github.com/deadsy/sdfx/sdf"
 
 //-----------------------------------------------------------------------------
 
-var cap_radius = 56.0 / 2.0
-var cap_height = 28.0
-var cap_thickness = 4.0
-var thread_pitch = 6.0
+const capRadius = 56.0 / 2.0
+const capHeight = 28.0
+const capThickness = 4.0
+const threadPitch = 6.0
+const holeRadius = 0.0 // 33.0 / 2.0
 
-//var thread_diameter = 48.0 // tight
-var thread_diameter = 48.5 // just right
-//var thread_diameter = 49.0 // loose
-var thread_radius = thread_diameter / 2.0
+//var threadDiameter = 48.0 // tight
+const threadDiameter = 48.5 // just right
+//var threadDiameter = 49.0 // loose
+const threadRadius = threadDiameter / 2.0
 
 //-----------------------------------------------------------------------------
 
-func cap_outer() SDF3 {
-	return KnurledHead3D(cap_radius, cap_height, cap_radius*0.25)
+func capOuter() sdf.SDF3 {
+	return sdf.KnurledHead3D(capRadius, capHeight, capRadius*0.25)
 }
 
-func cap_inner() SDF3 {
-	tp := PlasticButtressThread(thread_radius, thread_pitch)
-	screw := Screw3D(tp, cap_height, thread_pitch, 1)
-	return Transform3D(screw, Translate3d(V3{0, 0, -cap_thickness}))
+func capInner() sdf.SDF3 {
+	tp := sdf.PlasticButtressThread(threadRadius, threadPitch)
+	screw := sdf.Screw3D(tp, capHeight, threadPitch, 1)
+	return sdf.Transform3D(screw, sdf.Translate3d(sdf.V3{0, 0, -capThickness}))
 }
 
-func gas_cap() SDF3 {
-	return Difference3D(cap_outer(), cap_inner())
+func capHole() sdf.SDF3 {
+	if holeRadius == 0 {
+		return nil
+	}
+	return sdf.Cylinder3D(capHeight, holeRadius, 0)
+}
+
+func gasCap() sdf.SDF3 {
+	inner := sdf.Union3D(capInner(), capHole())
+	return sdf.Difference3D(capOuter(), inner)
 }
 
 //-----------------------------------------------------------------------------
 
 func main() {
-	RenderSTLSlow(gas_cap(), 300, "cap.stl")
+	sdf.RenderSTLSlow(gasCap(), 200, "cap.stl")
 }
 
 //-----------------------------------------------------------------------------
