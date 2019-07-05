@@ -360,7 +360,7 @@ func Box3D(size V3, round float64) SDF3 {
 	s := BoxSDF3{}
 	s.size = size.SubScalar(round)
 	s.round = round
-	s.bb = Box3{size.Negate(), size}
+	s.bb = Box3{size.Neg(), size}
 	return &s
 }
 
@@ -388,7 +388,7 @@ func Sphere3D(radius float64) SDF3 {
 	s := SphereSDF3{}
 	s.radius = radius
 	d := V3{radius, radius, radius}
-	s.bb = Box3{d.Negate(), d}
+	s.bb = Box3{d.Neg(), d}
 	return &s
 }
 
@@ -420,7 +420,7 @@ func Cylinder3D(height, radius, round float64) SDF3 {
 	s.radius = radius - round
 	s.round = round
 	d := V3{radius, radius, height / 2}
-	s.bb = Box3{d.Negate(), d}
+	s.bb = Box3{d.Neg(), d}
 	return &s
 }
 
@@ -775,7 +775,7 @@ func Cut3D(sdf SDF3, a, n V3) SDF3 {
 	s := CutSDF3{}
 	s.sdf = sdf
 	s.a = a
-	s.n = n.Normalize().Negate()
+	s.n = n.Normalize().Neg()
 	// TODO - cut the bounding box
 	s.bb = sdf.BoundingBox()
 	return &s

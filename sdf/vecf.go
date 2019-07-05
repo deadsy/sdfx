@@ -178,16 +178,6 @@ func (a V2) DivScalar(b float64) V2 {
 
 //-----------------------------------------------------------------------------
 
-// Negate negates each vector component.
-func (a V3) Negate() V3 {
-	return V3{-a.X, -a.Y, -a.Z}
-}
-
-// Negate negates each vector component.
-func (a V2) Negate() V2 {
-	return V2{-a.X, -a.Y}
-}
-
 // Abs takes the absolute value of each vector component.
 func (a V3) Abs() V3 {
 	return V3{Abs(a.X), Abs(a.Y), Abs(a.Z)}

@@ -67,7 +67,7 @@ func Test_MulBox(t *testing.T) {
 		v := b.Random()
 		// translating
 		m0 := Translate2d(v)
-		m1 := Translate2d(v.Negate())
+		m1 := Translate2d(v.Neg())
 		b1 := m0.MulBox(b2d)
 		b2 := m1.MulBox(b1)
 		if b2d.Equals(b2, tolerance) == false {
@@ -90,7 +90,7 @@ func Test_MulBox(t *testing.T) {
 		v := b.Random()
 		// translating
 		m0 := Translate3d(v)
-		m1 := Translate3d(v.Negate())
+		m1 := Translate3d(v.Neg())
 		b1 := m0.MulBox(b3d)
 		b2 := m1.MulBox(b1)
 		if b3d.Equals(b2, tolerance) == false {

@@ -77,7 +77,7 @@ func Circle2D(radius float64) SDF2 {
 	s := CircleSDF2{}
 	s.radius = radius
 	d := V2{radius, radius}
-	s.bb = Box2{d.Negate(), d}
+	s.bb = Box2{d.Neg(), d}
 	return &s
 }
 
@@ -142,7 +142,7 @@ func Box2D(size V2, round float64) SDF2 {
 	s := BoxSDF2{}
 	s.size = size.SubScalar(round)
 	s.round = round
-	s.bb = Box2{size.Negate(), size}
+	s.bb = Box2{size.Neg(), size}
 	return &s
 }
 
