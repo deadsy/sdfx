@@ -24,6 +24,7 @@ DIRS = 3dp_nutbolt \
        nutcover \
        nutsandbolts \
        phone \
+       pillar_holder \
        pool \
        pottery_wheel \
        simple_stl \
