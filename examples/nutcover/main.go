@@ -9,30 +9,55 @@ nut cover
 package main
 
 import (
-	. "github.com/deadsy/sdfx/sdf"
+	"math"
+
+	"github.com/deadsy/sdfx/sdf"
 )
 
 //-----------------------------------------------------------------------------
 
-const nutFit = 1.01        // press fit on nut
-const wallThickness = 1.15 // wall thickness wrt nut radius
+const nutFlat2Flat = 19.0        // measured flat 2 flat nut size
+const recessHeight = 20.0        // recess within cover
+const wallThickness = 2.0        // wall thickness
+const counterBoreDiameter = 23.0 // diameter of washer counterbore
+const counterBoreDepth = 2.0     // depth of washer counterbore
+const nutFit = 1.01              // press fit on nut
 
-func nutcover(name string, h float64) SDF3 {
-	// nut
-	r0 := ThreadLookup(name).HexRadius() * nutFit
-	h0 := h
-	nut := HexHead3D(r0, 2*h0, "tb")
+//-----------------------------------------------------------------------------
 
-	// cover
-	r1 := wallThickness * r0
-	h1 := h * wallThickness
-	cover := Cylinder3D(2*h1, r1, 0.1*r1)
+func hexRadius(f2f float64) float64 {
+	return f2f / (2.0 * math.Cos(sdf.DtoR(30)))
+}
 
-	return Cut3D(Difference3D(cover, nut), V3{0, 0, 0}, V3{0, 0, 1})
+func cover() sdf.SDF3 {
+	r := (hexRadius(nutFlat2Flat) * nutFit) + wallThickness
+	h := recessHeight + wallThickness
+	return sdf.Cylinder3D(2*h, r, 0.1*r)
+}
+
+func recess() sdf.SDF3 {
+	r := hexRadius(nutFlat2Flat) * nutFit
+	h := recessHeight
+	return sdf.HexHead3D(r, 2*h, "")
+}
+
+func counterbore() sdf.SDF3 {
+	r := counterBoreDiameter * 0.5
+	h := counterBoreDepth
+	return sdf.Cylinder3D(2*h, r, 0)
+}
+
+func nutcover() sdf.SDF3 {
+	s0 := cover()
+	s1 := sdf.Union3D(recess(), counterbore())
+	return sdf.Cut3D(sdf.Difference3D(s0, s1), sdf.V3{0, 0, 0}, sdf.V3{0, 0, 1})
 }
 
 func main() {
-	RenderSTL(nutcover("M64x4", 60.0), 300, "cover.stl")
+	s := nutcover()
+	// un-comment for a cut-away view
+	//s = sdf.Cut3D(s, sdf.V3{0, 0, 0}, sdf.V3{1, 0, 0})
+	sdf.RenderSTL(s, 150, "cover.stl")
 }
 
 //-----------------------------------------------------------------------------
