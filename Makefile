@@ -19,6 +19,7 @@ DIRS = 3dp_nutbolt \
        gas_cap \
        geneva \
        keycap \
+       maixgo \
        mcg \
        nordic \
        nutcover \
