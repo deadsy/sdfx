@@ -30,7 +30,7 @@ func bezelStandoffs() SDF3 {
 	// standoffs with screw holes
 	k := &StandoffParms{
 		PillarHeight:   pillarHeight,
-		PillarDiameter: 5.0,
+		PillarDiameter: 4.5,
 		HoleDepth:      10.0,
 		HoleDiameter:   2.4, // #4 screw
 	}
@@ -46,25 +46,32 @@ func bezelStandoffs() SDF3 {
 
 func bezel() SDF3 {
 
-  // bezel
-	b0 := Box2D(V2{90.976, 60.0033}, 2.0)
+	// bezel
+	bezel := V2{90.976, 60.0033}
+	b0 := Box2D(bezel, 2.0)
+	b0 = Transform2D(b0, Translate2d(bezel.MulScalar(0.5)))
 
-	// cutouts
-	l0 := Box2D(V2{59.902, 46.433}, 2.0)
+	// lcd cutout
+	lcd := V2{59.902, 46.433}
+	l0 := Box2D(lcd, 2.0)
+	l0 = Transform2D(l0, Translate2d(lcd.MulScalar(0.5)))
+	l0 = Transform2D(l0, Translate2d(V2{9.1289, 6.8267}))
 
-  xOfs := 0.0
-  yOfs := 0.5 * (60.0033 - 46.433)
+	// camera cutout
+	c0 := Circle2D(7.0)
+	c0 = Transform2D(c0, Translate2d(V2{81.2903, 29.8240}))
 
-	l0 = Transform2D(l0, Translate2d(V2{xOfs, yOfs}))
+	// led hole cutout
+	c1 := Circle2D(1.9221)
+	c1 = Transform2D(c1, Translate2d(V2{83.1539, 9.6240}))
 
 	// extrude the base
-	s0 := Extrude3D(Difference2D(b0, Union2D(l0,)), baseThickness)
-	xOfs = 0.0
-	yOfs = 0.0
-	s0 = Transform3D(s0, Translate3d(V3{xOfs, yOfs, 0}))
+	s0 := Extrude3D(Difference2D(b0, Union2D(l0, c0, c1)), baseThickness)
 
-	// add the standoffs
+	// standoffs
 	s1 := bezelStandoffs()
+	s1 = Transform3D(s1, Translate3d(V3{5.1, 3.0277, 0}))
+
 	s2 := Union3D(s0, s1)
 
 	return s2
@@ -74,7 +81,6 @@ func bezel() SDF3 {
 
 func main() {
 	RenderSTL(ScaleUniform3D(bezel(), shrink), 300, "bezel.stl")
-
 }
 
 //-----------------------------------------------------------------------------

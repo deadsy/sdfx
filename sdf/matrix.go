@@ -172,6 +172,24 @@ func RotateZ(a float64) M44 {
 	return Rotate3d(V3{0, 0, 1}, a)
 }
 
+// MirrorXY returns a 4x4 matrix with mirroring across the XY plane.
+func MirrorXY() M44 {
+	return M44{
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, -1, 0,
+		0, 0, 0, 1}
+}
+
+// MirrorXZ returns a 4x4 matrix with mirroring across the XZ plane.
+func MirrorXZ() M44 {
+	return M44{
+		1, 0, 0, 0,
+		0, -1, 0, 0,
+		0, 0, 1, 0,
+		0, 0, 0, 1}
+}
+
 // MirrorYZ returns a 4x4 matrix with mirroring across the YZ plane.
 func MirrorYZ() M44 {
 	return M44{
