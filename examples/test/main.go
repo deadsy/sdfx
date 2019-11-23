@@ -521,6 +521,16 @@ func test49() {
 	RenderDXF(s0, 50, "test.dxf")
 }
 
+func test50() {
+	k := WasherParms{
+		Thickness:   10,
+		InnerRadius: 40,
+		OuterRadius: 50,
+		Remove:      0.3,
+	}
+	RenderSTL(Washer3D(&k), 300, "test.stl")
+}
+
 func main() {
-	test49()
+	test50()
 }
