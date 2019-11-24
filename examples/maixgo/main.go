@@ -33,8 +33,12 @@ func boardStandoffs() SDF3 {
 	k := &StandoffParms{
 		PillarHeight:   pillarHeight,
 		PillarDiameter: 4.5,
-		HoleDepth:      10.0,
-		HoleDiameter:   2.4, // #4 screw
+		HoleDepth:      11.0,
+		HoleDiameter:   2.6, // #4 screw
+		NumberWebs:     2,
+		WebHeight:      10,
+		WebDiameter:    12,
+		WebWidth:       3.5,
 	}
 	x := 82.0
 	y := 54.0
@@ -58,7 +62,7 @@ func bezelStandoffs() SDF3 {
 	k := &StandoffParms{
 		PillarHeight:   pillarHeight,
 		PillarDiameter: 6.0,
-		HoleDepth:      10.0,
+		HoleDepth:      11.0,
 		HoleDiameter:   2.4, // #4 screw
 	}
 	x := 140.0
@@ -79,7 +83,7 @@ func bezelStandoffs() SDF3 {
 func speakerHoles(d float64, ofs V2) SDF2 {
 	holeRadius := 1.7
 	s0 := Circle2D(holeRadius)
-	s1 := MakeBoltCircle2D(holeRadius, d*0.3, 7)
+	s1 := MakeBoltCircle2D(holeRadius, d*0.3, 6)
 	return Transform2D(Union2D(s0, s1), Translate2d(ofs))
 }
 
@@ -90,7 +94,7 @@ func speakerHolder(d float64, ofs V2) SDF3 {
 		Thickness:   thickness,
 		InnerRadius: 0.5 * d,
 		OuterRadius: 0.5 * (d + 4.0),
-		Remove:      0.2,
+		Remove:      0.3,
 	}
 	s := Washer3D(&k)
 	s = Transform3D(s, RotateZ(Pi))
@@ -113,7 +117,7 @@ func bezel() SDF3 {
 	l0 := Box2D(lcd, 2)
 
 	// camera cutout
-	c0 := Circle2D(7)
+	c0 := Circle2D(7.25)
 	c0 = Transform2D(c0, Translate2d(V2{42, 0}))
 
 	// led hole cutout
@@ -142,7 +146,7 @@ func bezel() SDF3 {
 //-----------------------------------------------------------------------------
 
 func main() {
-	RenderSTL(ScaleUniform3D(bezel(), shrink), 300, "bezel.stl")
+	RenderSTL(ScaleUniform3D(bezel(), shrink), 330, "bezel.stl")
 }
 
 //-----------------------------------------------------------------------------
