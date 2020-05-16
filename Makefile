@@ -8,6 +8,7 @@ DIRS = 3dp_nutbolt \
        bolt_container \
        box \
        camshaft \
+       cap \
        challenge \
        cylinder_head \
        devo \
