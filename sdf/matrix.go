@@ -199,6 +199,22 @@ func MirrorYZ() M44 {
 		0, 0, 0, 1}
 }
 
+// MirrorX returns a 3x3 matrix with mirroring across the X axis.
+func MirrorX() M33 {
+	return M33{
+		1, 0, 0,
+		0, -1, 0,
+		0, 0, 1}
+}
+
+// MirrorY returns a 3x3 matrix with mirroring across the Y axis.
+func MirrorY() M33 {
+	return M33{
+		-1, 0, 0,
+		0, 1, 0,
+		0, 0, 1}
+}
+
 // Rotate2d returns an orthographic 3x3 rotation matrix (right hand rule).
 func Rotate2d(a float64) M33 {
 	s := math.Sin(a)
