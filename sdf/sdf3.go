@@ -722,6 +722,42 @@ func (s *DifferenceSDF3) BoundingBox() Box3 {
 
 //-----------------------------------------------------------------------------
 
+// ElongateSDF3 is the elongation of an SDF3.
+type ElongateSDF3 struct {
+	sdf    SDF3 // the sdf being elongated
+	hp, hn V3   // positive/negative elongation vector
+	bb     Box3 // bounding box
+}
+
+// Elongate3D returns the elongation of an SDF3.
+func Elongate3D(sdf SDF3, h V3) SDF3 {
+	h = h.Abs()
+	s := ElongateSDF3{
+		sdf: sdf,
+		hp:  h.MulScalar(0.5),
+		hn:  h.MulScalar(-0.5),
+	}
+	// bounding box
+	bb := sdf.BoundingBox()
+	bb0 := bb.Translate(s.hp)
+	bb1 := bb.Translate(s.hn)
+	s.bb = bb0.Extend(bb1)
+	return &s
+}
+
+// Evaluate returns the minimum distance to a elongated SDF2.
+func (s *ElongateSDF3) Evaluate(p V3) float64 {
+	q := p.Sub(p.Clamp(s.hn, s.hp))
+	return s.sdf.Evaluate(q)
+}
+
+// BoundingBox returns the bounding box of an elongated SDF3.
+func (s *ElongateSDF3) BoundingBox() Box3 {
+	return s.bb
+}
+
+//-----------------------------------------------------------------------------
+
 // IntersectionSDF3 is the intersection of two SDF3s.
 type IntersectionSDF3 struct {
 	s0  SDF3

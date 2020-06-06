@@ -16,6 +16,7 @@ DIRS = 3dp_nutbolt \
        extrusion \
        fidget \
        finial \
+       flask \
        gears \
        gas_cap \
        geneva \

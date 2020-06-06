@@ -200,6 +200,18 @@ func (a V2) Ceil() V2 {
 
 //-----------------------------------------------------------------------------
 
+// Clamp clamps a vector between 2 other vectors.
+func (a V2) Clamp(b, c V2) V2 {
+	return V2{Clamp(a.X, b.X, c.X), Clamp(a.Y, b.Y, c.Y)}
+}
+
+// Clamp clamps a vector between 2 other vectors.
+func (a V3) Clamp(b, c V3) V3 {
+	return V3{Clamp(a.X, b.X, c.X), Clamp(a.Y, b.Y, c.Y), Clamp(a.Z, b.Z, c.Z)}
+}
+
+//-----------------------------------------------------------------------------
+
 // Min return a vector with the minimum components of two vectors.
 func (a V3) Min(b V3) V3 {
 	return V3{Min(a.X, b.X), Min(a.Y, b.Y), Min(a.Z, b.Z)}

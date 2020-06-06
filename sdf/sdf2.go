@@ -799,6 +799,42 @@ func (s *DifferenceSDF2) BoundingBox() Box2 {
 
 //-----------------------------------------------------------------------------
 
+// ElongateSDF2 is the elongation of an SDF2.
+type ElongateSDF2 struct {
+	sdf    SDF2 // the sdf being elongated
+	hp, hn V2   // positive/negative elongation vector
+	bb     Box2 // bounding box
+}
+
+// Elongate2D returns the elongation of an SDF2.
+func Elongate2D(sdf SDF2, h V2) SDF2 {
+	h = h.Abs()
+	s := ElongateSDF2{
+		sdf: sdf,
+		hp:  h.MulScalar(0.5),
+		hn:  h.MulScalar(-0.5),
+	}
+	// bounding box
+	bb := sdf.BoundingBox()
+	bb0 := bb.Translate(s.hp)
+	bb1 := bb.Translate(s.hn)
+	s.bb = bb0.Extend(bb1)
+	return &s
+}
+
+// Evaluate returns the minimum distance to an elongated SDF2.
+func (s *ElongateSDF2) Evaluate(p V2) float64 {
+	q := p.Sub(p.Clamp(s.hn, s.hp))
+	return s.sdf.Evaluate(q)
+}
+
+// BoundingBox returns the bounding box of an elongated SDF2.
+func (s *ElongateSDF2) BoundingBox() Box2 {
+	return s.bb
+}
+
+//-----------------------------------------------------------------------------
+
 // GenerateMesh2D generates a set of internal mesh points for an SDF2.
 func GenerateMesh2D(s SDF2, grid V2i) (V2Set, error) {
 
