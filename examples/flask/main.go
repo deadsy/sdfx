@@ -43,7 +43,7 @@ const lugHeight = 26.0       // pin lug height (mm)
 const lugThickness = 13.0    // pin lug thickness (mm)
 const lugDraft = 5.0         // pin lug draft angle (degrees)
 const lugOffset = 1.5        // pin lug base to pin offset (mm)
-const alignRadius = 0.75     // alignment hole radius (mm)
+const alignRadius = 0.95     // alignment hole radius (mm)
 
 // derived
 const lugBaseWidth = padWidth * 0.95
@@ -101,18 +101,15 @@ func keyProfile(height float64) sdf.SDF2 {
 
 	w0 := (height * 0.5) * keyRatio
 	w1 := w0 - keyDepth*math.Tan(sdf.DtoR(keyDraft))
-
 	r0 := keyDepth * 0.5
 
 	p := sdf.NewPolygon()
-	p.Add(0, 0)
+	p.Add(-w0, 0)
 	p.Add(w0, 0)
 	p.Add(w1, keyDepth).Smooth(r0, 4)
-	p.Add(0, keyDepth)
+	p.Add(-w1, keyDepth).Smooth(r0, 4)
 
-	s0 := sdf.Polygon2D(p.Vertices())
-	s1 := sdf.Transform2D(s0, sdf.MirrorY())
-	return sdf.Union2D(s0, s1)
+	return sdf.Polygon2D(p.Vertices())
 }
 
 //-----------------------------------------------------------------------------
@@ -200,8 +197,11 @@ func main() {
 	widths := []float64{150, 200, 250, 300}
 	height := 95.0
 	for _, w := range widths {
+		s := flaskSide(w, height)
+		// rotate for the preferred print orientation
+		s = sdf.Transform3D(s, sdf.RotateX(-sdf.DtoR(sideDraft)))
 		name := fmt.Sprintf("flask_%d.stl", int(w))
-		sdf.RenderSTL(sdf.ScaleUniform3D(flaskSide(w, height), shrink), 300, name)
+		sdf.RenderSTL(sdf.ScaleUniform3D(s, shrink), 300, name)
 	}
 	sdf.RenderSTL(sdf.ScaleUniform3D(pinLugs(), shrink), 120, "pins.stl")
 }
