@@ -32,7 +32,7 @@ const padThickness = 5.0     // ping lugs pad thickness (mm)
 const padWidth = 60.0        // pin lugs pad width (mm)
 const padDraft = 30.0        // pad draft angle (degrees)
 const cornerThickness = 7.0  // corner mounting lug thickness (mm)
-const cornerLength = 24.0    // corner mounting lug length (mm)
+const cornerLength = 30.0    // corner mounting lug length (mm)
 const keyDepth = 4.0         // sand key depth (mm)
 const keyDraft = 60.0        // sand key draft angle (degrees)
 const keyRatio = 0.85        // sand key height / height of flask
@@ -43,13 +43,14 @@ const lugHeight = 26.0       // pin lug height (mm)
 const lugThickness = 13.0    // pin lug thickness (mm)
 const lugDraft = 5.0         // pin lug draft angle (degrees)
 const lugOffset = 1.5        // pin lug base to pin offset (mm)
-const alignRadius = 0.95     // alignment hole radius (mm)
+const alignRadius = 1.0      // alignment hole radius (mm)
 
 // derived
 const lugBaseWidth = padWidth * 0.95
 
 //-----------------------------------------------------------------------------
 
+// alignmentHoles returns an SDF3 for the alignment holes between the flask and pin lugs pattern.
 func alignmentHoles() sdf.SDF3 {
 	w := lugBaseWidth
 	h := (lugBaseThickness + padThickness + wallThickness + cornerLength) * 2.0
@@ -62,20 +63,21 @@ func alignmentHoles() sdf.SDF3 {
 func pinLug(w float64) sdf.SDF3 {
 	k := sdf.TruncRectPyramidParms{
 		Size:        sdf.V3{w, lugThickness, lugHeight},
-		Draft:       sdf.DtoR(lugDraft),
+		BaseAngle:   sdf.DtoR(90 - lugDraft),
 		BaseRadius:  lugThickness * 0.5,
 		RoundRadius: lugThickness * 0.1,
 	}
 	return sdf.TruncRectPyramid3D(&k)
 }
 
+// pinLugs returns an SDF3 for the pin lugs pattern.
 func pinLugs() sdf.SDF3 {
 	// build the base
 	w := lugBaseWidth
 	r := lugThickness*0.5 + lugOffset
 	k := sdf.TruncRectPyramidParms{
 		Size:        sdf.V3{w, w, lugBaseThickness},
-		Draft:       sdf.DtoR(lugBaseDraft),
+		BaseAngle:   sdf.DtoR(90 - lugBaseDraft),
 		BaseRadius:  r,
 		RoundRadius: lugBaseThickness * 0.25,
 	}
@@ -96,20 +98,45 @@ func pinLugs() sdf.SDF3 {
 
 //-----------------------------------------------------------------------------
 
-// keyProfile returns the 2d profile for the sand key.
-func keyProfile(height float64) sdf.SDF2 {
+// sandKey returns an SDF3 for the internal sand key.
+func sandKey(size sdf.V3) sdf.SDF3 {
+	theta := sdf.DtoR(90 - keyDraft)
+	r := keyDepth / math.Tan(theta)
+	k := sdf.TruncRectPyramidParms{
+		Size:        size,
+		BaseAngle:   theta,
+		BaseRadius:  r,
+		RoundRadius: size.X * 0.5,
+	}
+	return sdf.TruncRectPyramid3D(&k)
+}
 
-	w0 := (height * 0.5) * keyRatio
-	w1 := w0 - keyDepth*math.Tan(sdf.DtoR(keyDraft))
-	r0 := keyDepth * 0.5
+//-----------------------------------------------------------------------------
 
-	p := sdf.NewPolygon()
-	p.Add(-w0, 0)
-	p.Add(w0, 0)
-	p.Add(w1, keyDepth).Smooth(r0, 4)
-	p.Add(-w1, keyDepth).Smooth(r0, 4)
+// oddSide returns an SDF3 for the odd sides at either end of the flask pattern.
+func oddSide(height float64) sdf.SDF3 {
 
-	return sdf.Polygon2D(p.Vertices())
+	theta45 := sdf.DtoR(45)
+
+	d := cornerLength * math.Cos(theta45)
+	sx := 2.0*d + cornerThickness
+	sy := height*1.1 + 2.0*d
+	sz := d
+
+	k := sdf.TruncRectPyramidParms{
+		Size:        sdf.V3{sx, sy, sz},
+		BaseAngle:   theta45,
+		BaseRadius:  0.5 * sx,
+		RoundRadius: 0,
+	}
+	base := sdf.TruncRectPyramid3D(&k)
+
+	// hook into internal sand key
+	l := 0.8 * sx
+	key := sandKey(sdf.V3{l, height * keyRatio, keyDepth})
+	key = sdf.Transform3D(key, sdf.Translate3d(sdf.V3{0.5 * l, 0, 0}))
+
+	return sdf.Union3D(base, key)
 }
 
 //-----------------------------------------------------------------------------
@@ -146,11 +173,10 @@ func flaskSideProfile(width float64) sdf.SDF2 {
 	w1 := padWidth * 0.5
 	w2 := w1 + padThickness*math.Tan(sdf.DtoR(padDraft))
 
-	l0 := cornerLength + keyDepth/math.Sin(theta45)
-	l1 := cornerLength - wallThickness/math.Sin(theta45) + cornerThickness*math.Tan(theta45)
-
 	h0 := keyDepth + wallThickness
 	h1 := keyDepth + wallThickness + padThickness
+
+	l0 := cornerLength + cornerThickness - (keyDepth+wallThickness)/math.Sin(theta45)
 
 	r0 := cornerThickness * 0.25
 	r1 := cornerThickness
@@ -159,9 +185,9 @@ func flaskSideProfile(width float64) sdf.SDF2 {
 	p := sdf.NewPolygon()
 	p.Add(0, 0)
 	p.Add(w0, 0)
-	p.Add(l0, theta45).Polar().Rel().Smooth(r0, 4)
+	p.Add(cornerLength, theta45).Polar().Rel().Smooth(r0, 4)
 	p.Add(cornerThickness, theta135).Polar().Rel().Smooth(r0, 4)
-	p.Add(l1, theta225).Polar().Rel().Smooth(r1, 4)
+	p.Add(l0, theta225).Polar().Rel().Smooth(r1, 4)
 	p.Add(w2, h0).Smooth(r2, 3)
 	p.Add(w1, h1).Smooth(r2, 3)
 	p.Add(0, h1)
@@ -169,6 +195,7 @@ func flaskSideProfile(width float64) sdf.SDF2 {
 	return sdf.Polygon2D(p.Vertices())
 }
 
+// flaskSide returns an SDF3 for the flask side.
 func flaskSide(width, height float64) sdf.SDF3 {
 
 	// create the flask
@@ -179,16 +206,18 @@ func flaskSide(width, height float64) sdf.SDF3 {
 	w := width + 2.0*cornerLength
 
 	// internal sand key
-	sandKey := sdf.Extrude3D(keyProfile(height), w)
-	sandKey = sdf.Transform3D(sandKey, sdf.RotateY(sdf.DtoR(90)))
+	key := sandKey(sdf.V3{w, height * keyRatio, keyDepth})
+	key = sdf.Transform3D(key, sdf.RotateX(sdf.DtoR(-90)))
+
 	// side draft
 	sideDraft := sdf.Extrude3D(sideDraftProfile(height), w)
 	sideDraft = sdf.Transform3D(sideDraft, sdf.RotateY(sdf.DtoR(90)))
+
 	// alignment holes
 	holes := alignmentHoles()
 	holes = sdf.Transform3D(holes, sdf.RotateX(sdf.DtoR(90)))
 
-	return sdf.Difference3D(flaskBody, sdf.Union3D(sandKey, sideDraft, holes))
+	return sdf.Difference3D(flaskBody, sdf.Union3D(key, sideDraft, holes))
 }
 
 //-----------------------------------------------------------------------------
@@ -204,6 +233,7 @@ func main() {
 		sdf.RenderSTL(sdf.ScaleUniform3D(s, shrink), 300, name)
 	}
 	sdf.RenderSTL(sdf.ScaleUniform3D(pinLugs(), shrink), 120, "pins.stl")
+	sdf.RenderSTL(sdf.ScaleUniform3D(oddSide(height), shrink), 300, "odd_side.stl")
 }
 
 //-----------------------------------------------------------------------------

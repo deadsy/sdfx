@@ -261,7 +261,7 @@ func Standoffs3D(k *StandoffParms, positions V3Set) SDF3 {
 
 type TruncRectPyramidParms struct {
 	Size        V3      // size of truncated pyramid
-	Draft       float64 // draft of pyramid (radians)
+	BaseAngle   float64 // base angle of pyramid (radians)
 	BaseRadius  float64 // base corner radius
 	RoundRadius float64 // edge rounding radius
 }
@@ -269,7 +269,7 @@ type TruncRectPyramidParms struct {
 // TruncRectPyramid3D returns a truncated rectangular pyramid with rounded edges.
 func TruncRectPyramid3D(k *TruncRectPyramidParms) SDF3 {
 	h := k.Size.Z
-	dr := h * math.Tan(k.Draft)
+	dr := h / math.Tan(k.BaseAngle)
 	rb := k.BaseRadius + dr
 	rt := Max(k.BaseRadius-dr, 0)
 	round := Min(0.5*rt, k.RoundRadius)
