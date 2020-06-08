@@ -37,10 +37,10 @@ const keyDepth = 4.0         // sand key depth (mm)
 const keyDraft = 60.0        // sand key draft angle (degrees)
 const keyRatio = 0.85        // sand key height / height of flask
 const sideDraft = 3.0        // pattern side draft angle (degrees)
-const lugBaseThickness = 2.0 // pin lugs base thickness (mm)
+const lugBaseThickness = 3.0 // pin lugs base thickness (mm)
 const lugBaseDraft = 15.0    // pin lugs base draft (defgrees)
-const lugHeight = 26.0       // pin lug height (mm)
-const lugThickness = 13.0    // pin lug thickness (mm)
+const lugHeight = 28.0       // pin lug height (mm)
+const lugThickness = 14.0    // pin lug thickness (mm)
 const lugDraft = 5.0         // pin lug draft angle (degrees)
 const lugOffset = 1.5        // pin lug base to pin offset (mm)
 const alignRadius = 1.5      // alignment hole radius (mm)
@@ -61,7 +61,8 @@ func alignmentHoles() sdf.SDF3 {
 }
 
 // pinLug returns a single pin lug.
-func pinLug(w float64) sdf.SDF3 {
+func pinLug(w float64, mark bool) sdf.SDF3 {
+	// pin
 	k := sdf.TruncRectPyramidParms{
 		Size:        sdf.V3{w, lugThickness, lugHeight},
 		BaseAngle:   sdf.DtoR(90 - lugDraft),
@@ -69,13 +70,14 @@ func pinLug(w float64) sdf.SDF3 {
 		RoundRadius: lugThickness * 0.1,
 	}
 	pin := sdf.TruncRectPyramid3D(&k)
-
 	// marking dimple
-	dimple := sdf.Cone3D(0.5*dimpleRadius, dimpleRadius, 0, 0)
-	m := sdf.RotateY(sdf.DtoR(180))
-	m = sdf.Translate3d(sdf.V3{0, 0, lugHeight}).Mul(m)
-	dimple = sdf.Transform3D(dimple, m)
-
+	var dimple sdf.SDF3
+	if mark {
+		dimple = sdf.Cone3D(0.5*dimpleRadius, dimpleRadius, 0, 0)
+		m := sdf.RotateY(sdf.DtoR(180))
+		m = sdf.Translate3d(sdf.V3{0, 0, lugHeight}).Mul(m)
+		dimple = sdf.Transform3D(dimple, m)
+	}
 	return sdf.Difference3D(pin, dimple)
 }
 
@@ -94,7 +96,7 @@ func pinLugs() sdf.SDF3 {
 
 	// build the pin lugs
 	pinWidth := w - 2.0*lugOffset
-	pin := pinLug(pinWidth)
+	pin := pinLug(pinWidth, false)
 	yofs := 0.5 * (pinWidth - lugThickness)
 	pin0 := sdf.Transform3D(pin, sdf.Translate3d(sdf.V3{0, yofs, lugBaseThickness}))
 	pin1 := sdf.Transform3D(pin, sdf.Translate3d(sdf.V3{0, -yofs, lugBaseThickness}))
@@ -147,10 +149,9 @@ func oddSide(height float64) sdf.SDF3 {
 	holes := sdf.MultiCylinder3D(h, r, sdf.V2Set{{0, yofs}, {0, -yofs}})
 
 	// hook into internal sand key
-	clearance := 0.95
 	sx = 0.8 * sx
-	sy = height * keyRatio * clearance
-	sz = keyDepth * clearance
+	sy = height * keyRatio * 0.99
+	sz = keyDepth
 	key := sandKey(sdf.V3{sx, sy, sz})
 	key = sdf.Transform3D(key, sdf.Translate3d(sdf.V3{0.5 * sx, 0, 0}))
 
@@ -213,24 +214,24 @@ func flaskSideProfile(width float64) sdf.SDF2 {
 	return sdf.Polygon2D(p.Vertices())
 }
 
-func flaskHalf(width, height float64) sdf.SDF3 {
-
+func flaskHalf(width, height float64, mark bool) sdf.SDF3 {
 	body := sdf.Extrude3D(flaskSideProfile(width), height)
-
 	// corner hole dimples
-	dimple := sdf.Cone3D(0.5*dimpleRadius, dimpleRadius, 0, 0)
-	m := sdf.RotateX(sdf.DtoR(-90))
-	x := (keyDepth + wallThickness) / math.Sin(sdf.DtoR(45))
-	xofs := 0.5 * (x + cornerLength - cornerThickness)
-	m = sdf.Translate3d(sdf.V3{-xofs, -cornerThickness, 0}).Mul(m)
-	m = sdf.RotateZ(sdf.DtoR(225)).Mul(m)
-	m = sdf.Translate3d(sdf.V3{width * 0.5, 0, 0}).Mul(m)
-	dimple = sdf.Transform3D(dimple, m)
-	zofs := height * 0.75 * 0.5
-	d0 := sdf.Transform3D(dimple, sdf.Translate3d(sdf.V3{0, 0, zofs}))
-	d1 := sdf.Transform3D(dimple, sdf.Translate3d(sdf.V3{0, 0, -zofs}))
-	dimples := sdf.Union3D(d0, d1)
-
+	var dimples sdf.SDF3
+	if mark {
+		dimple := sdf.Cone3D(0.5*dimpleRadius, dimpleRadius, 0, 0)
+		m := sdf.RotateX(sdf.DtoR(-90))
+		x := (keyDepth + wallThickness) / math.Sin(sdf.DtoR(45))
+		xofs := 0.5 * (x + cornerLength - cornerThickness)
+		m = sdf.Translate3d(sdf.V3{-xofs, -cornerThickness, 0}).Mul(m)
+		m = sdf.RotateZ(sdf.DtoR(225)).Mul(m)
+		m = sdf.Translate3d(sdf.V3{width * 0.5, 0, 0}).Mul(m)
+		dimple = sdf.Transform3D(dimple, m)
+		zofs := height * 0.75 * 0.5
+		d0 := sdf.Transform3D(dimple, sdf.Translate3d(sdf.V3{0, 0, zofs}))
+		d1 := sdf.Transform3D(dimple, sdf.Translate3d(sdf.V3{0, 0, -zofs}))
+		dimples = sdf.Union3D(d0, d1)
+	}
 	return sdf.Difference3D(body, dimples)
 }
 
@@ -238,7 +239,7 @@ func flaskHalf(width, height float64) sdf.SDF3 {
 func flaskSide(width, height float64) sdf.SDF3 {
 
 	// create the flask
-	side0 := flaskHalf(width, height)
+	side0 := flaskHalf(width, height, false)
 	side1 := sdf.Transform3D(side0, sdf.MirrorYZ())
 	flaskBody := sdf.Union3D(side0, side1)
 
