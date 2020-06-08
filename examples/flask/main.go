@@ -43,7 +43,8 @@ const lugHeight = 26.0       // pin lug height (mm)
 const lugThickness = 13.0    // pin lug thickness (mm)
 const lugDraft = 5.0         // pin lug draft angle (degrees)
 const lugOffset = 1.5        // pin lug base to pin offset (mm)
-const alignRadius = 1.0      // alignment hole radius (mm)
+const alignRadius = 1.5      // alignment hole radius (mm)
+const dimpleRadius = 4.0     // marking dimple radius (mm)
 
 // derived
 const lugBaseWidth = padWidth * 0.95
@@ -67,7 +68,15 @@ func pinLug(w float64) sdf.SDF3 {
 		BaseRadius:  lugThickness * 0.5,
 		RoundRadius: lugThickness * 0.1,
 	}
-	return sdf.TruncRectPyramid3D(&k)
+	pin := sdf.TruncRectPyramid3D(&k)
+
+	// marking dimple
+	dimple := sdf.Cone3D(0.5*dimpleRadius, dimpleRadius, 0, 0)
+	m := sdf.RotateY(sdf.DtoR(180))
+	m = sdf.Translate3d(sdf.V3{0, 0, lugHeight}).Mul(m)
+	dimple = sdf.Transform3D(dimple, m)
+
+	return sdf.Difference3D(pin, dimple)
 }
 
 // pinLugs returns an SDF3 for the pin lugs pattern.
@@ -131,12 +140,21 @@ func oddSide(height float64) sdf.SDF3 {
 	}
 	base := sdf.TruncRectPyramid3D(&k)
 
-	// hook into internal sand key
-	l := 0.8 * sx
-	key := sandKey(sdf.V3{l, height * keyRatio, keyDepth})
-	key = sdf.Transform3D(key, sdf.Translate3d(sdf.V3{0.5 * l, 0, 0}))
+	// mounting/pull holes
+	h := 3.0 * d
+	r := alignRadius
+	yofs := (height*1.1 - cornerThickness) * 0.5
+	holes := sdf.MultiCylinder3D(h, r, sdf.V2Set{{0, yofs}, {0, -yofs}})
 
-	return sdf.Union3D(base, key)
+	// hook into internal sand key
+	clearance := 0.95
+	sx = 0.8 * sx
+	sy = height * keyRatio * clearance
+	sz = keyDepth * clearance
+	key := sandKey(sdf.V3{sx, sy, sz})
+	key = sdf.Transform3D(key, sdf.Translate3d(sdf.V3{0.5 * sx, 0, 0}))
+
+	return sdf.Difference3D(sdf.Union3D(base, key), holes)
 }
 
 //-----------------------------------------------------------------------------
@@ -195,11 +213,32 @@ func flaskSideProfile(width float64) sdf.SDF2 {
 	return sdf.Polygon2D(p.Vertices())
 }
 
+func flaskHalf(width, height float64) sdf.SDF3 {
+
+	body := sdf.Extrude3D(flaskSideProfile(width), height)
+
+	// corner hole dimples
+	dimple := sdf.Cone3D(0.5*dimpleRadius, dimpleRadius, 0, 0)
+	m := sdf.RotateX(sdf.DtoR(-90))
+	x := (keyDepth + wallThickness) / math.Sin(sdf.DtoR(45))
+	xofs := 0.5 * (x + cornerLength - cornerThickness)
+	m = sdf.Translate3d(sdf.V3{-xofs, -cornerThickness, 0}).Mul(m)
+	m = sdf.RotateZ(sdf.DtoR(225)).Mul(m)
+	m = sdf.Translate3d(sdf.V3{width * 0.5, 0, 0}).Mul(m)
+	dimple = sdf.Transform3D(dimple, m)
+	zofs := height * 0.75 * 0.5
+	d0 := sdf.Transform3D(dimple, sdf.Translate3d(sdf.V3{0, 0, zofs}))
+	d1 := sdf.Transform3D(dimple, sdf.Translate3d(sdf.V3{0, 0, -zofs}))
+	dimples := sdf.Union3D(d0, d1)
+
+	return sdf.Difference3D(body, dimples)
+}
+
 // flaskSide returns an SDF3 for the flask side.
 func flaskSide(width, height float64) sdf.SDF3 {
 
 	// create the flask
-	side0 := sdf.Extrude3D(flaskSideProfile(width), height)
+	side0 := flaskHalf(width, height)
 	side1 := sdf.Transform3D(side0, sdf.MirrorYZ())
 	flaskBody := sdf.Union3D(side0, side1)
 
