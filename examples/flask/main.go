@@ -43,8 +43,7 @@ const lugHeight = 28.0       // pin lug height (mm)
 const lugThickness = 14.0    // pin lug thickness (mm)
 const lugDraft = 5.0         // pin lug draft angle (degrees)
 const lugOffset = 1.5        // pin lug base to pin offset (mm)
-const alignRadius = 1.5      // alignment hole radius (mm)
-const dimpleRadius = 4.0     // marking dimple radius (mm)
+const holeRadius = 1.5       // alignment/pull hole radius (mm)
 
 // derived
 const lugBaseWidth = padWidth * 0.95
@@ -55,13 +54,12 @@ const lugBaseWidth = padWidth * 0.95
 func alignmentHoles() sdf.SDF3 {
 	w := lugBaseWidth
 	h := (lugBaseThickness + padThickness + wallThickness + cornerLength) * 2.0
-	r := alignRadius
 	xofs := w * 0.8 * 0.5
-	return sdf.MultiCylinder3D(h, r, sdf.V2Set{{xofs, 0}, {-xofs, 0}})
+	return sdf.MultiCylinder3D(h, holeRadius, sdf.V2Set{{xofs, 0}, {-xofs, 0}})
 }
 
 // pinLug returns a single pin lug.
-func pinLug(w float64, mark bool) sdf.SDF3 {
+func pinLug(w float64) sdf.SDF3 {
 	// pin
 	k := sdf.TruncRectPyramidParms{
 		Size:        sdf.V3{w, lugThickness, lugHeight},
@@ -69,16 +67,7 @@ func pinLug(w float64, mark bool) sdf.SDF3 {
 		BaseRadius:  lugThickness * 0.5,
 		RoundRadius: lugThickness * 0.1,
 	}
-	pin := sdf.TruncRectPyramid3D(&k)
-	// marking dimple
-	var dimple sdf.SDF3
-	if mark {
-		dimple = sdf.Cone3D(0.5*dimpleRadius, dimpleRadius, 0, 0)
-		m := sdf.RotateY(sdf.DtoR(180))
-		m = sdf.Translate3d(sdf.V3{0, 0, lugHeight}).Mul(m)
-		dimple = sdf.Transform3D(dimple, m)
-	}
-	return sdf.Difference3D(pin, dimple)
+	return sdf.TruncRectPyramid3D(&k)
 }
 
 // pinLugs returns an SDF3 for the pin lugs pattern.
@@ -96,7 +85,7 @@ func pinLugs() sdf.SDF3 {
 
 	// build the pin lugs
 	pinWidth := w - 2.0*lugOffset
-	pin := pinLug(pinWidth, false)
+	pin := pinLug(pinWidth)
 	yofs := 0.5 * (pinWidth - lugThickness)
 	pin0 := sdf.Transform3D(pin, sdf.Translate3d(sdf.V3{0, yofs, lugBaseThickness}))
 	pin1 := sdf.Transform3D(pin, sdf.Translate3d(sdf.V3{0, -yofs, lugBaseThickness}))
@@ -144,9 +133,8 @@ func oddSide(height float64) sdf.SDF3 {
 
 	// mounting/pull holes
 	h := 3.0 * d
-	r := alignRadius
 	yofs := (height*1.1 - cornerThickness) * 0.5
-	holes := sdf.MultiCylinder3D(h, r, sdf.V2Set{{0, yofs}, {0, -yofs}})
+	holes := sdf.MultiCylinder3D(h, holeRadius, sdf.V2Set{{0, yofs}, {0, -yofs}})
 
 	// hook into internal sand key
 	sx = 0.8 * sx
@@ -214,32 +202,22 @@ func flaskSideProfile(width float64) sdf.SDF2 {
 	return sdf.Polygon2D(p.Vertices())
 }
 
-func flaskHalf(width, height float64, mark bool) sdf.SDF3 {
-	body := sdf.Extrude3D(flaskSideProfile(width), height)
-	// corner hole dimples
-	var dimples sdf.SDF3
-	if mark {
-		dimple := sdf.Cone3D(0.5*dimpleRadius, dimpleRadius, 0, 0)
-		m := sdf.RotateX(sdf.DtoR(-90))
-		x := (keyDepth + wallThickness) / math.Sin(sdf.DtoR(45))
-		xofs := 0.5 * (x + cornerLength - cornerThickness)
-		m = sdf.Translate3d(sdf.V3{-xofs, -cornerThickness, 0}).Mul(m)
-		m = sdf.RotateZ(sdf.DtoR(225)).Mul(m)
-		m = sdf.Translate3d(sdf.V3{width * 0.5, 0, 0}).Mul(m)
-		dimple = sdf.Transform3D(dimple, m)
-		zofs := height * 0.75 * 0.5
-		d0 := sdf.Transform3D(dimple, sdf.Translate3d(sdf.V3{0, 0, zofs}))
-		d1 := sdf.Transform3D(dimple, sdf.Translate3d(sdf.V3{0, 0, -zofs}))
-		dimples = sdf.Union3D(d0, d1)
-	}
-	return sdf.Difference3D(body, dimples)
+// pullHoles returns an SDF3 for the flask pull holes.
+func pullHoles(width float64) sdf.SDF3 {
+	h := (wallThickness + keyDepth) * 2.0
+	xofs := width * 0.9 * 0.5
+	return sdf.MultiCylinder3D(h, holeRadius, sdf.V2Set{{xofs, 0}, {-xofs, 0}})
+}
+
+func flaskHalf(width, height float64) sdf.SDF3 {
+	return sdf.Extrude3D(flaskSideProfile(width), height)
 }
 
 // flaskSide returns an SDF3 for the flask side.
 func flaskSide(width, height float64) sdf.SDF3 {
 
 	// create the flask
-	side0 := flaskHalf(width, height, false)
+	side0 := flaskHalf(width, height)
 	side1 := sdf.Transform3D(side0, sdf.MirrorYZ())
 	flaskBody := sdf.Union3D(side0, side1)
 
@@ -254,10 +232,14 @@ func flaskSide(width, height float64) sdf.SDF3 {
 	sideDraft = sdf.Transform3D(sideDraft, sdf.RotateY(sdf.DtoR(90)))
 
 	// alignment holes
-	holes := alignmentHoles()
-	holes = sdf.Transform3D(holes, sdf.RotateX(sdf.DtoR(90)))
+	aHoles := alignmentHoles()
+	aHoles = sdf.Transform3D(aHoles, sdf.RotateX(sdf.DtoR(90)))
 
-	return sdf.Difference3D(flaskBody, sdf.Union3D(key, sideDraft, holes))
+	// pull holes
+	pHoles := pullHoles(width)
+	pHoles = sdf.Transform3D(pHoles, sdf.RotateX(sdf.DtoR(90)))
+
+	return sdf.Difference3D(flaskBody, sdf.Union3D(key, sideDraft, aHoles, pHoles))
 }
 
 //-----------------------------------------------------------------------------
