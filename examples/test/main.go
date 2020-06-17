@@ -362,11 +362,6 @@ func test37() {
 	RenderSTL(s, 400, "screw.stl")
 }
 
-func test38() {
-	fmt.Printf("%+v\n", ThreadLookup("unc_1/4"))
-	fmt.Printf("%+v\n", ThreadLookup("blah"))
-}
-
 func test39() {
 	s0 := NewFlange1(30, 20, 10)
 	fmt.Printf("%+v\n", s0)

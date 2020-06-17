@@ -20,7 +20,10 @@ clearance.
 
 package sdf
 
-import "math"
+import (
+	"fmt"
+	"math"
+)
 
 //-----------------------------------------------------------------------------
 // Thread Database - lookup standard screw threads by name
@@ -143,12 +146,11 @@ func initThreadLookup() threadDatabase {
 }
 
 // ThreadLookup lookups the parameters for a thread by name.
-func ThreadLookup(name string) *ThreadParameters {
-	t, ok := threadDB[name]
-	if !ok {
-		panic("thread name not found")
+func ThreadLookup(name string) (*ThreadParameters, error) {
+	if t, ok := threadDB[name]; ok {
+		return t, nil
 	}
-	return t
+	return nil, fmt.Errorf("thread \"%s\" not found", name)
 }
 
 // HexRadius returns the hex head radius.

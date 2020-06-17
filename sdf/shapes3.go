@@ -9,6 +9,8 @@ Common 3D shapes.
 package sdf
 
 import (
+	"errors"
+	"fmt"
 	"math"
 )
 
@@ -259,6 +261,7 @@ func Standoffs3D(k *StandoffParms, positions V3Set) SDF3 {
 //-----------------------------------------------------------------------------
 // truncated rectangular pyramid (with rounded edges)
 
+// TruncRectPyramidParms defines the parameters for a truncated rectangular pyramid.
 type TruncRectPyramidParms struct {
 	Size        V3      // size of truncated pyramid
 	BaseAngle   float64 // base angle of pyramid (radians)
@@ -279,6 +282,145 @@ func TruncRectPyramid3D(k *TruncRectPyramidParms) SDF3 {
 	s = Elongate3D(s, V3{wx, wy, 0})
 	s = Cut3D(s, V3{0, 0, 0}, V3{0, 0, 1})
 	return s
+}
+
+//-----------------------------------------------------------------------------
+
+// ChamferedCylinder intersects a chamfered cylinder with an SDF3.
+func ChamferedCylinder(s SDF3, kb, kt float64) SDF3 {
+	// get the length and radius from the bounding box
+	l := s.BoundingBox().Max.Z
+	r := s.BoundingBox().Max.X
+	p := NewPolygon()
+	p.Add(0, -l)
+	p.Add(r, -l).Chamfer(r * kb)
+	p.Add(r, l).Chamfer(r * kt)
+	p.Add(0, l)
+	return Intersect3D(s, Revolve3D(Polygon2D(p.Vertices())))
+}
+
+//-----------------------------------------------------------------------------
+
+// LineOf3D returns a union of 3D objects positioned along a line from p0 to p1.
+func LineOf3D(s SDF3, p0, p1 V3, pattern string) SDF3 {
+	var objects []SDF3
+	if pattern != "" {
+		x := p0
+		dx := p1.Sub(p0).DivScalar(float64(len(pattern)))
+		for _, c := range pattern {
+			if c == 'x' {
+				objects = append(objects, Transform3D(s, Translate3d(x)))
+			}
+			x = x.Add(dx)
+		}
+	}
+	return Union3D(objects...)
+}
+
+//-----------------------------------------------------------------------------
+// Simple Bolt for 3d printing.
+
+// BoltParms defines the parameters for a bolt.
+type BoltParms struct {
+	Thread      string  // name of thread
+	Style       string  // head style "hex" or "knurl"
+	Tolerance   float64 // subtract from external thread radius
+	TotalLength float64 // threaded length + shank length
+	ShankLength float64 // non threaded length
+}
+
+// Bolt returns a simple bolt suitable for 3d printing.
+func Bolt(k *BoltParms) (SDF3, error) {
+	// validate parameters
+	t, err := ThreadLookup(k.Thread)
+	if err != nil {
+		return nil, err
+	}
+	if k.TotalLength < 0 {
+		return nil, errors.New("total length < 0")
+	}
+	if k.ShankLength < 0 {
+		return nil, errors.New("shank length < 0")
+	}
+	if k.Tolerance < 0 {
+		return nil, errors.New("tolerance < 0")
+	}
+
+	// head
+	hr := t.HexRadius()
+	hh := t.HexHeight()
+	var head SDF3
+	switch k.Style {
+	case "hex":
+		head = HexHead3D(hr, hh, "b")
+	case "knurl":
+		head = KnurledHead3D(hr, hh, hr*0.25)
+	default:
+		return nil, fmt.Errorf("unknown style \"%s\"", k.Style)
+	}
+
+	// shank
+	shankLength := k.ShankLength + hh/2
+	shankOffset := shankLength / 2
+	shank := Cylinder3D(shankLength, t.Radius, hh*0.08)
+	shank = Transform3D(shank, Translate3d(V3{0, 0, shankOffset}))
+
+	// external thread
+	threadLength := k.TotalLength - k.ShankLength
+	if threadLength < 0 {
+		threadLength = 0
+	}
+	var thread SDF3
+	if threadLength != 0 {
+		r := t.Radius - k.Tolerance
+		threadOffset := threadLength/2 + shankLength
+		thread = Screw3D(ISOThread(r, t.Pitch, "external"), threadLength, t.Pitch, 1)
+		// chamfer the thread
+		thread = ChamferedCylinder(thread, 0, 0.5)
+		thread = Transform3D(thread, Translate3d(V3{0, 0, threadOffset}))
+	}
+
+	return Union3D(head, shank, thread), nil
+}
+
+//-----------------------------------------------------------------------------
+// Simple Nut for 3d printing.
+
+// NutParms defines the parameters for a nut.
+type NutParms struct {
+	Thread    string  // name of thread
+	Style     string  // head style "hex" or "knurl"
+	Tolerance float64 // add to internal thread radius
+}
+
+// Nut returns a simple nut suitable for 3d printing.
+func Nut(k *NutParms) (SDF3, error) {
+	// validate parameters
+	t, err := ThreadLookup(k.Thread)
+	if err != nil {
+		return nil, err
+	}
+	if k.Tolerance < 0 {
+		return nil, errors.New("tolerance < 0")
+	}
+
+	// nut body
+	var nut SDF3
+	nr := t.HexRadius()
+	nh := t.HexHeight()
+	switch k.Style {
+	case "hex":
+		nut = HexHead3D(nr, nh, "tb")
+	case "knurl":
+		nut = KnurledHead3D(nr, nh, nr*0.25)
+	default:
+		return nil, fmt.Errorf("unknown style \"%s\"", k.Style)
+	}
+
+	// internal thread
+	thread := Screw3D(ISOThread(t.Radius+k.Tolerance, t.Pitch, "internal"), nh, t.Pitch, 1)
+
+	return Difference3D(nut, thread), nil
 }
 
 //-----------------------------------------------------------------------------

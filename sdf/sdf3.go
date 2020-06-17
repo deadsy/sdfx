@@ -990,35 +990,43 @@ func (s *RotateCopySDF3) BoundingBox() Box3 {
 
 //-----------------------------------------------------------------------------
 
-// ChamferedCylinder intersects a chamfered cylinder with an SDF3.
-func ChamferedCylinder(s SDF3, kb, kt float64) SDF3 {
-	// get the length and radius from the bounding box
-	l := s.BoundingBox().Max.Z
-	r := s.BoundingBox().Max.X
-	p := NewPolygon()
-	p.Add(0, -l)
-	p.Add(r, -l).Chamfer(r * kb)
-	p.Add(r, l).Chamfer(r * kt)
-	p.Add(0, l)
-	return Intersect3D(s, Revolve3D(Polygon2D(p.Vertices())))
+// Connector3 defines a 3d connection point.
+type Connector3 struct {
+	Name     string
+	Position V3
+	Vector   V3
+	Angle    float64
 }
 
-//-----------------------------------------------------------------------------
+// ConnectedSDF3 is an SDF3 with connection points defined.
+type ConnectedSDF3 struct {
+	sdf        SDF3
+	connectors []Connector3
+}
 
-// LineOf3D returns a union of 3D objects positioned along a line from p0 to p1.
-func LineOf3D(s SDF3, p0, p1 V3, pattern string) SDF3 {
-	var objects []SDF3
-	if pattern != "" {
-		x := p0
-		dx := p1.Sub(p0).DivScalar(float64(len(pattern)))
-		for _, c := range pattern {
-			if c == 'x' {
-				objects = append(objects, Transform3D(s, Translate3d(x)))
-			}
-			x = x.Add(dx)
-		}
+// AddConnector adds connection points to an SDF3.
+func AddConnector(sdf SDF3, connectors ...Connector3) SDF3 {
+	// is the sdf already connected?
+	if s, ok := sdf.(*ConnectedSDF3); ok {
+		// append connection points
+		s.connectors = append(s.connectors, connectors...)
+		return s
 	}
-	return Union3D(objects...)
+	// return a new connected sdf
+	return &ConnectedSDF3{
+		sdf:        sdf,
+		connectors: connectors,
+	}
+}
+
+// Evaluate returns the minimum distance to a connected SDF3.
+func (s *ConnectedSDF3) Evaluate(p V3) float64 {
+	return s.sdf.Evaluate(p)
+}
+
+// BoundingBox returns the bounding box of a connected SDF3.
+func (s *ConnectedSDF3) BoundingBox() Box3 {
+	return s.sdf.BoundingBox()
 }
 
 //-----------------------------------------------------------------------------
