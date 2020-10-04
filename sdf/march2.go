@@ -152,16 +152,27 @@ func msToLines(p [4]V2, v [4]float64, x float64) []*Line {
 //-----------------------------------------------------------------------------
 
 func msInterpolate(p1, p2 V2, v1, v2, x float64) V2 {
-	if Abs(x-v1) < epsilon {
+
+	closeToV1 := Abs(x-v1) < epsilon
+	closeToV2 := Abs(x-v2) < epsilon
+
+	if closeToV1 && !closeToV2 {
 		return p1
 	}
-	if Abs(x-v2) < epsilon {
+	if closeToV2 && !closeToV1 {
 		return p2
 	}
-	if Abs(v1-v2) < epsilon {
-		return p1
+
+	var t float64
+
+	if closeToV1 && closeToV2 {
+		// Pick the half way point
+		t = 0.5
+	} else {
+		// linear interpolation
+		t = (x - v1) / (v2 - v1)
 	}
-	t := (x - v1) / (v2 - v1)
+
 	return V2{
 		p1.X + t*(p2.X-p1.X),
 		p1.Y + t*(p2.Y-p1.Y),

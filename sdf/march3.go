@@ -230,19 +230,24 @@ func mcToTriangles(p [8]V3, v [8]float64, x float64) []*Triangle3 {
 //-----------------------------------------------------------------------------
 
 func mcInterpolate(p1, p2 V3, v1, v2, x float64) V3 {
+
 	closeToV1 := Abs(x-v1) < epsilon
 	closeToV2 := Abs(x-v2) < epsilon
+
 	if closeToV1 && !closeToV2 {
 		return p1
-	} else if closeToV2 && !closeToV1 {
+	}
+	if closeToV2 && !closeToV1 {
 		return p2
 	}
 
-	// Pick the halfway point, unless there's a measurable difference in the SDF
-	// value between the two end vertices. In that case interpolate linearly
-	// based on those SDF values.
-	t := 0.5
-	if Abs(v1-v2) > epsilon {
+	var t float64
+
+	if closeToV1 && closeToV2 {
+		// Pick the half way point
+		t = 0.5
+	} else {
+		// linear interpolation
 		t = (x - v1) / (v2 - v1)
 	}
 

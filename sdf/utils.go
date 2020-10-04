@@ -242,7 +242,7 @@ func FloatEncode(s int, f uint64, e int) float64 {
 // Floating Point Comparisons
 // See: http://floating-point-gui.de/errors/NearlyEqualsTest.java
 
-const minNormal = 2.2250738585072014E-308 // 2**-1022
+const minNormal = 2.2250738585072014e-308 // 2**-1022
 
 // EqualFloat64 compares two float64 values for equality.
 func EqualFloat64(a, b, epsilon float64) bool {
