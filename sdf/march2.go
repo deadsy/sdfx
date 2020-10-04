@@ -139,12 +139,14 @@ func msToLines(p [4]V2, v [4]float64, x float64) []*Line {
 	// create the line segments
 	table := msLineTable[index]
 	count := len(table) / 2
-	result := make([]*Line, count)
+	result := make([]*Line, 0, count)
 	for i := 0; i < count; i++ {
-		line := Line{}
-		line[1] = points[table[i*2+0]]
-		line[0] = points[table[i*2+1]]
-		result[i] = &line
+		l := Line{}
+		l[1] = points[table[i*2+0]]
+		l[0] = points[table[i*2+1]]
+		if !l.Degenerate(0) {
+			result = append(result, &l)
+		}
 	}
 	return result
 }

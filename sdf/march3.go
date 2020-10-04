@@ -210,21 +210,17 @@ func mcToTriangles(p [8]V3, v [8]float64, x float64) []*Triangle3 {
 	// create the triangles
 	table := mcTriangleTable[index]
 	count := len(table) / 3
-	result := make([]*Triangle3, count)
-	trianglesAdded := 0
+	result := make([]*Triangle3, 0, count)
 	for i := 0; i < count; i++ {
-		triangle := Triangle3{}
-		triangle.V[2] = points[table[i*3+0]]
-		triangle.V[1] = points[table[i*3+1]]
-		triangle.V[0] = points[table[i*3+2]]
-		if triangle.V[0] != triangle.V[1] &&
-			triangle.V[0] != triangle.V[2] &&
-			triangle.V[1] != triangle.V[2] {
-			result[trianglesAdded] = &triangle
-			trianglesAdded++
+		t := Triangle3{}
+		t.V[2] = points[table[i*3+0]]
+		t.V[1] = points[table[i*3+1]]
+		t.V[0] = points[table[i*3+2]]
+		if !t.Degenerate(0) {
+			result = append(result, &t)
 		}
 	}
-	return result[:trianglesAdded]
+	return result
 }
 
 //-----------------------------------------------------------------------------
