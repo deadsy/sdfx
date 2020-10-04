@@ -211,29 +211,41 @@ func mcToTriangles(p [8]V3, v [8]float64, x float64) []*Triangle3 {
 	table := mcTriangleTable[index]
 	count := len(table) / 3
 	result := make([]*Triangle3, count)
+	trianglesAdded := 0
 	for i := 0; i < count; i++ {
 		triangle := Triangle3{}
 		triangle.V[2] = points[table[i*3+0]]
 		triangle.V[1] = points[table[i*3+1]]
 		triangle.V[0] = points[table[i*3+2]]
-		result[i] = &triangle
+		if triangle.V[0] != triangle.V[1] &&
+			triangle.V[0] != triangle.V[2] &&
+			triangle.V[1] != triangle.V[2] {
+			result[trianglesAdded] = &triangle
+			trianglesAdded++
+		}
 	}
-	return result
+	return result[:trianglesAdded]
 }
 
 //-----------------------------------------------------------------------------
 
 func mcInterpolate(p1, p2 V3, v1, v2, x float64) V3 {
-	if Abs(x-v1) < epsilon {
+	closeToV1 := Abs(x-v1) < epsilon
+	closeToV2 := Abs(x-v2) < epsilon
+	if closeToV1 && !closeToV2 {
 		return p1
-	}
-	if Abs(x-v2) < epsilon {
+	} else if closeToV2 && !closeToV1 {
 		return p2
 	}
-	if Abs(v1-v2) < epsilon {
-		return p1
+
+	// Pick the halfway point, unless there's a measurable difference in the SDF
+	// value between the two end vertices. In that case interpolate linearly
+	// based on those SDF values.
+	t := 0.5
+	if Abs(v1-v2) > epsilon {
+		t = (x - v1) / (v2 - v1)
 	}
-	t := (x - v1) / (v2 - v1)
+
 	return V3{
 		p1.X + t*(p2.X-p1.X),
 		p1.Y + t*(p2.Y-p1.Y),
