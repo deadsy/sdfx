@@ -1038,7 +1038,7 @@ type OffsetSDF3 struct {
 	bb     Box3    // bounding box
 }
 
-// Elongate3D returns the elongation of an SDF3.
+// Offset3D enlarges/shrinks an SDF uniformly outwards/inwards from all surfaces
 func Offset3D(sdf SDF3, offset float64) SDF3 {
 	s := OffsetSDF3{
 		sdf:    sdf,
