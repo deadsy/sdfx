@@ -1046,11 +1046,7 @@ func Offset3D(sdf SDF3, offset float64) SDF3 {
 	}
 	// bounding box
 	bb := sdf.BoundingBox()
-	vOffset := V3{0.5 * offset, 0.5 * offset, 0.5 * offset}
-	s.bb = Box3{
-		Min: bb.Min.Sub(vOffset),
-		Max: bb.Max.Add(vOffset),
-	}
+	s.bb = NewBox3(bb.Center(), bb.Size().AddScalar(2*offset))
 	return &s
 }
 
