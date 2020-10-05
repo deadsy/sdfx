@@ -40,15 +40,15 @@ type V3Set []V3
 
 // Equals returns true if a == b within the tolerance limit.
 func (a V3) Equals(b V3, tolerance float64) bool {
-	return (Abs(a.X-b.X) < tolerance &&
-		Abs(a.Y-b.Y) < tolerance &&
-		Abs(a.Z-b.Z) < tolerance)
+	return (Abs(a.X-b.X) <= tolerance &&
+		Abs(a.Y-b.Y) <= tolerance &&
+		Abs(a.Z-b.Z) <= tolerance)
 }
 
 // Equals returns true if a == b within the tolerance limit.
 func (a V2) Equals(b V2, tolerance float64) bool {
-	return (Abs(a.X-b.X) < tolerance &&
-		Abs(a.Y-b.Y) < tolerance)
+	return (Abs(a.X-b.X) <= tolerance &&
+		Abs(a.Y-b.Y) <= tolerance)
 }
 
 //-----------------------------------------------------------------------------
