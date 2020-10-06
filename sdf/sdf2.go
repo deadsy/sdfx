@@ -209,12 +209,12 @@ func Offset2D(sdf SDF2, offset float64) SDF2 {
 	return &s
 }
 
-// Evaluate returns the offset minimum distance to an SDF2.
+// Evaluate returns the minimum distance to an offset SDF2.
 func (s *OffsetSDF2) Evaluate(p V2) float64 {
 	return s.sdf.Evaluate(p) - s.offset
 }
 
-// BoundingBox returns the bounding box for the offset SDF2.
+// BoundingBox returns the bounding box of an offset SDF2.
 func (s *OffsetSDF2) BoundingBox() Box2 {
 	return s.bb
 }

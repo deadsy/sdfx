@@ -990,6 +990,8 @@ func (s *RotateCopySDF3) BoundingBox() Box3 {
 
 //-----------------------------------------------------------------------------
 
+/* WIP
+
 // Connector3 defines a 3d connection point.
 type Connector3 struct {
 	Name     string
@@ -1029,16 +1031,18 @@ func (s *ConnectedSDF3) BoundingBox() Box3 {
 	return s.sdf.BoundingBox()
 }
 
+*/
+
 //-----------------------------------------------------------------------------
 
-// OffsetSDF3 is a uniformly offset SDF3.
+// OffsetSDF3 offsets the distance function of an existing SDF3.
 type OffsetSDF3 struct {
 	sdf    SDF3    // the underlying SDF
 	offset float64 // the distance the SDF is offset by
 	bb     Box3    // bounding box
 }
 
-// Offset3D enlarges/shrinks an SDF uniformly outwards/inwards from all surfaces
+// Offset3D returns an SDF3 that offsets the distance function of another SDF3.
 func Offset3D(sdf SDF3, offset float64) SDF3 {
 	s := OffsetSDF3{
 		sdf:    sdf,
@@ -1050,12 +1054,12 @@ func Offset3D(sdf SDF3, offset float64) SDF3 {
 	return &s
 }
 
-// Evaluate returns the minimum distance to a elongated SDF2.
+// Evaluate returns the minimum distance to an offset SDF3.
 func (s *OffsetSDF3) Evaluate(p V3) float64 {
 	return s.sdf.Evaluate(p) - s.offset
 }
 
-// BoundingBox returns the bounding box of an elongated SDF3.
+// BoundingBox returns the bounding box of an offset SDF3.
 func (s *OffsetSDF3) BoundingBox() Box3 {
 	return s.bb
 }
