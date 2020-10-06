@@ -1030,3 +1030,34 @@ func (s *ConnectedSDF3) BoundingBox() Box3 {
 }
 
 //-----------------------------------------------------------------------------
+
+// OffsetSDF3 is a uniformly offset SDF3.
+type OffsetSDF3 struct {
+	sdf    SDF3    // the underlying SDF
+	offset float64 // the distance the SDF is offset by
+	bb     Box3    // bounding box
+}
+
+// Offset3D enlarges/shrinks an SDF uniformly outwards/inwards from all surfaces
+func Offset3D(sdf SDF3, offset float64) SDF3 {
+	s := OffsetSDF3{
+		sdf:    sdf,
+		offset: offset,
+	}
+	// bounding box
+	bb := sdf.BoundingBox()
+	s.bb = NewBox3(bb.Center(), bb.Size().AddScalar(2*offset))
+	return &s
+}
+
+// Evaluate returns the minimum distance to a elongated SDF2.
+func (s *OffsetSDF3) Evaluate(p V3) float64 {
+	return s.sdf.Evaluate(p) - s.offset
+}
+
+// BoundingBox returns the bounding box of an elongated SDF3.
+func (s *OffsetSDF3) BoundingBox() Box3 {
+	return s.bb
+}
+
+//-----------------------------------------------------------------------------
