@@ -24,6 +24,7 @@ DIRS = 3dp_nutbolt \
        keycap \
        maixgo \
        mcg \
+       midget \
        nordic \
        nutcover \
        nutsandbolts \
