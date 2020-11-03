@@ -61,7 +61,7 @@ func standoffs() SDF3 {
 		{116.0, 10.0, zOfs}, // H8
 	}
 
-	return Standoffs3D(k, positions)
+	return Multi3D(Standoff3D(k), positions)
 }
 
 //-----------------------------------------------------------------------------

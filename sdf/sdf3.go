@@ -441,46 +441,6 @@ func (s *CylinderSDF3) BoundingBox() Box3 {
 }
 
 //-----------------------------------------------------------------------------
-// Cylinders of the same radius and height at various x/y positions
-// (E.g. drilling patterns) are useful enough to warrant their own SDF3 function.
-
-// MultiCylinderSDF3 is an SDF3 containing multiple cylinders.
-type MultiCylinderSDF3 struct {
-	height    float64
-	radius    float64
-	positions V2Set
-	bb        Box3
-}
-
-// MultiCylinder3D return an SDF3 for multiple cylinders.
-func MultiCylinder3D(height, radius float64, positions V2Set) SDF3 {
-	s := MultiCylinderSDF3{}
-	s.height = height / 2
-	s.radius = radius
-	s.positions = positions
-	// work out the bounding box
-	pmin := positions.Min().Sub(V2{radius, radius})
-	pmax := positions.Max().Add(V2{radius, radius})
-	s.bb = Box3{V3{pmin.X, pmin.Y, -height / 2}, V3{pmax.X, pmax.Y, height / 2}}
-	return &s
-}
-
-// Evaluate return the minimum distance to multiple cylinders.
-func (s *MultiCylinderSDF3) Evaluate(p V3) float64 {
-	d := math.MaxFloat64
-	for _, posn := range s.positions {
-		l := V2{p.X, p.Y}.Sub(posn).Length()
-		d = Min(d, sdfBox2d(V2{l, p.Z}, V2{s.radius, s.height}))
-	}
-	return d
-}
-
-// BoundingBox return the bounding box for multiple cylinders.
-func (s *MultiCylinderSDF3) BoundingBox() Box3 {
-	return s.bb
-}
-
-//-----------------------------------------------------------------------------
 // Truncated Cone (exact distance field)
 
 // ConeSDF3 is a truncated cone.
@@ -1062,6 +1022,38 @@ func (s *OffsetSDF3) Evaluate(p V3) float64 {
 // BoundingBox returns the bounding box of an offset SDF3.
 func (s *OffsetSDF3) BoundingBox() Box3 {
 	return s.bb
+}
+
+//-----------------------------------------------------------------------------
+
+// LineOf3D returns a union of 3D objects positioned along a line from p0 to p1.
+func LineOf3D(s SDF3, p0, p1 V3, pattern string) SDF3 {
+	var objects []SDF3
+	if pattern != "" {
+		x := p0
+		dx := p1.Sub(p0).DivScalar(float64(len(pattern)))
+		for _, c := range pattern {
+			if c == 'x' {
+				objects = append(objects, Transform3D(s, Translate3d(x)))
+			}
+			x = x.Add(dx)
+		}
+	}
+	return Union3D(objects...)
+}
+
+//-----------------------------------------------------------------------------
+
+// Multi3D creates a union of an SDF3 at a set of 3D positions.
+func Multi3D(s SDF3, positions V3Set) SDF3 {
+	if (s == nil) || (len(positions) == 0) {
+		return nil
+	}
+	objects := make([]SDF3, len(positions))
+	for i, p := range positions {
+		objects[i] = Transform3D(s, Translate3d(p))
+	}
+	return Union3D(objects...)
 }
 
 //-----------------------------------------------------------------------------

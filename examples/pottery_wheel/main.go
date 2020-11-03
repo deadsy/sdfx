@@ -174,12 +174,13 @@ func core_box() {
 	dy := w * 0.37
 	dx := h * 0.4
 	hole_radius := ((3.0 / 16.0) * MillimetresPerInch) / 2.0
-	positions := []V2{
-		{dx, dy},
-		{-dx, dy},
-		{dx, -dy},
-		{-dx, -dy}}
-	holes_3d := MultiCylinder3D(d, hole_radius, positions)
+	positions := V3Set{
+		{dx, dy, 0},
+		{-dx, dy, 0},
+		{dx, -dy, 0},
+		{-dx, -dy, 0},
+	}
+	holes_3d := Multi3D(Cylinder3D(d, hole_radius, 0), positions)
 
 	// Drill the holes
 	box_3d = Difference3D(box_3d, holes_3d)

@@ -254,7 +254,7 @@ var stud_locations = []V2{
 }
 
 func head_stud_holes() SDF3 {
-	s := MultiCircle2D(stud_hole_radius, stud_locations)
+	s := Multi2D(Circle2D(stud_hole_radius), stud_locations)
 	return Extrude3D(s, head_height)
 }
 
@@ -275,7 +275,7 @@ func head_wall_inner_2d() SDF2 {
 	l := head_length - (2 * head_wall_thickness)
 	w := head_width - (2 * head_wall_thickness)
 	s0 := Box2D(V2{l, w}, 0)
-	s1 := MultiCircle2D(stud_boss_radius, stud_locations)
+	s1 := Multi2D(Circle2D(stud_boss_radius), stud_locations)
 	s := Difference2D(s0, s1)
 	s.(*DifferenceSDF2).SetMax(PolyMax(general_round))
 	return s

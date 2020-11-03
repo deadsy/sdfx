@@ -40,14 +40,14 @@ func nRF52dkStandoffs() SDF3 {
 		{2600.0 * Mil, 500.0 * Mil, zOfs},
 		{3800.0 * Mil, 300.0 * Mil, zOfs},
 	}
-	s0 := Standoffs3D(k, positions0)
+	s0 := Multi3D(Standoff3D(k), positions0)
 
 	// standoffs with support stubs
 	k.HoleDepth = -2.0
 	positions1 := V3Set{
 		{600.0 * Mil, 2200.0 * Mil, zOfs},
 	}
-	s1 := Standoffs3D(k, positions1)
+	s1 := Multi3D(Standoff3D(k), positions1)
 
 	return Union3D(s0, s1)
 }
@@ -110,7 +110,7 @@ func nRF52833dkStandoffs() SDF3 {
 		{2600.0 * Mil, 1600.0 * Mil, zOfs},
 		{5050.0 * Mil, 1825.0 * Mil, zOfs},
 	}
-	s0 := Standoffs3D(k, positions0)
+	s0 := Multi3D(Standoff3D(k), positions0)
 
 	// standoffs with support stubs
 	k.HoleDepth = -2.0
@@ -119,7 +119,7 @@ func nRF52833dkStandoffs() SDF3 {
 		{3550.0 * Mil, 2200.0 * Mil, zOfs},
 		{3800.0 * Mil, 300.0 * Mil, zOfs},
 	}
-	s1 := Standoffs3D(k, positions1)
+	s1 := Multi3D(Standoff3D(k), positions1)
 
 	return Union3D(s0, s1)
 }

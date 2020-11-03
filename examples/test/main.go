@@ -283,8 +283,8 @@ func test26() {
 
 func test27() {
 	r := 5.0
-	posn := []V2{{2 * r, 2 * r}, {-r, r}, {r, -r}, {-r, -r}, {0, 0}}
-	s := MultiCylinder3D(3, 1, posn)
+	posn := V3Set{{2 * r, 2 * r, 0}, {-r, r, 0}, {r, -r, 0}, {-r, -r, 0}, {0, 0, 0}}
+	s := Multi3D(Cylinder3D(3, 1, 0), posn)
 	RenderSTL(s, 200, "test.stl")
 }
 

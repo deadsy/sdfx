@@ -83,7 +83,7 @@ func cc16b() SDF3 {
 		{base_hole_xofs, base_hole_yofs},
 		{-base_hole_xofs, base_hole_yofs},
 	}
-	holes_2d := MultiCircle2D(base_hole_r, holes)
+	holes_2d := Multi2D(Circle2D(base_hole_r), holes)
 	base_2d = Difference2D(base_2d, holes_2d)
 
 	// cut out the slotted hole

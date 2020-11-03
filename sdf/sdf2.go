@@ -92,41 +92,6 @@ func (s *CircleSDF2) BoundingBox() Box2 {
 }
 
 //-----------------------------------------------------------------------------
-
-// MultiCircleSDF2 is an SDF2 made from multiple circles (used for hole patterns).
-type MultiCircleSDF2 struct {
-	radius    float64
-	positions V2Set
-	bb        Box2
-}
-
-// MultiCircle2D returns an SDF2 for multiple circles.
-func MultiCircle2D(radius float64, positions V2Set) SDF2 {
-	s := MultiCircleSDF2{}
-	s.radius = radius
-	s.positions = positions
-	// work out the bounding box
-	pmin := positions.Min().Sub(V2{radius, radius})
-	pmax := positions.Max().Add(V2{radius, radius})
-	s.bb = Box2{pmin, pmax}
-	return &s
-}
-
-// Evaluate returns the minimum distance to multiple circles.
-func (s *MultiCircleSDF2) Evaluate(p V2) float64 {
-	d := math.MaxFloat64
-	for _, posn := range s.positions {
-		d = Min(d, p.Sub(posn).Length()-s.radius)
-	}
-	return d
-}
-
-// BoundingBox returns the bounding box for multiple circles.
-func (s *MultiCircleSDF2) BoundingBox() Box2 {
-	return s.bb
-}
-
-//-----------------------------------------------------------------------------
 // 2D Box (rounded corners with round > 0)
 
 // BoxSDF2 is the 2d signed distance object for a rectangular box.
@@ -874,6 +839,20 @@ func LineOf2D(s SDF2, p0, p1 V2, pattern string) SDF2 {
 			}
 			x = x.Add(dx)
 		}
+	}
+	return Union2D(objects...)
+}
+
+//-----------------------------------------------------------------------------
+
+// Multi2D creates a union of an SDF2 at a set of 2D positions.
+func Multi2D(s SDF2, positions V2Set) SDF2 {
+	if (s == nil) || (len(positions) == 0) {
+		return nil
+	}
+	objects := make([]SDF2, len(positions))
+	for i, p := range positions {
+		objects[i] = Transform2D(s, Translate2d(p))
 	}
 	return Union2D(objects...)
 }

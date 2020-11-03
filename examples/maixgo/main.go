@@ -50,7 +50,7 @@ func boardStandoffs() SDF3 {
 		{x0, y0 + y, zOfs},
 		{x0 + x, y0 + y, zOfs},
 	}
-	return Standoffs3D(k, positions)
+	return Multi3D(Standoff3D(k), positions)
 }
 
 //-----------------------------------------------------------------------------
@@ -75,7 +75,7 @@ func bezelStandoffs() SDF3 {
 		{x0, y0 + y, zOfs},
 		{x0 + x, y0 + y, zOfs},
 	}
-	return Standoffs3D(k, positions)
+	return Multi3D(Standoff3D(k), positions)
 }
 
 //-----------------------------------------------------------------------------
