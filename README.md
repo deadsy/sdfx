@@ -26,7 +26,7 @@ A simple CAD package written in Go (https://golang.org/)
  * Who needs an interactive GUI?
 
 ## Development
- * ![Roadmap](docs/ROADMAP.md)
+ * [Roadmap](docs/ROADMAP.md)
 
 ## Gallery
 
