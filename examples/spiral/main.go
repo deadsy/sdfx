@@ -9,14 +9,22 @@ Spirals
 package main
 
 import (
-	. "github.com/deadsy/sdfx/sdf"
+	"fmt"
+	"os"
+
+	"github.com/deadsy/sdfx/sdf"
 )
 
 //-----------------------------------------------------------------------------
 
 func main() {
-	s2 := ArcSpiral2D(1.0, 20.0, 0.25*Pi, 8*Tau, 1.0)
-	RenderDXF(s2, 400, "spiral.dxf")
+	s, err := sdf.ArcSpiral2D(1.0, 20.0, 0.25*sdf.Pi, 8*sdf.Tau, 1.0)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %s\n", err)
+		os.Exit(1)
+	}
+	sdf.RenderDXF(s, 400, "spiral.dxf")
+	os.Exit(0)
 }
 
 //-----------------------------------------------------------------------------

@@ -75,14 +75,14 @@ func ArcSpiral2D(
 	a, k float64, // r = m*theta + b
 	start, end float64, // start/end angle (radians)
 	d float64, // offset distance
-) SDF2 {
+) (SDF2, error) {
 
 	// sanity checking
 	if start == end {
-		panic("start == end")
+		return nil, errors.New("start == end")
 	}
 	if a == 0 {
-		panic("a == 0")
+		return nil, errors.New("a == 0")
 	}
 
 	s := ArcSpiralSDF2{
@@ -100,7 +100,7 @@ func ArcSpiral2D(
 	// bounding box
 	rMax := Max(Abs(s.spiral.radius(start)), Abs(s.spiral.radius(end))) + d
 	s.bb = Box2{V2{-rMax, -rMax}, V2{rMax, rMax}}
-	return &s
+	return &s, nil
 }
 
 // Evaluate returns the minimum distance to a 2d Archimedean spiral.
