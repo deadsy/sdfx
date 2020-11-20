@@ -25,6 +25,9 @@ A simple CAD package written in Go (https://golang.org/)
  * SDFs are hackable to try out oddball ideas.
  * Who needs an interactive GUI?
 
+## Development
+ * ![Roadmap](docs/ROADMAP.md)
+
 ## Gallery
 
 ![wheel](docs/gallery/wheel.png "Pottery Wheel Casting Pattern")
