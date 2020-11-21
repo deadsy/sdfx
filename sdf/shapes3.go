@@ -347,10 +347,7 @@ func Bolt(k *BoltParms) (SDF3, error) {
 	if threadLength != 0 {
 		r := t.Radius - k.Tolerance
 		threadOffset := threadLength/2 + shankLength
-		isoThread, err := ISOThread(r, t.Pitch, "external")
-		if err != nil {
-			return nil, err
-		}
+		isoThread := ISOThread(r, t.Pitch, true)
 		thread = Screw3D(isoThread, threadLength, t.Pitch, 1)
 		// chamfer the thread
 		thread = ChamferedCylinder(thread, 0, 0.5)
@@ -401,10 +398,7 @@ func Nut(k *NutParms) (SDF3, error) {
 	}
 
 	// internal thread
-	isoThread, err := ISOThread(t.Radius+k.Tolerance, t.Pitch, "internal")
-	if err != nil {
-		return nil, err
-	}
+	isoThread := ISOThread(t.Radius+k.Tolerance, t.Pitch, false)
 	thread := Screw3D(isoThread, nh, t.Pitch, 1)
 
 	return Difference3D(nut, thread), nil

@@ -355,16 +355,12 @@ func test36() {
 	RenderSTL(Extrude3D(s_driven, 10), 200, "driven.stl")
 }
 
-func test37() error {
+func test37() {
 	r := 5.0
 	p := 2.0
-	isoThread, err := ISOThread(r, p, "external")
-	if err != nil {
-		return err
-	}
+	isoThread := ISOThread(r, p, true)
 	s := Screw3D(isoThread, 50, p, 1)
 	RenderSTL(s, 400, "screw.stl")
-	return nil
 }
 
 func test39() {

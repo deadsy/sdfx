@@ -205,8 +205,8 @@ func AcmeThread(
 func ISOThread(
 	radius float64, // radius of thread
 	pitch float64, // thread to thread distance
-	mode string, // internal/external thread
-) (SDF2, error) {
+	external bool, // external (or internal) thread
+) SDF2 {
 
 	theta := DtoR(30.0)
 	h := pitch / (2.0 * math.Tan(theta))
@@ -214,7 +214,7 @@ func ISOThread(
 	r0 := rMajor - (7.0/8.0)*h
 
 	iso := NewPolygon()
-	if mode == "external" {
+	if external {
 		rRoot := (pitch / 8.0) / math.Cos(theta)
 		xOfs := (1.0 / 16.0) * pitch
 		iso.Add(pitch, 0)
@@ -225,7 +225,7 @@ func ISOThread(
 		iso.Add(-pitch/2.0, r0).Smooth(rRoot, 5)
 		iso.Add(-pitch, r0+h)
 		iso.Add(-pitch, 0)
-	} else if mode == "internal" {
+	} else {
 		rMinor := r0 + (1.0/4.0)*h
 		rCrest := (pitch / 16.0) / math.Cos(theta)
 		xOfs := (1.0 / 8.0) * pitch
@@ -236,11 +236,9 @@ func ISOThread(
 		iso.Add(-pitch/2+xOfs, rMinor)
 		iso.Add(-pitch, rMinor)
 		iso.Add(-pitch, 0)
-	} else {
-		return nil, fmt.Errorf("bad mode")
 	}
 	//iso.Render("iso.dxf")
-	return Polygon2D(iso.Vertices()), nil
+	return Polygon2D(iso.Vertices())
 }
 
 // ANSIButtressThread returns the 2d profile for an ANSI 45/7 buttress thread.
