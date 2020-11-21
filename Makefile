@@ -45,8 +45,11 @@ all:
 		$(MAKE) -C ./examples/$$dir $@; \
 	done
 
-format:
-	goimports -w .
+test:
+	cd sdf; go test; cd ..
+	for dir in $(DIRS); do \
+		$(MAKE) -C ./examples/$$dir $@; \
+	done
 
 clean:
 	for dir in $(DIRS); do \
