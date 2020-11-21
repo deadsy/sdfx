@@ -8,7 +8,11 @@ Nuts and Bolts
 
 package main
 
-import . "github.com/deadsy/sdfx/sdf"
+import (
+	"log"
+
+	. "github.com/deadsy/sdfx/sdf"
+)
 
 //-----------------------------------------------------------------------------
 
@@ -23,7 +27,7 @@ var base_thickness = 4.0
 
 //-----------------------------------------------------------------------------
 
-func bolt_container() SDF3 {
+func bolt_container() (SDF3, error) {
 
 	// build hex head
 	hex := HexHead3D(hex_radius, hex_height, "tb")
@@ -31,7 +35,11 @@ func bolt_container() SDF3 {
 	// build the screw portion
 	r := screw_radius - tolerance
 	l := screw_length
-	screw := Screw3D(ISOThread(r, thread_pitch, "external"), l, thread_pitch, 1)
+	isoThread, err := ISOThread(r, thread_pitch, "external")
+	if err != nil {
+		return nil, err
+	}
+	screw := Screw3D(isoThread, l, thread_pitch, 1)
 	// chamfer the thread
 	screw = ChamferedCylinder(screw, 0, 0.25)
 	screw = Transform3D(screw, Translate3d(V3{0, 0, l / 2}))
@@ -44,7 +52,7 @@ func bolt_container() SDF3 {
 	cavity := Cylinder3D(l, r, round)
 	cavity = Transform3D(cavity, Translate3d(V3{0, 0, ofs}))
 
-	return Difference3D(Union3D(hex, screw), cavity)
+	return Difference3D(Union3D(hex, screw), cavity), nil
 }
 
 //-----------------------------------------------------------------------------
@@ -56,7 +64,11 @@ func nut_top() SDF3 {
 //-----------------------------------------------------------------------------
 
 func main() {
-	RenderSTL(bolt_container(), 200, "container.stl")
+	bc, err := bolt_container()
+	if err != nil {
+		log.Fatal(err)
+	}
+	RenderSTL(bc, 200, "container.stl")
 }
 
 //-----------------------------------------------------------------------------

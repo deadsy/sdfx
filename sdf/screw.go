@@ -154,16 +154,20 @@ func ThreadLookup(name string) (*ThreadParameters, error) {
 }
 
 // HexRadius returns the hex head radius.
-func (t *ThreadParameters) HexRadius() float64 {
+func (t *ThreadParameters) HexRadius() (float64, error) {
 	if t.HexFlat2Flat < 0 {
-		panic("no hex head flat to flat distance defined for this thread")
+		return 0, fmt.Errorf("no hex head flat to flat distance defined for this thread")
 	}
-	return t.HexFlat2Flat / (2.0 * math.Cos(DtoR(30)))
+	return t.HexFlat2Flat / (2.0 * math.Cos(DtoR(30))), nil
 }
 
 // HexHeight returns the hex head height (empirical).
-func (t *ThreadParameters) HexHeight() float64 {
-	return 2.0 * t.HexRadius() * (5.0 / 12.0)
+func (t *ThreadParameters) HexHeight() (float64, error) {
+	hexRadius, err := t.HexRadius()
+	if err != nil {
+		return 0, err
+	}
+	return 2.0 * hexRadius * (5.0 / 12.0), nil
 }
 
 //-----------------------------------------------------------------------------
@@ -202,7 +206,7 @@ func ISOThread(
 	radius float64, // radius of thread
 	pitch float64, // thread to thread distance
 	mode string, // internal/external thread
-) SDF2 {
+) (SDF2, error) {
 
 	theta := DtoR(30.0)
 	h := pitch / (2.0 * math.Tan(theta))
@@ -233,10 +237,10 @@ func ISOThread(
 		iso.Add(-pitch, rMinor)
 		iso.Add(-pitch, 0)
 	} else {
-		panic("bad mode")
+		return nil, fmt.Errorf("bad mode")
 	}
 	//iso.Render("iso.dxf")
-	return Polygon2D(iso.Vertices())
+	return Polygon2D(iso.Vertices()), nil
 }
 
 // ANSIButtressThread returns the 2d profile for an ANSI 45/7 buttress thread.
