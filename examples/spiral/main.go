@@ -9,8 +9,7 @@ Spirals
 package main
 
 import (
-	"fmt"
-	"os"
+	"log"
 
 	"github.com/deadsy/sdfx/sdf"
 )
@@ -20,11 +19,9 @@ import (
 func main() {
 	s, err := sdf.ArcSpiral2D(1.0, 20.0, 0.25*sdf.Pi, 8*sdf.Tau, 1.0)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: %s\n", err)
-		os.Exit(1)
+		log.Fatalf("error: %s\n", err)
 	}
 	sdf.RenderDXF(s, 400, "spiral.dxf")
-	os.Exit(0)
 }
 
 //-----------------------------------------------------------------------------

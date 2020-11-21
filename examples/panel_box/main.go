@@ -9,8 +9,7 @@ Demonstration for Parametric Box/Case
 package main
 
 import (
-	"fmt"
-	"os"
+	"log"
 
 	"github.com/deadsy/sdfx/sdf"
 )
@@ -46,10 +45,8 @@ func box() error {
 func main() {
 	err := box()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: %s\n", err)
-		os.Exit(1)
+		log.Fatalf("error: %s\n", err)
 	}
-	os.Exit(0)
 }
 
 //-----------------------------------------------------------------------------
