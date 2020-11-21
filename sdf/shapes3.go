@@ -315,14 +315,8 @@ func Bolt(k *BoltParms) (SDF3, error) {
 	// head
 	var head SDF3
 
-	hr, err := t.HexRadius()
-	if err != nil {
-		return nil, err
-	}
-	hh, err := t.HexHeight()
-	if err != nil {
-		return nil, err
-	}
+	hr := t.HexRadius()
+	hh := t.HexHeight()
 	switch k.Style {
 	case "hex":
 		head = HexHead3D(hr, hh, "b")
@@ -380,14 +374,8 @@ func Nut(k *NutParms) (SDF3, error) {
 
 	// nut body
 	var nut SDF3
-	nr, err := t.HexRadius()
-	if err != nil {
-		return nut, err
-	}
-	nh, err := t.HexHeight()
-	if err != nil {
-		return nut, err
-	}
+	nr := t.HexRadius()
+	nh := t.HexHeight()
 	switch k.Style {
 	case "hex":
 		nut = HexHead3D(nr, nh, "tb")
