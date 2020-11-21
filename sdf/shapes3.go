@@ -313,9 +313,16 @@ func Bolt(k *BoltParms) (SDF3, error) {
 	}
 
 	// head
-	hr := t.HexRadius()
-	hh := t.HexHeight()
 	var head SDF3
+
+	hr, err := t.HexRadius()
+	if err != nil {
+		return nil, err
+	}
+	hh, err := t.HexHeight()
+	if err != nil {
+		return nil, err
+	}
 	switch k.Style {
 	case "hex":
 		head = HexHead3D(hr, hh, "b")
@@ -340,7 +347,11 @@ func Bolt(k *BoltParms) (SDF3, error) {
 	if threadLength != 0 {
 		r := t.Radius - k.Tolerance
 		threadOffset := threadLength/2 + shankLength
-		thread = Screw3D(ISOThread(r, t.Pitch, "external"), threadLength, t.Pitch, 1)
+		isoThread, err := ISOThread(r, t.Pitch, "external")
+		if err != nil {
+			return nil, err
+		}
+		thread = Screw3D(isoThread, threadLength, t.Pitch, 1)
 		// chamfer the thread
 		thread = ChamferedCylinder(thread, 0, 0.5)
 		thread = Transform3D(thread, Translate3d(V3{0, 0, threadOffset}))
@@ -372,8 +383,14 @@ func Nut(k *NutParms) (SDF3, error) {
 
 	// nut body
 	var nut SDF3
-	nr := t.HexRadius()
-	nh := t.HexHeight()
+	nr, err := t.HexRadius()
+	if err != nil {
+		return nut, err
+	}
+	nh, err := t.HexHeight()
+	if err != nil {
+		return nut, err
+	}
 	switch k.Style {
 	case "hex":
 		nut = HexHead3D(nr, nh, "tb")
@@ -384,7 +401,11 @@ func Nut(k *NutParms) (SDF3, error) {
 	}
 
 	// internal thread
-	thread := Screw3D(ISOThread(t.Radius+k.Tolerance, t.Pitch, "internal"), nh, t.Pitch, 1)
+	isoThread, err := ISOThread(t.Radius+k.Tolerance, t.Pitch, "internal")
+	if err != nil {
+		return nil, err
+	}
+	thread := Screw3D(isoThread, nh, t.Pitch, 1)
 
 	return Difference3D(nut, thread), nil
 }
