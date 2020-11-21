@@ -8,7 +8,11 @@ Fidget Spinners
 
 package main
 
-import . "github.com/deadsy/sdfx/sdf"
+import (
+	"log"
+
+	. "github.com/deadsy/sdfx/sdf"
+)
 
 //-----------------------------------------------------------------------------
 
@@ -151,7 +155,7 @@ func spincapSingle() SDF3 {
 //-----------------------------------------------------------------------------
 
 // Threaded spincap for double spinners.
-func spincapDouble(mode string) SDF3 {
+func spincapDouble(mode string) (SDF3, error) {
 	r := (bearingInnerID / 2) - clearance
 	threadR := r * 0.8
 	threadPitch := 1.0
@@ -160,18 +164,24 @@ func spincapDouble(mode string) SDF3 {
 
 	if mode == "male" {
 		// Add an external screw thread.
-		t := ISOThread(threadR-threadTolerance, threadPitch, "external")
+		t, err := ISOThread(threadR-threadTolerance, threadPitch, "external")
+		if err != nil {
+			return nil, err
+		}
 		screw := Screw3D(t, bearingThickness, threadPitch, 1)
 		screw = ChamferedCylinder(screw, 0, 0.5)
 		screw = Transform3D(screw, Translate3d(V3{0, 0, 1.5 * l}))
-		return Union3D(spincap(r, l+0.5), screw)
+		return Union3D(spincap(r, l+0.5), screw), nil
 
 	} else if mode == "female" {
 		// Add an internal screw thread.
-		t := ISOThread(threadR, threadPitch, "internal")
+		t, err := ISOThread(threadR, threadPitch, "internal")
+		if err != nil {
+			return nil, err
+		}
 		screw := Screw3D(t, bearingThickness, threadPitch, 1)
 		screw = Transform3D(screw, Translate3d(V3{0, 0, l * 0.5}))
-		return Difference3D(spincap(r, l-0.5), screw)
+		return Difference3D(spincap(r, l-0.5), screw), nil
 	}
 
 	panic("bad mode")
@@ -193,8 +203,16 @@ func main() {
 	RenderSTL(body1(), 300, "body1.stl")
 	RenderSTL(body2(), 300, "body2.stl")
 	RenderSTL(spincapSingle(), 150, "cap_single.stl")
-	RenderSTL(spincapDouble("male"), 150, "cap_double_male.stl")
-	RenderSTL(spincapDouble("female"), 150, "cap_double_female.stl")
+	sdm, err := spincapDouble("male")
+	if err != nil {
+		log.Fatal(err)
+	}
+	RenderSTL(sdm, 150, "cap_double_male.stl")
+	sdf, err := spincapDouble("female")
+	if err != nil {
+		log.Fatal(err)
+	}
+	RenderSTL(sdf, 150, "cap_double_female.stl")
 	RenderSTL(spincapWasher(), 150, "washer.stl")
 }
 
