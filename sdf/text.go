@@ -45,7 +45,7 @@ func pToV2(p truetype.Point) V2 {
 //-----------------------------------------------------------------------------
 
 // glyphCurve returns the SDF2 for the n-th curve of the glyph
-func glyphCurve(g *truetype.GlyphBuf, n int) (SDF2, bool) {
+func glyphCurve(g *truetype.GlyphBuf, n int) (SDF2, bool, error) {
 	// get the start and end point
 	start := 0
 	if n != 0 {
@@ -83,21 +83,28 @@ func glyphCurve(g *truetype.GlyphBuf, n int) (SDF2, bool) {
 	}
 	b.Close()
 
-	return Polygon2D(b.Polygon().Vertices()), sum > 0
+	p, err := b.Polygon()
+	if err != nil {
+		return nil, false, err
+	}
+	return Polygon2D(p.Vertices()), sum > 0, nil
 }
 
 // glyphConvert returns the SDF2 for a glyph
-func glyphConvert(g *truetype.GlyphBuf) SDF2 {
+func glyphConvert(g *truetype.GlyphBuf) (SDF2, error) {
 	var s0 SDF2
 	for n := 0; n < len(g.Ends); n++ {
-		s1, cw := glyphCurve(g, n)
+		s1, cw, err := glyphCurve(g, n)
+		if err != nil {
+			return nil, err
+		}
 		if cw {
 			s0 = Union2D(s0, s1)
 		} else {
 			s0 = Difference2D(s0, s1)
 		}
 	}
-	return s0
+	return s0, nil
 }
 
 //-----------------------------------------------------------------------------
@@ -128,7 +135,10 @@ func lineSDF2(f *truetype.Font, l string) ([]SDF2, float64, error) {
 			return nil, 0, err
 		}
 
-		s := glyphConvert(g)
+		s, err := glyphConvert(g)
+		if err != nil {
+			return nil, 0, err
+		}
 		if s != nil {
 			s = Transform2D(s, Translate2d(V2{xOfs, 0}))
 			ss = append(ss, s)

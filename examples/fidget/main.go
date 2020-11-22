@@ -63,7 +63,8 @@ func flower(n int, r0, r1, r2 float64) sdf.SDF2 {
 	}
 
 	b.Close()
-	return sdf.Polygon2D(b.Polygon().Vertices())
+	p, _ := b.Polygon()
+	return sdf.Polygon2D(p.Vertices())
 }
 
 func body1() sdf.SDF3 {

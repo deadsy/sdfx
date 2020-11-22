@@ -8,62 +8,78 @@ Solids built with Bezier Curves
 
 package main
 
-import . "github.com/deadsy/sdfx/sdf"
+import (
+	"log"
+
+	"github.com/deadsy/sdfx/sdf"
+)
 
 //-----------------------------------------------------------------------------
 
-func bowling_pin() {
-	b := NewBezier()
+func bowlingPin() error {
+	b := sdf.NewBezier()
 	b.Add(0, 0)
-	b.Add(2.031/2.0, 0).HandleFwd(DtoR(45), 2)
-	b.Add(4.766/2.0, 4.5).Handle(DtoR(90), 2, 2)
-	b.Add(1.797/2.0, 10).Handle(DtoR(90), 3, 3)
-	b.Add(2.547/2.0, 13.5).Handle(DtoR(90), 1, 1)
-	b.Add(0, 15).HandleRev(DtoR(0), 1)
+	b.Add(2.031/2.0, 0).HandleFwd(sdf.DtoR(45), 2)
+	b.Add(4.766/2.0, 4.5).Handle(sdf.DtoR(90), 2, 2)
+	b.Add(1.797/2.0, 10).Handle(sdf.DtoR(90), 3, 3)
+	b.Add(2.547/2.0, 13.5).Handle(sdf.DtoR(90), 1, 1)
+	b.Add(0, 15).HandleRev(sdf.DtoR(0), 1)
 	b.Close()
 
-	p := b.Polygon()
-	s0 := Polygon2D(p.Vertices())
-	s1 := Revolve3D(s0)
-	RenderSTL(s1, 300, "bowlingpin.stl")
+	p, err := b.Polygon()
+	if err != nil {
+		return err
+	}
+	s0 := sdf.Polygon2D(p.Vertices())
+	s1 := sdf.Revolve3D(s0)
+	sdf.RenderSTL(s1, 300, "bowlingpin.stl")
+	return nil
 }
 
 //-----------------------------------------------------------------------------
 
-func egg1() {
-	b := NewBezier()
-	b.Add(0, 0).HandleFwd(DtoR(0), 10)
-	b.Add(0, 16).HandleRev(DtoR(0), 5)
+func egg1() error {
+	b := sdf.NewBezier()
+	b.Add(0, 0).HandleFwd(sdf.DtoR(0), 10)
+	b.Add(0, 16).HandleRev(sdf.DtoR(0), 5)
 	b.Close()
 
-	p := b.Polygon()
-	s0 := Polygon2D(p.Vertices())
-	s1 := Revolve3D(s0)
-	RenderSTL(s1, 300, "egg1.stl")
+	p, err := b.Polygon()
+	if err != nil {
+		return err
+	}
+	s0 := sdf.Polygon2D(p.Vertices())
+	s1 := sdf.Revolve3D(s0)
+	sdf.RenderSTL(s1, 300, "egg1.stl")
+	return nil
 }
 
 //-----------------------------------------------------------------------------
 
-func egg2() {
+func egg2() error {
 	h := 8.0
 	r := 2.5
 
-	b := NewBezier()
-	b.Add(0, 0).HandleFwd(DtoR(0), r/2)
-	b.Add(r, 0.4*h).Handle(DtoR(90), 0.7*r, 0.7*r)
-	b.Add(0, h).HandleRev(DtoR(0), r/3)
+	b := sdf.NewBezier()
+	b.Add(0, 0).HandleFwd(sdf.DtoR(0), r/2)
+	b.Add(r, 0.4*h).Handle(sdf.DtoR(90), 0.7*r, 0.7*r)
+	b.Add(0, h).HandleRev(sdf.DtoR(0), r/3)
 	b.Close()
 
-	p := b.Polygon()
-	s0 := Polygon2D(p.Vertices())
-	s1 := Revolve3D(s0)
-	RenderSTL(s1, 300, "egg2.stl")
+	p, err := b.Polygon()
+	if err != nil {
+		return err
+	}
+	s0 := sdf.Polygon2D(p.Vertices())
+	s1 := sdf.Revolve3D(s0)
+	sdf.RenderSTL(s1, 300, "egg2.stl")
+	return nil
 }
 
 //-----------------------------------------------------------------------------
 
-func bowl() {
-	b := NewBezier()
+func bowl() error {
+	b := sdf.NewBezier()
 	b.Add(1.428570, 0.000000)
 	b.Add(194.311790, 1.616000).Mid()
 	b.Add(424.623890, -2.388090).Mid()
@@ -94,16 +110,20 @@ func bowl() {
 	b.Add(0.000000, 101.890120)
 	b.Close()
 
-	p := b.Polygon()
-	s0 := Polygon2D(p.Vertices())
-	s1 := RevolveTheta3D(s0, DtoR(270))
-	RenderSTL(s1, 300, "bowl.stl")
+	p, err := b.Polygon()
+	if err != nil {
+		return err
+	}
+	s0 := sdf.Polygon2D(p.Vertices())
+	s1 := sdf.RevolveTheta3D(s0, sdf.DtoR(270))
+	sdf.RenderSTL(s1, 300, "bowl.stl")
+	return nil
 }
 
 //-----------------------------------------------------------------------------
 
-func vase() {
-	b := NewBezier()
+func vase() error {
+	b := sdf.NewBezier()
 	b.Add(0.357140, 0.000000)
 	b.Add(286.591374, 0.000000)
 	b.Add(286.591374, 0.000000).Mid()
@@ -132,16 +152,20 @@ func vase() {
 	b.Add(0.000000, 98.928570)
 	b.Close()
 
-	p := b.Polygon()
-	s0 := Polygon2D(p.Vertices())
-	s1 := Revolve3D(s0)
-	RenderSTL(s1, 300, "vase.stl")
+	p, err := b.Polygon()
+	if err != nil {
+		return err
+	}
+	s0 := sdf.Polygon2D(p.Vertices())
+	s1 := sdf.Revolve3D(s0)
+	sdf.RenderSTL(s1, 300, "vase.stl")
+	return nil
 }
 
 //-----------------------------------------------------------------------------
 
-func shape() {
-	b := NewBezier()
+func shape() error {
+	b := sdf.NewBezier()
 	b.Add(-788.571430, 666.647920)
 	b.Add(-788.785400, 813.701340).Mid()
 	b.Add(-759.449240, 1023.568700).Mid()
@@ -180,9 +204,13 @@ func shape() {
 	b.Add(-788.357460, 519.594510).Mid()
 	b.Add(-788.571430, 666.647920)
 	b.Close()
-	s0 := Polygon2D(b.Polygon().Vertices())
+	p, err := b.Polygon()
+	if err != nil {
+		return err
+	}
+	s0 := sdf.Polygon2D(p.Vertices())
 
-	b = NewBezier()
+	b = sdf.NewBezier()
 	b.Add(37.142857, 663.790780)
 	b.Add(-26.199008, 711.618410).Mid()
 	b.Add(-3.917606, 881.472120).Mid()
@@ -197,9 +225,13 @@ func shape() {
 	b.Add(100.484720, 615.963150).Mid()
 	b.Add(37.142857, 663.790780)
 	b.Close()
-	s1 := Polygon2D(b.Polygon().Vertices())
+	p, err = b.Polygon()
+	if err != nil {
+		return err
+	}
+	s1 := sdf.Polygon2D(p.Vertices())
 
-	b = NewBezier()
+	b = sdf.NewBezier()
 	b.Add(105.714290, -381.923510)
 	b.Add(72.682777, -314.172080).Mid()
 	b.Add(-4.286470, -63.657320).Mid()
@@ -214,9 +246,13 @@ func shape() {
 	b.Add(138.745800, -449.674940).Mid()
 	b.Add(105.714290, -381.923510)
 	b.Close()
-	s2 := Polygon2D(b.Polygon().Vertices())
+	p, err = b.Polygon()
+	if err != nil {
+		return err
+	}
+	s2 := sdf.Polygon2D(p.Vertices())
 
-	b = NewBezier()
+	b = sdf.NewBezier()
 	b.Add(-668.571430, -247.637800)
 	b.Add(-682.865090, -172.496010).Mid()
 	b.Add(-553.303000, -108.477610).Mid()
@@ -231,9 +267,13 @@ func shape() {
 	b.Add(-654.277770, -322.779580).Mid()
 	b.Add(-668.571430, -247.637800)
 	b.Close()
-	s3 := Polygon2D(b.Polygon().Vertices())
+	p, err = b.Polygon()
+	if err != nil {
+		return err
+	}
+	s3 := sdf.Polygon2D(p.Vertices())
 
-	b = NewBezier()
+	b = sdf.NewBezier()
 	b.Add(-697.142850, 569.505060)
 	b.Add(-746.320070, 637.664520).Mid()
 	b.Add(-737.208530, 704.563220).Mid()
@@ -248,9 +288,13 @@ func shape() {
 	b.Add(-647.965630, 501.345600).Mid()
 	b.Add(-697.142850, 569.505060)
 	b.Close()
-	s4 := Polygon2D(b.Polygon().Vertices())
+	p, err = b.Polygon()
+	if err != nil {
+		return err
+	}
+	s4 := sdf.Polygon2D(p.Vertices())
 
-	b = NewBezier()
+	b = sdf.NewBezier()
 	b.Add(-288.571430, 106.647920)
 	b.Add(-337.549290, 162.917530).Mid()
 	b.Add(-355.864180, 274.511310).Mid()
@@ -265,22 +309,45 @@ func shape() {
 	b.Add(-239.593570, 50.378315).Mid()
 	b.Add(-288.571430, 106.647920)
 	b.Close()
-	s5 := Polygon2D(b.Polygon().Vertices())
+	p, err = b.Polygon()
+	if err != nil {
+		return err
+	}
+	s5 := sdf.Polygon2D(p.Vertices())
 
-	s2d := Difference2D(s0, Union2D(s1, s2, s3, s4, s5))
-	s3d, _ := ExtrudeRounded3D(s2d, 200, 20)
-	RenderSTL(s3d, 300, "shape.stl")
+	s2d := sdf.Difference2D(s0, sdf.Union2D(s1, s2, s3, s4, s5))
+	s3d, _ := sdf.ExtrudeRounded3D(s2d, 200, 20)
+	sdf.RenderSTL(s3d, 300, "shape.stl")
+	return nil
 }
 
 //-----------------------------------------------------------------------------
 
 func main() {
-	bowling_pin()
-	bowl()
-	vase()
-	egg1()
-	egg2()
-	shape()
+	err := bowlingPin()
+	if err != nil {
+		log.Fatalf("error: %s\n", err)
+	}
+	err = bowl()
+	if err != nil {
+		log.Fatalf("error: %s\n", err)
+	}
+	err = vase()
+	if err != nil {
+		log.Fatalf("error: %s\n", err)
+	}
+	err = egg1()
+	if err != nil {
+		log.Fatalf("error: %s\n", err)
+	}
+	err = egg2()
+	if err != nil {
+		log.Fatalf("error: %s\n", err)
+	}
+	err = shape()
+	if err != nil {
+		log.Fatalf("error: %s\n", err)
+	}
 }
 
 //-----------------------------------------------------------------------------
