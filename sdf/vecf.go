@@ -51,6 +51,16 @@ func (a V2) Equals(b V2, tolerance float64) bool {
 		Abs(a.Y-b.Y) <= tolerance)
 }
 
+// LessThanZero returns true if any vector components are < 0.
+func (a V3) LessThanZero() bool {
+	return (a.X < 0) || (a.Y < 0) || (a.Z < 0)
+}
+
+// LessThanZero returns true if any vector components are < 0.
+func (a V2) LessThanZero() bool {
+	return (a.X < 0) || (a.Y < 0)
+}
+
 //-----------------------------------------------------------------------------
 
 // randomRange returns a random float64 [a,b)

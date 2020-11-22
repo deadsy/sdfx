@@ -46,7 +46,7 @@ func cylinderBase() sdf.SDF3 {
 		BaseRadius:  round,
 		RoundRadius: round * 1.5,
 	}
-	base0 := sdf.TruncRectPyramid3D(&k)
+	base0, _ := sdf.TruncRectPyramid3D(&k)
 	base1 := sdf.Transform3D(base0, sdf.MirrorXY())
 	base := sdf.Union3D(base0, base1)
 	base = sdf.Cut3D(base, sdf.V3{0, 0, 0}, sdf.V3{0, 1, 0})

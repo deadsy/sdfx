@@ -93,8 +93,8 @@ func KnurledHead3D(
 
 //-----------------------------------------------------------------------------
 
-// KnurlProfile returns a 2D knurl profile.
-func KnurlProfile(
+// knurlProfile returns a 2D knurl profile.
+func knurlProfile(
 	radius float64, // radius of knurled cylinder
 	pitch float64, // pitch of the knurl
 	height float64, // height of the knurl
@@ -122,7 +122,7 @@ func Knurl3D(
 	// the desired helix angle.
 	n := int(Tau * radius * math.Tan(theta) / pitch)
 	// build the knurl profile.
-	knurl2d := KnurlProfile(radius, pitch, height)
+	knurl2d := knurlProfile(radius, pitch, height)
 	// create the left/right hand spirals
 	knurl0_3d := Screw3D(knurl2d, length, pitch, n)
 	knurl1_3d := Screw3D(knurl2d, length, pitch, -n)
@@ -141,15 +141,15 @@ type WasherParms struct {
 
 // Washer3D returns a washer.
 // This is also used to create circular walls.
-func Washer3D(k *WasherParms) SDF3 {
+func Washer3D(k *WasherParms) (SDF3, error) {
 	if k.Thickness <= 0 {
-		panic("Thickness <= 0")
+		return nil, errors.New("Thickness <= 0")
 	}
 	if k.InnerRadius >= k.OuterRadius {
-		panic("InnerRadius >= OuterRadius")
+		return nil, errors.New("InnerRadius >= OuterRadius")
 	}
 	if k.Remove < 0 || k.Remove >= 1.0 {
-		panic("Remove must be [0..1)")
+		return nil, errors.New("Remove must be [0..1)")
 	}
 
 	var s SDF3
@@ -172,7 +172,7 @@ func Washer3D(k *WasherParms) SDF3 {
 		dtheta := 0.5 * (Tau - theta)
 		s = Transform3D(s, RotateZ(dtheta))
 	}
-	return s
+	return s, nil
 }
 
 //-----------------------------------------------------------------------------
@@ -254,7 +254,19 @@ type TruncRectPyramidParms struct {
 }
 
 // TruncRectPyramid3D returns a truncated rectangular pyramid with rounded edges.
-func TruncRectPyramid3D(k *TruncRectPyramidParms) SDF3 {
+func TruncRectPyramid3D(k *TruncRectPyramidParms) (SDF3, error) {
+	if k.Size.LessThanZero() {
+		return nil, errors.New("size vector components < 0")
+	}
+	if k.BaseAngle <= 0 || k.BaseAngle > DtoR(90) {
+		return nil, errors.New("base angle must be (0,90] degrees")
+	}
+	if k.BaseRadius < 0 {
+		return nil, errors.New("base radius < 0")
+	}
+	if k.RoundRadius < 0 {
+		return nil, errors.New("round radius < 0")
+	}
 	h := k.Size.Z
 	dr := h / math.Tan(k.BaseAngle)
 	rb := k.BaseRadius + dr
@@ -265,7 +277,7 @@ func TruncRectPyramid3D(k *TruncRectPyramidParms) SDF3 {
 	wy := Max(k.Size.Y-2.0*k.BaseRadius, 0)
 	s = Elongate3D(s, V3{wx, wy, 0})
 	s = Cut3D(s, V3{0, 0, 0}, V3{0, 0, 1})
-	return s
+	return s, nil
 }
 
 //-----------------------------------------------------------------------------

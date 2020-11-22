@@ -524,7 +524,8 @@ func test50() {
 		OuterRadius: 50,
 		Remove:      0.3,
 	}
-	RenderSTL(Washer3D(&k), 300, "test.stl")
+	s, _ := Washer3D(&k)
+	RenderSTL(s, 300, "test.stl")
 }
 
 func main() {

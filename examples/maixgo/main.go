@@ -96,7 +96,7 @@ func speakerHolder(d float64, ofs V2) SDF3 {
 		OuterRadius: 0.5 * (d + 4.0),
 		Remove:      0.3,
 	}
-	s := Washer3D(&k)
+	s, _ := Washer3D(&k)
 	s = Transform3D(s, RotateZ(Pi))
 	return Transform3D(s, Translate3d(V3{ofs.X, ofs.Y, zOfs}))
 }

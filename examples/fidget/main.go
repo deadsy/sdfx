@@ -183,7 +183,8 @@ func spincapWasher() sdf.SDF3 {
 		InnerRadius: (bearingInnerID / 2) * 1.05,
 		OuterRadius: (bearingOuterOD + bearingInnerID) / 4,
 	}
-	return sdf.Washer3D(&k)
+	s, _ := sdf.Washer3D(&k)
+	return s
 }
 
 //-----------------------------------------------------------------------------

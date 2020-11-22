@@ -40,7 +40,7 @@ func mountLugs() sdf.SDF3 {
 		RoundRadius: crankcaseOuterHeight * 0.1,
 	}
 
-	s := sdf.TruncRectPyramid3D(&k)
+	s, _ := sdf.TruncRectPyramid3D(&k)
 	return sdf.Transform3D(s, sdf.Translate3d(sdf.V3{0, thickness * 0.5, 0}))
 }
 
@@ -56,7 +56,7 @@ func cylinderMount() sdf.SDF3 {
 		RoundRadius: crankcaseOuterHeight * 0.1,
 	}
 
-	s := sdf.TruncRectPyramid3D(&k)
+	s, _ := sdf.TruncRectPyramid3D(&k)
 	return sdf.Transform3D(s, sdf.Translate3d(sdf.V3{0, crankcaseInnerRadius, 0}))
 }
 
@@ -73,7 +73,7 @@ func boltLugs() sdf.SDF3 {
 		BaseRadius:  boltLugRadius,
 		RoundRadius: crankcaseOuterHeight * 0.1,
 	}
-	lug := sdf.TruncRectPyramid3D(&k)
+	lug, _ := sdf.TruncRectPyramid3D(&k)
 
 	// position the lugs
 	r := crankcaseOuterRadius
@@ -102,8 +102,7 @@ func basePattern() sdf.SDF3 {
 		BaseRadius:  crankcaseOuterRadius,
 		RoundRadius: crankcaseOuterHeight * 0.1,
 	}
-
-	body := sdf.TruncRectPyramid3D(&k)
+	body, _ := sdf.TruncRectPyramid3D(&k)
 
 	// add the bolt/mount lugs to the body with filleting
 	s := sdf.Union3D(body, boltLugs(), mountLugs())
