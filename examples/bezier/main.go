@@ -268,7 +268,7 @@ func shape() {
 	s5 := Polygon2D(b.Polygon().Vertices())
 
 	s2d := Difference2D(s0, Union2D(s1, s2, s3, s4, s5))
-	s3d := ExtrudeRounded3D(s2d, 200, 20)
+	s3d, _ := ExtrudeRounded3D(s2d, 200, 20)
 	RenderSTL(s3d, 300, "shape.stl")
 }
 

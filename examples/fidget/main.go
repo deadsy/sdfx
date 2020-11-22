@@ -77,7 +77,7 @@ func body1() sdf.SDF3 {
 	r2 := r + 4.0
 
 	// body
-	s1 := sdf.ExtrudeRounded3D(flower(n, r0, r1, r2), t, t/4.0)
+	s1, _ := sdf.ExtrudeRounded3D(flower(n, r0, r1, r2), t, t/4.0)
 	// periphery holes
 	s2 := sdf.MakeBoltCircle3D(t, r+clearance, r1, n)
 	// center hole

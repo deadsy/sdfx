@@ -9,7 +9,7 @@ Cams
 package sdf
 
 import (
-	"fmt"
+	"errors"
 	"math"
 )
 
@@ -36,7 +36,7 @@ func FlatFlankCam2D(
 	distance float64, // circle to circle center distance
 	baseRadius float64, // radius of base circle
 	noseRadius float64, // radius of nose circle
-) SDF2 {
+) (SDF2, error) {
 	s := FlatFlankCamSDF2{}
 	s.distance = distance
 	s.baseRadius = baseRadius
@@ -54,7 +54,7 @@ func FlatFlankCam2D(
 	s.l = u.Length()
 	// work out the bounding box
 	s.bb = Box2{V2{-baseRadius, -baseRadius}, V2{baseRadius, distance + noseRadius}}
-	return &s
+	return &s, nil
 }
 
 // Evaluate returns the minimum distance to the cam.
@@ -92,28 +92,28 @@ func MakeFlatFlankCam(
 ) (SDF2, error) {
 
 	if maxDiameter <= 0 {
-		return nil, fmt.Errorf("maxDiameter <= 0")
+		return nil, errors.New("maxDiameter <= 0")
 	}
 	if lift <= 0 {
-		return nil, fmt.Errorf("lift <= 0")
+		return nil, errors.New("lift <= 0")
 	}
 	if duration <= 0 || duration >= Pi {
-		return nil, fmt.Errorf("invalid duration")
+		return nil, errors.New("invalid duration")
 	}
 
 	baseRadius := (maxDiameter / 2.0) - lift
 	if baseRadius <= 0 {
-		return nil, fmt.Errorf("baseRadius <= 0")
+		return nil, errors.New("baseRadius <= 0")
 	}
 
 	delta := duration / 2.0
 	c := math.Cos(delta)
 	noseRadius := baseRadius - (lift*c)/(1-c)
 	if noseRadius <= 0 {
-		return nil, fmt.Errorf("noseRadius <= 0")
+		return nil, errors.New("noseRadius <= 0")
 	}
 	distance := baseRadius + lift - noseRadius
-	return FlatFlankCam2D(distance, baseRadius, noseRadius), nil
+	return FlatFlankCam2D(distance, baseRadius, noseRadius)
 }
 
 //-----------------------------------------------------------------------------
@@ -142,10 +142,10 @@ func ThreeArcCam2D(
 	baseRadius float64, // radius of base circle
 	noseRadius float64, // radius of nose circle
 	flankRadius float64, // radius of flank arc
-) SDF2 {
+) (SDF2, error) {
 	// check for the minimum size flank radius
 	if flankRadius < (baseRadius+distance+noseRadius)/2.0 {
-		panic("flankRadius too small")
+		return nil, errors.New("flankRadius too small")
 	}
 	s := ThreeArcCamSDF2{}
 	s.distance = distance
@@ -169,7 +169,7 @@ func ThreeArcCam2D(
 	// work out the bounding box
 	// TODO fix this - it's wrong if the flank radius is small
 	s.bb = Box2{V2{-baseRadius, -baseRadius}, V2{baseRadius, distance + noseRadius}}
-	return &s
+	return &s, nil
 }
 
 // Evaluate returns the minimum distance to the cam.
@@ -208,21 +208,21 @@ func MakeThreeArcCam(
 ) (SDF2, error) {
 
 	if maxDiameter <= 0 {
-		return nil, fmt.Errorf("maxDiameter <= 0")
+		return nil, errors.New("maxDiameter <= 0")
 	}
 	if lift <= 0 {
-		return nil, fmt.Errorf("lift <= 0")
+		return nil, errors.New("lift <= 0")
 	}
 	if duration <= 0 {
-		return nil, fmt.Errorf("invalid duration")
+		return nil, errors.New("invalid duration")
 	}
 	if k <= 1.0 {
-		return nil, fmt.Errorf("invalid k")
+		return nil, errors.New("invalid k")
 	}
 
 	baseRadius := (maxDiameter / 2.0) - lift
 	if baseRadius <= 0 {
-		return nil, fmt.Errorf("baseRadius <= 0")
+		return nil, errors.New("baseRadius <= 0")
 	}
 
 	// Given the duration we know where the flank arc intersects the base circle.
@@ -255,7 +255,7 @@ func MakeThreeArcCam(
 
 	// distance between base and nose circles
 	distance := baseRadius + lift - noseRadius
-	return ThreeArcCam2D(distance, baseRadius, noseRadius, flankRadius), nil
+	return ThreeArcCam2D(distance, baseRadius, noseRadius, flankRadius)
 }
 
 //-----------------------------------------------------------------------------
@@ -271,19 +271,19 @@ func MakeGenevaCam(
 ) (SDF2, SDF2, error) {
 
 	if numSectors < 2 {
-		return nil, nil, fmt.Errorf("invalid number of sectors, must be > 2")
+		return nil, nil, errors.New("invalid number of sectors, must be > 2")
 	}
 	if centerDistance <= 0 ||
 		drivenRadius <= 0 ||
 		driverRadius <= 0 ||
 		pinRadius <= 0 {
-		return nil, nil, fmt.Errorf("invalid dimensions, must be > 0")
+		return nil, nil, errors.New("invalid dimensions, must be > 0")
 	}
 	if clearance < 0 {
-		return nil, nil, fmt.Errorf("invalid clearance, must be >= 0")
+		return nil, nil, errors.New("invalid clearance, must be >= 0")
 	}
 	if centerDistance > drivenRadius+driverRadius {
-		return nil, nil, fmt.Errorf("center distance is too large")
+		return nil, nil, errors.New("center distance is too large")
 	}
 
 	// work out the pin offset from the center of the driver wheel

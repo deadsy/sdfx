@@ -52,7 +52,7 @@ func finial2() {
 	s0 := square2(base)
 	s1 := Circle2D(column_radius)
 
-	column_3d := Loft3D(s0, s1, column_height, 0)
+	column_3d, _ := Loft3D(s0, s1, column_height, 0)
 	column_3d = Transform3D(column_3d, Translate3d(V3{0, 0, column_ofs}))
 
 	ball_3d := Sphere3D(ball_radius)
@@ -81,7 +81,7 @@ func finial1() {
 	s0 := Polygon2D(Nagon(4, base*math.Sqrt(0.5)))
 	s1 := Circle2D(column_radius)
 
-	column_3d := Loft3D(s0, s1, column_height, 0)
+	column_3d, _ := Loft3D(s0, s1, column_height, 0)
 	column_3d = Transform3D(column_3d, Translate3d(V3{0, 0, column_ofs}))
 
 	ball_3d := Sphere3D(ball_radius)

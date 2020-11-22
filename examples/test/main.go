@@ -321,7 +321,7 @@ func test32() {
 }
 
 func test33() {
-	s0 := ThreeArcCam2D(30, 20, 5, 50000)
+	s0, _ := ThreeArcCam2D(30, 20, 5, 50000)
 	fmt.Printf("%+v\n", s0)
 	s1 := Extrude3D(s0, 4)
 	RenderSTL(s1, 200, "test.stl")
@@ -400,7 +400,7 @@ func test42() {
 func test43() {
 	s0 := Line2D(10, 3)
 	s0 = Cut2D(s0, V2{4, 0}, V2{1, 1})
-	s1 := ExtrudeRounded3D(s0, 4, 1)
+	s1, _ := ExtrudeRounded3D(s0, 4, 1)
 	RenderSTL(s1, 300, "test.stl")
 }
 
@@ -408,7 +408,7 @@ func test44() {
 	r := 100.0
 	s0 := Polygon2D(Nagon(5, r))
 	s1 := Circle2D(r / 2)
-	s2 := Loft3D(s1, s0, 200.0, 20.0)
+	s2, _ := Loft3D(s1, s0, 200.0, 20.0)
 	RenderSTL(s2, 300, "test.stl")
 }
 

@@ -9,6 +9,7 @@
 package sdf
 
 import (
+	"errors"
 	"math"
 )
 
@@ -223,23 +224,33 @@ type ExtrudeRoundedSDF3 struct {
 	bb     Box3
 }
 
-// ExtrudeRounded3D does a linear extrude ao SDF2 with rounded edges.
-func ExtrudeRounded3D(sdf SDF2, height, round float64) SDF3 {
-	if round == 0.0 {
+// ExtrudeRounded3D extrudes an SDF2 to an SDF3 with rounded edges.
+func ExtrudeRounded3D(sdf SDF2, height, round float64) (SDF3, error) {
+	if round == 0 {
 		// revert to non-rounded case
-		return Extrude3D(sdf, height)
+		return Extrude3D(sdf, height), nil
 	}
-	s := ExtrudeRoundedSDF3{}
-	s.sdf = sdf
-	s.height = (height / 2) - round
-	if s.height < 0 {
-		panic("height < 2 * round")
+	if sdf == nil {
+		return nil, errors.New("sdf == nil")
 	}
-	s.round = round
+	if height <= 0 {
+		return nil, errors.New("height <= 0")
+	}
+	if round < 0 {
+		return nil, errors.New("round < 0")
+	}
+	if height < 2*round {
+		return nil, errors.New("height < 2 * round")
+	}
+	s := ExtrudeRoundedSDF3{
+		sdf:    sdf,
+		height: (height / 2) - round,
+		round:  round,
+	}
 	// work out the bounding box
 	bb := sdf.BoundingBox()
 	s.bb = Box3{V3{bb.Min.X, bb.Min.Y, -s.height}.SubScalar(round), V3{bb.Max.X, bb.Max.Y, s.height}.AddScalar(round)}
-	return &s
+	return &s, nil
 }
 
 // Evaluate returns the minimum distance to a rounded extrusion.
@@ -288,22 +299,34 @@ type LoftSDF3 struct {
 }
 
 // Loft3D extrudes an SDF3 that transitions between two SDF2 shapes.
-func Loft3D(sdf0, sdf1 SDF2, height, round float64) SDF3 {
+func Loft3D(sdf0, sdf1 SDF2, height, round float64) (SDF3, error) {
+	if sdf0 == nil {
+		return nil, errors.New("sdf0 == nil")
+	}
+	if sdf1 == nil {
+		return nil, errors.New("sdf1 == nil")
+	}
+	if height <= 0 {
+		return nil, errors.New("height <= 0")
+	}
+	if round < 0 {
+		return nil, errors.New("round < 0")
+	}
+	if height < 2*round {
+		return nil, errors.New("height < 2 * round")
+	}
 	s := LoftSDF3{
 		sdf0:   sdf0,
 		sdf1:   sdf1,
 		height: (height / 2) - round,
 		round:  round,
 	}
-	if s.height < 0 {
-		panic("height < 2 * round")
-	}
 	// work out the bounding box
 	bb0 := sdf0.BoundingBox()
 	bb1 := sdf1.BoundingBox()
 	bb := bb0.Extend(bb1)
 	s.bb = Box3{V3{bb.Min.X, bb.Min.Y, -s.height}.SubScalar(round), V3{bb.Max.X, bb.Max.Y, s.height}.AddScalar(round)}
-	return &s
+	return &s, nil
 }
 
 // Evaluate returns the minimum distance to a loft extrusion.
