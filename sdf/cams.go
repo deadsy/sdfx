@@ -142,10 +142,10 @@ func ThreeArcCam2D(
 	baseRadius float64, // radius of base circle
 	noseRadius float64, // radius of nose circle
 	flankRadius float64, // radius of flank arc
-) SDF2 {
+) (SDF2, error) {
 	// check for the minimum size flank radius
 	if flankRadius < (baseRadius+distance+noseRadius)/2.0 {
-		panic("flankRadius too small")
+		return nil, fmt.Errorf("flankRadius too small")
 	}
 	s := ThreeArcCamSDF2{}
 	s.distance = distance
@@ -169,7 +169,7 @@ func ThreeArcCam2D(
 	// work out the bounding box
 	// TODO fix this - it's wrong if the flank radius is small
 	s.bb = Box2{V2{-baseRadius, -baseRadius}, V2{baseRadius, distance + noseRadius}}
-	return &s
+	return &s, nil
 }
 
 // Evaluate returns the minimum distance to the cam.
@@ -255,7 +255,11 @@ func MakeThreeArcCam(
 
 	// distance between base and nose circles
 	distance := baseRadius + lift - noseRadius
-	return ThreeArcCam2D(distance, baseRadius, noseRadius, flankRadius), nil
+	tac2d, err := ThreeArcCam2D(distance, baseRadius, noseRadius, flankRadius)
+	if err != nil {
+		return nil, err
+	}
+	return tac2d, nil
 }
 
 //-----------------------------------------------------------------------------

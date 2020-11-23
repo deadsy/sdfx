@@ -141,15 +141,15 @@ type WasherParms struct {
 
 // Washer3D returns a washer.
 // This is also used to create circular walls.
-func Washer3D(k *WasherParms) SDF3 {
+func Washer3D(k *WasherParms) (SDF3, error) {
 	if k.Thickness <= 0 {
-		panic("Thickness <= 0")
+		return nil, fmt.Errorf("Thickness <= 0")
 	}
 	if k.InnerRadius >= k.OuterRadius {
-		panic("InnerRadius >= OuterRadius")
+		return nil, fmt.Errorf("InnerRadius >= OuterRadius")
 	}
 	if k.Remove < 0 || k.Remove >= 1.0 {
-		panic("Remove must be [0..1)")
+		return nil, fmt.Errorf("Remove must be [0..1)")
 	}
 
 	var s SDF3
@@ -172,7 +172,7 @@ func Washer3D(k *WasherParms) SDF3 {
 		dtheta := 0.5 * (Tau - theta)
 		s = Transform3D(s, RotateZ(dtheta))
 	}
-	return s
+	return s, nil
 }
 
 //-----------------------------------------------------------------------------

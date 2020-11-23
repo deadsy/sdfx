@@ -38,7 +38,7 @@ func square2(l float64) SDF2 {
 
 //-----------------------------------------------------------------------------
 
-func finial2() {
+func finial2() error {
 	base := 100.0
 	base_height := 20.0
 	column_radius := 15.0
@@ -52,7 +52,10 @@ func finial2() {
 	s0 := square2(base)
 	s1 := Circle2D(column_radius)
 
-	column_3d := Loft3D(s0, s1, column_height, 0)
+	column_3d, err := Loft3D(s0, s1, column_height, 0)
+	if err != nil {
+		return err
+	}
 	column_3d = Transform3D(column_3d, Translate3d(V3{0, 0, column_ofs}))
 
 	ball_3d := Sphere3D(ball_radius)
@@ -64,11 +67,12 @@ func finial2() {
 	bc_3d.(*UnionSDF3).SetMin(PolyMin(round))
 
 	RenderSTLSlow(Union3D(bc_3d, base_3d), 300, "f2.stl")
+	return err
 }
 
 //-----------------------------------------------------------------------------
 
-func finial1() {
+func finial1() error {
 	base := 100.0
 	base_height := 20.0
 	column_radius := 15.0
@@ -81,7 +85,10 @@ func finial1() {
 	s0 := Polygon2D(Nagon(4, base*math.Sqrt(0.5)))
 	s1 := Circle2D(column_radius)
 
-	column_3d := Loft3D(s0, s1, column_height, 0)
+	column_3d, err := Loft3D(s0, s1, column_height, 0)
+	if err != nil {
+		return err
+	}
 	column_3d = Transform3D(column_3d, Translate3d(V3{0, 0, column_ofs}))
 
 	ball_3d := Sphere3D(ball_radius)
@@ -93,6 +100,7 @@ func finial1() {
 	bc_3d.(*UnionSDF3).SetMin(PolyMin(round))
 
 	RenderSTLSlow(Union3D(bc_3d, base_3d), 300, "f1.stl")
+	return err
 }
 
 //-----------------------------------------------------------------------------

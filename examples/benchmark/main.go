@@ -1,6 +1,10 @@
 package main
 
-import . "github.com/deadsy/sdfx/sdf"
+import (
+	"log"
+
+	. "github.com/deadsy/sdfx/sdf"
+)
 
 func main() {
 	s2d := Circle2D(5)
@@ -9,7 +13,10 @@ func main() {
 	s2d = FlatFlankCam2D(30, 20, 5)
 	BenchmarkSDF2("cam1 SDF2", s2d)
 
-	s2d = ThreeArcCam2D(30, 20, 5, 200)
+	s2d, err := ThreeArcCam2D(30, 20, 5, 200)
+	if err != nil {
+		log.Fatal(err)
+	}
 	BenchmarkSDF2("cam2 SDF2", s2d)
 
 	s2d = Polygon2D(Nagon(6, 10.0))

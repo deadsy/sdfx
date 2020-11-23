@@ -9,6 +9,7 @@
 package sdf
 
 import (
+	"fmt"
 	"math"
 )
 
@@ -224,22 +225,22 @@ type ExtrudeRoundedSDF3 struct {
 }
 
 // ExtrudeRounded3D does a linear extrude ao SDF2 with rounded edges.
-func ExtrudeRounded3D(sdf SDF2, height, round float64) SDF3 {
+func ExtrudeRounded3D(sdf SDF2, height, round float64) (SDF3, error) {
 	if round == 0.0 {
 		// revert to non-rounded case
-		return Extrude3D(sdf, height)
+		return Extrude3D(sdf, height), nil
 	}
 	s := ExtrudeRoundedSDF3{}
 	s.sdf = sdf
 	s.height = (height / 2) - round
 	if s.height < 0 {
-		panic("height < 2 * round")
+		return nil, fmt.Errorf("height < 2 * round")
 	}
 	s.round = round
 	// work out the bounding box
 	bb := sdf.BoundingBox()
 	s.bb = Box3{V3{bb.Min.X, bb.Min.Y, -s.height}.SubScalar(round), V3{bb.Max.X, bb.Max.Y, s.height}.AddScalar(round)}
-	return &s
+	return &s, nil
 }
 
 // Evaluate returns the minimum distance to a rounded extrusion.
@@ -288,7 +289,7 @@ type LoftSDF3 struct {
 }
 
 // Loft3D extrudes an SDF3 that transitions between two SDF2 shapes.
-func Loft3D(sdf0, sdf1 SDF2, height, round float64) SDF3 {
+func Loft3D(sdf0, sdf1 SDF2, height, round float64) (SDF3, error) {
 	s := LoftSDF3{
 		sdf0:   sdf0,
 		sdf1:   sdf1,
@@ -296,14 +297,14 @@ func Loft3D(sdf0, sdf1 SDF2, height, round float64) SDF3 {
 		round:  round,
 	}
 	if s.height < 0 {
-		panic("height < 2 * round")
+		return nil, fmt.Errorf("height < 2 * round")
 	}
 	// work out the bounding box
 	bb0 := sdf0.BoundingBox()
 	bb1 := sdf1.BoundingBox()
 	bb := bb0.Extend(bb1)
 	s.bb = Box3{V3{bb.Min.X, bb.Min.Y, -s.height}.SubScalar(round), V3{bb.Max.X, bb.Max.Y, s.height}.AddScalar(round)}
-	return &s
+	return &s, nil
 }
 
 // Evaluate returns the minimum distance to a loft extrusion.

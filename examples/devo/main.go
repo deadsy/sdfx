@@ -10,13 +10,14 @@ package main
 
 import (
 	"fmt"
+	"log"
 
 	. "github.com/deadsy/sdfx/sdf"
 )
 
 //-----------------------------------------------------------------------------
 
-func dome(r, h, w float64) SDF3 {
+func dome(r, h, w float64) (SDF3, error) {
 
 	fillet := w
 
@@ -77,9 +78,13 @@ func dome(r, h, w float64) SDF3 {
 
 	b.Close()
 
-	inner := Revolve3D(Polygon2D(b.Polygon().Vertices()))
+	bp, err := b.Polygon()
+	if err != nil {
+		return nil, err
+	}
+	inner := Revolve3D(Polygon2D(bp.Vertices()))
 
-	return Difference3D(outer, inner)
+	return Difference3D(outer, inner), err
 }
 
 //-----------------------------------------------------------------------------
@@ -89,7 +94,11 @@ func main() {
 	h0 := 2.05 * MillimetresPerInch
 	wall := 4.0
 
-	s := dome(radius, h0, wall)
+	s, err := dome(radius, h0, wall)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	//s = Cut3D(s, V3{0, 0, 0}, V3{0, 1, 0})
 	RenderSTL(s, 150, "energy_dome.stl")
 }

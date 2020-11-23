@@ -12,7 +12,7 @@ import . "github.com/deadsy/sdfx/sdf"
 
 //-----------------------------------------------------------------------------
 
-func bowling_pin() {
+func bowling_pin() error {
 	b := NewBezier()
 	b.Add(0, 0)
 	b.Add(2.031/2.0, 0).HandleFwd(DtoR(45), 2)
@@ -22,29 +22,37 @@ func bowling_pin() {
 	b.Add(0, 15).HandleRev(DtoR(0), 1)
 	b.Close()
 
-	p := b.Polygon()
+	p, err := b.Polygon()
+	if err != nil {
+		return err
+	}
 	s0 := Polygon2D(p.Vertices())
 	s1 := Revolve3D(s0)
 	RenderSTL(s1, 300, "bowlingpin.stl")
+	return nil
 }
 
 //-----------------------------------------------------------------------------
 
-func egg1() {
+func egg1() error {
 	b := NewBezier()
 	b.Add(0, 0).HandleFwd(DtoR(0), 10)
 	b.Add(0, 16).HandleRev(DtoR(0), 5)
 	b.Close()
 
-	p := b.Polygon()
+	p, err := b.Polygon()
+	if err != nil {
+		return err
+	}
 	s0 := Polygon2D(p.Vertices())
 	s1 := Revolve3D(s0)
 	RenderSTL(s1, 300, "egg1.stl")
+	return nil
 }
 
 //-----------------------------------------------------------------------------
 
-func egg2() {
+func egg2() error {
 	h := 8.0
 	r := 2.5
 
@@ -54,15 +62,19 @@ func egg2() {
 	b.Add(0, h).HandleRev(DtoR(0), r/3)
 	b.Close()
 
-	p := b.Polygon()
+	p, err := b.Polygon()
+	if err != nil {
+		return err
+	}
 	s0 := Polygon2D(p.Vertices())
 	s1 := Revolve3D(s0)
 	RenderSTL(s1, 300, "egg2.stl")
+	return nil
 }
 
 //-----------------------------------------------------------------------------
 
-func bowl() {
+func bowl() error {
 	b := NewBezier()
 	b.Add(1.428570, 0.000000)
 	b.Add(194.311790, 1.616000).Mid()
@@ -94,15 +106,19 @@ func bowl() {
 	b.Add(0.000000, 101.890120)
 	b.Close()
 
-	p := b.Polygon()
+	p, err := b.Polygon()
+	if err != nil {
+		return err
+	}
 	s0 := Polygon2D(p.Vertices())
 	s1 := RevolveTheta3D(s0, DtoR(270))
 	RenderSTL(s1, 300, "bowl.stl")
+	return nil
 }
 
 //-----------------------------------------------------------------------------
 
-func vase() {
+func vase() error {
 	b := NewBezier()
 	b.Add(0.357140, 0.000000)
 	b.Add(286.591374, 0.000000)
@@ -132,15 +148,20 @@ func vase() {
 	b.Add(0.000000, 98.928570)
 	b.Close()
 
-	p := b.Polygon()
+	p, err := b.Polygon()
+	if err != nil {
+		return err
+	}
+
 	s0 := Polygon2D(p.Vertices())
 	s1 := Revolve3D(s0)
 	RenderSTL(s1, 300, "vase.stl")
+	return nil
 }
 
 //-----------------------------------------------------------------------------
 
-func shape() {
+func shape() error {
 	b := NewBezier()
 	b.Add(-788.571430, 666.647920)
 	b.Add(-788.785400, 813.701340).Mid()
@@ -180,7 +201,11 @@ func shape() {
 	b.Add(-788.357460, 519.594510).Mid()
 	b.Add(-788.571430, 666.647920)
 	b.Close()
-	s0 := Polygon2D(b.Polygon().Vertices())
+	bp0, err := b.Polygon()
+	if err != nil {
+		return err
+	}
+	s0 := Polygon2D(bp0.Vertices())
 
 	b = NewBezier()
 	b.Add(37.142857, 663.790780)
@@ -197,7 +222,11 @@ func shape() {
 	b.Add(100.484720, 615.963150).Mid()
 	b.Add(37.142857, 663.790780)
 	b.Close()
-	s1 := Polygon2D(b.Polygon().Vertices())
+	bp1, err := b.Polygon()
+	if err != nil {
+		return err
+	}
+	s1 := Polygon2D(bp1.Vertices())
 
 	b = NewBezier()
 	b.Add(105.714290, -381.923510)
@@ -214,7 +243,11 @@ func shape() {
 	b.Add(138.745800, -449.674940).Mid()
 	b.Add(105.714290, -381.923510)
 	b.Close()
-	s2 := Polygon2D(b.Polygon().Vertices())
+	bp2, err := b.Polygon()
+	if err != nil {
+		return err
+	}
+	s2 := Polygon2D(bp2.Vertices())
 
 	b = NewBezier()
 	b.Add(-668.571430, -247.637800)
@@ -231,7 +264,11 @@ func shape() {
 	b.Add(-654.277770, -322.779580).Mid()
 	b.Add(-668.571430, -247.637800)
 	b.Close()
-	s3 := Polygon2D(b.Polygon().Vertices())
+	bp3, err := b.Polygon()
+	if err != nil {
+		return err
+	}
+	s3 := Polygon2D(bp3.Vertices())
 
 	b = NewBezier()
 	b.Add(-697.142850, 569.505060)
@@ -248,7 +285,11 @@ func shape() {
 	b.Add(-647.965630, 501.345600).Mid()
 	b.Add(-697.142850, 569.505060)
 	b.Close()
-	s4 := Polygon2D(b.Polygon().Vertices())
+	bp4, err := b.Polygon()
+	if err != nil {
+		return err
+	}
+	s4 := Polygon2D(bp4.Vertices())
 
 	b = NewBezier()
 	b.Add(-288.571430, 106.647920)
@@ -265,11 +306,19 @@ func shape() {
 	b.Add(-239.593570, 50.378315).Mid()
 	b.Add(-288.571430, 106.647920)
 	b.Close()
-	s5 := Polygon2D(b.Polygon().Vertices())
+	bp5, err := b.Polygon()
+	if err != nil {
+		return err
+	}
+	s5 := Polygon2D(bp5.Vertices())
 
 	s2d := Difference2D(s0, Union2D(s1, s2, s3, s4, s5))
-	s3d := ExtrudeRounded3D(s2d, 200, 20)
+	s3d, err := ExtrudeRounded3D(s2d, 200, 20)
+	if err != nil {
+		return err
+	}
 	RenderSTL(s3d, 300, "shape.stl")
+	return nil
 }
 
 //-----------------------------------------------------------------------------

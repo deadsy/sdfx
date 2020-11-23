@@ -35,7 +35,7 @@ var bbSmallD = (5.0 / 16.0) * MillimetresPerInch
 //-----------------------------------------------------------------------------
 
 // Return an N petal bezier flower.
-func flower(n int, r0, r1, r2 float64) SDF2 {
+func flower(n int, r0, r1, r2 float64) (SDF2, error) {
 
 	theta := Tau / float64(n)
 	b := NewBezier()
@@ -65,10 +65,15 @@ func flower(n int, r0, r1, r2 float64) SDF2 {
 	}
 
 	b.Close()
-	return Polygon2D(b.Polygon().Vertices())
+	bp, err := b.Polygon()
+	if err != nil {
+		return nil, err
+	}
+
+	return Polygon2D(bp.Vertices()), nil
 }
 
-func body1() SDF3 {
+func body1() (SDF3, error) {
 
 	n := 3
 	t := bearingThickness
@@ -79,13 +84,21 @@ func body1() SDF3 {
 	r2 := r + 4.0
 
 	// body
-	s1 := ExtrudeRounded3D(flower(n, r0, r1, r2), t, t/4.0)
+	flower, err := flower(n, r0, r1, r2)
+	if err != nil {
+		log.Fatal(err)
+	}
+	s1, err := ExtrudeRounded3D(flower, t, t/4.0)
+	if err != nil {
+		return nil, err
+	}
+
 	// periphery holes
 	s2 := MakeBoltCircle3D(t, r+clearance, r1, n)
 	// center hole
 	s3 := Cylinder3D(t, r+clearance, 0)
 
-	return Difference3D(s1, Union3D(s2, s3))
+	return Difference3D(s1, Union3D(s2, s3)), nil
 }
 
 //-----------------------------------------------------------------------------
@@ -188,19 +201,27 @@ func spincapDouble(mode string) (SDF3, error) {
 }
 
 // Inner washer for double spinner.
-func spincapWasher() SDF3 {
+func spincapWasher() (SDF3, error) {
 	k := WasherParms{
 		Thickness:   1.0,
 		InnerRadius: (bearingInnerID / 2) * 1.05,
 		OuterRadius: (bearingOuterOD + bearingInnerID) / 4,
 	}
-	return Washer3D(&k)
+	w3d, err := Washer3D(&k)
+	if err != nil {
+		return nil, err
+	}
+	return w3d, nil
 }
 
 //-----------------------------------------------------------------------------
 
 func main() {
-	RenderSTL(body1(), 300, "body1.stl")
+	b1, err := body1()
+	if err != nil {
+		log.Fatal(err)
+	}
+	RenderSTL(b1, 300, "body1.stl")
 	RenderSTL(body2(), 300, "body2.stl")
 	RenderSTL(spincapSingle(), 150, "cap_single.stl")
 	sdm, err := spincapDouble("male")
@@ -213,7 +234,11 @@ func main() {
 		log.Fatal(err)
 	}
 	RenderSTL(sdf, 150, "cap_double_female.stl")
-	RenderSTL(spincapWasher(), 150, "washer.stl")
+	scw, err := spincapWasher()
+	if err != nil {
+		log.Fatal(err)
+	}
+	RenderSTL(scw, 150, "washer.stl")
 }
 
 //-----------------------------------------------------------------------------
