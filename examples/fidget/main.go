@@ -11,6 +11,7 @@ package main
 import (
 	"log"
 
+	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/sdf"
 )
 
@@ -192,12 +193,12 @@ func spincapDouble(male bool) sdf.SDF3 {
 
 // Inner washer for double spinner.
 func spincapWasher() (sdf.SDF3, error) {
-	k := sdf.WasherParms{
+	k := obj.WasherParms{
 		Thickness:   1.0,
 		InnerRadius: (bearingInnerID / 2) * 1.05,
 		OuterRadius: (bearingOuterOD + bearingInnerID) / 4,
 	}
-	s, err := sdf.Washer3D(&k)
+	s, err := obj.Washer3D(&k)
 	if err != nil {
 		return nil, err
 	}

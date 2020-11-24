@@ -16,7 +16,7 @@ import (
 	"log"
 
 	"github.com/deadsy/sdfx/obj"
-	. "github.com/deadsy/sdfx/sdf"
+	"github.com/deadsy/sdfx/sdf"
 )
 
 //-----------------------------------------------------------------------------
@@ -31,7 +31,7 @@ var baseThickness = 3.0
 
 //-----------------------------------------------------------------------------
 
-func boardStandoffs() SDF3 {
+func boardStandoffs() sdf.SDF3 {
 	pillarHeight := 14.0
 	zOfs := 0.5 * (pillarHeight + baseThickness)
 	// standoffs with screw holes
@@ -49,18 +49,18 @@ func boardStandoffs() SDF3 {
 	y := 54.0
 	x0 := -34.0
 	y0 := -0.5 * y
-	positions := V3Set{
+	positions := sdf.V3Set{
 		{x0, y0, zOfs},
 		{x0 + x, y0, zOfs},
 		{x0, y0 + y, zOfs},
 		{x0 + x, y0 + y, zOfs},
 	}
-	return Multi3D(obj.Standoff3D(k), positions)
+	return sdf.Multi3D(obj.Standoff3D(k), positions)
 }
 
 //-----------------------------------------------------------------------------
 
-func bezelStandoffs() SDF3 {
+func bezelStandoffs() sdf.SDF3 {
 	pillarHeight := 22.0
 	zOfs := 0.5 * (pillarHeight + baseThickness)
 	// standoffs with screw holes
@@ -74,76 +74,76 @@ func bezelStandoffs() SDF3 {
 	y := 55.0
 	x0 := -0.5 * x
 	y0 := -0.5 * y
-	positions := V3Set{
+	positions := sdf.V3Set{
 		{x0, y0, zOfs},
 		{x0 + x, y0, zOfs},
 		{x0, y0 + y, zOfs},
 		{x0 + x, y0 + y, zOfs},
 	}
-	return Multi3D(obj.Standoff3D(k), positions)
+	return sdf.Multi3D(obj.Standoff3D(k), positions)
 }
 
 //-----------------------------------------------------------------------------
 
-func speakerHoles(d float64, ofs V2) SDF2 {
+func speakerHoles(d float64, ofs sdf.V2) sdf.SDF2 {
 	holeRadius := 1.7
-	s0 := Circle2D(holeRadius)
-	s1 := MakeBoltCircle2D(holeRadius, d*0.3, 6)
-	return Transform2D(Union2D(s0, s1), Translate2d(ofs))
+	s0 := sdf.Circle2D(holeRadius)
+	s1 := sdf.MakeBoltCircle2D(holeRadius, d*0.3, 6)
+	return sdf.Transform2D(sdf.Union2D(s0, s1), sdf.Translate2d(ofs))
 }
 
-func speakerHolder(d float64, ofs V2) (SDF3, error) {
+func speakerHolder(d float64, ofs sdf.V2) (sdf.SDF3, error) {
 	thickness := 3.0
 	zOfs := 0.5 * (thickness + baseThickness)
-	k := WasherParms{
+	k := obj.WasherParms{
 		Thickness:   thickness,
 		InnerRadius: 0.5 * d,
 		OuterRadius: 0.5 * (d + 4.0),
 		Remove:      0.3,
 	}
-	s, err := Washer3D(&k)
+	s, err := obj.Washer3D(&k)
 	if err != nil {
 		return nil, err
 	}
-	s = Transform3D(s, RotateZ(Pi))
-	return Transform3D(s, Translate3d(V3{ofs.X, ofs.Y, zOfs})), nil
+	s = sdf.Transform3D(s, sdf.RotateZ(sdf.Pi))
+	return sdf.Transform3D(s, sdf.Translate3d(sdf.V3{ofs.X, ofs.Y, zOfs})), nil
 }
 
 //-----------------------------------------------------------------------------
 
-func bezel() (SDF3, error) {
+func bezel() (sdf.SDF3, error) {
 
-	speakerOfs := V2{60, 14}
+	speakerOfs := sdf.V2{60, 14}
 	speakerDiameter := 20.3
 
 	// bezel
-	bezel := V2{150, 65}
-	b0 := Box2D(bezel, 2)
+	bezel := sdf.V2{150, 65}
+	b0 := sdf.Box2D(bezel, 2)
 
 	// lcd cutout
-	lcd := V2{60, 46}
-	l0 := Box2D(lcd, 2)
+	lcd := sdf.V2{60, 46}
+	l0 := sdf.Box2D(lcd, 2)
 
 	// camera cutout
-	c0 := Circle2D(7.25)
-	c0 = Transform2D(c0, Translate2d(V2{42, 0}))
+	c0 := sdf.Circle2D(7.25)
+	c0 = sdf.Transform2D(c0, sdf.Translate2d(sdf.V2{42, 0}))
 
 	// led hole cutout
-	c1 := Circle2D(2)
-	c1 = Transform2D(c1, Translate2d(V2{44, -20}))
+	c1 := sdf.Circle2D(2)
+	c1 = sdf.Transform2D(c1, sdf.Translate2d(sdf.V2{44, -20}))
 
 	// speaker holes cutout
 	c2 := speakerHoles(speakerDiameter, speakerOfs)
 
 	// extrude the bezel
-	s0 := Extrude3D(Difference2D(b0, Union2D(l0, c0, c1, c2)), baseThickness)
+	s0 := sdf.Extrude3D(sdf.Difference2D(b0, sdf.Union2D(l0, c0, c1, c2)), baseThickness)
 
 	// add the board standoffs
-	s0 = Union3D(s0, boardStandoffs())
+	s0 = sdf.Union3D(s0, boardStandoffs())
 
 	// add the bezel standoffs (with foot rounding)
-	s1 := Union3D(s0, bezelStandoffs())
-	s1.(*UnionSDF3).SetMin(PolyMin(3.0))
+	s1 := sdf.Union3D(s0, bezelStandoffs())
+	s1.(*sdf.UnionSDF3).SetMin(sdf.PolyMin(3.0))
 
 	// speaker holder
 	s3, err := speakerHolder(speakerDiameter, speakerOfs)
@@ -151,7 +151,7 @@ func bezel() (SDF3, error) {
 		return nil, err
 	}
 
-	return Union3D(s1, s3), nil
+	return sdf.Union3D(s1, s3), nil
 }
 
 //-----------------------------------------------------------------------------
@@ -161,7 +161,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	RenderSTL(ScaleUniform3D(b, shrink), 330, "bezel.stl")
+	sdf.RenderSTL(sdf.ScaleUniform3D(b, shrink), 330, "bezel.stl")
 }
 
 //-----------------------------------------------------------------------------

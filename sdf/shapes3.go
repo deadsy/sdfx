@@ -130,52 +130,6 @@ func Knurl3D(
 }
 
 //-----------------------------------------------------------------------------
-
-// WasherParms defines the parameters for a washer.
-type WasherParms struct {
-	Thickness   float64 // thickness
-	InnerRadius float64 // inner radius
-	OuterRadius float64 // outer radius
-	Remove      float64 // fraction of complete washer removed
-}
-
-// Washer3D returns a washer.
-// This is also used to create circular walls.
-func Washer3D(k *WasherParms) (SDF3, error) {
-	if k.Thickness <= 0 {
-		return nil, errors.New("Thickness <= 0")
-	}
-	if k.InnerRadius >= k.OuterRadius {
-		return nil, errors.New("InnerRadius >= OuterRadius")
-	}
-	if k.Remove < 0 || k.Remove >= 1.0 {
-		return nil, errors.New("Remove must be [0..1)")
-	}
-
-	var s SDF3
-	if k.Remove == 0 {
-		// difference of cylinders
-		outer := Cylinder3D(k.Thickness, k.OuterRadius, 0)
-		inner := Cylinder3D(k.Thickness, k.InnerRadius, 0)
-		s = Difference3D(outer, inner)
-	} else {
-		// build a 2d profile box
-		dx := k.OuterRadius - k.InnerRadius
-		dy := k.Thickness
-		xofs := 0.5 * (k.InnerRadius + k.OuterRadius)
-		b := Box2D(V2{dx, dy}, 0)
-		b = Transform2D(b, Translate2d(V2{xofs, 0}))
-		// rotate about the z-axis
-		theta := Tau * (1.0 - k.Remove)
-		s = RevolveTheta3D(b, theta)
-		// center the removed portion on the x-axis
-		dtheta := 0.5 * (Tau - theta)
-		s = Transform3D(s, RotateZ(dtheta))
-	}
-	return s, nil
-}
-
-//-----------------------------------------------------------------------------
 // truncated rectangular pyramid (with rounded edges)
 
 // TruncRectPyramidParms defines the parameters for a truncated rectangular pyramid.
