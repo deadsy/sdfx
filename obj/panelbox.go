@@ -6,11 +6,13 @@
 */
 //-----------------------------------------------------------------------------
 
-package sdf
+package obj
 
 import (
 	"errors"
 	"strings"
+
+	"github.com/deadsy/sdfx/sdf"
 )
 
 //-----------------------------------------------------------------------------
@@ -25,7 +27,7 @@ type boxTabParms struct {
 }
 
 // boxTab3d returns an oriented tab for the box side.
-func boxTab3d(k *boxTabParms) (SDF3, error) {
+func boxTab3d(k *boxTabParms) (sdf.SDF3, error) {
 
 	w := k.Wall
 	l := (1.0 - 2.0*k.Clearance) * k.Length
@@ -37,45 +39,45 @@ func boxTab3d(k *boxTabParms) (SDF3, error) {
 		h = 4.0 * k.Wall
 	}
 
-	tab := Extrude3D(Box2D(V2{l, h}, 0.25*h), w)
+	tab := sdf.Extrude3D(sdf.Box2D(sdf.V2{l, h}, 0.25*h), w)
 	// add a slope where the tab attaches to the box, avoiding overhangs.
-	tab = Cut3D(tab, V3{0, 0.5 * h, 0.5 * w}, V3{0, -1, 1})
+	tab = sdf.Cut3D(tab, sdf.V3{0, 0.5 * h, 0.5 * w}, sdf.V3{0, -1, 1})
 
 	// add a cutout to give some tab/body clearance
 	w1 := 2.0 * k.Clearance * w
-	cutout := Box3D(V3{l, h - 2.0*k.Wall, w1}, 0)
-	cutout = Transform3D(cutout, Translate3d(V3{0, -w, 0.5 * (w - w1)}))
-	tab = Difference3D(tab, cutout)
+	cutout := sdf.Box3D(sdf.V3{l, h - 2.0*k.Wall, w1}, 0)
+	cutout = sdf.Transform3D(cutout, sdf.Translate3d(sdf.V3{0, -w, 0.5 * (w - w1)}))
+	tab = sdf.Difference3D(tab, cutout)
 
 	if k.Hole > 0 {
 		// adjust the tab, 4 * k.Wall above, 2 * k.Wall below
-		tab = Transform3D(tab, Translate3d(V3{0, -w, 0}))
+		tab = sdf.Transform3D(tab, sdf.Translate3d(sdf.V3{0, -w, 0}))
 		// put a hole in the tab
-		hole := Cylinder3D(w, 0.5*k.Hole, 0)
-		hole = Transform3D(hole, Translate3d(V3{0, -k.HoleOffset, 0}))
-		tab = Difference3D(tab, hole)
+		hole := sdf.Cylinder3D(w, 0.5*k.Hole, 0)
+		hole = sdf.Transform3D(hole, sdf.Translate3d(sdf.V3{0, -k.HoleOffset, 0}))
+		tab = sdf.Difference3D(tab, hole)
 	}
 
-	m := Identity3d()
+	m := sdf.Identity3d()
 	switch k.Orientation {
 	case "bl": // bottom, left
-		m = m.Mul(Translate3d(V3{(0.5 - k.Clearance) * w, 0, -0.5 * k.Length}))
-		m = m.Mul(RotateY(DtoR(90)))
-		m = m.Mul(RotateX(Pi))
+		m = m.Mul(sdf.Translate3d(sdf.V3{(0.5 - k.Clearance) * w, 0, -0.5 * k.Length}))
+		m = m.Mul(sdf.RotateY(sdf.DtoR(90)))
+		m = m.Mul(sdf.RotateX(sdf.Pi))
 	case "tl": // top, left
-		m = m.Mul(Translate3d(V3{(0.5 - k.Clearance) * w, 0, -0.5 * k.Length}))
-		m = m.Mul(RotateY(DtoR(-90)))
+		m = m.Mul(sdf.Translate3d(sdf.V3{(0.5 - k.Clearance) * w, 0, -0.5 * k.Length}))
+		m = m.Mul(sdf.RotateY(sdf.DtoR(-90)))
 	case "br": // bottom, right
-		m = m.Mul(Translate3d(V3{(-0.5 + k.Clearance) * w, 0, -0.5 * k.Length}))
-		m = m.Mul(RotateY(DtoR(-90)))
-		m = m.Mul(RotateX(Pi))
+		m = m.Mul(sdf.Translate3d(sdf.V3{(-0.5 + k.Clearance) * w, 0, -0.5 * k.Length}))
+		m = m.Mul(sdf.RotateY(sdf.DtoR(-90)))
+		m = m.Mul(sdf.RotateX(sdf.Pi))
 	case "tr": // top, right
-		m = m.Mul(Translate3d(V3{(-0.5 + k.Clearance) * w, 0, -0.5 * k.Length}))
-		m = m.Mul(RotateY(DtoR(90)))
+		m = m.Mul(sdf.Translate3d(sdf.V3{(-0.5 + k.Clearance) * w, 0, -0.5 * k.Length}))
+		m = m.Mul(sdf.RotateY(sdf.DtoR(90)))
 	default:
 		return nil, errors.New("invalid tab orientation")
 	}
-	return Transform3D(tab, m), nil
+	return sdf.Transform3D(tab, m), nil
 }
 
 //-----------------------------------------------------------------------------
@@ -89,27 +91,27 @@ type boxHoleParms struct {
 }
 
 // boxHole3d returns an oriented countersunk hole for the box side.
-func boxHole3d(k *boxHoleParms) (SDF3, error) {
-	hole := CounterSunkHole3D(k.Length, 0.5*k.Hole)
-	hole = Transform3D(hole, Translate3d(V3{0, 0, 0.5 * k.Length}))
-	m := Identity3d()
+func boxHole3d(k *boxHoleParms) (sdf.SDF3, error) {
+	hole := sdf.CounterSunkHole3D(k.Length, 0.5*k.Hole)
+	hole = sdf.Transform3D(hole, sdf.Translate3d(sdf.V3{0, 0, 0.5 * k.Length}))
+	m := sdf.Identity3d()
 	switch k.Orientation {
 	case "bl": // bottom, left
-		m = m.Mul(Translate3d(V3{0, -k.YOffset, -k.ZOffset}))
-		m = m.Mul(RotateY(DtoR(-90)))
+		m = m.Mul(sdf.Translate3d(sdf.V3{0, -k.YOffset, -k.ZOffset}))
+		m = m.Mul(sdf.RotateY(sdf.DtoR(-90)))
 	case "tl": // top, left
-		m = m.Mul(Translate3d(V3{0, k.YOffset, -k.ZOffset}))
-		m = m.Mul(RotateY(DtoR(-90)))
+		m = m.Mul(sdf.Translate3d(sdf.V3{0, k.YOffset, -k.ZOffset}))
+		m = m.Mul(sdf.RotateY(sdf.DtoR(-90)))
 	case "br": // bottom, right
-		m = m.Mul(Translate3d(V3{0, -k.YOffset, -k.ZOffset}))
-		m = m.Mul(RotateY(DtoR(90)))
+		m = m.Mul(sdf.Translate3d(sdf.V3{0, -k.YOffset, -k.ZOffset}))
+		m = m.Mul(sdf.RotateY(sdf.DtoR(90)))
 	case "tr": // top, right
-		m = m.Mul(Translate3d(V3{0, k.YOffset, -k.ZOffset}))
-		m = m.Mul(RotateY(DtoR(90)))
+		m = m.Mul(sdf.Translate3d(sdf.V3{0, k.YOffset, -k.ZOffset}))
+		m = m.Mul(sdf.RotateY(sdf.DtoR(90)))
 	default:
 		return nil, errors.New("invalid hole orientation")
 	}
-	return Transform3D(hole, m), nil
+	return sdf.Transform3D(hole, m), nil
 }
 
 //-----------------------------------------------------------------------------
@@ -130,7 +132,7 @@ func filterTabs(pattern string, tab rune) string {
 
 // PanelBoxParms defines the parameters for a 4 part panel box.
 type PanelBoxParms struct {
-	Size       V3      // outer box dimensions (width, height, length)
+	Size       sdf.V3  // outer box dimensions (width, height, length)
 	Wall       float64 // wall thickness
 	Panel      float64 // front/back panel thickness
 	Rounding   float64 // radius of corner rounding
@@ -142,7 +144,7 @@ type PanelBoxParms struct {
 }
 
 // PanelBox3D returns a 4 part panel box.
-func PanelBox3D(k *PanelBoxParms) ([]SDF3, error) {
+func PanelBox3D(k *PanelBoxParms) ([]sdf.SDF3, error) {
 	// sanity checks
 	if k.Size.X <= 0 || k.Size.Y <= 0 || k.Size.Z <= 0 {
 		return nil, errors.New("invalid box size")
@@ -183,41 +185,41 @@ func PanelBox3D(k *PanelBoxParms) ([]SDF3, error) {
 		return nil, errors.New("the front and back panel depths exceed the total box length")
 	}
 
-	outerSize := V2{k.Size.X, k.Size.Y}
+	outerSize := sdf.V2{k.Size.X, k.Size.Y}
 	innerSize := outerSize.SubScalar(2.0 * k.Wall)
 	ridgeSize := innerSize.SubScalar(2.0 * k.Wall)
 
 	innerPlusSize := innerSize.AddScalar(2.0 * k.Clearance * k.Wall)
 	innerMinusSize := innerSize.SubScalar(4.0 * k.Clearance * k.Wall)
-	innerRounding := Max(0.0, k.Rounding-k.Wall)
+	innerRounding := sdf.Max(0.0, k.Rounding-k.Wall)
 
-	outer := Box2D(outerSize, k.Rounding)
-	inner := Box2D(innerSize, innerRounding)
-	innerPlus := Box2D(innerPlusSize, innerRounding)
-	innerMinus := Box2D(innerMinusSize, innerRounding)
-	ridge := Box2D(ridgeSize, Max(0.0, k.Rounding-2.0*k.Wall))
+	outer := sdf.Box2D(outerSize, k.Rounding)
+	inner := sdf.Box2D(innerSize, innerRounding)
+	innerPlus := sdf.Box2D(innerPlusSize, innerRounding)
+	innerMinus := sdf.Box2D(innerMinusSize, innerRounding)
+	ridge := sdf.Box2D(ridgeSize, sdf.Max(0.0, k.Rounding-2.0*k.Wall))
 
 	// front/pack panels
-	panel := Extrude3D(innerMinus, k.Panel)
+	panel := sdf.Extrude3D(innerMinus, k.Panel)
 
 	// box
-	box := Extrude3D(Difference2D(outer, inner), k.Size.Z)
+	box := sdf.Extrude3D(sdf.Difference2D(outer, inner), k.Size.Z)
 
 	// add the panel holding ridges
-	pr := Extrude3D(Difference2D(innerPlus, ridge), k.Wall)
+	pr := sdf.Extrude3D(sdf.Difference2D(innerPlus, ridge), k.Wall)
 	z0 := 0.5*(k.Size.Z-k.Wall) - k.FrontInset
 	z1 := z0 - k.Wall - panelGap
 	z2 := 0.5*(k.Wall-k.Size.Z) + k.BackInset
 	z3 := z2 + k.Wall + panelGap
-	pr0 := Transform3D(pr, Translate3d(V3{0, 0, z0}))
-	pr1 := Transform3D(pr, Translate3d(V3{0, 0, z1}))
-	pr2 := Transform3D(pr, Translate3d(V3{0, 0, z2}))
-	pr3 := Transform3D(pr, Translate3d(V3{0, 0, z3}))
-	box = Union3D(box, pr0, pr1, pr2, pr3)
+	pr0 := sdf.Transform3D(pr, sdf.Translate3d(sdf.V3{0, 0, z0}))
+	pr1 := sdf.Transform3D(pr, sdf.Translate3d(sdf.V3{0, 0, z1}))
+	pr2 := sdf.Transform3D(pr, sdf.Translate3d(sdf.V3{0, 0, z2}))
+	pr3 := sdf.Transform3D(pr, sdf.Translate3d(sdf.V3{0, 0, z3}))
+	box = sdf.Union3D(box, pr0, pr1, pr2, pr3)
 
 	// cut the top and bottom box halves
-	top := Cut3D(box, V3{}, V3{0, 1, 0})
-	bottom := Cut3D(box, V3{}, V3{0, -1, 0})
+	top := sdf.Cut3D(box, sdf.V3{}, sdf.V3{0, 1, 0})
+	bottom := sdf.Cut3D(box, sdf.V3{}, sdf.V3{0, -1, 0})
 
 	if k.SideTabs != "" {
 		// tabs with no holes
@@ -242,7 +244,7 @@ func PanelBox3D(k *PanelBoxParms) ([]SDF3, error) {
 		if err != nil {
 			return nil, err
 		}
-		tlTabs = LineOf3D(tlTabs, V3{-x, 0, z0}, V3{-x, 0, z1}, tPattern)
+		tlTabs = sdf.LineOf3D(tlTabs, sdf.V3{-x, 0, z0}, sdf.V3{-x, 0, z1}, tPattern)
 
 		// top panel right side
 		tp.Orientation = "tr"
@@ -250,10 +252,10 @@ func PanelBox3D(k *PanelBoxParms) ([]SDF3, error) {
 		if err != nil {
 			return nil, err
 		}
-		trTabs = LineOf3D(trTabs, V3{x, 0, z0}, V3{x, 0, z1}, tPattern)
+		trTabs = sdf.LineOf3D(trTabs, sdf.V3{x, 0, z0}, sdf.V3{x, 0, z1}, tPattern)
 
 		// add tabs to the top panel
-		top = Union3D(top, tlTabs, trTabs)
+		top = sdf.Union3D(top, tlTabs, trTabs)
 
 		// bottom panel left side
 		tp.Orientation = "bl"
@@ -261,7 +263,7 @@ func PanelBox3D(k *PanelBoxParms) ([]SDF3, error) {
 		if err != nil {
 			return nil, err
 		}
-		blTabs = LineOf3D(blTabs, V3{-x, 0, z0}, V3{-x, 0, z1}, bPattern)
+		blTabs = sdf.LineOf3D(blTabs, sdf.V3{-x, 0, z0}, sdf.V3{-x, 0, z1}, bPattern)
 
 		// bottom panel right side
 		tp.Orientation = "br"
@@ -269,10 +271,10 @@ func PanelBox3D(k *PanelBoxParms) ([]SDF3, error) {
 		if err != nil {
 			return nil, err
 		}
-		brTabs = LineOf3D(brTabs, V3{x, 0, z0}, V3{x, 0, z1}, bPattern)
+		brTabs = sdf.LineOf3D(brTabs, sdf.V3{x, 0, z0}, sdf.V3{x, 0, z1}, bPattern)
 
 		// add tabs to the bottom panel
-		bottom = Union3D(bottom, blTabs, brTabs)
+		bottom = sdf.Union3D(bottom, blTabs, brTabs)
 
 		if k.Hole > 0 {
 			// tabs with holes
@@ -296,7 +298,7 @@ func PanelBox3D(k *PanelBoxParms) ([]SDF3, error) {
 			if err != nil {
 				return nil, err
 			}
-			tlTabs = LineOf3D(tlTabs, V3{-x, 0, z0}, V3{-x, 0, z1}, tPattern)
+			tlTabs = sdf.LineOf3D(tlTabs, sdf.V3{-x, 0, z0}, sdf.V3{-x, 0, z1}, tPattern)
 
 			// top panel right side
 			tp.Orientation = "tr"
@@ -304,10 +306,10 @@ func PanelBox3D(k *PanelBoxParms) ([]SDF3, error) {
 			if err != nil {
 				return nil, err
 			}
-			trTabs = LineOf3D(trTabs, V3{x, 0, z0}, V3{x, 0, z1}, tPattern)
+			trTabs = sdf.LineOf3D(trTabs, sdf.V3{x, 0, z0}, sdf.V3{x, 0, z1}, tPattern)
 
 			// add tabs to the top panel
-			top = Union3D(top, tlTabs, trTabs)
+			top = sdf.Union3D(top, tlTabs, trTabs)
 
 			// bottom panel left side
 			tp.Orientation = "bl"
@@ -315,7 +317,7 @@ func PanelBox3D(k *PanelBoxParms) ([]SDF3, error) {
 			if err != nil {
 				return nil, err
 			}
-			blTabs = LineOf3D(blTabs, V3{-x, 0, z0}, V3{-x, 0, z1}, bPattern)
+			blTabs = sdf.LineOf3D(blTabs, sdf.V3{-x, 0, z0}, sdf.V3{-x, 0, z1}, bPattern)
 
 			// bottom panel right side
 			tp.Orientation = "br"
@@ -323,10 +325,10 @@ func PanelBox3D(k *PanelBoxParms) ([]SDF3, error) {
 			if err != nil {
 				return nil, err
 			}
-			brTabs = LineOf3D(brTabs, V3{x, 0, z0}, V3{x, 0, z1}, bPattern)
+			brTabs = sdf.LineOf3D(brTabs, sdf.V3{x, 0, z0}, sdf.V3{x, 0, z1}, bPattern)
 
 			// add tabs to the bottom panel
-			bottom = Union3D(bottom, blTabs, brTabs)
+			bottom = sdf.Union3D(bottom, blTabs, brTabs)
 
 			// holes
 			hp := &boxHoleParms{
@@ -342,7 +344,7 @@ func PanelBox3D(k *PanelBoxParms) ([]SDF3, error) {
 			if err != nil {
 				return nil, err
 			}
-			tlHoles = LineOf3D(tlHoles, V3{-x, 0, z0}, V3{-x, 0, z1}, bPattern)
+			tlHoles = sdf.LineOf3D(tlHoles, sdf.V3{-x, 0, z0}, sdf.V3{-x, 0, z1}, bPattern)
 
 			// top panel right side
 			hp.Orientation = "tr"
@@ -350,11 +352,11 @@ func PanelBox3D(k *PanelBoxParms) ([]SDF3, error) {
 			if err != nil {
 				return nil, err
 			}
-			trHoles = LineOf3D(trHoles, V3{x, 0, z0}, V3{x, 0, z1}, bPattern)
+			trHoles = sdf.LineOf3D(trHoles, sdf.V3{x, 0, z0}, sdf.V3{x, 0, z1}, bPattern)
 
 			// add holes to the top panel
-			tHoles := Union3D(tlHoles, trHoles)
-			top = Difference3D(top, tHoles)
+			tHoles := sdf.Union3D(tlHoles, trHoles)
+			top = sdf.Difference3D(top, tHoles)
 
 			// bottom panel left side
 			hp.Orientation = "bl"
@@ -362,7 +364,7 @@ func PanelBox3D(k *PanelBoxParms) ([]SDF3, error) {
 			if err != nil {
 				return nil, err
 			}
-			blHoles = LineOf3D(blHoles, V3{-x, 0, z0}, V3{-x, 0, z1}, tPattern)
+			blHoles = sdf.LineOf3D(blHoles, sdf.V3{-x, 0, z0}, sdf.V3{-x, 0, z1}, tPattern)
 
 			// bottom panel right side
 			hp.Orientation = "br"
@@ -370,15 +372,15 @@ func PanelBox3D(k *PanelBoxParms) ([]SDF3, error) {
 			if err != nil {
 				return nil, err
 			}
-			brHoles = LineOf3D(brHoles, V3{x, 0, z0}, V3{x, 0, z1}, tPattern)
+			brHoles = sdf.LineOf3D(brHoles, sdf.V3{x, 0, z0}, sdf.V3{x, 0, z1}, tPattern)
 
 			// add holes to the bottom panel
-			bHoles := Union3D(blHoles, brHoles)
-			bottom = Difference3D(bottom, bHoles)
+			bHoles := sdf.Union3D(blHoles, brHoles)
+			bottom = sdf.Difference3D(bottom, bHoles)
 		}
 	}
 
-	return []SDF3{panel, top, bottom}, nil
+	return []sdf.SDF3{panel, top, bottom}, nil
 }
 
 //-----------------------------------------------------------------------------

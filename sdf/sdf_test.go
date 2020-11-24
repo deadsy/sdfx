@@ -418,9 +418,9 @@ func Test_TriDiagonal(t *testing.T) {
 
 	d := []float64{0, 1, 2, 3, 4}
 	x0 := []float64{-1.0 / 12.0, 1.0 / 6.0, 5.0 / 12.0, 1.0 / 6.0, 23.0 / 12.0}
-	x, err := TriDiagonal(m, d)
+	x, err := triDiagonal(m, d)
 	if err != nil {
-		t.Error(err)
+		t.Error("FAIL")
 	}
 	for i := 0; i < n; i++ {
 		if Abs(x[i]-x0[i]) > tolerance {
@@ -430,9 +430,9 @@ func Test_TriDiagonal(t *testing.T) {
 
 	d = []float64{10, 20, 30, 40, 50}
 	x0 = []float64{15.0 / 4.0, 5.0 / 2.0, 25.0 / 4.0, 5.0 / 2.0, 95.0 / 4.0}
-	x, err = TriDiagonal(m, d)
+	x, err = triDiagonal(m, d)
 	if err != nil {
-		t.Error(err)
+		t.Error("FAIL")
 	}
 	for i := 0; i < n; i++ {
 		if Abs(x[i]-x0[i]) > tolerance {
@@ -447,9 +447,9 @@ func Test_TriDiagonal(t *testing.T) {
 	m[4] = V3{12, 13, 0}
 	d = []float64{-10, -20, -30, 40, 50}
 	x0 = []float64{60.0 / 49.0, -275.0 / 49.0, -12.0 / 49.0, 33.0 / 49.0, 158.0 / 49.0}
-	x, err = TriDiagonal(m, d)
+	x, err = triDiagonal(m, d)
 	if err != nil {
-		t.Error(err)
+		t.Error("FAIL")
 	}
 	for i := 0; i < n; i++ {
 		if Abs(x[i]-x0[i]) > tolerance {
@@ -473,15 +473,11 @@ func Test_CubicSpline(t *testing.T) {
 		{-16, -1.2},
 		{-18, -3.2},
 	}
-	cs2d, err := CubicSpline2D(knot)
+	s0, err := CubicSpline2D(knot)
 	if err != nil {
-		t.Error(err)
+		t.Error("FAIL")
 	}
-	s := cs2d.(*CubicSplineSDF2)
-	if err != nil {
-		t.Error(err)
-	}
-
+	s := s0.(*CubicSplineSDF2)
 	n := len(s.spline)
 	if n != len(knot)-1 {
 		t.Error("FAIL")

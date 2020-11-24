@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"math"
 
 	. "github.com/deadsy/sdfx/sdf"
@@ -314,7 +315,7 @@ func test31() {
 func test32() {
 	s0, err := MakeFlatFlankCam(0.094, DtoR(2.0*57.5), 0.625)
 	if err != nil {
-		panic(err)
+		log.Panicf("error: %s", err)
 	}
 	s1 := Extrude3D(s0, 0.1)
 	RenderSTL(s1, 200, "test.stl")
@@ -334,7 +335,7 @@ func test33() error {
 func test34() {
 	s0, err := MakeThreeArcCam(0.1, DtoR(2.0*80), 0.7, 1.1)
 	if err != nil {
-		panic(err)
+		log.Panicf("error: %s", err)
 	}
 	s1 := Extrude3D(s0, 0.1)
 	RenderSTL(s1, 200, "test.stl")
@@ -353,7 +354,7 @@ func test35() {
 func test36() {
 	s_driver, s_driven, err := MakeGenevaCam(6, 100, 40, 80, 5, 0.5)
 	if err != nil {
-		panic(err)
+		log.Panicf("error: %s", err)
 	}
 	RenderSTL(Extrude3D(s_driver, 10), 200, "driver.stl")
 	RenderSTL(Extrude3D(s_driven, 10), 200, "driven.stl")
