@@ -8,64 +8,67 @@ Pipe Flange with a Square base
 
 package main
 
-import . "github.com/deadsy/sdfx/sdf"
-
-//-----------------------------------------------------------------------------
-
-var pipe_clearance = 1.01                  // ID of pipe holder slightly larger to allow a slip fit
-var pipe_diameter = 48.45 * pipe_clearance // OD of pipe to be fitted
-var base_size = V2{77.0, 77.0}             // size of rectangular base
-var base_thickness = 3.0                   // base thickness
-var pipe_wall = 3.0                        // pipe holder wall thickness
-var pipe_length = 30.0                     // length of pipe holder (from bottom)
-var pipe_offset = V2{0, 0}                 // offset of pipe holder from base center
-
-var pipe_radius = pipe_diameter / 2.0
-var pipe_fillet = pipe_wall * 0.95
+import (
+	"github.com/deadsy/sdfx/obj"
+	"github.com/deadsy/sdfx/sdf"
+)
 
 //-----------------------------------------------------------------------------
 
 // material shrinkage
-var shrink = 1.0 / 0.999 // PLA ~0.1%
+const shrink = 1.0 / 0.999 // PLA ~0.1%
 //var shrink = 1.0/0.995; // ABS ~0.5%
 
 //-----------------------------------------------------------------------------
 
-func flange() SDF3 {
+const pipeClearance = 1.01                 // ID of pipe holder slightly larger to allow a slip fit
+const pipeDiameter = 48.45 * pipeClearance // OD of pipe to be fitted
+var baseSize = sdf.V2{77.0, 77.0}          // size of rectangular base
+const baseThickness = 3.0                  // base thickness
+const pipeWall = 3.0                       // pipe holder wall thickness
+const pipeLength = 30.0                    // length of pipe holder (from bottom)
+var pipeOffset = sdf.V2{0, 0}              // offset of pipe holder from base center
+
+const pipeRadius = 0.5 * pipeDiameter
+const pipeFillet = 0.95 * pipeWall
+
+//-----------------------------------------------------------------------------
+
+func flange() sdf.SDF3 {
 
 	// base
-	pp := &PanelParms{
-		Size:         base_size,
+	pp := &obj.PanelParms{
+		Size:         baseSize,
 		CornerRadius: 18.0,
 		HoleDiameter: 3.5, // #6 screw
 		HoleMargin:   [4]float64{12.0, 12.0, 12.0, 12.0},
 		HolePattern:  [4]string{"x", "x", "x", "x"},
 	}
-	base := Extrude3D(Panel2D(pp), 2.0*base_thickness)
+	base := sdf.Extrude3D(obj.Panel2D(pp), 2.0*baseThickness)
 
 	// outer pipe
-	outer_pipe := Cylinder3D(2.0*pipe_length, pipe_radius+pipe_wall, 0.0)
-	outer_pipe = Transform3D(outer_pipe, Translate3d(pipe_offset.ToV3(0)))
+	outerPipe := sdf.Cylinder3D(2.0*pipeLength, pipeRadius+pipeWall, 0.0)
+	outerPipe = sdf.Transform3D(outerPipe, sdf.Translate3d(pipeOffset.ToV3(0)))
 
 	// inner pipe
-	inner_pipe := Cylinder3D(2.0*pipe_length, pipe_radius, 0.0)
-	inner_pipe = Transform3D(inner_pipe, Translate3d(pipe_offset.ToV3(0)))
+	innerPipe := sdf.Cylinder3D(2.0*pipeLength, pipeRadius, 0.0)
+	innerPipe = sdf.Transform3D(innerPipe, sdf.Translate3d(pipeOffset.ToV3(0)))
 
 	// combine the outer pipe and base (with a fillet)
-	s0 := Union3D(base, outer_pipe)
-	s0.(*UnionSDF3).SetMin(PolyMin(pipe_fillet))
+	s0 := sdf.Union3D(base, outerPipe)
+	s0.(*sdf.UnionSDF3).SetMin(sdf.PolyMin(pipeFillet))
 
 	// cut the through hole
-	s := Difference3D(s0, inner_pipe)
+	s := sdf.Difference3D(s0, innerPipe)
 
 	// return the upper half
-	return Cut3D(s, V3{0, 0, 0}, V3{0, 0, 1})
+	return sdf.Cut3D(s, sdf.V3{0, 0, 0}, sdf.V3{0, 0, 1})
 }
 
 //-----------------------------------------------------------------------------
 
 func main() {
-	RenderSTL(ScaleUniform3D(flange(), shrink), 300, "flange.stl")
+	sdf.RenderSTL(sdf.ScaleUniform3D(flange(), shrink), 300, "flange.stl")
 }
 
 //-----------------------------------------------------------------------------
