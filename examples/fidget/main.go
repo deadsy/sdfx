@@ -9,6 +9,8 @@ Fidget Spinners
 package main
 
 import (
+	"log"
+
 	"github.com/deadsy/sdfx/sdf"
 )
 
@@ -33,7 +35,7 @@ const bbSmallD = (5.0 / 16.0) * sdf.MillimetresPerInch
 //-----------------------------------------------------------------------------
 
 // Return an N petal bezier flower.
-func flower(n int, r0, r1, r2 float64) sdf.SDF2 {
+func flower(n int, r0, r1, r2 float64) (sdf.SDF2, error) {
 
 	theta := sdf.Tau / float64(n)
 	b := sdf.NewBezier()
@@ -63,11 +65,15 @@ func flower(n int, r0, r1, r2 float64) sdf.SDF2 {
 	}
 
 	b.Close()
-	p, _ := b.Polygon()
-	return sdf.Polygon2D(p.Vertices())
+	p, err := b.Polygon()
+	if err != nil {
+		return nil, err
+	}
+
+	return sdf.Polygon2D(p.Vertices()), nil
 }
 
-func body1() sdf.SDF3 {
+func body1() (sdf.SDF3, error) {
 
 	n := 3
 	t := bearingThickness
@@ -78,13 +84,21 @@ func body1() sdf.SDF3 {
 	r2 := r + 4.0
 
 	// body
-	s1, _ := sdf.ExtrudeRounded3D(flower(n, r0, r1, r2), t, t/4.0)
+	f, err := flower(n, r0, r1, r2)
+	if err != nil {
+		log.Fatal(err)
+	}
+	s1, err := sdf.ExtrudeRounded3D(f, t, t/4.0)
+	if err != nil {
+		return nil, err
+	}
+
 	// periphery holes
 	s2 := sdf.MakeBoltCircle3D(t, r+clearance, r1, n)
 	// center hole
 	s3 := sdf.Cylinder3D(t, r+clearance, 0)
 
-	return sdf.Difference3D(s1, sdf.Union3D(s2, s3))
+	return sdf.Difference3D(s1, sdf.Union3D(s2, s3)), nil
 }
 
 //-----------------------------------------------------------------------------
@@ -177,25 +191,38 @@ func spincapDouble(male bool) sdf.SDF3 {
 }
 
 // Inner washer for double spinner.
-func spincapWasher() sdf.SDF3 {
+func spincapWasher() (sdf.SDF3, error) {
 	k := sdf.WasherParms{
 		Thickness:   1.0,
 		InnerRadius: (bearingInnerID / 2) * 1.05,
 		OuterRadius: (bearingOuterOD + bearingInnerID) / 4,
 	}
-	s, _ := sdf.Washer3D(&k)
-	return s
+	s, err := sdf.Washer3D(&k)
+	if err != nil {
+		return nil, err
+	}
+	return s, nil
 }
 
 //-----------------------------------------------------------------------------
 
 func main() {
-	sdf.RenderSTL(body1(), 300, "body1.stl")
+	b1, err := body1()
+	if err != nil {
+		log.Fatal(err)
+	}
+	sdf.RenderSTL(b1, 300, "body1.stl")
+
 	sdf.RenderSTL(body2(), 300, "body2.stl")
 	sdf.RenderSTL(spincapSingle(), 150, "cap_single.stl")
-	sdf.RenderSTL(spincapWasher(), 150, "washer.stl")
 	sdf.RenderSTL(spincapDouble(true), 150, "cap_double_male.stl")
 	sdf.RenderSTL(spincapDouble(false), 150, "cap_double_female.stl")
+
+	scw, err := spincapWasher()
+	if err != nil {
+		log.Fatal(err)
+	}
+	sdf.RenderSTL(scw, 150, "washer.stl")
 }
 
 //-----------------------------------------------------------------------------

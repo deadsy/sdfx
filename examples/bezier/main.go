@@ -316,7 +316,10 @@ func shape() error {
 	s5 := sdf.Polygon2D(p.Vertices())
 
 	s2d := sdf.Difference2D(s0, sdf.Union2D(s1, s2, s3, s4, s5))
-	s3d, _ := sdf.ExtrudeRounded3D(s2d, 200, 20)
+	s3d, err := sdf.ExtrudeRounded3D(s2d, 200, 20)
+	if err != nil {
+		return err
+	}
 	sdf.RenderSTL(s3d, 300, "shape.stl")
 	return nil
 }

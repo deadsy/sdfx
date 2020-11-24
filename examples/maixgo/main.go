@@ -13,6 +13,8 @@ https://www.seeedstudio.com/Sipeed-MAix-GO-Suit-for-RISC-V-AI-IoT-p-2874.html
 package main
 
 import (
+	"log"
+
 	"github.com/deadsy/sdfx/obj"
 	. "github.com/deadsy/sdfx/sdf"
 )
@@ -90,7 +92,7 @@ func speakerHoles(d float64, ofs V2) SDF2 {
 	return Transform2D(Union2D(s0, s1), Translate2d(ofs))
 }
 
-func speakerHolder(d float64, ofs V2) SDF3 {
+func speakerHolder(d float64, ofs V2) (SDF3, error) {
 	thickness := 3.0
 	zOfs := 0.5 * (thickness + baseThickness)
 	k := WasherParms{
@@ -99,14 +101,17 @@ func speakerHolder(d float64, ofs V2) SDF3 {
 		OuterRadius: 0.5 * (d + 4.0),
 		Remove:      0.3,
 	}
-	s, _ := Washer3D(&k)
+	s, err := Washer3D(&k)
+	if err != nil {
+		return nil, err
+	}
 	s = Transform3D(s, RotateZ(Pi))
-	return Transform3D(s, Translate3d(V3{ofs.X, ofs.Y, zOfs}))
+	return Transform3D(s, Translate3d(V3{ofs.X, ofs.Y, zOfs})), nil
 }
 
 //-----------------------------------------------------------------------------
 
-func bezel() SDF3 {
+func bezel() (SDF3, error) {
 
 	speakerOfs := V2{60, 14}
 	speakerDiameter := 20.3
@@ -141,15 +146,22 @@ func bezel() SDF3 {
 	s1.(*UnionSDF3).SetMin(PolyMin(3.0))
 
 	// speaker holder
-	s3 := speakerHolder(speakerDiameter, speakerOfs)
+	s3, err := speakerHolder(speakerDiameter, speakerOfs)
+	if err != nil {
+		return nil, err
+	}
 
-	return Union3D(s1, s3)
+	return Union3D(s1, s3), nil
 }
 
 //-----------------------------------------------------------------------------
 
 func main() {
-	RenderSTL(ScaleUniform3D(bezel(), shrink), 330, "bezel.stl")
+	b, err := bezel()
+	if err != nil {
+		log.Fatal(err)
+	}
+	RenderSTL(ScaleUniform3D(b, shrink), 330, "bezel.stl")
 }
 
 //-----------------------------------------------------------------------------

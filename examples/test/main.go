@@ -321,11 +321,15 @@ func test32() {
 	RenderSTL(s1, 200, "test.stl")
 }
 
-func test33() {
-	s0, _ := ThreeArcCam2D(30, 20, 5, 50000)
+func test33() error {
+	s0, err := ThreeArcCam2D(30, 20, 5, 50000)
+	if err != nil {
+		return err
+	}
 	fmt.Printf("%+v\n", s0)
 	s1 := Extrude3D(s0, 4)
 	RenderSTL(s1, 200, "test.stl")
+	return nil
 }
 
 func test34() {
@@ -398,19 +402,27 @@ func test42() {
 	p.Render("test.dxf")
 }
 
-func test43() {
+func test43() error {
 	s0 := Line2D(10, 3)
 	s0 = Cut2D(s0, V2{4, 0}, V2{1, 1})
-	s1, _ := ExtrudeRounded3D(s0, 4, 1)
+	s1, err := ExtrudeRounded3D(s0, 4, 1)
+	if err != nil {
+		return err
+	}
 	RenderSTL(s1, 300, "test.stl")
+	return nil
 }
 
-func test44() {
+func test44() error {
 	r := 100.0
 	s0 := Polygon2D(Nagon(5, r))
 	s1 := Circle2D(r / 2)
-	s2, _ := Loft3D(s1, s0, 200.0, 20.0)
+	s2, err := Loft3D(s1, s0, 200.0, 20.0)
+	if err != nil {
+		return err
+	}
 	RenderSTL(s2, 300, "test.stl")
+	return err
 }
 
 func test45() {
@@ -518,15 +530,19 @@ func test49() {
 	RenderDXF(s0, 50, "test.dxf")
 }
 
-func test50() {
+func test50() error {
 	k := WasherParms{
 		Thickness:   10,
 		InnerRadius: 40,
 		OuterRadius: 50,
 		Remove:      0.3,
 	}
-	s, _ := Washer3D(&k)
+	s, err := Washer3D(&k)
+	if err != nil {
+		return err
+	}
 	RenderSTL(s, 300, "test.stl")
+	return nil
 }
 
 func main() {
