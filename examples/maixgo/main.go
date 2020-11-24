@@ -15,6 +15,7 @@ package main
 import (
 	"log"
 
+	"github.com/deadsy/sdfx/obj"
 	. "github.com/deadsy/sdfx/sdf"
 )
 
@@ -34,7 +35,7 @@ func boardStandoffs() SDF3 {
 	pillarHeight := 14.0
 	zOfs := 0.5 * (pillarHeight + baseThickness)
 	// standoffs with screw holes
-	k := &StandoffParms{
+	k := &obj.StandoffParms{
 		PillarHeight:   pillarHeight,
 		PillarDiameter: 4.5,
 		HoleDepth:      11.0,
@@ -54,7 +55,7 @@ func boardStandoffs() SDF3 {
 		{x0, y0 + y, zOfs},
 		{x0 + x, y0 + y, zOfs},
 	}
-	return Multi3D(Standoff3D(k), positions)
+	return Multi3D(obj.Standoff3D(k), positions)
 }
 
 //-----------------------------------------------------------------------------
@@ -63,7 +64,7 @@ func bezelStandoffs() SDF3 {
 	pillarHeight := 22.0
 	zOfs := 0.5 * (pillarHeight + baseThickness)
 	// standoffs with screw holes
-	k := &StandoffParms{
+	k := &obj.StandoffParms{
 		PillarHeight:   pillarHeight,
 		PillarDiameter: 6.0,
 		HoleDepth:      11.0,
@@ -79,7 +80,7 @@ func bezelStandoffs() SDF3 {
 		{x0, y0 + y, zOfs},
 		{x0 + x, y0 + y, zOfs},
 	}
-	return Multi3D(Standoff3D(k), positions)
+	return Multi3D(obj.Standoff3D(k), positions)
 }
 
 //-----------------------------------------------------------------------------

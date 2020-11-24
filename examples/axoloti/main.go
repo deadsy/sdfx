@@ -43,7 +43,7 @@ var pillarHeight = 16.8
 // multiple standoffs
 func standoffs() sdf.SDF3 {
 
-	k := &sdf.StandoffParms{
+	k := &obj.StandoffParms{
 		PillarHeight:   pillarHeight,
 		PillarDiameter: 6.0,
 		HoleDepth:      10.0,
@@ -64,7 +64,7 @@ func standoffs() sdf.SDF3 {
 		{116.0, 10.0, zOfs}, // H8
 	}
 
-	return sdf.Multi3D(sdf.Standoff3D(k), positions)
+	return sdf.Multi3D(obj.Standoff3D(k), positions)
 }
 
 //-----------------------------------------------------------------------------
