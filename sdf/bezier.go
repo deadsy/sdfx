@@ -10,6 +10,7 @@ package sdf
 
 import (
 	"fmt"
+	"log"
 	"math/rand"
 )
 
@@ -40,7 +41,8 @@ func (p *BezierPolynomial) f0(t float64) (float64, error) {
 		// quartic
 		return p.a + t*(p.b+t*(p.c+t*(p.d+t*p.e))), nil
 	default:
-		return 0, fmt.Errorf("bad polynomial order %d", p.n)
+		log.Panicf("bad polynomial order %d", p.n)
+		return 0
 	}
 }
 
@@ -63,7 +65,8 @@ func (p *BezierPolynomial) f1(t float64) (float64, error) {
 		// quartic
 		return p.b + t*(2*p.c+t*(3*p.d+t*4*p.e)), nil
 	default:
-		return 0, fmt.Errorf("bad polynomial order %d", p.n)
+		log.Panicf("bad polynomial order %d", p.n)
+		return 0
 	}
 }
 
@@ -86,7 +89,8 @@ func (p *BezierPolynomial) f2(t float64) (float64, error) {
 		// quartic
 		return 2 * (p.c + t*3*(p.d+t*2*p.e)), nil
 	default:
-		return 0, fmt.Errorf("bad polynomial order %d", p.n)
+		log.Panicf("bad polynomial order %d", p.n)
+		return 0
 	}
 }
 
@@ -120,7 +124,8 @@ func (p *BezierPolynomial) Set(x []float64) error {
 		p.d = -4*x[0] + 12*x[1] - 12*x[2] + 4*x[3]
 		p.e = x[0] - 4*x[1] + 6*x[2] - 4*x[3] + x[4]
 	default:
-		return fmt.Errorf("bad polynomial order %d", p.n)
+		log.Panicf("bad polynomial order %d", p.n)
+		return
 	}
 	// zero out any very small coefficients
 	sum := Abs(p.a) + Abs(p.b) + Abs(p.c) + Abs(p.d) + Abs(p.e)
