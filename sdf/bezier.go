@@ -9,6 +9,7 @@ Create curves using Bezier splines.
 package sdf
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"math/rand"
@@ -307,12 +308,12 @@ func (b *Bezier) closure() error {
 		return nil
 	}
 	if len(b.vlist) == 0 || len(b.vlist) == 1 {
-		return fmt.Errorf("bad number of vertices")
+		return errors.New("bad number of vertices")
 	}
 	first := b.vlist[0]
 	last := b.vlist[len(b.vlist)-1]
 	if first.vtype != endpoint {
-		return fmt.Errorf("first control vertex should be an endpoint")
+		return errors.New("first control vertex should be an endpoint")
 	}
 	if last.vtype == endpoint {
 		if !last.vertex.Equals(first.vertex, tolerance) {
@@ -324,7 +325,7 @@ func (b *Bezier) closure() error {
 		// add the first vertex to close the curve
 		b.vlist = append(b.vlist, first)
 	} else {
-		return fmt.Errorf("bad vertex type")
+		return errors.New("bad vertex type")
 	}
 	return nil
 }
@@ -334,13 +335,13 @@ func (b *Bezier) validate() error {
 	// basic checks
 	n := len(b.vlist)
 	if n < 2 {
-		return fmt.Errorf("bezier curve must have at least two points")
+		return errors.New("bezier curve must have at least two points")
 	}
 	if b.vlist[0].vtype != endpoint {
-		return fmt.Errorf("bezier curve must start with an endpoint")
+		return errors.New("bezier curve must start with an endpoint")
 	}
 	if !b.closed && b.vlist[n-1].vtype != endpoint {
-		return fmt.Errorf("non-closed bezier curve must end with an endpoint")
+		return errors.New("non-closed bezier curve must end with an endpoint")
 	}
 	return nil
 }
@@ -439,7 +440,7 @@ func (b *Bezier) Polygon() (*Polygon, error) {
 				i++
 				state = midpoint
 			} else {
-				return nil, fmt.Errorf("bad vertex type")
+				return nil, errors.New("bad vertex type")
 			}
 		} else if state == midpoint {
 			if v.vtype == endpoint {
@@ -458,10 +459,10 @@ func (b *Bezier) Polygon() (*Polygon, error) {
 				vertices = append(vertices, v.vertex)
 				i++
 			} else {
-				return nil, fmt.Errorf("bad vertex type")
+				return nil, errors.New("bad vertex type")
 			}
 		} else {
-			return nil, fmt.Errorf("bad state")
+			return nil, errors.New("bad state")
 		}
 	}
 	// render the splines to a polygon
