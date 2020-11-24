@@ -24,23 +24,23 @@ type BezierPolynomial struct {
 }
 
 // Return the bezier polynomial function value.
-func (p *BezierPolynomial) f0(t float64) (float64, error) {
+func (p *BezierPolynomial) f0(t float64) float64 {
 	switch p.n {
 	case 0:
 		// point
-		return p.a, nil
+		return p.a
 	case 1:
 		// linear
-		return p.a + t*p.b, nil
+		return p.a + t*p.b
 	case 2:
 		// quadratic
-		return p.a + t*(p.b+t*p.c), nil
+		return p.a + t*(p.b+t*p.c)
 	case 3:
 		// cubic
-		return p.a + t*(p.b+t*(p.c+t*p.d)), nil
+		return p.a + t*(p.b+t*(p.c+t*p.d))
 	case 4:
 		// quartic
-		return p.a + t*(p.b+t*(p.c+t*(p.d+t*p.e))), nil
+		return p.a + t*(p.b+t*(p.c+t*(p.d+t*p.e)))
 	default:
 		log.Panicf("bad polynomial order %d", p.n)
 		return 0
@@ -48,23 +48,23 @@ func (p *BezierPolynomial) f0(t float64) (float64, error) {
 }
 
 // Return the 1st derivative of the bezier polynomial.
-func (p *BezierPolynomial) f1(t float64) (float64, error) {
+func (p *BezierPolynomial) f1(t float64) float64 {
 	switch p.n {
 	case 0:
 		// point
-		return 0, nil
+		return 0
 	case 1:
 		// linear
-		return p.b, nil
+		return p.b
 	case 2:
 		// quadratic
-		return p.b + t*2*p.c, nil
+		return p.b + t*2*p.c
 	case 3:
 		// cubic
-		return p.b + t*(2*p.c+t*3*p.d), nil
+		return p.b + t*(2*p.c+t*3*p.d)
 	case 4:
 		// quartic
-		return p.b + t*(2*p.c+t*(3*p.d+t*4*p.e)), nil
+		return p.b + t*(2*p.c+t*(3*p.d+t*4*p.e))
 	default:
 		log.Panicf("bad polynomial order %d", p.n)
 		return 0
@@ -72,23 +72,23 @@ func (p *BezierPolynomial) f1(t float64) (float64, error) {
 }
 
 // Return the 2nd derivative of the bezier polynomial.
-func (p *BezierPolynomial) f2(t float64) (float64, error) {
+func (p *BezierPolynomial) f2(t float64) float64 {
 	switch p.n {
 	case 0:
 		// point
-		return 0, nil
+		return 0
 	case 1:
 		// linear
-		return 0, nil
+		return 0
 	case 2:
 		// quadratic
-		return 2 * p.c, nil
+		return 2 * p.c
 	case 3:
 		// cubic
-		return 2 * (p.c + t*3*p.d), nil
+		return 2 * (p.c + t*3*p.d)
 	case 4:
 		// quartic
-		return 2 * (p.c + t*3*(p.d+t*2*p.e)), nil
+		return 2 * (p.c + t*3*(p.d+t*2*p.e))
 	default:
 		log.Panicf("bad polynomial order %d", p.n)
 		return 0
@@ -96,7 +96,7 @@ func (p *BezierPolynomial) f2(t float64) (float64, error) {
 }
 
 // Set calculates bezier polynomial coefficients given the end/control points.
-func (p *BezierPolynomial) Set(x []float64) error {
+func (p *BezierPolynomial) Set(x []float64) {
 	p.n = len(x) - 1
 	switch p.n {
 	case 0:
@@ -148,7 +148,6 @@ func (p *BezierPolynomial) Set(x []float64) error {
 	if p.n == 1 && p.b == 0 {
 		p.n = 0
 	}
-	return nil
 }
 
 //-----------------------------------------------------------------------------
@@ -160,36 +159,22 @@ type BezierSpline struct {
 }
 
 // Return the function value for a given t value.
-func (s *BezierSpline) f0(t float64) (V2, error) {
-	pxf0t, err := s.px.f0(t)
-	if err != nil {
-		return V2{}, err
-	}
-	pyf0t, err := s.py.f0(t)
-	if err != nil {
-		return V2{}, err
-	}
-	return V2{pxf0t, pyf0t}, nil
+func (s *BezierSpline) f0(t float64) V2 {
+	return V2{s.px.f0(t), s.py.f0(t)}
 }
 
 // Sample generates polygon samples for a bezier spline.
-func (s *BezierSpline) Sample(p *Polygon, t0, t1 float64, p0, p1 V2, n int) error {
+func (s *BezierSpline) Sample(p *Polygon, t0, t1 float64, p0, p1 V2, n int) {
 
 	// test the midpoint
 	tmid := (t0 + t1) / 2
-	pmid, err := s.f0(tmid)
-	if err != nil {
-		return err
-	}
+	pmid := s.f0(tmid)
 	if colinearSlow(pmid, p0, p1, s.tolerance) {
 		// the curve could be periodic so perturb the midpoint
 		// pick a t value in [0.45,0.55]
 		k := 0.45 + 0.1*rand.Float64()
 		t2 := t0 + k*(t1-t0)
-		p2, err := s.f0(t2)
-		if err != nil {
-			return err
-		}
+		p2 := s.f0(t2)
 		if colinearSlow(p2, p0, p1, s.tolerance) {
 			// looks flat enough, add the line segment
 			if t0 == 0 {
@@ -197,7 +182,7 @@ func (s *BezierSpline) Sample(p *Polygon, t0, t1 float64, p0, p1 V2, n int) erro
 				p.AddV2(p0)
 			}
 			p.AddV2(p1)
-			return nil
+			return
 		}
 	}
 	// have we hit the recursion limit?
@@ -208,12 +193,11 @@ func (s *BezierSpline) Sample(p *Polygon, t0, t1 float64, p0, p1 V2, n int) erro
 			p.AddV2(p0)
 		}
 		p.AddV2(p1)
-		return nil
+		return
 	}
 	// not flat enough, subdivide and recurse
 	s.Sample(p, t0, tmid, p0, pmid, n+1)
 	s.Sample(p, tmid, t1, pmid, p1, n+1)
-	return nil
 }
 
 // NewBezierSpline returns a bezier spline from the provided control/end points.
@@ -394,21 +378,21 @@ func (v *BezierVertex) Mid() *BezierVertex {
 }
 
 // HandleFwd sets the slope handle in the forward direction.
-func (v *BezierVertex) HandleFwd(theta, r float64) (*BezierVertex, error) {
+func (v *BezierVertex) HandleFwd(theta, r float64) *BezierVertex {
 	if v.vtype == midpoint {
-		return nil, fmt.Errorf("can't place a handle on a curve midpoint")
+		log.Panicf("can't place a handle on a curve midpoint")
 	}
 	v.handleFwd = V2{Abs(r), theta}
-	return v, nil
+	return v
 }
 
 // HandleRev sets the slope handle in the reverse direction.
-func (v *BezierVertex) HandleRev(theta, r float64) (*BezierVertex, error) {
+func (v *BezierVertex) HandleRev(theta, r float64) *BezierVertex {
 	if v.vtype == midpoint {
-		return nil, fmt.Errorf("can't place a handle on a curve midpoint")
+		log.Panicf("can't place a handle on a curve midpoint")
 	}
 	v.handleRev = V2{Abs(r), theta}
-	return v, nil
+	return v
 }
 
 // Handle marks the vertex with a slope control handle.
@@ -474,15 +458,7 @@ func (b *Bezier) Polygon() (*Polygon, error) {
 			continue
 		}
 		// Add the spline vertices
-		f00, err := s.f0(0)
-		if err != nil {
-			return nil, err
-		}
-		f01, err := s.f0(1)
-		if err != nil {
-			return nil, err
-		}
-		s.Sample(p, 0, 1, f00, f01, 0)
+		s.Sample(p, 0, 1, s.f0(0), s.f0(1), 0)
 		if i != n-1 {
 			// drop the last vertex since it is the first vertex of the next spline
 			p.Drop()
