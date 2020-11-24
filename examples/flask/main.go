@@ -16,6 +16,7 @@ import (
 	"fmt"
 	"math"
 
+	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/sdf"
 )
 
@@ -61,13 +62,13 @@ func alignmentHoles() sdf.SDF3 {
 // pinLug returns a single pin lug.
 func pinLug(w float64) (sdf.SDF3, error) {
 	// pin
-	k := sdf.TruncRectPyramidParms{
+	k := obj.TruncRectPyramidParms{
 		Size:        sdf.V3{w, lugThickness, lugHeight},
 		BaseAngle:   sdf.DtoR(90 - lugDraft),
 		BaseRadius:  lugThickness * 0.5,
 		RoundRadius: lugThickness * 0.1,
 	}
-	return sdf.TruncRectPyramid3D(&k)
+	return obj.TruncRectPyramid3D(&k)
 }
 
 // pinLugs returns an SDF3 for the pin lugs pattern.
@@ -75,13 +76,13 @@ func pinLugs() sdf.SDF3 {
 	// build the base
 	w := lugBaseWidth
 	r := lugThickness*0.5 + lugOffset
-	k := sdf.TruncRectPyramidParms{
+	k := obj.TruncRectPyramidParms{
 		Size:        sdf.V3{w, w, lugBaseThickness},
 		BaseAngle:   sdf.DtoR(90 - lugBaseDraft),
 		BaseRadius:  r,
 		RoundRadius: lugBaseThickness * 0.25,
 	}
-	base, _ := sdf.TruncRectPyramid3D(&k)
+	base, _ := obj.TruncRectPyramid3D(&k)
 
 	// build the pin lugs
 	pinWidth := w - 2.0*lugOffset
@@ -102,13 +103,13 @@ func pinLugs() sdf.SDF3 {
 func sandKey(size sdf.V3) (sdf.SDF3, error) {
 	theta := sdf.DtoR(90 - keyDraft)
 	r := keyDepth / math.Tan(theta)
-	k := sdf.TruncRectPyramidParms{
+	k := obj.TruncRectPyramidParms{
 		Size:        size,
 		BaseAngle:   theta,
 		BaseRadius:  r,
 		RoundRadius: size.X * 0.5,
 	}
-	return sdf.TruncRectPyramid3D(&k)
+	return obj.TruncRectPyramid3D(&k)
 }
 
 //-----------------------------------------------------------------------------
@@ -123,13 +124,13 @@ func oddSide(height float64) sdf.SDF3 {
 	sy := height*1.1 + 2.0*d
 	sz := d
 
-	k := sdf.TruncRectPyramidParms{
+	k := obj.TruncRectPyramidParms{
 		Size:        sdf.V3{sx, sy, sz},
 		BaseAngle:   theta45,
 		BaseRadius:  0.5 * sx,
 		RoundRadius: 0,
 	}
-	base, _ := sdf.TruncRectPyramid3D(&k)
+	base, _ := obj.TruncRectPyramid3D(&k)
 
 	// mounting/pull holes
 	h := 3.0 * d

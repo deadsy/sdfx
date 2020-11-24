@@ -11,6 +11,7 @@ package main
 import (
 	"math"
 
+	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/sdf"
 )
 
@@ -33,14 +34,14 @@ func mountLugs() sdf.SDF3 {
 	const draft = 3.0
 	const thickness = 0.25
 
-	k := sdf.TruncRectPyramidParms{
+	k := obj.TruncRectPyramidParms{
 		Size:        sdf.V3{4.75, thickness, crankcaseOuterHeight},
 		BaseAngle:   sdf.DtoR(90 - draft),
 		BaseRadius:  crankcaseOuterHeight * 0.1,
 		RoundRadius: crankcaseOuterHeight * 0.1,
 	}
 
-	s, _ := sdf.TruncRectPyramid3D(&k)
+	s, _ := obj.TruncRectPyramid3D(&k)
 	return sdf.Transform3D(s, sdf.Translate3d(sdf.V3{0, thickness * 0.5, 0}))
 }
 
@@ -49,14 +50,14 @@ func mountLugs() sdf.SDF3 {
 func cylinderMount() sdf.SDF3 {
 	const draft = 3.0
 
-	k := sdf.TruncRectPyramidParms{
+	k := obj.TruncRectPyramidParms{
 		Size:        sdf.V3{2.0, 5.0 / 16.0, 1 + (3.0 / 16.0)},
 		BaseAngle:   sdf.DtoR(90 - draft),
 		BaseRadius:  crankcaseOuterHeight * 0.1,
 		RoundRadius: crankcaseOuterHeight * 0.1,
 	}
 
-	s, _ := sdf.TruncRectPyramid3D(&k)
+	s, _ := obj.TruncRectPyramid3D(&k)
 	return sdf.Transform3D(s, sdf.Translate3d(sdf.V3{0, crankcaseInnerRadius, 0}))
 }
 
@@ -67,13 +68,13 @@ func boltLugs() sdf.SDF3 {
 
 	const draft = 3.0
 
-	k := sdf.TruncRectPyramidParms{
+	k := obj.TruncRectPyramidParms{
 		Size:        sdf.V3{0, 0, crankcaseOuterHeight},
 		BaseAngle:   sdf.DtoR(90 - draft),
 		BaseRadius:  boltLugRadius,
 		RoundRadius: crankcaseOuterHeight * 0.1,
 	}
-	lug, _ := sdf.TruncRectPyramid3D(&k)
+	lug, _ := obj.TruncRectPyramid3D(&k)
 
 	// position the lugs
 	r := crankcaseOuterRadius
@@ -96,13 +97,13 @@ func basePattern() sdf.SDF3 {
 
 	const draft = 3.0
 
-	k := sdf.TruncRectPyramidParms{
+	k := obj.TruncRectPyramidParms{
 		Size:        sdf.V3{0, 0, crankcaseOuterHeight},
 		BaseAngle:   sdf.DtoR(90 - draft),
 		BaseRadius:  crankcaseOuterRadius,
 		RoundRadius: crankcaseOuterHeight * 0.1,
 	}
-	body, _ := sdf.TruncRectPyramid3D(&k)
+	body, _ := obj.TruncRectPyramid3D(&k)
 
 	// add the bolt/mount lugs to the body with filleting
 	s := sdf.Union3D(body, boltLugs(), mountLugs())

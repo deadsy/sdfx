@@ -11,6 +11,7 @@ package main
 import (
 	"math"
 
+	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/sdf"
 )
 
@@ -40,13 +41,13 @@ func cylinderBase() sdf.SDF3 {
 
 	const round = 0.125
 
-	k := sdf.TruncRectPyramidParms{
+	k := obj.TruncRectPyramidParms{
 		Size:        sdf.V3{x, y, z},
 		BaseAngle:   sdf.DtoR(90 - draft),
 		BaseRadius:  round,
 		RoundRadius: round * 1.5,
 	}
-	base0, _ := sdf.TruncRectPyramid3D(&k)
+	base0, _ := obj.TruncRectPyramid3D(&k)
 	base1 := sdf.Transform3D(base0, sdf.MirrorXY())
 	base := sdf.Union3D(base0, base1)
 	base = sdf.Cut3D(base, sdf.V3{0, 0, 0}, sdf.V3{0, 1, 0})

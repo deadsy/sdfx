@@ -130,44 +130,6 @@ func Knurl3D(
 }
 
 //-----------------------------------------------------------------------------
-// truncated rectangular pyramid (with rounded edges)
-
-// TruncRectPyramidParms defines the parameters for a truncated rectangular pyramid.
-type TruncRectPyramidParms struct {
-	Size        V3      // size of truncated pyramid
-	BaseAngle   float64 // base angle of pyramid (radians)
-	BaseRadius  float64 // base corner radius
-	RoundRadius float64 // edge rounding radius
-}
-
-// TruncRectPyramid3D returns a truncated rectangular pyramid with rounded edges.
-func TruncRectPyramid3D(k *TruncRectPyramidParms) (SDF3, error) {
-	if k.Size.LessThanZero() {
-		return nil, errors.New("size vector components < 0")
-	}
-	if k.BaseAngle <= 0 || k.BaseAngle > DtoR(90) {
-		return nil, errors.New("base angle must be (0,90] degrees")
-	}
-	if k.BaseRadius < 0 {
-		return nil, errors.New("base radius < 0")
-	}
-	if k.RoundRadius < 0 {
-		return nil, errors.New("round radius < 0")
-	}
-	h := k.Size.Z
-	dr := h / math.Tan(k.BaseAngle)
-	rb := k.BaseRadius + dr
-	rt := Max(k.BaseRadius-dr, 0)
-	round := Min(0.5*rt, k.RoundRadius)
-	s := Cone3D(2.0*h, rb, rt, round)
-	wx := Max(k.Size.X-2.0*k.BaseRadius, 0)
-	wy := Max(k.Size.Y-2.0*k.BaseRadius, 0)
-	s = Elongate3D(s, V3{wx, wy, 0})
-	s = Cut3D(s, V3{0, 0, 0}, V3{0, 0, 1})
-	return s, nil
-}
-
-//-----------------------------------------------------------------------------
 
 // ChamferedCylinder intersects a chamfered cylinder with an SDF3.
 func ChamferedCylinder(s SDF3, kb, kt float64) SDF3 {
