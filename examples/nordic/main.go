@@ -31,7 +31,7 @@ func nRF52dkStandoffs() sdf.SDF3 {
 	zOfs := 0.5 * (pillarHeight + baseThickness)
 
 	// standoffs with screw holes
-	k := &sdf.StandoffParms{
+	k := &obj.StandoffParms{
 		PillarHeight:   pillarHeight,
 		PillarDiameter: 6.0,
 		HoleDepth:      10.0,
@@ -43,14 +43,14 @@ func nRF52dkStandoffs() sdf.SDF3 {
 		{2600.0 * sdf.Mil, 500.0 * sdf.Mil, zOfs},
 		{3800.0 * sdf.Mil, 300.0 * sdf.Mil, zOfs},
 	}
-	s0 := sdf.Multi3D(sdf.Standoff3D(k), positions0)
+	s0 := sdf.Multi3D(obj.Standoff3D(k), positions0)
 
 	// standoffs with support stubs
 	k.HoleDepth = -2.0
 	positions1 := sdf.V3Set{
 		{600.0 * sdf.Mil, 2200.0 * sdf.Mil, zOfs},
 	}
-	s1 := sdf.Multi3D(sdf.Standoff3D(k), positions1)
+	s1 := sdf.Multi3D(obj.Standoff3D(k), positions1)
 
 	return sdf.Union3D(s0, s1)
 }
@@ -101,7 +101,7 @@ func nRF52833dkStandoffs() sdf.SDF3 {
 	zOfs := 0.5 * (pillarHeight + baseThickness)
 
 	// standoffs with screw holes
-	k := &sdf.StandoffParms{
+	k := &obj.StandoffParms{
 		PillarHeight:   pillarHeight,
 		PillarDiameter: 6.0,
 		HoleDepth:      10.0,
@@ -113,7 +113,7 @@ func nRF52833dkStandoffs() sdf.SDF3 {
 		{2600.0 * sdf.Mil, 1600.0 * sdf.Mil, zOfs},
 		{5050.0 * sdf.Mil, 1825.0 * sdf.Mil, zOfs},
 	}
-	s0 := sdf.Multi3D(sdf.Standoff3D(k), positions0)
+	s0 := sdf.Multi3D(obj.Standoff3D(k), positions0)
 
 	// standoffs with support stubs
 	k.HoleDepth = -2.0
@@ -122,7 +122,7 @@ func nRF52833dkStandoffs() sdf.SDF3 {
 		{3550.0 * sdf.Mil, 2200.0 * sdf.Mil, zOfs},
 		{3800.0 * sdf.Mil, 300.0 * sdf.Mil, zOfs},
 	}
-	s1 := sdf.Multi3D(sdf.Standoff3D(k), positions1)
+	s1 := sdf.Multi3D(obj.Standoff3D(k), positions1)
 
 	return sdf.Union3D(s0, s1)
 }
