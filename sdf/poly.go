@@ -10,6 +10,7 @@ package sdf
 
 import (
 	"fmt"
+	"log"
 	"math"
 )
 
@@ -259,7 +260,7 @@ func (p *Polygon) relToAbs() {
 		if v.relative {
 			pv := p.prevVertex(i)
 			if pv.relative {
-				panic("relative vertex needs an absolute reference")
+				log.Panic("relative vertex needs an absolute reference")
 			}
 			v.vertex = v.vertex.Add(pv.vertex)
 			v.relative = false
