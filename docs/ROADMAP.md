@@ -2,7 +2,7 @@
 
 1. Split sdf into multiple packages:
 	- sdf: SDF primitives (ie- things with real eval functions)
-	- shape: useful higher-level shapes made from primitives
+	- obj: useful higher-level objects made from primitives
 	- render: functions that render SDFs to various output formats
 
 2. Cleanup the the public API -- the sdf package should be clean with a stable API:
