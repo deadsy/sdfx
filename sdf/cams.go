@@ -255,7 +255,11 @@ func MakeThreeArcCam(
 
 	// distance between base and nose circles
 	distance := baseRadius + lift - noseRadius
-	return ThreeArcCam2D(distance, baseRadius, noseRadius, flankRadius)
+	tac2d, err := ThreeArcCam2D(distance, baseRadius, noseRadius, flankRadius)
+	if err != nil {
+		return nil, err
+	}
+	return tac2d, nil
 }
 
 //-----------------------------------------------------------------------------

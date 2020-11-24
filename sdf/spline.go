@@ -24,17 +24,17 @@ import (
 
 // TriDiagonal solves the tridiagonal matrix equation m.x = d, returns x.
 // See: https://en.wikipedia.org/wiki/Tridiagonal_matrix_algorithm
-func TriDiagonal(m []V3, d []float64) []float64 {
+func TriDiagonal(m []V3, d []float64) ([]float64, error) {
 	// Sanity checks
 	n := len(m)
 	if len(d) != n {
-		panic("bad sizes rows(m) != rows(d)")
+		return nil, fmt.Errorf("bad sizes rows(m) != rows(d)")
 	}
 	if m[0].X != 0 || m[n-1].Z != 0 {
-		panic("bad values for tridiagonal matrix")
+		return nil, fmt.Errorf("bad values for tridiagonal matrix")
 	}
 	if m[0].Y == 0 {
-		panic("m[0].Y == 0")
+		return nil, fmt.Errorf("m[0].Y == 0")
 	}
 	cp := make([]float64, n) // c-prime
 	x := make([]float64, n)  // d-prime -> x solution
@@ -44,7 +44,7 @@ func TriDiagonal(m []V3, d []float64) []float64 {
 	for i := 1; i < n; i++ {
 		denom := m[i].Y - m[i].X*cp[i-1]
 		if denom == 0 {
-			panic("denom == 0")
+			return nil, fmt.Errorf("denom == 0")
 		}
 		cp[i] = m[i].Z / denom
 		x[i] = (d[i] - m[i].X*x[i-1]) / denom
@@ -53,7 +53,7 @@ func TriDiagonal(m []V3, d []float64) []float64 {
 	for i := n - 2; i >= 0; i-- {
 		x[i] -= cp[i] * x[i+1]
 	}
-	return x
+	return x, nil
 }
 
 //-----------------------------------------------------------------------------
@@ -224,9 +224,9 @@ func (s *CubicSplineSDF2) d2(t float64, p V2) float64 {
 }
 
 // CubicSpline2D returns an SDF2 made from a set of cubic splines.
-func CubicSpline2D(knot []V2) SDF2 {
+func CubicSpline2D(knot []V2) (SDF2, error) {
 	if len(knot) < 2 {
-		panic("cubic splines need at least 2 knots")
+		return nil, fmt.Errorf("cubic splines need at least 2 knots")
 	}
 	s := CubicSplineSDF2{}
 	s.maxiters = nrMaxIters
@@ -250,8 +250,14 @@ func CubicSpline2D(knot []V2) SDF2 {
 	dx[n-1] = 3 * (knot[n-1].X - knot[n-2].X)
 	dy[n-1] = 3 * (knot[n-1].Y - knot[n-2].Y)
 	// solve to give the first derivatives at the knot points
-	xx := TriDiagonal(m, dx)
-	xy := TriDiagonal(m, dy)
+	xx, err := TriDiagonal(m, dx)
+	if err != nil {
+		return nil, err
+	}
+	xy, err := TriDiagonal(m, dy)
+	if err != nil {
+		return nil, err
+	}
 
 	// The solution data are the first derivatives.
 	// Reformat as the cubic polynomial coefficients.
@@ -269,7 +275,7 @@ func CubicSpline2D(knot []V2) SDF2 {
 	for i := 1; i < n-1; i++ {
 		s.bb = s.bb.Extend(s.spline[i].BoundingBox())
 	}
-	return &s
+	return &s, nil
 }
 
 // Evaluate returns the minimum distance from a point to the cubic spline SDF2.

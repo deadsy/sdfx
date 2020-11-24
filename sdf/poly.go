@@ -253,18 +253,19 @@ func (p *Polygon) smoothVertices() {
 //-----------------------------------------------------------------------------
 
 // relToAbs converts relative vertices to absolute vertices.
-func (p *Polygon) relToAbs() {
+func (p *Polygon) relToAbs() error {
 	for i := range p.vlist {
 		v := &p.vlist[i]
 		if v.relative {
 			pv := p.prevVertex(i)
 			if pv.relative {
-				panic("relative vertex needs an absolute reference")
+				return fmt.Errorf("relative vertex needs an absolute reference")
 			}
 			v.vertex = v.vertex.Add(pv.vertex)
 			v.relative = false
 		}
 	}
+	return nil
 }
 
 //-----------------------------------------------------------------------------
