@@ -42,16 +42,16 @@ DIRS = 3dp_nutbolt \
 
 all:
 	for dir in $(DIRS); do \
-		$(MAKE) -C ./examples/$$dir $@; \
+		$(MAKE) -C ./examples/$$dir $@ || exit 1; \
 	done
 
 test:
 	cd sdf; go test; cd ..
 	for dir in $(DIRS); do \
-		$(MAKE) -C ./examples/$$dir $@; \
+		$(MAKE) -C ./examples/$$dir $@ || exit 1; \
 	done
 
 clean:
 	for dir in $(DIRS); do \
-		$(MAKE) -C ./examples/$$dir $@; \
+		$(MAKE) -C ./examples/$$dir $@ || exit 1; \
 	done
