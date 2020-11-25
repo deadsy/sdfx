@@ -11,6 +11,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/sdf"
 )
 
@@ -36,14 +37,14 @@ const quality = 200
 
 func inch() error {
 	// bolt
-	boltParms := sdf.BoltParms{
+	boltParms := obj.BoltParms{
 		Thread:      "unc_5/8",
 		Style:       "knurl",
 		Tolerance:   inchTolerance,
 		TotalLength: 2.0,
 		ShankLength: 0.5,
 	}
-	bolt, err := sdf.Bolt(&boltParms)
+	bolt, err := obj.Bolt(&boltParms)
 	if err != nil {
 		return err
 	}
@@ -51,12 +52,12 @@ func inch() error {
 	sdf.RenderSTLSlow(bolt, quality, "inch_bolt.stl")
 
 	// nut
-	nutParms := sdf.NutParms{
+	nutParms := obj.NutParms{
 		Thread:    "unc_5/8",
 		Style:     "knurl",
 		Tolerance: inchTolerance,
 	}
-	nut, err := sdf.Nut(&nutParms)
+	nut, err := obj.Nut(&nutParms)
 	if err != nil {
 		return err
 	}
@@ -71,26 +72,26 @@ func inch() error {
 
 func metric() error {
 	// bolt
-	boltParms := sdf.BoltParms{
+	boltParms := obj.BoltParms{
 		Thread:      "M16x2",
 		Style:       "hex",
 		Tolerance:   mmTolerance,
 		TotalLength: 50.0,
 		ShankLength: 10.0,
 	}
-	bolt, err := sdf.Bolt(&boltParms)
+	bolt, err := obj.Bolt(&boltParms)
 	if err != nil {
 		return err
 	}
 	sdf.RenderSTLSlow(bolt, quality, "metric_bolt.stl")
 
 	// nut
-	nutParms := sdf.NutParms{
+	nutParms := obj.NutParms{
 		Thread:    "M16x2",
 		Style:     "hex",
 		Tolerance: mmTolerance,
 	}
-	nut, err := sdf.Nut(&nutParms)
+	nut, err := obj.Nut(&nutParms)
 	if err != nil {
 		return err
 	}

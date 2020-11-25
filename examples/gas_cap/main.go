@@ -8,7 +8,10 @@ Replacement Cap for Plastic Gas/Oil Can
 
 package main
 
-import "github.com/deadsy/sdfx/sdf"
+import (
+	"github.com/deadsy/sdfx/obj"
+	"github.com/deadsy/sdfx/sdf"
+)
 
 //-----------------------------------------------------------------------------
 
@@ -26,7 +29,8 @@ const threadRadius = threadDiameter / 2.0
 //-----------------------------------------------------------------------------
 
 func capOuter() sdf.SDF3 {
-	return sdf.KnurledHead3D(capRadius, capHeight, capRadius*0.25)
+	s, _ := obj.KnurledHead3D(capRadius, capHeight, capRadius*0.25)
+	return s
 }
 
 func capInner() sdf.SDF3 {

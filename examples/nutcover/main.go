@@ -11,6 +11,7 @@ package main
 import (
 	"math"
 
+	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/sdf"
 )
 
@@ -38,7 +39,8 @@ func cover() sdf.SDF3 {
 func recess() sdf.SDF3 {
 	r := hexRadius(nutFlat2Flat) * nutFit
 	h := recessHeight
-	return sdf.HexHead3D(r, 2*h, "")
+	s, _ := obj.HexHead3D(r, 2*h, "")
+	return s
 }
 
 func counterbore() sdf.SDF3 {

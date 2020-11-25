@@ -9,6 +9,9 @@ Nuts and Bolts
 package main
 
 import (
+	"log"
+
+	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/sdf"
 )
 
@@ -25,11 +28,13 @@ const baseThickness = 4.0
 
 //-----------------------------------------------------------------------------
 
-func boltContainer() sdf.SDF3 {
+func boltContainer() (sdf.SDF3, error) {
 
 	// build hex head
-	hex := sdf.HexHead3D(hexRadius, hexHeight, "tb")
-
+	hex, err := obj.HexHead3D(hexRadius, hexHeight, "tb")
+	if err != nil {
+		return nil, err
+	}
 	// build the screw portion
 	r := screwRadius - tolerance
 	l := screwLength
@@ -47,7 +52,7 @@ func boltContainer() sdf.SDF3 {
 	cavity := sdf.Cylinder3D(l, r, round)
 	cavity = sdf.Transform3D(cavity, sdf.Translate3d(sdf.V3{0, 0, ofs}))
 
-	return sdf.Difference3D(sdf.Union3D(hex, screw), cavity)
+	return sdf.Difference3D(sdf.Union3D(hex, screw), cavity), nil
 }
 
 //-----------------------------------------------------------------------------
@@ -59,7 +64,11 @@ func nutTop() sdf.SDF3 {
 //-----------------------------------------------------------------------------
 
 func main() {
-	sdf.RenderSTL(boltContainer(), 200, "container.stl")
+	bc, err := boltContainer()
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	sdf.RenderSTL(bc, 200, "container.stl")
 }
 
 //-----------------------------------------------------------------------------

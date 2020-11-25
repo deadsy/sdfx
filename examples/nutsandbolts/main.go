@@ -8,7 +8,10 @@ Nuts and Bolts
 
 package main
 
-import "github.com/deadsy/sdfx/sdf"
+import (
+	"github.com/deadsy/sdfx/obj"
+	"github.com/deadsy/sdfx/sdf"
+)
 
 //-----------------------------------------------------------------------------
 
@@ -19,20 +22,20 @@ func nutAndBolt(
 ) sdf.SDF3 {
 
 	// bolt
-	boltParms := sdf.BoltParms{
+	boltParms := obj.BoltParms{
 		Thread:      name,
 		Style:       "hex",
 		TotalLength: totalLength,
 		ShankLength: shankLength,
 	}
-	bolt, _ := sdf.Bolt(&boltParms)
+	bolt, _ := obj.Bolt(&boltParms)
 
 	// nut
-	nutParms := sdf.NutParms{
+	nutParms := obj.NutParms{
 		Thread: name,
 		Style:  "hex",
 	}
-	nut, _ := sdf.Nut(&nutParms)
+	nut, _ := obj.Nut(&nutParms)
 	zOffset := totalLength * 1.5
 	nut = sdf.Transform3D(nut, sdf.Translate3d(sdf.V3{0, 0, zOffset}))
 
