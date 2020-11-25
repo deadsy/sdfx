@@ -22,6 +22,7 @@ import (
 
 //-----------------------------------------------------------------------------
 
+// KnurlParms specifies the knurl parameters.
 type KnurlParms struct {
 	Length float64 // length of cylinder
 	Radius float64 // radius of cylinder

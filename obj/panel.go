@@ -1,7 +1,17 @@
 //-----------------------------------------------------------------------------
 /*
 
-2D Panel with Edge Holes and Rounded Corners
+2D Panel with rounded corners and edge holes.
+
+Note: The hole pattern is used to layout multiple holes along an edge.
+
+Examples:
+
+"x" - single hole on edge
+"xx" - two holes on edge
+"x.x" = two holes on edge with spacing
+"xx.x.xx" = five holes on edge with spacing
+etc.
 
 */
 //-----------------------------------------------------------------------------
@@ -14,11 +24,11 @@ import "github.com/deadsy/sdfx/sdf"
 
 // PanelParms defines the parameters for a 2D panel.
 type PanelParms struct {
-	Size         sdf.V2
-	CornerRadius float64
-	HoleDiameter float64
-	HoleMargin   [4]float64 // top, right, bottom, left
-	HolePattern  [4]string  // top, right, bottom, left
+	Size         sdf.V2     // size of the panel
+	CornerRadius float64    // radius of rounded corners
+	HoleDiameter float64    // radius of panel holes
+	HoleMargin   [4]float64 // hole margins for top, right, bottom, left
+	HolePattern  [4]string  // hole pattern for top, right, bottom, left
 }
 
 // Panel2D returns a 2d panel with holes on the edges.

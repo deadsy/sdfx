@@ -19,6 +19,7 @@ import (
 
 //-----------------------------------------------------------------------------
 
+// GenevaParms specfies the geneva drive parameters.
 type GenevaParms struct {
 	NumSectors     int     // number of sectors in the driven wheel
 	CenterDistance float64 // center to center distance of driver/driven wheels
