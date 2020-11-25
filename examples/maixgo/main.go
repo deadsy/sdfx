@@ -88,7 +88,7 @@ func bezelStandoffs() sdf.SDF3 {
 func speakerHoles(d float64, ofs sdf.V2) sdf.SDF2 {
 	holeRadius := 1.7
 	s0 := sdf.Circle2D(holeRadius)
-	s1 := sdf.MakeBoltCircle2D(holeRadius, d*0.3, 6)
+	s1 := obj.BoltCircle2D(holeRadius, d*0.3, 6)
 	return sdf.Transform2D(sdf.Union2D(s0, s1), sdf.Translate2d(ofs))
 }
 

@@ -7,7 +7,10 @@ https://www.reddit.com/r/cad/comments/5vwdnc/cad_challenge_18/
 
 package main
 
-import . "github.com/deadsy/sdfx/sdf"
+import (
+	"github.com/deadsy/sdfx/obj"
+	. "github.com/deadsy/sdfx/sdf"
+)
 
 //-----------------------------------------------------------------------------
 // Part A
@@ -54,7 +57,7 @@ func cc18b() SDF3 {
 	p.Add(0, 20)
 	vpipe_3d := Revolve3D(Polygon2D(p.Vertices()))
 	// bolt circle for the top flange
-	top_holes_3d := MakeBoltCircle3D(
+	top_holes_3d := obj.BoltCircle3D(
 		2.0,       // hole_depth
 		0.5/2.0,   // hole_radius
 		14.50/2.0, // circle_radius
@@ -77,7 +80,7 @@ func cc18b() SDF3 {
 	p.Add(0, 14.35)
 	hpipe_3d := Revolve3D(Polygon2D(p.Vertices()))
 	// bolt circle for the side flanges
-	side_holes_3d := MakeBoltCircle3D(
+	side_holes_3d := obj.BoltCircle3D(
 		2.0,      // hole_depth
 		1.0/2.0,  // hole_radius
 		14.0/2.0, // circle_radius

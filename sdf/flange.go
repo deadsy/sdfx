@@ -80,28 +80,3 @@ func (s *Flange1) BoundingBox() Box2 {
 }
 
 //-----------------------------------------------------------------------------
-
-// MakeBoltCircle2D returns a 2D profile for a flange bolt circle.
-func MakeBoltCircle2D(
-	holeRadius float64, // radius of bolt holes
-	circleRadius float64, // radius of bolt circle
-	numHoles int, // number of bolts
-) SDF2 {
-	s := Circle2D(holeRadius)
-	s = Transform2D(s, Translate2d(V2{circleRadius, 0}))
-	s = RotateCopy2D(s, numHoles)
-	return s
-}
-
-// MakeBoltCircle3D returns a 3D object for a flange bolt circle.
-func MakeBoltCircle3D(
-	holeDepth float64, // depth of bolt holes
-	holeRadius float64, // radius of bolt holes
-	circleRadius float64, // radius of bolt circle
-	numHoles int, // number of bolts
-) SDF3 {
-	s := MakeBoltCircle2D(holeRadius, circleRadius, numHoles)
-	return Extrude3D(s, holeDepth)
-}
-
-//-----------------------------------------------------------------------------
