@@ -334,7 +334,7 @@ func test30() error {
 }
 
 func test31() error {
-	s := CounterSunkHole3D(30, 2)
+	s := obj.CounterSunkHole3D(30, 2)
 	RenderSTL(s, 200, "test.stl")
 	return nil
 }

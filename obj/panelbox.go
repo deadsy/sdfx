@@ -92,7 +92,7 @@ type boxHoleParms struct {
 
 // boxHole3d returns an oriented countersunk hole for the box side.
 func boxHole3d(k *boxHoleParms) (sdf.SDF3, error) {
-	hole := sdf.CounterSunkHole3D(k.Length, 0.5*k.Hole)
+	hole := CounterSunkHole3D(k.Length, 0.5*k.Hole)
 	hole = sdf.Transform3D(hole, sdf.Translate3d(sdf.V3{0, 0, 0.5 * k.Length}))
 	m := sdf.Identity3d()
 	switch k.Orientation {
