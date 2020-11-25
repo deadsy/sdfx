@@ -382,7 +382,15 @@ func test35() error {
 }
 
 func test36() error {
-	sDriver, sDriven, err := MakeGenevaCam(6, 100, 40, 80, 5, 0.5)
+	k := obj.GenevaParms{
+		NumSectors:     6,
+		CenterDistance: 100,
+		DriverRadius:   40,
+		DrivenRadius:   80,
+		PinRadius:      5,
+		Clearance:      0.5,
+	}
+	sDriver, sDriven, err := obj.Geneva2D(&k)
 	if err != nil {
 		return err
 	}
