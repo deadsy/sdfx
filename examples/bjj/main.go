@@ -10,7 +10,10 @@ https://woodgears.ca/box_joint/jig.html
 
 package main
 
-import . "github.com/deadsy/sdfx/sdf"
+import (
+	"github.com/deadsy/sdfx/obj"
+	. "github.com/deadsy/sdfx/sdf"
+)
 
 //-----------------------------------------------------------------------------
 
@@ -103,7 +106,7 @@ func gears() SDF3 {
 	// 12 tooth spur gear
 	g0_teeth := 12
 	g0_pd := float64(g0_teeth) * gear_module
-	g0_2d := InvoluteGear(
+	g0_2d := obj.InvoluteGear(
 		g0_teeth,
 		gear_module,
 		DtoR(pressure_angle),
@@ -117,7 +120,7 @@ func gears() SDF3 {
 	// 16 tooth spur gear
 	g1_teeth := 16
 	g1_pd := float64(g1_teeth) * gear_module
-	g1_2d := InvoluteGear(
+	g1_2d := obj.InvoluteGear(
 		g1_teeth,
 		gear_module,
 		DtoR(pressure_angle),

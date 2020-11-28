@@ -77,7 +77,7 @@ func Bolt(k *BoltParms) (sdf.SDF3, error) {
 		isoThread := sdf.ISOThread(r, t.Pitch, true)
 		thread = sdf.Screw3D(isoThread, threadLength, t.Pitch, 1)
 		// chamfer the thread
-		thread = sdf.ChamferedCylinder(thread, 0, 0.5)
+		thread = ChamferedCylinder(thread, 0, 0.5)
 		thread = sdf.Transform3D(thread, sdf.Translate3d(sdf.V3{0, 0, threadOffset}))
 	}
 
