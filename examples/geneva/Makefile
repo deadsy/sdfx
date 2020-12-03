@@ -5,6 +5,11 @@ all:
 
 test: all
 	./$(EXEC)
+	cd ../../tools/md5tool; make
+	../../tools/md5tool/md5tool
+
+update-md5sums:
+	../../tools/md5tool/md5tool -update
 
 clean:
 	go clean
