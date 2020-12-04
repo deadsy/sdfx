@@ -1,4 +1,8 @@
+tools/md5tool/md5tool
 tools/parser.out
 tools/parsetab.py
-*.stl
 *.pyc
+examples/*/*.stl
+examples/*/*.dxf
+examples/*/*.png
+examples/*/*.svg
