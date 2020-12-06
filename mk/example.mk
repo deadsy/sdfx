@@ -1,16 +1,20 @@
 EXEC = $(shell basename $(CURDIR))
 
+.PHONY: all
 all:
 	go build
 
+.PHONY: test
 test: all
 	./$(EXEC)
-	cd $(TOP)/tools/md5tool; make
-	$(TOP)/tools/md5tool/md5tool
+	if [ -f MD5SUM ]; then md5sum -c MD5SUM; fi;
 
-update-md5sums:
-	$(TOP)/tools/md5tool/md5tool -update
+.PHONY: hash
+hash: all
+	./$(EXEC)
+	$(TOP)/tools/md5tool.py > MD5SUM
 
+.PHONY: clean
 clean:
 	go clean
 	-rm -f *.svg
