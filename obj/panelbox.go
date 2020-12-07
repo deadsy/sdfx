@@ -10,6 +10,7 @@ package obj
 
 import (
 	"errors"
+	"math"
 	"strings"
 
 	"github.com/deadsy/sdfx/sdf"
@@ -191,13 +192,13 @@ func PanelBox3D(k *PanelBoxParms) ([]sdf.SDF3, error) {
 
 	innerPlusSize := innerSize.AddScalar(2.0 * k.Clearance * k.Wall)
 	innerMinusSize := innerSize.SubScalar(4.0 * k.Clearance * k.Wall)
-	innerRounding := sdf.Max(0.0, k.Rounding-k.Wall)
+	innerRounding := math.Max(0.0, k.Rounding-k.Wall)
 
 	outer := sdf.Box2D(outerSize, k.Rounding)
 	inner := sdf.Box2D(innerSize, innerRounding)
 	innerPlus := sdf.Box2D(innerPlusSize, innerRounding)
 	innerMinus := sdf.Box2D(innerMinusSize, innerRounding)
-	ridge := sdf.Box2D(ridgeSize, sdf.Max(0.0, k.Rounding-2.0*k.Wall))
+	ridge := sdf.Box2D(ridgeSize, math.Max(0.0, k.Rounding-2.0*k.Wall))
 
 	// front/pack panels
 	panel := sdf.Extrude3D(innerMinus, k.Panel)

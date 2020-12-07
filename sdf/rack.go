@@ -67,13 +67,13 @@ func GearRack2D(
 // Evaluate returns the minimum distance to the gear rack.
 func (s *GearRackSDF2) Evaluate(p V2) float64 {
 	// map p.X back to the [0,half_pitch) domain
-	p0 := V2{Abs(SawTooth(p.X, s.pitch)), p.Y}
+	p0 := V2{math.Abs(SawTooth(p.X, s.pitch)), p.Y}
 	// get the tooth profile distance
 	d0 := s.tooth.Evaluate(p0)
 	// create a region for the rack length
-	d1 := Abs(p.X) - s.length
+	d1 := math.Abs(p.X) - s.length
 	// return the intersection
-	return Max(d0, d1)
+	return math.Max(d0, d1)
 }
 
 // BoundingBox returns the bounding box for the gear rack.

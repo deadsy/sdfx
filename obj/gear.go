@@ -60,7 +60,7 @@ func involuteGearTooth(
 	centerAngle := sdf.Pi/(2.0*float64(numberTeeth)) + faceAngle - backlashAngle
 
 	// work out the angles over which the involute will be used
-	startAngle := involuteTheta(baseRadius, sdf.Max(baseRadius, rootRadius))
+	startAngle := involuteTheta(baseRadius, math.Max(baseRadius, rootRadius))
 	stopAngle := involuteTheta(baseRadius, outerRadius)
 	dtheta := (stopAngle - startAngle) / float64(facets)
 

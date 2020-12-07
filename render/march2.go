@@ -10,7 +10,11 @@ Convert an SDF2 boundary to a set of line segments.
 
 package render
 
-import "github.com/deadsy/sdfx/sdf"
+import (
+	"math"
+
+	"github.com/deadsy/sdfx/sdf"
+)
 
 //-----------------------------------------------------------------------------
 
@@ -157,8 +161,8 @@ func msToLines(p [4]sdf.V2, v [4]float64, x float64) []*Line {
 
 func msInterpolate(p1, p2 sdf.V2, v1, v2, x float64) sdf.V2 {
 
-	closeToV1 := sdf.Abs(x-v1) < epsilon
-	closeToV2 := sdf.Abs(x-v2) < epsilon
+	closeToV1 := math.Abs(x-v1) < epsilon
+	closeToV2 := math.Abs(x-v2) < epsilon
 
 	if closeToV1 && !closeToV2 {
 		return p1

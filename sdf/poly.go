@@ -131,7 +131,7 @@ func (p *Polygon) arcVertex(i int) bool {
 	}
 	// The sign of the radius indicates which side of the chord the arc is on.
 	side := Sign(v.radius)
-	radius := Abs(v.radius)
+	radius := math.Abs(v.radius)
 	// two points on the chord
 	a := pv.vertex
 	b := v.vertex

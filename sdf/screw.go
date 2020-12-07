@@ -338,9 +338,9 @@ func (s *ScrewSDF3) Evaluate(p V3) float64 {
 	// get the thread profile distance
 	d0 := s.thread.Evaluate(p0)
 	// create a region for the screw length
-	d1 := Abs(p.Z) - s.length
+	d1 := math.Abs(p.Z) - s.length
 	// return the intersection
-	return Max(d0, d1)
+	return math.Max(d0, d1)
 }
 
 // BoundingBox returns the bounding box for a 3d screw form.

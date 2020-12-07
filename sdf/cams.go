@@ -60,7 +60,7 @@ func FlatFlankCam2D(
 // Evaluate returns the minimum distance to the cam.
 func (s *FlatFlankCamSDF2) Evaluate(p V2) float64 {
 	// we have symmetry about the y-axis
-	p = V2{Abs(p.X), p.Y}
+	p = V2{math.Abs(p.X), p.Y}
 	// vector to first point of flank line
 	v := p.Sub(s.a)
 	// work out the t-parameter of the projection onto the flank line
@@ -175,7 +175,7 @@ func ThreeArcCam2D(
 // Evaluate returns the minimum distance to the cam.
 func (s *ThreeArcCamSDF2) Evaluate(p V2) float64 {
 	// we have symmetry about the y-axis
-	p0 := V2{Abs(p.X), p.Y}
+	p0 := V2{math.Abs(p.X), p.Y}
 	// work out the theta angle wrt the flank center
 	v := p0.Sub(s.flankCenter)
 	t := math.Atan2(v.Y, v.X)

@@ -98,7 +98,7 @@ func ArcSpiral2D(
 	s.end = P2{s.spiral.radius(end), end}
 
 	// bounding box
-	rMax := Max(Abs(s.spiral.radius(start)), Abs(s.spiral.radius(end))) + d
+	rMax := math.Max(math.Abs(s.spiral.radius(start)), math.Abs(s.spiral.radius(end))) + d
 	s.bb = Box2{V2{-rMax, -rMax}, V2{rMax, rMax}}
 	return &s, nil
 }
@@ -108,7 +108,7 @@ func (s *ArcSpiralSDF2) Evaluate(p V2) float64 {
 	pp := p.CartesianToPolar()
 
 	// end points
-	d2 := Min(polarDist2(pp, s.start), polarDist2(pp, s.end))
+	d2 := math.Min(polarDist2(pp, s.start), polarDist2(pp, s.end))
 
 	thetas, err := s.spiral.theta(pp.R)
 	if err == nil {
@@ -117,7 +117,7 @@ func (s *ArcSpiralSDF2) Evaluate(p V2) float64 {
 			theta = pp.Theta - (Tau * n)
 
 			if theta >= s.start.Theta && theta <= s.end.Theta {
-				d2 = Min(d2, polarDist2(pp, P2{s.spiral.radius(theta), theta}))
+				d2 = math.Min(d2, polarDist2(pp, P2{s.spiral.radius(theta), theta}))
 			} else {
 
 				if theta < s.start.Theta {
@@ -125,7 +125,7 @@ func (s *ArcSpiralSDF2) Evaluate(p V2) float64 {
 						theta += Tau
 					}
 					if theta < s.end.Theta {
-						d2 = Min(d2, polarDist2(pp, P2{s.spiral.radius(theta), theta}))
+						d2 = math.Min(d2, polarDist2(pp, P2{s.spiral.radius(theta), theta}))
 					}
 				}
 
@@ -134,7 +134,7 @@ func (s *ArcSpiralSDF2) Evaluate(p V2) float64 {
 						theta -= Tau
 					}
 					if theta > s.start.Theta {
-						d2 = Min(d2, polarDist2(pp, P2{s.spiral.radius(theta), theta}))
+						d2 = math.Min(d2, polarDist2(pp, P2{s.spiral.radius(theta), theta}))
 					}
 				}
 

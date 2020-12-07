@@ -59,37 +59,6 @@ func Mix(x, y, a float64) float64 {
 }
 
 //-----------------------------------------------------------------------------
-// Max/Min functions
-// Note: math.Max/math.Min don't inline
-
-// Max returns the maximum of a and b
-func Max(a, b float64) float64 {
-	if a > b {
-		return a
-	}
-	return b
-}
-
-// Min returns the minimum of a and b
-func Min(a, b float64) float64 {
-	if a < b {
-		return a
-	}
-	return b
-}
-
-//-----------------------------------------------------------------------------
-
-// Abs returns the absolute value of x
-func Abs(x float64) float64 {
-	if x < 0 {
-		return -x
-	}
-	if x == 0 {
-		return 0 // return correctly abs(-0)
-	}
-	return x
-}
 
 // Sign returns the sign of x
 func Sign(x float64) float64 {
@@ -120,7 +89,7 @@ type MinFunc func(a, b float64) float64
 func RoundMin(k float64) MinFunc {
 	return func(a, b float64) float64 {
 		u := V2{k - a, k - b}.Max(V2{0, 0})
-		return Max(k, Min(a, b)) - u.Length()
+		return math.Max(k, math.Min(a, b)) - u.Length()
 	}
 }
 
@@ -128,7 +97,7 @@ func RoundMin(k float64) MinFunc {
 // TODO: why the holes in the rendering?
 func ChamferMin(k float64) MinFunc {
 	return func(a, b float64) float64 {
-		return Min(Min(a, b), (a-k+b)*sqrtHalf)
+		return math.Min(math.Min(a, b), (a-k+b)*sqrtHalf)
 	}
 }
 
@@ -265,7 +234,7 @@ func EqualFloat64(a, b, epsilon float64) bool {
 
 // ZeroSmall zeroes out values that are small relative to a quantity.
 func ZeroSmall(x, y, epsilon float64) float64 {
-	if Abs(x)/y < epsilon {
+	if math.Abs(x)/y < epsilon {
 		return 0
 	}
 	return x

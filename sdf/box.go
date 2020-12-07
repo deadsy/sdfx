@@ -6,7 +6,10 @@
 
 package sdf
 
-import "errors"
+import (
+	"errors"
+	"math"
+)
 
 //-----------------------------------------------------------------------------
 
@@ -214,9 +217,9 @@ func (a Box2) MinMaxDist2(p V2) V2 {
 		if i == 0 {
 			minDist2 = d2
 		} else {
-			minDist2 = Min(minDist2, d2)
+			minDist2 = math.Min(minDist2, d2)
 		}
-		maxDist2 = Max(maxDist2, d2)
+		maxDist2 = math.Max(maxDist2, d2)
 	}
 
 	// consider the sides (for the minimum)
@@ -227,12 +230,12 @@ func (a Box2) MinMaxDist2(p V2) V2 {
 		minDist2 = 0
 	} else {
 		if withinX {
-			d := Min(Abs(a.Max.Y), Abs(a.Min.Y))
-			minDist2 = Min(minDist2, d*d)
+			d := math.Min(math.Abs(a.Max.Y), math.Abs(a.Min.Y))
+			minDist2 = math.Min(minDist2, d*d)
 		}
 		if withinY {
-			d := Min(Abs(a.Max.X), Abs(a.Min.X))
-			minDist2 = Min(minDist2, d*d)
+			d := math.Min(math.Abs(a.Max.X), math.Abs(a.Min.X))
+			minDist2 = math.Min(minDist2, d*d)
 		}
 	}
 
@@ -255,9 +258,9 @@ func (a Box3) MinMaxDist2(p V3) V2 {
 		if i == 0 {
 			minDist2 = d2
 		} else {
-			minDist2 = Min(minDist2, d2)
+			minDist2 = math.Min(minDist2, d2)
 		}
-		maxDist2 = Max(maxDist2, d2)
+		maxDist2 = math.Max(maxDist2, d2)
 	}
 
 	// consider the faces (for the minimum)
@@ -269,16 +272,16 @@ func (a Box3) MinMaxDist2(p V3) V2 {
 		minDist2 = 0
 	} else {
 		if withinX && withinY {
-			d := Min(Abs(a.Max.Z), Abs(a.Min.Z))
-			minDist2 = Min(minDist2, d*d)
+			d := math.Min(math.Abs(a.Max.Z), math.Abs(a.Min.Z))
+			minDist2 = math.Min(minDist2, d*d)
 		}
 		if withinX && withinZ {
-			d := Min(Abs(a.Max.Y), Abs(a.Min.Y))
-			minDist2 = Min(minDist2, d*d)
+			d := math.Min(math.Abs(a.Max.Y), math.Abs(a.Min.Y))
+			minDist2 = math.Min(minDist2, d*d)
 		}
 		if withinY && withinZ {
-			d := Min(Abs(a.Max.X), Abs(a.Min.X))
-			minDist2 = Min(minDist2, d*d)
+			d := math.Min(math.Abs(a.Max.X), math.Abs(a.Min.X))
+			minDist2 = math.Min(minDist2, d*d)
 		}
 	}
 

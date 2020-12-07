@@ -239,43 +239,43 @@ func Rotate(a float64) M22 {
 
 // Equals tests the equality of 4x4 matrices.
 func (a M44) Equals(b M44, tolerance float64) bool {
-	return (Abs(a.x00-b.x00) < tolerance &&
-		Abs(a.x01-b.x01) < tolerance &&
-		Abs(a.x02-b.x02) < tolerance &&
-		Abs(a.x03-b.x03) < tolerance &&
-		Abs(a.x10-b.x10) < tolerance &&
-		Abs(a.x11-b.x11) < tolerance &&
-		Abs(a.x12-b.x12) < tolerance &&
-		Abs(a.x13-b.x13) < tolerance &&
-		Abs(a.x20-b.x20) < tolerance &&
-		Abs(a.x21-b.x21) < tolerance &&
-		Abs(a.x22-b.x22) < tolerance &&
-		Abs(a.x23-b.x23) < tolerance &&
-		Abs(a.x30-b.x30) < tolerance &&
-		Abs(a.x31-b.x31) < tolerance &&
-		Abs(a.x32-b.x32) < tolerance &&
-		Abs(a.x33-b.x33) < tolerance)
+	return (math.Abs(a.x00-b.x00) < tolerance &&
+		math.Abs(a.x01-b.x01) < tolerance &&
+		math.Abs(a.x02-b.x02) < tolerance &&
+		math.Abs(a.x03-b.x03) < tolerance &&
+		math.Abs(a.x10-b.x10) < tolerance &&
+		math.Abs(a.x11-b.x11) < tolerance &&
+		math.Abs(a.x12-b.x12) < tolerance &&
+		math.Abs(a.x13-b.x13) < tolerance &&
+		math.Abs(a.x20-b.x20) < tolerance &&
+		math.Abs(a.x21-b.x21) < tolerance &&
+		math.Abs(a.x22-b.x22) < tolerance &&
+		math.Abs(a.x23-b.x23) < tolerance &&
+		math.Abs(a.x30-b.x30) < tolerance &&
+		math.Abs(a.x31-b.x31) < tolerance &&
+		math.Abs(a.x32-b.x32) < tolerance &&
+		math.Abs(a.x33-b.x33) < tolerance)
 }
 
 // Equals tests the equality of 3x3 matrices.
 func (a M33) Equals(b M33, tolerance float64) bool {
-	return (Abs(a.x00-b.x00) < tolerance &&
-		Abs(a.x01-b.x01) < tolerance &&
-		Abs(a.x02-b.x02) < tolerance &&
-		Abs(a.x10-b.x10) < tolerance &&
-		Abs(a.x11-b.x11) < tolerance &&
-		Abs(a.x12-b.x12) < tolerance &&
-		Abs(a.x20-b.x20) < tolerance &&
-		Abs(a.x21-b.x21) < tolerance &&
-		Abs(a.x22-b.x22) < tolerance)
+	return (math.Abs(a.x00-b.x00) < tolerance &&
+		math.Abs(a.x01-b.x01) < tolerance &&
+		math.Abs(a.x02-b.x02) < tolerance &&
+		math.Abs(a.x10-b.x10) < tolerance &&
+		math.Abs(a.x11-b.x11) < tolerance &&
+		math.Abs(a.x12-b.x12) < tolerance &&
+		math.Abs(a.x20-b.x20) < tolerance &&
+		math.Abs(a.x21-b.x21) < tolerance &&
+		math.Abs(a.x22-b.x22) < tolerance)
 }
 
 // Equals tests the equality of 2x2 matrices.
 func (a M22) Equals(b M22, tolerance float64) bool {
-	return (Abs(a.x00-b.x00) < tolerance &&
-		Abs(a.x01-b.x01) < tolerance &&
-		Abs(a.x10-b.x10) < tolerance &&
-		Abs(a.x11-b.x11) < tolerance)
+	return (math.Abs(a.x00-b.x00) < tolerance &&
+		math.Abs(a.x01-b.x01) < tolerance &&
+		math.Abs(a.x10-b.x10) < tolerance &&
+		math.Abs(a.x11-b.x11) < tolerance)
 }
 
 //-----------------------------------------------------------------------------

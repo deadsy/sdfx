@@ -72,7 +72,7 @@ func RevolveTheta3D(sdf SDF2, theta float64) SDF3 {
 	s := SorSDF3{}
 	s.sdf = sdf
 	// normalize theta
-	s.theta = math.Mod(Abs(theta), Tau)
+	s.theta = math.Mod(math.Abs(theta), Tau)
 	sin := math.Sin(s.theta)
 	cos := math.Cos(s.theta)
 	// pre-calculate the normal to the theta line
@@ -94,7 +94,7 @@ func RevolveTheta3D(sdf SDF2, theta float64) SDF3 {
 		}
 	}
 	bb := s.sdf.BoundingBox()
-	l := Max(Abs(bb.Min.X), Abs(bb.Max.X))
+	l := math.Max(math.Abs(bb.Min.X), math.Abs(bb.Max.X))
 	vmin := vset.Min().MulScalar(l)
 	vmax := vset.Max().MulScalar(l)
 	s.bb = Box3{V3{vmin.X, vmin.Y, bb.Min.Y}, V3{vmax.X, vmax.Y, bb.Max.Y}}
@@ -115,13 +115,13 @@ func (s *SorSDF3) Evaluate(p V3) float64 {
 		// combine two vertical planes to give an intersection wedge
 		d := s.norm.Dot(V2{p.X, p.Y})
 		if s.theta < Pi {
-			b = Max(-p.Y, d) // intersect
+			b = math.Max(-p.Y, d) // intersect
 		} else {
-			b = Min(-p.Y, d) // union
+			b = math.Min(-p.Y, d) // union
 		}
 	}
 	// return the intersection
-	return Max(a, b)
+	return math.Max(a, b)
 }
 
 // BoundingBox returns the bounding box for a solid of revolution.
@@ -196,9 +196,9 @@ func (s *ExtrudeSDF3) Evaluate(p V3) float64 {
 	// sdf for the projected 2d surface
 	a := s.sdf.Evaluate(s.extrude(p))
 	// sdf for the extrusion region: z = [-height, height]
-	b := Abs(p.Z) - s.height
+	b := math.Abs(p.Z) - s.height
 	// return the intersection
-	return Max(a, b)
+	return math.Max(a, b)
 }
 
 // SetExtrude sets the extrusion control function.
@@ -257,7 +257,7 @@ func ExtrudeRounded3D(sdf SDF2, height, round float64) (SDF3, error) {
 func (s *ExtrudeRoundedSDF3) Evaluate(p V3) float64 {
 	// sdf for the projected 2d surface
 	a := s.sdf.Evaluate(V2{p.X, p.Y})
-	b := Abs(p.Z) - s.height
+	b := math.Abs(p.Z) - s.height
 	var d float64
 	if b > 0 {
 		// outside the object Z extent
@@ -272,7 +272,7 @@ func (s *ExtrudeRoundedSDF3) Evaluate(p V3) float64 {
 		// within the object Z extent
 		if a < 0 {
 			// inside the boundary
-			d = Max(a, b)
+			d = math.Max(a, b)
 		} else {
 			// outside the boundary
 			d = a
@@ -338,7 +338,7 @@ func (s *LoftSDF3) Evaluate(p V3) float64 {
 	a1 := s.sdf1.Evaluate(V2{p.X, p.Y})
 	a := Mix(a0, a1, k)
 
-	b := Abs(p.Z) - s.height
+	b := math.Abs(p.Z) - s.height
 	var d float64
 	if b > 0 {
 		// outside the object Z extent
@@ -353,7 +353,7 @@ func (s *LoftSDF3) Evaluate(p V3) float64 {
 		// within the object Z extent
 		if a < 0 {
 			// inside the boundary
-			d = Max(a, b)
+			d = math.Max(a, b)
 		} else {
 			// outside the boundary
 			d = a
@@ -493,7 +493,7 @@ func Cone3D(height, r0, r1, round float64) SDF3 {
 	// cone slope length
 	s.l = V2{s.r1, s.height}.Sub(V2{s.r0, -s.height}).Length()
 	// work out the bounding box
-	r := Max(s.r0+round, s.r1+round)
+	r := math.Max(s.r0+round, s.r1+round)
 	s.bb = Box3{V3{-r, -r, -height / 2}, V3{r, r, height / 2}}
 	return &s
 }
@@ -514,8 +514,8 @@ func (s *ConeSDF3) Evaluate(p V3) float64 {
 	v := p2.Sub(V2{s.r0, -s.height})
 	dSlope := v.Dot(s.n)
 	// is p2 inside the cone?
-	if dSlope < 0 && Abs(p2.Y) < s.height {
-		return -Min(-dSlope, s.height-Abs(p2.Y)) - s.round
+	if dSlope < 0 && math.Abs(p2.Y) < s.height {
+		return -math.Min(-dSlope, s.height-math.Abs(p2.Y)) - s.round
 	}
 	// is p2 closest to the slope line?
 	t := v.Dot(s.u)
@@ -635,7 +635,7 @@ func Union3D(sdf ...SDF3) SDF3 {
 		bb = bb.Extend(x.BoundingBox())
 	}
 	s.bb = bb
-	s.min = Min
+	s.min = math.Min
 	return &s
 }
 
@@ -683,7 +683,7 @@ func Difference3D(s0, s1 SDF3) SDF3 {
 	s := DifferenceSDF3{}
 	s.s0 = s0
 	s.s1 = s1
-	s.max = Max
+	s.max = math.Max
 	s.bb = s0.BoundingBox()
 	return &s
 }
@@ -757,7 +757,7 @@ func Intersect3D(s0, s1 SDF3) SDF3 {
 	s := IntersectionSDF3{}
 	s.s0 = s0
 	s.s1 = s1
-	s.max = Max
+	s.max = math.Max
 	// TODO fix bounding box
 	s.bb = s0.BoundingBox()
 	return &s
@@ -802,7 +802,7 @@ func Cut3D(sdf SDF3, a, n V3) SDF3 {
 
 // Evaluate returns the minimum distance to the cut SDF3.
 func (s *CutSDF3) Evaluate(p V3) float64 {
-	return Max(p.Sub(s.a).Dot(s.n), s.sdf.Evaluate(p))
+	return math.Max(p.Sub(s.a).Dot(s.n), s.sdf.Evaluate(p))
 }
 
 // BoundingBox returns the bounding box of the cut SDF3.
@@ -831,7 +831,7 @@ func Array3D(sdf SDF3, num V3i, step V3) SDF3 {
 	s.sdf = sdf
 	s.num = num
 	s.step = step
-	s.min = Min
+	s.min = math.Min
 	// work out the bounding box
 	bb0 := sdf.BoundingBox()
 	bb1 := bb0.Translate(step.Mul(num.SubScalar(1).ToV3()))
@@ -884,7 +884,7 @@ func RotateUnion3D(sdf SDF3, num int, step M44) SDF3 {
 	s.sdf = sdf
 	s.num = num
 	s.step = step.Inverse()
-	s.min = Min
+	s.min = math.Min
 	// work out the bounding box
 	v := sdf.BoundingBox().Vertices()
 	bbMin := v[0]

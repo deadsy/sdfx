@@ -11,6 +11,7 @@ Convert an SDF3 to a triangle mesh.
 package render
 
 import (
+	"math"
 	"runtime"
 	"sync"
 
@@ -229,8 +230,8 @@ func mcToTriangles(p [8]sdf.V3, v [8]float64, x float64) []*Triangle3 {
 
 func mcInterpolate(p1, p2 sdf.V3, v1, v2, x float64) sdf.V3 {
 
-	closeToV1 := sdf.Abs(x-v1) < epsilon
-	closeToV2 := sdf.Abs(x-v2) < epsilon
+	closeToV1 := math.Abs(x-v1) < epsilon
+	closeToV2 := math.Abs(x-v2) < epsilon
 
 	if closeToV1 && !closeToV2 {
 		return p1

@@ -12,6 +12,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math"
 	"math/rand"
 )
 
@@ -129,7 +130,7 @@ func (p *BezierPolynomial) Set(x []float64) {
 		return
 	}
 	// zero out any very small coefficients
-	sum := Abs(p.a) + Abs(p.b) + Abs(p.c) + Abs(p.d) + Abs(p.e)
+	sum := math.Abs(p.a) + math.Abs(p.b) + math.Abs(p.c) + math.Abs(p.d) + math.Abs(p.e)
 	p.a = ZeroSmall(p.a, sum, epsilon)
 	p.b = ZeroSmall(p.b, sum, epsilon)
 	p.c = ZeroSmall(p.c, sum, epsilon)
@@ -382,7 +383,7 @@ func (v *BezierVertex) HandleFwd(theta, r float64) *BezierVertex {
 	if v.vtype == midpoint {
 		log.Panicf("can't place a handle on a curve midpoint")
 	}
-	v.handleFwd = V2{Abs(r), theta}
+	v.handleFwd = V2{math.Abs(r), theta}
 	return v
 }
 
@@ -391,7 +392,7 @@ func (v *BezierVertex) HandleRev(theta, r float64) *BezierVertex {
 	if v.vtype == midpoint {
 		log.Panicf("can't place a handle on a curve midpoint")
 	}
-	v.handleRev = V2{Abs(r), theta}
+	v.handleRev = V2{math.Abs(r), theta}
 	return v
 }
 

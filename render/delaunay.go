@@ -15,6 +15,7 @@ package render
 
 import (
 	"errors"
+	"math"
 	"sort"
 
 	"github.com/deadsy/sdfx/sdf"
@@ -164,8 +165,8 @@ func (t Triangle2) Circumcenter() (sdf.V2, error) {
 	y2 := t[1].Y
 	y3 := t[2].Y
 
-	fabsy1y2 := sdf.Abs(y1 - y2)
-	fabsy2y3 := sdf.Abs(y2 - y3)
+	fabsy1y2 := math.Abs(y1 - y2)
+	fabsy2y3 := math.Abs(y2 - y3)
 
 	// Check for coincident points
 	if fabsy1y2 < epsilon && fabsy2y3 < epsilon {

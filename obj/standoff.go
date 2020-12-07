@@ -8,7 +8,11 @@ PCB Standoffs, Mounting Pillars
 
 package obj
 
-import "github.com/deadsy/sdfx/sdf"
+import (
+	"math"
+
+	"github.com/deadsy/sdfx/sdf"
+)
 
 //-----------------------------------------------------------------------------
 
@@ -53,7 +57,7 @@ func pillarHole(k *StandoffParms) sdf.SDF3 {
 	if k.HoleDiameter == 0.0 || k.HoleDepth == 0.0 {
 		return nil
 	}
-	s := sdf.Cylinder3D(sdf.Abs(k.HoleDepth), 0.5*k.HoleDiameter, 0)
+	s := sdf.Cylinder3D(math.Abs(k.HoleDepth), 0.5*k.HoleDiameter, 0)
 	zOfs := 0.5 * (k.PillarHeight - k.HoleDepth)
 	return sdf.Transform3D(s, sdf.Translate3d(sdf.V3{0, 0, zOfs}))
 }

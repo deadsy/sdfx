@@ -48,11 +48,11 @@ func TruncRectPyramid3D(k *TruncRectPyramidParms) (sdf.SDF3, error) {
 	h := k.Size.Z
 	dr := h / math.Tan(k.BaseAngle)
 	rb := k.BaseRadius + dr
-	rt := sdf.Max(k.BaseRadius-dr, 0)
-	round := sdf.Min(0.5*rt, k.RoundRadius)
+	rt := math.Max(k.BaseRadius-dr, 0)
+	round := math.Min(0.5*rt, k.RoundRadius)
 	s := sdf.Cone3D(2.0*h, rb, rt, round)
-	wx := sdf.Max(k.Size.X-2.0*k.BaseRadius, 0)
-	wy := sdf.Max(k.Size.Y-2.0*k.BaseRadius, 0)
+	wx := math.Max(k.Size.X-2.0*k.BaseRadius, 0)
+	wy := math.Max(k.Size.Y-2.0*k.BaseRadius, 0)
 	s = sdf.Elongate3D(s, sdf.V3{wx, wy, 0})
 	s = sdf.Cut3D(s, sdf.V3{0, 0, 0}, sdf.V3{0, 0, 1})
 	return s, nil

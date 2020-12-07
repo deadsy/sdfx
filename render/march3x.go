@@ -93,7 +93,7 @@ func (dc *dcache3) isEmpty(c *cube) bool {
 	s := 1 << (c.n - 1) // half side
 	_, d := dc.evaluate(c.v.AddScalar(s))
 	// compare to the center/corner distance
-	return sdf.Abs(d) >= dc.hdiag[c.n]
+	return math.Abs(d) >= dc.hdiag[c.n]
 }
 
 // Process a cube. Generate triangles, or more cubes.

@@ -12,6 +12,7 @@ import (
 	"image"
 	"image/color"
 	"image/png"
+	"math"
 	"os"
 
 	"github.com/deadsy/sdfx/sdf"
@@ -53,8 +54,8 @@ func (d *PNG) RenderSDF2(s sdf.SDF2) {
 	for x := 0; x < d.pixels[0]; x++ {
 		for y := 0; y < d.pixels[1]; y++ {
 			d := s.Evaluate(d.m.ToV2(sdf.V2i{x, y}))
-			dmax = sdf.Max(dmax, d)
-			dmin = sdf.Min(dmin, d)
+			dmax = math.Max(dmax, d)
+			dmin = math.Min(dmin, d)
 			distance[xofs+y] = d
 		}
 		xofs += d.pixels[1]

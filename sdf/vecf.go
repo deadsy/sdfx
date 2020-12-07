@@ -40,15 +40,15 @@ type V3Set []V3
 
 // Equals returns true if a == b within the tolerance limit.
 func (a V3) Equals(b V3, tolerance float64) bool {
-	return (Abs(a.X-b.X) <= tolerance &&
-		Abs(a.Y-b.Y) <= tolerance &&
-		Abs(a.Z-b.Z) <= tolerance)
+	return (math.Abs(a.X-b.X) <= tolerance &&
+		math.Abs(a.Y-b.Y) <= tolerance &&
+		math.Abs(a.Z-b.Z) <= tolerance)
 }
 
 // Equals returns true if a == b within the tolerance limit.
 func (a V2) Equals(b V2, tolerance float64) bool {
-	return (Abs(a.X-b.X) <= tolerance &&
-		Abs(a.Y-b.Y) <= tolerance)
+	return (math.Abs(a.X-b.X) <= tolerance &&
+		math.Abs(a.Y-b.Y) <= tolerance)
 }
 
 // LessThanZero returns true if any vector components are < 0.
@@ -133,7 +133,7 @@ func colinearSlow(a, b, c V2, tolerance float64) bool {
 	// use the cross product as a measure of colinearity
 	pa := a.Sub(c).Normalize()
 	pb := b.Sub(c).Normalize()
-	return Abs(pa.Cross(pb)) < tolerance
+	return math.Abs(pa.Cross(pb)) < tolerance
 }
 
 // colinearFast return true if 3 points are colinear (fast test).
@@ -141,7 +141,7 @@ func colinearFast(a, b, c V2, tolerance float64) bool {
 	// use the cross product as a measure of colinearity
 	ac := a.Sub(b)
 	bc := b.Sub(c)
-	return Abs(ac.Cross(bc)) < tolerance
+	return math.Abs(ac.Cross(bc)) < tolerance
 }
 
 //-----------------------------------------------------------------------------
@@ -190,12 +190,12 @@ func (a V2) DivScalar(b float64) V2 {
 
 // Abs takes the absolute value of each vector component.
 func (a V3) Abs() V3 {
-	return V3{Abs(a.X), Abs(a.Y), Abs(a.Z)}
+	return V3{math.Abs(a.X), math.Abs(a.Y), math.Abs(a.Z)}
 }
 
 // Abs takes the absolute value of each vector component.
 func (a V2) Abs() V2 {
-	return V2{Abs(a.X), Abs(a.Y)}
+	return V2{math.Abs(a.X), math.Abs(a.Y)}
 }
 
 // Ceil takes the ceiling value of each vector component.
@@ -224,22 +224,22 @@ func (a V3) Clamp(b, c V3) V3 {
 
 // Min return a vector with the minimum components of two vectors.
 func (a V3) Min(b V3) V3 {
-	return V3{Min(a.X, b.X), Min(a.Y, b.Y), Min(a.Z, b.Z)}
+	return V3{math.Min(a.X, b.X), math.Min(a.Y, b.Y), math.Min(a.Z, b.Z)}
 }
 
 // Min return a vector with the minimum components of two vectors.
 func (a V2) Min(b V2) V2 {
-	return V2{Min(a.X, b.X), Min(a.Y, b.Y)}
+	return V2{math.Min(a.X, b.X), math.Min(a.Y, b.Y)}
 }
 
 // Max return a vector with the maximum components of two vectors.
 func (a V3) Max(b V3) V3 {
-	return V3{Max(a.X, b.X), Max(a.Y, b.Y), Max(a.Z, b.Z)}
+	return V3{math.Max(a.X, b.X), math.Max(a.Y, b.Y), math.Max(a.Z, b.Z)}
 }
 
 // Max return a vector with the maximum components of two vectors.
 func (a V2) Max(b V2) V2 {
-	return V2{Max(a.X, b.X), Max(a.Y, b.Y)}
+	return V2{math.Max(a.X, b.X), math.Max(a.Y, b.Y)}
 }
 
 // Add adds two vectors. Returns a + b.
@@ -354,22 +354,22 @@ func (a V2) Length2() float64 {
 
 // MinComponent returns the minimum component of the vector.
 func (a V3) MinComponent() float64 {
-	return Min(Min(a.X, a.Y), a.Z)
+	return math.Min(math.Min(a.X, a.Y), a.Z)
 }
 
 // MinComponent returns the minimum component of the vector.
 func (a V2) MinComponent() float64 {
-	return Min(a.X, a.Y)
+	return math.Min(a.X, a.Y)
 }
 
 // MaxComponent returns the maximum component of the vector.
 func (a V3) MaxComponent() float64 {
-	return Max(Max(a.X, a.Y), a.Z)
+	return math.Max(math.Max(a.X, a.Y), a.Z)
 }
 
 // MaxComponent returns the maximum component of the vector.
 func (a V2) MaxComponent() float64 {
-	return Max(a.X, a.Y)
+	return math.Max(a.X, a.Y)
 }
 
 //-----------------------------------------------------------------------------

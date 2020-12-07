@@ -210,7 +210,7 @@ func Cut2D(sdf SDF2, a, v V2) SDF2 {
 
 // Evaluate returns the minimum distance to cut SDF2.
 func (s *CutSDF2) Evaluate(p V2) float64 {
-	return Max(p.Sub(s.a).Dot(s.n), s.sdf.Evaluate(p))
+	return math.Max(p.Sub(s.a).Dot(s.n), s.sdf.Evaluate(p))
 }
 
 // BoundingBox returns the bounding box for the cut SDF2.
@@ -285,11 +285,11 @@ func (s *PolySDF2) Evaluate(p V2) float64 {
 
 		// Distance to line segment
 		if t < 0 {
-			dd = Min(dd, pa.Length2()) // distance to vertex[0] of line
+			dd = math.Min(dd, pa.Length2()) // distance to vertex[0] of line
 		} else if t > s.length[i] {
-			dd = Min(dd, pb.Length2()) // distance to vertex[1] of line
+			dd = math.Min(dd, pb.Length2()) // distance to vertex[1] of line
 		} else {
-			dd = Min(dd, dn*dn) // normal distance to line
+			dd = math.Min(dd, dn*dn) // normal distance to line
 		}
 
 		// Is the point in the polygon?
@@ -431,7 +431,7 @@ func Array2D(sdf SDF2, num V2i, step V2) SDF2 {
 	s.sdf = sdf
 	s.num = num
 	s.step = step
-	s.min = Min
+	s.min = math.Min
 	// work out the bounding box
 	bb0 := sdf.BoundingBox()
 	bb1 := bb0.Translate(step.Mul(num.SubScalar(1).ToV2()))
@@ -482,7 +482,7 @@ func RotateUnion2D(sdf SDF2, num int, step M33) SDF2 {
 	s.sdf = sdf
 	s.num = num
 	s.step = step.Inverse()
-	s.min = Min
+	s.min = math.Min
 	// work out the bounding box
 	v := sdf.BoundingBox().Vertices()
 	bbMin := v[0]
@@ -659,7 +659,7 @@ func Union2D(sdf ...SDF2) SDF2 {
 		bb = bb.Extend(x.BoundingBox())
 	}
 	s.bb = bb
-	s.min = Min
+	s.min = math.Min
 	return &s
 }
 
@@ -742,7 +742,7 @@ func Difference2D(s0, s1 SDF2) SDF2 {
 	s := DifferenceSDF2{}
 	s.s0 = s0
 	s.s1 = s1
-	s.max = Max
+	s.max = math.Max
 	s.bb = s0.BoundingBox()
 	return &s
 }
