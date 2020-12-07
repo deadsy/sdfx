@@ -195,7 +195,6 @@ func AcmeThread(
 	acme.Add(-radius, h)
 	acme.Add(-radius, 0)
 
-	//acme.Render("acme.dxf")
 	return Polygon2D(acme.Vertices())
 }
 
@@ -237,7 +236,6 @@ func ISOThread(
 		iso.Add(-pitch, rMinor)
 		iso.Add(-pitch, 0)
 	}
-	//iso.Render("iso.dxf")
 	return Polygon2D(iso.Vertices())
 }
 
@@ -265,7 +263,6 @@ func ANSIButtressThread(
 	tp.Add(-pitch, radius)
 	tp.Add(-pitch, 0)
 
-	//tp.Render("buttress.dxf")
 	return Polygon2D(tp.Vertices())
 }
 
@@ -292,7 +289,6 @@ func PlasticButtressThread(
 	tp.Add(-pitch, radius)
 	tp.Add(-pitch, 0)
 
-	//tp.Render("buttress.dxf")
 	return Polygon2D(tp.Vertices())
 }
 

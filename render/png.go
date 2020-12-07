@@ -6,7 +6,7 @@
 */
 //-----------------------------------------------------------------------------
 
-package sdf
+package render
 
 import (
 	"image"
@@ -14,6 +14,7 @@ import (
 	"image/png"
 	"os"
 
+	"github.com/deadsy/sdfx/sdf"
 	"github.com/llgcode/draw2d/draw2dimg"
 )
 
@@ -22,19 +23,19 @@ import (
 // PNG is a png image object.
 type PNG struct {
 	name   string
-	bb     Box2
-	pixels V2i
-	m      *Map2
+	bb     sdf.Box2
+	pixels sdf.V2i
+	m      *sdf.Map2
 	img    *image.RGBA
 }
 
 // NewPNG returns an empty PNG object.
-func NewPNG(name string, bb Box2, pixels V2i) (*PNG, error) {
+func NewPNG(name string, bb sdf.Box2, pixels sdf.V2i) (*PNG, error) {
 	d := PNG{}
 	d.name = name
 	d.bb = bb
 	d.pixels = pixels
-	m, err := NewMap2(bb, pixels, true)
+	m, err := sdf.NewMap2(bb, pixels, true)
 	if err != nil {
 		return nil, err
 	}
@@ -44,16 +45,16 @@ func NewPNG(name string, bb Box2, pixels V2i) (*PNG, error) {
 }
 
 // RenderSDF2 renders a 2d signed distance field as gray scale.
-func (d *PNG) RenderSDF2(s SDF2) {
+func (d *PNG) RenderSDF2(s sdf.SDF2) {
 	// sample the distance field
 	var dmax, dmin float64
 	distance := make([]float64, d.pixels[0]*d.pixels[1])
 	xofs := 0
 	for x := 0; x < d.pixels[0]; x++ {
 		for y := 0; y < d.pixels[1]; y++ {
-			d := s.Evaluate(d.m.ToV2(V2i{x, y}))
-			dmax = Max(dmax, d)
-			dmin = Min(dmin, d)
+			d := s.Evaluate(d.m.ToV2(sdf.V2i{x, y}))
+			dmax = sdf.Max(dmax, d)
+			dmin = sdf.Min(dmin, d)
 			distance[xofs+y] = d
 		}
 		xofs += d.pixels[1]
@@ -70,7 +71,7 @@ func (d *PNG) RenderSDF2(s SDF2) {
 }
 
 // Line adds a line to a png object.
-func (d *PNG) Line(p0, p1 V2) {
+func (d *PNG) Line(p0, p1 sdf.V2) {
 	gc := draw2dimg.NewGraphicContext(d.img)
 	gc.SetFillColor(color.RGBA{0xff, 0, 0, 0xff})
 	gc.SetStrokeColor(color.RGBA{0xff, 0, 0, 0xff})
@@ -84,7 +85,7 @@ func (d *PNG) Line(p0, p1 V2) {
 }
 
 // Lines adds a a set of lines line to a png object.
-func (d *PNG) Lines(s V2Set) {
+func (d *PNG) Lines(s sdf.V2Set) {
 	gc := draw2dimg.NewGraphicContext(d.img)
 	gc.SetFillColor(color.RGBA{0xff, 0, 0, 0xff})
 	gc.SetStrokeColor(color.RGBA{0xff, 0, 0, 0xff})
@@ -101,7 +102,7 @@ func (d *PNG) Lines(s V2Set) {
 
 // Triangle adds a triangle to a png object.
 func (d *PNG) Triangle(t Triangle2) {
-	d.Lines([]V2{t[0], t[1], t[2], t[0]})
+	d.Lines([]sdf.V2{t[0], t[1], t[2], t[0]})
 }
 
 // Save saves a png object to a file.

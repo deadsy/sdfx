@@ -14,6 +14,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
 )
 
@@ -57,8 +58,8 @@ func box() error {
 	base := sdf.Cut3D(box, sdf.V3{0, 0, lidZ}, sdf.V3{0, 0, -1})
 	top := sdf.Cut3D(box, sdf.V3{0, 0, lidZ}, sdf.V3{0, 0, 1})
 
-	sdf.RenderSTL(base, 300, "base.stl")
-	sdf.RenderSTL(top, 300, "top.stl")
+	render.RenderSTL(base, 300, "base.stl")
+	render.RenderSTL(top, 300, "top.stl")
 
 	return nil
 }

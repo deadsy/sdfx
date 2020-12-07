@@ -10,6 +10,7 @@ package main
 
 import (
 	"github.com/deadsy/sdfx/obj"
+	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
 )
 
@@ -195,16 +196,16 @@ func mountingKit() {
 	// front panel
 	s0 := frontPanel()
 	sx := sdf.Transform3D(s0, sdf.RotateY(sdf.DtoR(180.0)))
-	sdf.RenderSTL(sdf.ScaleUniform3D(sx, shrink), 400, "panel.stl")
+	render.RenderSTL(sdf.ScaleUniform3D(sx, shrink), 400, "panel.stl")
 
 	// base
 	s1 := base()
-	sdf.RenderSTL(sdf.ScaleUniform3D(s1, shrink), 400, "base.stl")
+	render.RenderSTL(sdf.ScaleUniform3D(s1, shrink), 400, "base.stl")
 
 	// both together
 	s0 = sdf.Transform3D(s0, sdf.Translate3d(sdf.V3{0, 80, 0}))
 	s3 := sdf.Union3D(s0, s1)
-	sdf.RenderSTL(sdf.ScaleUniform3D(s3, shrink), 400, "panel_and_base.stl")
+	render.RenderSTL(sdf.ScaleUniform3D(s3, shrink), 400, "panel_and_base.stl")
 }
 
 //-----------------------------------------------------------------------------

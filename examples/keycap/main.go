@@ -9,6 +9,7 @@ KeyCaps for Cherry MX key switches
 package main
 
 import (
+	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
 )
 
@@ -64,7 +65,7 @@ func roundCap(diameter, height, wall float64) sdf.SDF3 {
 
 func main() {
 	s := roundCap(18, 6, 1.5)
-	sdf.RenderSTL(sdf.ScaleUniform3D(s, shrink), 150, "round_cap.stl")
+	render.RenderSTL(sdf.ScaleUniform3D(s, shrink), 150, "round_cap.stl")
 }
 
 //-----------------------------------------------------------------------------

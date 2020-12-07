@@ -10,6 +10,7 @@ package main
 
 import (
 	"github.com/deadsy/sdfx/obj"
+	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
 )
 
@@ -167,8 +168,8 @@ func nRF52833dk() sdf.SDF3 {
 //-----------------------------------------------------------------------------
 
 func main() {
-	sdf.RenderSTL(sdf.ScaleUniform3D(nRF52dk(), shrink), 300, "nrf52dk.stl")
-	sdf.RenderSTL(sdf.ScaleUniform3D(nRF52833dk(), shrink), 300, "nrf52833dk.stl")
+	render.RenderSTL(sdf.ScaleUniform3D(nRF52dk(), shrink), 300, "nrf52dk.stl")
+	render.RenderSTL(sdf.ScaleUniform3D(nRF52833dk(), shrink), 300, "nrf52833dk.stl")
 }
 
 //-----------------------------------------------------------------------------

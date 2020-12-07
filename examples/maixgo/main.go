@@ -16,6 +16,7 @@ import (
 	"log"
 
 	"github.com/deadsy/sdfx/obj"
+	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
 )
 
@@ -161,7 +162,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	sdf.RenderSTL(sdf.ScaleUniform3D(b, shrink), 330, "bezel.stl")
+	render.RenderSTL(sdf.ScaleUniform3D(b, shrink), 330, "bezel.stl")
 }
 
 //-----------------------------------------------------------------------------

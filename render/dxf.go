@@ -6,12 +6,14 @@ DXF Rendering Code
 */
 //-----------------------------------------------------------------------------
 
-package sdf
+package render
 
 import (
+	"errors"
 	"fmt"
 	"sync"
 
+	"github.com/deadsy/sdfx/sdf"
 	"github.com/yofu/dxf"
 	"github.com/yofu/dxf/color"
 	"github.com/yofu/dxf/drawing"
@@ -38,13 +40,13 @@ func NewDXF(name string) *DXF {
 }
 
 // Line adds a line to a dxf drawing object.
-func (d *DXF) Line(p0, p1 V2) {
+func (d *DXF) Line(p0, p1 sdf.V2) {
 	d.drawing.ChangeLayer("Lines")
 	d.drawing.Line(p0.X, p0.Y, 0, p1.X, p1.Y, 0)
 }
 
 // Lines adds a set of lines to a dxf drawing object.
-func (d *DXF) Lines(s V2Set) {
+func (d *DXF) Lines(s sdf.V2Set) {
 	d.drawing.ChangeLayer("Lines")
 	p1 := s[0]
 	for i := 0; i < len(s)-1; i++ {
@@ -55,7 +57,7 @@ func (d *DXF) Lines(s V2Set) {
 }
 
 // Points adds a set of points to a dxf drawing object.
-func (d *DXF) Points(s V2Set, r float64) {
+func (d *DXF) Points(s sdf.V2Set, r float64) {
 	d.drawing.ChangeLayer("Points")
 	for _, p := range s {
 		d.drawing.Circle(p.X, p.Y, 0, r)
@@ -64,7 +66,7 @@ func (d *DXF) Points(s V2Set, r float64) {
 
 // Triangle adds a triangle to a dxf drawing object.
 func (d *DXF) Triangle(t Triangle2) {
-	d.Lines([]V2{t[0], t[1], t[2], t[0]})
+	d.Lines([]sdf.V2{t[0], t[1], t[2], t[0]})
 }
 
 // Save writes a dxf drawing object to a file.
@@ -122,6 +124,95 @@ func WriteDXF(wg *sync.WaitGroup, path string) (chan<- *Line, error) {
 	}()
 
 	return c, nil
+}
+
+//-----------------------------------------------------------------------------
+
+// RenderDXF renders an SDF2 as a DXF file. (uses quadtree sampling)
+func RenderDXF(
+	s sdf.SDF2, //sdf2 to render
+	meshCells int, //number of cells on the longest axis. e.g 200
+	path string, //path to filename
+) {
+
+	// work out the sampling resolution to use
+	bbSize := s.BoundingBox().Size()
+	resolution := bbSize.MaxComponent() / float64(meshCells)
+	cells := bbSize.DivScalar(resolution).ToV2i()
+
+	fmt.Printf("rendering %s (%dx%d, resolution %.2f)\n", path, cells[0], cells[1], resolution)
+
+	// write the line segments to a DXF file
+	var wg sync.WaitGroup
+	output, err := WriteDXF(&wg, path)
+	if err != nil {
+		fmt.Printf("%s", err)
+		return
+	}
+
+	// run marching squares to generate the line segments
+	marchingSquaresQuadtree(s, resolution, output)
+
+	// stop the DXF writer reading on the channel
+	close(output)
+	// wait for the file write to complete
+	wg.Wait()
+}
+
+// RenderDXFSlow renders an SDF2 as a DXF file. (uses uniform grid sampling)
+func RenderDXFSlow(
+	s sdf.SDF2, //sdf2 to render
+	meshCells int, //number of cells on the longest axis. e.g 200
+	path string, //path to filename
+) {
+	// work out the region we will sample
+	bb0 := s.BoundingBox()
+	bb0Size := bb0.Size()
+	meshInc := bb0Size.MaxComponent() / float64(meshCells)
+	bb1Size := bb0Size.DivScalar(meshInc)
+	bb1Size = bb1Size.Ceil().AddScalar(1)
+	cells := bb1Size.ToV2i()
+	bb1Size = bb1Size.MulScalar(meshInc)
+	bb := sdf.NewBox2(bb0.Center(), bb1Size)
+
+	fmt.Printf("rendering %s (%dx%d)\n", path, cells[0], cells[1])
+
+	// run marching squares to generate the line segments
+	m := marchingSquares(s, bb, meshInc)
+	err := SaveDXF(path, m)
+	if err != nil {
+		fmt.Printf("%s", err)
+	}
+}
+
+//-----------------------------------------------------------------------------
+
+// Poly outputs a polygon as a 2D DXF file.
+func Poly(p *sdf.Polygon, path string) error {
+
+	vlist := p.Vertices()
+	if vlist == nil {
+		return errors.New("no vertices")
+	}
+
+	fmt.Printf("rendering %s\n", path)
+	d := NewDXF(path)
+
+	for i := 0; i < len(vlist)-1; i++ {
+		p0 := vlist[i]
+		p1 := vlist[i+1]
+		d.Line(p0, p1)
+	}
+
+	if p.Closed() {
+		p0 := vlist[len(vlist)-1]
+		p1 := vlist[0]
+		if !p0.Equals(p1, tolerance) {
+			d.Line(p0, p1)
+		}
+	}
+
+	return d.Save()
 }
 
 //-----------------------------------------------------------------------------

@@ -9,6 +9,7 @@ Pillar Holder
 package main
 
 import (
+	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
 )
 
@@ -55,7 +56,7 @@ func holder() sdf.SDF3 {
 
 func main() {
 	s := holder()
-	sdf.RenderSTL(sdf.ScaleUniform3D(s, shrink), 300, "holder.stl")
+	render.RenderSTL(sdf.ScaleUniform3D(s, shrink), 300, "holder.stl")
 }
 
 //-----------------------------------------------------------------------------

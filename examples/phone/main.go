@@ -8,7 +8,10 @@ Phone Holder
 
 package main
 
-import . "github.com/deadsy/sdfx/sdf"
+import (
+	"github.com/deadsy/sdfx/render"
+	. "github.com/deadsy/sdfx/sdf"
+)
 
 //-----------------------------------------------------------------------------
 
@@ -169,9 +172,9 @@ func subtractive() SDF3 {
 //-----------------------------------------------------------------------------
 
 func main() {
-	RenderSTL(clip(), 300, "clip.stl")
+	render.RenderSTL(clip(), 300, "clip.stl")
 	s := Difference3D(additive(), subtractive())
-	RenderSTL(s, 300, "holder.stl")
+	render.RenderSTL(s, 300, "holder.stl")
 }
 
 //-----------------------------------------------------------------------------

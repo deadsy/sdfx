@@ -36,7 +36,6 @@ type pvType int
 
 const (
 	pvNormal pvType = iota // normal vertex
-	pvHide                 // hide the line segment in rendering
 	pvSmooth               // smooth the vertex
 	pvArc                  // replace the line segment with an arc
 )
@@ -53,12 +52,6 @@ func (v *PolygonVertex) Rel() *PolygonVertex {
 // Polar treats the polygon vertex values as polar coordinates (r, theta).
 func (v *PolygonVertex) Polar() *PolygonVertex {
 	v.vertex = PolarToXY(v.vertex.X, v.vertex.Y)
-	return v
-}
-
-// Hide hides the line segment for this vertex in the dxf render.
-func (v *PolygonVertex) Hide() *PolygonVertex {
-	v.vtype = pvHide
 	return v
 }
 
@@ -284,6 +277,11 @@ func (p *Polygon) Close() {
 	p.closed = true
 }
 
+// Closed returns true/fale if the polygon is closed/open.
+func (p *Polygon) Closed() bool {
+	return p.closed
+}
+
 // Reverse reverses the order the vertices are returned.
 func (p *Polygon) Reverse() {
 	p.reverse = true
@@ -338,36 +336,6 @@ func (p *Polygon) Vertices() []V2 {
 		}
 	}
 	return v
-}
-
-// Render outputs a polygon as a 2D DXF file.
-func (p *Polygon) Render(path string) error {
-	if p.vlist == nil {
-		return fmt.Errorf("no vertices")
-	}
-	p.fixups()
-	fmt.Printf("rendering %s\n", path)
-	d := NewDXF(path)
-	for i := 0; i < len(p.vlist)-1; i++ {
-		if p.vlist[i+1].vtype != pvHide {
-			p0 := p.vlist[i].vertex
-			p1 := p.vlist[i+1].vertex
-			d.Line(p0, p1)
-		}
-	}
-	// close the polygon if needed
-	if p.closed {
-		p0 := p.vlist[len(p.vlist)-1].vertex
-		p1 := p.vlist[0].vertex
-		if !p0.Equals(p1, tolerance) {
-			d.Line(p0, p1)
-		}
-	}
-	err := d.Save()
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 //-----------------------------------------------------------------------------

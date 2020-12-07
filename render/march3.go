@@ -8,24 +8,26 @@ Convert an SDF3 to a triangle mesh.
 */
 //-----------------------------------------------------------------------------
 
-package sdf
+package render
 
 import (
 	"runtime"
 	"sync"
+
+	"github.com/deadsy/sdfx/sdf"
 )
 
 //-----------------------------------------------------------------------------
 
 type layerYZ struct {
-	base  V3        // base coordinate of layer
-	inc   V3        // dx, dy, dz for each step
-	steps V3i       // number of x,y,z steps
+	base  sdf.V3    // base coordinate of layer
+	inc   sdf.V3    // dx, dy, dz for each step
+	steps sdf.V3i   // number of x,y,z steps
 	val0  []float64 // SDF values for x layer
 	val1  []float64 // SDF values for x + dx layer
 }
 
-func newLayerYZ(base, inc V3, steps V3i) *layerYZ {
+func newLayerYZ(base, inc sdf.V3, steps sdf.V3i) *layerYZ {
 	return &layerYZ{base, inc, steps, nil, nil}
 }
 
@@ -35,8 +37,8 @@ func newLayerYZ(base, inc V3, steps V3i) *layerYZ {
 // is stored in the corresponding index of the `out` slice.
 type evalReq struct {
 	out []float64
-	p   []V3
-	fn  func(V3) float64
+	p   []sdf.V3
+	fn  func(sdf.V3) float64
 	wg  *sync.WaitGroup
 }
 
@@ -46,7 +48,7 @@ func init() {
 	for i := 0; i < runtime.NumCPU(); i++ {
 		go func() {
 			var i int
-			var p V3
+			var p sdf.V3
 			for r := range evalProcessCh {
 				for i, p = range r.p {
 					r.out[i] = r.fn(p)
@@ -58,7 +60,7 @@ func init() {
 }
 
 // Evaluate the SDF for a given XY layer
-func (l *layerYZ) Evaluate(sdf SDF3, x int) {
+func (l *layerYZ) Evaluate(s sdf.SDF3, x int) {
 
 	// Swap the layers
 	l.val0, l.val1 = l.val1, l.val0
@@ -73,13 +75,13 @@ func (l *layerYZ) Evaluate(sdf SDF3, x int) {
 
 	// setup the loop variables
 	idx := 0
-	var p V3
+	var p sdf.V3
 	p.X = l.base.X + float64(x)*dx
 
 	// define the base struct for requesting evaluation
 	eReq := evalReq{
 		wg:  new(sync.WaitGroup),
-		fn:  sdf.Evaluate,
+		fn:  s.Evaluate,
 		out: l.val1,
 	}
 
@@ -89,7 +91,7 @@ func (l *layerYZ) Evaluate(sdf SDF3, x int) {
 	// Performance doesn't seem to improve past 100.
 	const batchSize = 100
 
-	eReq.p = make([]V3, 0, batchSize)
+	eReq.p = make([]sdf.V3, 0, batchSize)
 	for y := 0; y < ny+1; y++ {
 		p.Z = l.base.Z
 		for z := 0; z < nz+1; z++ {
@@ -97,8 +99,8 @@ func (l *layerYZ) Evaluate(sdf SDF3, x int) {
 			if len(eReq.p) == batchSize {
 				eReq.wg.Add(1)
 				evalProcessCh <- eReq
-				eReq.out = eReq.out[batchSize:]   // shift the output slice for processing
-				eReq.p = make([]V3, 0, batchSize) // create a new slice for the next batch
+				eReq.out = eReq.out[batchSize:]       // shift the output slice for processing
+				eReq.p = make([]sdf.V3, 0, batchSize) // create a new slice for the next batch
 			}
 			idx++
 			p.Z += dz
@@ -126,7 +128,7 @@ func (l *layerYZ) Get(x, y, z int) float64 {
 
 //-----------------------------------------------------------------------------
 
-func marchingCubes(sdf SDF3, box Box3, step float64) []*Triangle3 {
+func marchingCubes(s sdf.SDF3, box sdf.Box3, step float64) []*Triangle3 {
 
 	var triangles []*Triangle3
 	size := box.Size()
@@ -137,16 +139,16 @@ func marchingCubes(sdf SDF3, box Box3, step float64) []*Triangle3 {
 	// create the SDF layer cache
 	l := newLayerYZ(base, inc, steps)
 	// evaluate the SDF for x = 0
-	l.Evaluate(sdf, 0)
+	l.Evaluate(s, 0)
 
 	nx, ny, nz := steps[0], steps[1], steps[2]
 	dx, dy, dz := inc.X, inc.Y, inc.Z
 
-	var p V3
+	var p sdf.V3
 	p.X = base.X
 	for x := 0; x < nx; x++ {
 		// read the x + 1 layer
-		l.Evaluate(sdf, x+1)
+		l.Evaluate(s, x+1)
 		// process all cubes in the x and x + 1 layers
 		p.Y = base.Y
 		for y := 0; y < ny; y++ {
@@ -154,7 +156,7 @@ func marchingCubes(sdf SDF3, box Box3, step float64) []*Triangle3 {
 			for z := 0; z < nz; z++ {
 				x0, y0, z0 := p.X, p.Y, p.Z
 				x1, y1, z1 := x0+dx, y0+dy, z0+dz
-				corners := [8]V3{
+				corners := [8]sdf.V3{
 					{x0, y0, z0},
 					{x1, y0, z0},
 					{x1, y1, z0},
@@ -185,7 +187,7 @@ func marchingCubes(sdf SDF3, box Box3, step float64) []*Triangle3 {
 
 //-----------------------------------------------------------------------------
 
-func mcToTriangles(p [8]V3, v [8]float64, x float64) []*Triangle3 {
+func mcToTriangles(p [8]sdf.V3, v [8]float64, x float64) []*Triangle3 {
 	// which of the 0..255 patterns do we have?
 	index := 0
 	for i := 0; i < 8; i++ {
@@ -198,7 +200,7 @@ func mcToTriangles(p [8]V3, v [8]float64, x float64) []*Triangle3 {
 		return nil
 	}
 	// work out the interpolated points on the edges
-	var points [12]V3
+	var points [12]sdf.V3
 	for i := 0; i < 12; i++ {
 		bit := 1 << uint(i)
 		if mcEdgeTable[index]&bit != 0 {
@@ -225,10 +227,10 @@ func mcToTriangles(p [8]V3, v [8]float64, x float64) []*Triangle3 {
 
 //-----------------------------------------------------------------------------
 
-func mcInterpolate(p1, p2 V3, v1, v2, x float64) V3 {
+func mcInterpolate(p1, p2 sdf.V3, v1, v2, x float64) sdf.V3 {
 
-	closeToV1 := Abs(x-v1) < epsilon
-	closeToV2 := Abs(x-v2) < epsilon
+	closeToV1 := sdf.Abs(x-v1) < epsilon
+	closeToV2 := sdf.Abs(x-v2) < epsilon
 
 	if closeToV1 && !closeToV2 {
 		return p1
@@ -247,7 +249,7 @@ func mcInterpolate(p1, p2 V3, v1, v2, x float64) V3 {
 		t = (x - v1) / (v2 - v1)
 	}
 
-	return V3{
+	return sdf.V3{
 		p1.X + t*(p2.X-p1.X),
 		p1.Y + t*(p2.Y-p1.Y),
 		p1.Z + t*(p2.Z-p1.Z),

@@ -13,6 +13,7 @@ package main
 import (
 	"math"
 
+	"github.com/deadsy/sdfx/render"
 	. "github.com/deadsy/sdfx/sdf"
 )
 
@@ -395,7 +396,7 @@ func subtractive() SDF3 {
 
 func main() {
 	s := Difference3D(additive(), subtractive())
-	RenderSTL(s, 400, "head.stl")
+	render.RenderSTL(s, 400, "head.stl")
 }
 
 //-----------------------------------------------------------------------------

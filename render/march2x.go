@@ -9,39 +9,41 @@ Uses quadtree space subdivision.
 */
 //-----------------------------------------------------------------------------
 
-package sdf
+package render
 
 import (
 	"math"
 	"sync"
+
+	"github.com/deadsy/sdfx/sdf"
 )
 
 //-----------------------------------------------------------------------------
 
 type square struct {
-	v V2i  // origin of square as integers
-	n uint // level of square, size = 1 << n
+	v sdf.V2i // origin of square as integers
+	n uint    // level of square, size = 1 << n
 }
 
 //-----------------------------------------------------------------------------
 // Evaluate the SDF2 via a distance cache to avoid repeated evaluations.
 
 type dcache2 struct {
-	origin     V2              // origin of the overall bounding square
-	resolution float64         // size of smallest quadtree square
-	hdiag      []float64       // lookup table of square half diagonals
-	s          SDF2            // the SDF2 to be rendered
-	cache      map[V2i]float64 // cache of distances
-	lock       sync.RWMutex    // lock the the cache during reads/writes
+	origin     sdf.V2              // origin of the overall bounding square
+	resolution float64             // size of smallest quadtree square
+	hdiag      []float64           // lookup table of square half diagonals
+	s          sdf.SDF2            // the SDF2 to be rendered
+	cache      map[sdf.V2i]float64 // cache of distances
+	lock       sync.RWMutex        // lock the the cache during reads/writes
 }
 
-func newDcache2(s SDF2, origin V2, resolution float64, n uint) *dcache2 {
+func newDcache2(s sdf.SDF2, origin sdf.V2, resolution float64, n uint) *dcache2 {
 	dc := dcache2{
 		origin:     origin,
 		resolution: resolution,
 		hdiag:      make([]float64, n),
 		s:          s,
-		cache:      make(map[V2i]float64),
+		cache:      make(map[sdf.V2i]float64),
 	}
 	// build a lut for cube half diagonal lengths
 	for i := range dc.hdiag {
@@ -53,7 +55,7 @@ func newDcache2(s SDF2, origin V2, resolution float64, n uint) *dcache2 {
 }
 
 // read from the cache
-func (dc *dcache2) read(vi V2i) (float64, bool) {
+func (dc *dcache2) read(vi sdf.V2i) (float64, bool) {
 	dc.lock.RLock()
 	dist, found := dc.cache[vi]
 	dc.lock.RUnlock()
@@ -61,13 +63,13 @@ func (dc *dcache2) read(vi V2i) (float64, bool) {
 }
 
 // write to the cache
-func (dc *dcache2) write(vi V2i, dist float64) {
+func (dc *dcache2) write(vi sdf.V2i, dist float64) {
 	dc.lock.Lock()
 	dc.cache[vi] = dist
 	dc.lock.Unlock()
 }
 
-func (dc *dcache2) evaluate(vi V2i) (V2, float64) {
+func (dc *dcache2) evaluate(vi sdf.V2i) (sdf.V2, float64) {
 	v := dc.origin.Add(vi.ToV2().MulScalar(dc.resolution))
 	// do we have it in the cache?
 	dist, found := dc.read(vi)
@@ -87,7 +89,7 @@ func (dc *dcache2) isEmpty(c *square) bool {
 	s := 1 << (c.n - 1) // half side
 	_, d := dc.evaluate(c.v.AddScalar(s))
 	// compare to the center/corner distance
-	return Abs(d) >= dc.hdiag[c.n]
+	return sdf.Abs(d) >= dc.hdiag[c.n]
 }
 
 // Process a square. Generate line segments, or more squares.
@@ -95,11 +97,11 @@ func (dc *dcache2) processSquare(c *square, output chan<- *Line) {
 	if !dc.isEmpty(c) {
 		if c.n == 1 {
 			// this square is at the required resolution
-			c0, d0 := dc.evaluate(c.v.Add(V2i{0, 0}))
-			c1, d1 := dc.evaluate(c.v.Add(V2i{2, 0}))
-			c2, d2 := dc.evaluate(c.v.Add(V2i{2, 2}))
-			c3, d3 := dc.evaluate(c.v.Add(V2i{0, 2}))
-			corners := [4]V2{c0, c1, c2, c3}
+			c0, d0 := dc.evaluate(c.v.Add(sdf.V2i{0, 0}))
+			c1, d1 := dc.evaluate(c.v.Add(sdf.V2i{2, 0}))
+			c2, d2 := dc.evaluate(c.v.Add(sdf.V2i{2, 2}))
+			c3, d3 := dc.evaluate(c.v.Add(sdf.V2i{0, 2}))
+			corners := [4]sdf.V2{c0, c1, c2, c3}
 			values := [4]float64{d0, d1, d2, d3}
 			// output the line(s) for this square
 			for _, l := range msToLines(corners, values, 0) {
@@ -110,10 +112,10 @@ func (dc *dcache2) processSquare(c *square, output chan<- *Line) {
 			n := c.n - 1
 			s := 1 << n
 			// TODO - turn these into throttled go-routines
-			dc.processSquare(&square{c.v.Add(V2i{0, 0}), n}, output)
-			dc.processSquare(&square{c.v.Add(V2i{s, 0}), n}, output)
-			dc.processSquare(&square{c.v.Add(V2i{s, s}), n}, output)
-			dc.processSquare(&square{c.v.Add(V2i{0, s}), n}, output)
+			dc.processSquare(&square{c.v.Add(sdf.V2i{0, 0}), n}, output)
+			dc.processSquare(&square{c.v.Add(sdf.V2i{s, 0}), n}, output)
+			dc.processSquare(&square{c.v.Add(sdf.V2i{s, s}), n}, output)
+			dc.processSquare(&square{c.v.Add(sdf.V2i{0, s}), n}, output)
 		}
 	}
 }
@@ -121,7 +123,7 @@ func (dc *dcache2) processSquare(c *square, output chan<- *Line) {
 //-----------------------------------------------------------------------------
 
 // marchingSquaresQuadtree generates line segments for an SDF2 using quadtree subdivision.
-func marchingSquaresQuadtree(s SDF2, resolution float64, output chan<- *Line) {
+func marchingSquaresQuadtree(s sdf.SDF2, resolution float64, output chan<- *Line) {
 	// Scale the bounding box about the center to make sure the boundaries
 	// aren't on the object surface.
 	bb := s.BoundingBox()
@@ -135,7 +137,7 @@ func marchingSquaresQuadtree(s SDF2, resolution float64, output chan<- *Line) {
 	// create the distance cache
 	dc := newDcache2(s, bb.Min, resolution, levels)
 	// process the quadtree, start at the top level
-	dc.processSquare(&square{V2i{0, 0}, levels - 1}, output)
+	dc.processSquare(&square{sdf.V2i{0, 0}, levels - 1}, output)
 }
 
 //-----------------------------------------------------------------------------

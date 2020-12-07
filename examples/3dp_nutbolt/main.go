@@ -12,6 +12,7 @@ import (
 	"fmt"
 
 	"github.com/deadsy/sdfx/obj"
+	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
 )
 
@@ -49,7 +50,7 @@ func inch() error {
 		return err
 	}
 	bolt = sdf.ScaleUniform3D(bolt, sdf.MillimetresPerInch)
-	sdf.RenderSTLSlow(bolt, quality, "inch_bolt.stl")
+	render.RenderSTLSlow(bolt, quality, "inch_bolt.stl")
 
 	// nut
 	nutParms := obj.NutParms{
@@ -62,7 +63,7 @@ func inch() error {
 		return err
 	}
 	nut = sdf.ScaleUniform3D(nut, sdf.MillimetresPerInch)
-	sdf.RenderSTLSlow(nut, quality, "inch_nut.stl")
+	render.RenderSTLSlow(nut, quality, "inch_nut.stl")
 
 	return nil
 }
@@ -83,7 +84,7 @@ func metric() error {
 	if err != nil {
 		return err
 	}
-	sdf.RenderSTLSlow(bolt, quality, "metric_bolt.stl")
+	render.RenderSTLSlow(bolt, quality, "metric_bolt.stl")
 
 	// nut
 	nutParms := obj.NutParms{
@@ -95,7 +96,7 @@ func metric() error {
 	if err != nil {
 		return err
 	}
-	sdf.RenderSTLSlow(nut, quality, "metric_nut.stl")
+	render.RenderSTLSlow(nut, quality, "metric_nut.stl")
 
 	return nil
 }

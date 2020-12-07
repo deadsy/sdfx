@@ -12,6 +12,7 @@ import (
 	"log"
 
 	"github.com/deadsy/sdfx/obj"
+	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
 )
 
@@ -212,18 +213,18 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	sdf.RenderSTL(b1, 300, "body1.stl")
 
-	sdf.RenderSTL(body2(), 300, "body2.stl")
-	sdf.RenderSTL(spincapSingle(), 150, "cap_single.stl")
-	sdf.RenderSTL(spincapDouble(true), 150, "cap_double_male.stl")
-	sdf.RenderSTL(spincapDouble(false), 150, "cap_double_female.stl")
+	render.RenderSTL(b1, 300, "body1.stl")
+	render.RenderSTL(body2(), 300, "body2.stl")
+	render.RenderSTL(spincapSingle(), 150, "cap_single.stl")
+	render.RenderSTL(spincapDouble(true), 150, "cap_double_male.stl")
+	render.RenderSTL(spincapDouble(false), 150, "cap_double_female.stl")
 
 	scw, err := spincapWasher()
 	if err != nil {
 		log.Fatal(err)
 	}
-	sdf.RenderSTL(scw, 150, "washer.stl")
+	render.RenderSTL(scw, 150, "washer.stl")
 }
 
 //-----------------------------------------------------------------------------

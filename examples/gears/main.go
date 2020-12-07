@@ -10,6 +10,7 @@ package main
 
 import (
 	"github.com/deadsy/sdfx/obj"
+	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
 )
 
@@ -45,7 +46,7 @@ func main() {
 	)
 	rack3d := sdf.Extrude3D(rack2d, h)
 
-	sdf.RenderSTL(sdf.Union3D(rack3d, gear3d), 200, "gear.stl")
+	render.RenderSTL(sdf.Union3D(rack3d, gear3d), 200, "gear.stl")
 }
 
 //-----------------------------------------------------------------------------

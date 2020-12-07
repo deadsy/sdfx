@@ -10,6 +10,7 @@ package main
 
 import (
 	"github.com/deadsy/sdfx/obj"
+	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
 )
 
@@ -68,7 +69,7 @@ func flange() sdf.SDF3 {
 //-----------------------------------------------------------------------------
 
 func main() {
-	sdf.RenderSTL(sdf.ScaleUniform3D(flange(), shrink), 300, "flange.stl")
+	render.RenderSTL(sdf.ScaleUniform3D(flange(), shrink), 300, "flange.stl")
 }
 
 //-----------------------------------------------------------------------------

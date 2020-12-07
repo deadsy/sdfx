@@ -6,7 +6,7 @@ SVG Rendering Code
 */
 //-----------------------------------------------------------------------------
 
-package sdf
+package render
 
 import (
 	"fmt"
@@ -14,6 +14,7 @@ import (
 	"sync"
 
 	svg "github.com/ajstarks/svgo/float"
+	"github.com/deadsy/sdfx/sdf"
 )
 
 //-----------------------------------------------------------------------------
@@ -22,8 +23,8 @@ import (
 type SVG struct {
 	filename  string
 	lineStyle string
-	p0s, p1s  []V2
-	min, max  V2
+	p0s, p1s  []sdf.V2
+	min, max  sdf.V2
 }
 
 // NewSVG returns an SVG renderer.
@@ -35,7 +36,7 @@ func NewSVG(filename, lineStyle string) *SVG {
 }
 
 // Line outputs a line to the SVG file.
-func (s *SVG) Line(p0, p1 V2) {
+func (s *SVG) Line(p0, p1 sdf.V2) {
 	if len(s.p0s) == 0 {
 		s.min = p0.Min(p1)
 		s.max = p0.Max(p1)
@@ -106,6 +107,63 @@ func WriteSVG(wg *sync.WaitGroup, path, lineStyle string) (chan<- *Line, error) 
 	}()
 
 	return c, nil
+}
+
+//-----------------------------------------------------------------------------
+
+// RenderSVG renders an SDF2 as an SVG file. (uses quadtree sampling)
+func RenderSVG(
+	s sdf.SDF2, // sdf2 to render
+	meshCells int, // number of cells on the longest axis. e.g 200
+	path string, // path to filename
+	lineStyle string, // SVG line style
+) error {
+	// work out the sampling resolution to use
+	bbSize := s.BoundingBox().Size()
+	resolution := bbSize.MaxComponent() / float64(meshCells)
+	cells := bbSize.DivScalar(resolution).ToV2i()
+
+	fmt.Printf("rendering %s (%dx%d, resolution %.2f)\n", path, cells[0], cells[1], resolution)
+
+	// write the line segments to an SVG file
+	var wg sync.WaitGroup
+	output, err := WriteSVG(&wg, path, lineStyle)
+	if err != nil {
+		return err
+	}
+
+	// run marching squares to generate the line segments
+	marchingSquaresQuadtree(s, resolution, output)
+
+	// stop the SVG writer reading on the channel
+	close(output)
+	// wait for the file write to complete
+	wg.Wait()
+	return nil
+}
+
+// RenderSVGSlow renders an SDF2 as an SVG file. (uses uniform grid sampling)
+func RenderSVGSlow(
+	s sdf.SDF2, // sdf2 to render
+	meshCells int, // number of cells on the longest axis. e.g 200
+	path string, // path to filename
+	lineStyle string, // SVG line style
+) error {
+	// work out the region we will sample
+	bb0 := s.BoundingBox()
+	bb0Size := bb0.Size()
+	meshInc := bb0Size.MaxComponent() / float64(meshCells)
+	bb1Size := bb0Size.DivScalar(meshInc)
+	bb1Size = bb1Size.Ceil().AddScalar(1)
+	cells := bb1Size.ToV2i()
+	bb1Size = bb1Size.MulScalar(meshInc)
+	bb := sdf.NewBox2(bb0.Center(), bb1Size)
+
+	fmt.Printf("rendering %s (%dx%d)\n", path, cells[0], cells[1])
+
+	// run marching squares to generate the line segments
+	m := marchingSquares(s, bb, meshInc)
+	return SaveSVG(path, lineStyle, m)
 }
 
 //-----------------------------------------------------------------------------

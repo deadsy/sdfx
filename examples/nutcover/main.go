@@ -12,6 +12,7 @@ import (
 	"math"
 
 	"github.com/deadsy/sdfx/obj"
+	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
 )
 
@@ -59,7 +60,7 @@ func main() {
 	s := nutcover()
 	// un-comment for a cut-away view
 	//s = sdf.Cut3D(s, sdf.V3{0, 0, 0}, sdf.V3{1, 0, 0})
-	sdf.RenderSTL(s, 150, "cover.stl")
+	render.RenderSTL(s, 150, "cover.stl")
 }
 
 //-----------------------------------------------------------------------------

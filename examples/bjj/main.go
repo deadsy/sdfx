@@ -12,6 +12,7 @@ package main
 
 import (
 	"github.com/deadsy/sdfx/obj"
+	"github.com/deadsy/sdfx/render"
 	. "github.com/deadsy/sdfx/sdf"
 )
 
@@ -148,9 +149,9 @@ func gears() SDF3 {
 //-----------------------------------------------------------------------------
 
 func main() {
-	RenderSTL(bushing(), 100, "bushing.stl")
-	RenderSTL(gears(), 300, "gear.stl")
-	RenderSTL(plate(), 300, "plate.stl")
+	render.RenderSTL(bushing(), 100, "bushing.stl")
+	render.RenderSTL(gears(), 300, "gear.stl")
+	render.RenderSTL(plate(), 300, "plate.stl")
 }
 
 //-----------------------------------------------------------------------------

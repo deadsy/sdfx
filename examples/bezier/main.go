@@ -11,6 +11,7 @@ package main
 import (
 	"log"
 
+	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
 )
 
@@ -32,7 +33,7 @@ func bowlingPin() error {
 	}
 	s0 := sdf.Polygon2D(p.Vertices())
 	s1 := sdf.Revolve3D(s0)
-	sdf.RenderSTL(s1, 300, "bowlingpin.stl")
+	render.RenderSTL(s1, 300, "bowlingpin.stl")
 	return nil
 }
 
@@ -50,7 +51,7 @@ func egg1() error {
 	}
 	s0 := sdf.Polygon2D(p.Vertices())
 	s1 := sdf.Revolve3D(s0)
-	sdf.RenderSTL(s1, 300, "egg1.stl")
+	render.RenderSTL(s1, 300, "egg1.stl")
 	return nil
 }
 
@@ -72,7 +73,7 @@ func egg2() error {
 	}
 	s0 := sdf.Polygon2D(p.Vertices())
 	s1 := sdf.Revolve3D(s0)
-	sdf.RenderSTL(s1, 300, "egg2.stl")
+	render.RenderSTL(s1, 300, "egg2.stl")
 	return nil
 }
 
@@ -116,7 +117,7 @@ func bowl() error {
 	}
 	s0 := sdf.Polygon2D(p.Vertices())
 	s1 := sdf.RevolveTheta3D(s0, sdf.DtoR(270))
-	sdf.RenderSTL(s1, 300, "bowl.stl")
+	render.RenderSTL(s1, 300, "bowl.stl")
 	return nil
 }
 
@@ -158,7 +159,7 @@ func vase() error {
 	}
 	s0 := sdf.Polygon2D(p.Vertices())
 	s1 := sdf.Revolve3D(s0)
-	sdf.RenderSTL(s1, 300, "vase.stl")
+	render.RenderSTL(s1, 300, "vase.stl")
 	return nil
 }
 
@@ -320,7 +321,7 @@ func shape() error {
 	if err != nil {
 		return err
 	}
-	sdf.RenderSTL(s3d, 300, "shape.stl")
+	render.RenderSTL(s3d, 300, "shape.stl")
 	return nil
 }
 

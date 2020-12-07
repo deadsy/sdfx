@@ -11,6 +11,7 @@ package main
 import (
 	"math"
 
+	"github.com/deadsy/sdfx/render"
 	. "github.com/deadsy/sdfx/sdf"
 )
 
@@ -139,8 +140,8 @@ func wheel_pattern() {
 	wheel := Union3D(wheel_3d, web_3d)
 	wheel.(*UnionSDF3).SetMin(PolyMin(wall_thickness))
 
-	RenderSTL(wheel, 200, "wheel.stl")
-	RenderDXF(Slice2D(wheel, V3{0, 0, 15.0}, V3{0, 0, 1}), 200, "wheel.dxf")
+	render.RenderSTL(wheel, 200, "wheel.stl")
+	render.RenderDXF(Slice2D(wheel, V3{0, 0, 15.0}, V3{0, 0, 1}), 200, "wheel.dxf")
 }
 
 //-----------------------------------------------------------------------------
@@ -194,7 +195,7 @@ func core_box() {
 	// remove the core from the box
 	core_box := Difference3D(box_3d, core_3d)
 
-	RenderSTL(core_box, 200, "core_box.stl")
+	render.RenderSTL(core_box, 200, "core_box.stl")
 }
 
 //-----------------------------------------------------------------------------

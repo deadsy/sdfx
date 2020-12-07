@@ -10,6 +10,7 @@ package main
 
 import (
 	"github.com/deadsy/sdfx/obj"
+	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
 )
 
@@ -57,7 +58,7 @@ func main() {
 	s2 := nutAndBolt("unc_1", 2.0, 0.5)
 	s2 = sdf.Transform3D(s2, sdf.Translate3d(sdf.V3{xOffset, 0, 0}))
 
-	sdf.RenderSTLSlow(sdf.Union3D(s0, s1, s2), 400, "nutandbolt.stl")
+	render.RenderSTLSlow(sdf.Union3D(s0, s1, s2), 400, "nutandbolt.stl")
 }
 
 //-----------------------------------------------------------------------------

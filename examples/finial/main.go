@@ -11,6 +11,7 @@ package main
 import (
 	"math"
 
+	"github.com/deadsy/sdfx/render"
 	. "github.com/deadsy/sdfx/sdf"
 )
 
@@ -66,7 +67,7 @@ func finial2() error {
 	bc_3d := Union3D(column_3d, ball_3d)
 	bc_3d.(*UnionSDF3).SetMin(PolyMin(round))
 
-	RenderSTLSlow(Union3D(bc_3d, base_3d), 300, "f2.stl")
+	render.RenderSTLSlow(Union3D(bc_3d, base_3d), 300, "f2.stl")
 	return err
 }
 
@@ -99,7 +100,7 @@ func finial1() error {
 	bc_3d := Union3D(column_3d, ball_3d)
 	bc_3d.(*UnionSDF3).SetMin(PolyMin(round))
 
-	RenderSTLSlow(Union3D(bc_3d, base_3d), 300, "f1.stl")
+	render.RenderSTLSlow(Union3D(bc_3d, base_3d), 300, "f1.stl")
 	return err
 }
 

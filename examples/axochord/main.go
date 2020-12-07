@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/deadsy/sdfx/obj"
+	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
 )
 
@@ -116,9 +117,9 @@ func main() {
 	upper := sdf.Cut3D(s, sdf.V3{}, sdf.V3{0, 0, 1})
 	lower := sdf.Cut3D(s, sdf.V3{}, sdf.V3{0, 0, -1})
 
-	sdf.RenderSTL(upper, 400, "upper.stl")
-	sdf.RenderSTL(lower, 400, "lower.stl")
-	sdf.RenderDXF(cherryMX(), 400, "plate.dxf")
+	render.RenderSTL(upper, 400, "upper.stl")
+	render.RenderSTL(lower, 400, "lower.stl")
+	render.RenderDXF(cherryMX(), 400, "plate.dxf")
 }
 
 //-----------------------------------------------------------------------------

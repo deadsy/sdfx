@@ -11,6 +11,7 @@ package main
 import (
 	"log"
 
+	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
 )
 
@@ -34,14 +35,14 @@ func main() {
 		log.Fatalf("can't generate text sdf2 %s\n", err)
 	}
 
-	sdf.RenderDXF(s2d, 600, "shape.dxf")
-	sdf.RenderSVG(s2d, 600, "shape.svg", "fill:none;stroke:black;stroke-width:0.1")
+	render.RenderDXF(s2d, 600, "shape.dxf")
+	render.RenderSVG(s2d, 600, "shape.svg", "fill:none;stroke:black;stroke-width:0.1")
 
 	s3d, err := sdf.ExtrudeRounded3D(s2d, 1.0, 0.2)
 	if err != nil {
 		log.Fatal(err)
 	}
-	sdf.RenderSTL(s3d, 600, "shape.stl")
+	render.RenderSTL(s3d, 600, "shape.stl")
 }
 
 //-----------------------------------------------------------------------------

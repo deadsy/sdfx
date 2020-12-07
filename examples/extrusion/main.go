@@ -8,7 +8,10 @@ Extrusions
 
 package main
 
-import . "github.com/deadsy/sdfx/sdf"
+import (
+	"github.com/deadsy/sdfx/render"
+	. "github.com/deadsy/sdfx/sdf"
+)
 
 //-----------------------------------------------------------------------------
 
@@ -50,8 +53,8 @@ func extrude2() SDF3 {
 //-----------------------------------------------------------------------------
 
 func main() {
-	RenderSTLSlow(extrude1(), 200, "extrude1.stl")
-	RenderSTLSlow(extrude2(), 200, "extrude2.stl")
+	render.RenderSTLSlow(extrude1(), 200, "extrude1.stl")
+	render.RenderSTLSlow(extrude2(), 200, "extrude2.stl")
 }
 
 //-----------------------------------------------------------------------------

@@ -17,6 +17,7 @@ import (
 	"math"
 
 	"github.com/deadsy/sdfx/obj"
+	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
 )
 
@@ -253,10 +254,10 @@ func main() {
 		// rotate for the preferred print orientation
 		s = sdf.Transform3D(s, sdf.RotateX(-sdf.DtoR(sideDraft)))
 		name := fmt.Sprintf("flask_%d.stl", int(w))
-		sdf.RenderSTL(sdf.ScaleUniform3D(s, shrink), 300, name)
+		render.RenderSTL(sdf.ScaleUniform3D(s, shrink), 300, name)
 	}
-	sdf.RenderSTL(sdf.ScaleUniform3D(pinLugs(), shrink), 120, "pins.stl")
-	sdf.RenderSTL(sdf.ScaleUniform3D(oddSide(height), shrink), 300, "odd_side.stl")
+	render.RenderSTL(sdf.ScaleUniform3D(pinLugs(), shrink), 120, "pins.stl")
+	render.RenderSTL(sdf.ScaleUniform3D(oddSide(height), shrink), 300, "odd_side.stl")
 }
 
 //-----------------------------------------------------------------------------

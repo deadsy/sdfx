@@ -12,6 +12,7 @@ package main
 import (
 	"math"
 
+	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
 )
 
@@ -116,7 +117,7 @@ func macCheeseGrater(
 
 func main() {
 	s := macCheeseGrater(15, 6, 10.0)
-	sdf.RenderSTL(sdf.ScaleUniform3D(s, shrink), 500, "mcg.stl")
+	render.RenderSTL(sdf.ScaleUniform3D(s, shrink), 500, "mcg.stl")
 }
 
 //-----------------------------------------------------------------------------

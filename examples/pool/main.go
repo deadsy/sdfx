@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/deadsy/sdfx/render"
 	. "github.com/deadsy/sdfx/sdf"
 )
 
@@ -33,5 +34,5 @@ func main() {
 
 	profile := Polygon2D(p.Vertices())
 	pool := Extrude3D(profile, pool_w)
-	RenderSTL(pool, 300, "pool.stl")
+	render.RenderSTL(pool, 300, "pool.stl")
 }

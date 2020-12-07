@@ -11,6 +11,7 @@ package main
 import (
 	"math"
 
+	"github.com/deadsy/sdfx/render"
 	. "github.com/deadsy/sdfx/sdf"
 )
 
@@ -62,7 +63,7 @@ func fdd_to_fvh25() {
 	p.Add(r0, h0)
 
 	s := Revolve3D(Polygon2D(p.Vertices()))
-	RenderSTL(s, 150, "fdd_fvh25.stl")
+	render.RenderSTL(s, 150, "fdd_fvh25.stl")
 }
 
 //-----------------------------------------------------------------------------
@@ -92,7 +93,7 @@ func mvh25_to_mpvc(pvc_od float64) {
 	p.Add(r0-t, h0)
 
 	s := Revolve3D(Polygon2D(p.Vertices()))
-	RenderSTL(s, 150, "mvh25_mpvc.stl")
+	render.RenderSTL(s, 150, "mvh25_mpvc.stl")
 }
 
 //-----------------------------------------------------------------------------
@@ -123,7 +124,7 @@ func fdd_to_mpvc(pvc_od float64) {
 	p.Add(r0-t, h0)
 
 	s := Revolve3D(Polygon2D(p.Vertices()))
-	RenderSTL(s, 150, "fdd_mpvc.stl")
+	render.RenderSTL(s, 150, "fdd_mpvc.stl")
 }
 
 //-----------------------------------------------------------------------------

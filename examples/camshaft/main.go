@@ -5,6 +5,7 @@ package main
 import (
 	"math"
 
+	"github.com/deadsy/sdfx/render"
 	. "github.com/deadsy/sdfx/sdf"
 )
 
@@ -70,5 +71,5 @@ func main() {
 	m = RotateZ(Pi).Mul(m)
 	ex1 := Transform3D(exhaust_3d, m)
 
-	RenderSTL(Union3D(shaft_3d, ex1, in2, in3, ex4), 400, "camshaft.stl")
+	render.RenderSTL(Union3D(shaft_3d, ex1, in2, in3, ex4), 400, "camshaft.stl")
 }

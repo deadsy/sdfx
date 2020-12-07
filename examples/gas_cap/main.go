@@ -10,6 +10,7 @@ package main
 
 import (
 	"github.com/deadsy/sdfx/obj"
+	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
 )
 
@@ -54,7 +55,7 @@ func gasCap() sdf.SDF3 {
 //-----------------------------------------------------------------------------
 
 func main() {
-	sdf.RenderSTLSlow(gasCap(), 200, "cap.stl")
+	render.RenderSTLSlow(gasCap(), 200, "cap.stl")
 }
 
 //-----------------------------------------------------------------------------

@@ -9,6 +9,7 @@ package main
 
 import (
 	"github.com/deadsy/sdfx/obj"
+	"github.com/deadsy/sdfx/render"
 	. "github.com/deadsy/sdfx/sdf"
 )
 
@@ -31,13 +32,13 @@ func cc18a() {
 	p.Add(150, DtoR(-195)).Polar().Rel().Arc(-120, 15)
 	p.Add(100, DtoR(-150)).Polar().Rel()
 	p.Add(-60, 0).Rel()
-	p.Add(-10, 0).Rel().Hide()
+	p.Add(-10, 0).Rel()
 	p.Add(-30, 0).Rel()
 	p.Add(0, 135).Rel()
 	p.Add(-60, 0).Rel()
 	// back to the the start with a closed polygon
 	p.Close()
-	p.Render("cc18a.dxf")
+	render.Poly(p, "cc18a.dxf")
 }
 
 //-----------------------------------------------------------------------------

@@ -8,26 +8,28 @@ Convert an SDF2 boundary to a set of line segments.
 */
 //-----------------------------------------------------------------------------
 
-package sdf
+package render
+
+import "github.com/deadsy/sdfx/sdf"
 
 //-----------------------------------------------------------------------------
 
 // lineCache is a cache of SDF2 evaluations samples over a 2d line.
 type lineCache struct {
-	base  V2        // base coordinate of line
-	inc   V2        // dx, dy for each step
-	steps V2i       // number of x,y steps
+	base  sdf.V2    // base coordinate of line
+	inc   sdf.V2    // dx, dy for each step
+	steps sdf.V2i   // number of x,y steps
 	val0  []float64 // SDF values for x line
 	val1  []float64 // SDF values for x + dx line
 }
 
 // newLineCache returns a line cache.
-func newLineCache(base, inc V2, steps V2i) *lineCache {
+func newLineCache(base, inc sdf.V2, steps sdf.V2i) *lineCache {
 	return &lineCache{base, inc, steps, nil, nil}
 }
 
 // evaluate the SDF2 over a given x line.
-func (l *lineCache) evaluate(sdf SDF2, x int) {
+func (l *lineCache) evaluate(s sdf.SDF2, x int) {
 
 	// Swap the layers
 	l.val0, l.val1 = l.val1, l.val0
@@ -42,13 +44,13 @@ func (l *lineCache) evaluate(sdf SDF2, x int) {
 
 	// setup the loop variables
 	idx := 0
-	var p V2
+	var p sdf.V2
 	p.X = l.base.X + float64(x)*dx
 
 	// evaluate the line
 	p.Y = l.base.Y
 	for y := 0; y < ny+1; y++ {
-		l.val1[idx] = sdf.Evaluate(p)
+		l.val1[idx] = s.Evaluate(p)
 		idx++
 		p.Y += dy
 	}
@@ -64,7 +66,7 @@ func (l *lineCache) get(x, y int) float64 {
 
 //-----------------------------------------------------------------------------
 
-func marchingSquares(sdf SDF2, box Box2, step float64) []*Line {
+func marchingSquares(s sdf.SDF2, box sdf.Box2, step float64) []*Line {
 
 	var lines []*Line
 	size := box.Size()
@@ -75,22 +77,22 @@ func marchingSquares(sdf SDF2, box Box2, step float64) []*Line {
 	// create the line cache
 	l := newLineCache(base, inc, steps)
 	// evaluate the SDF for x = 0
-	l.evaluate(sdf, 0)
+	l.evaluate(s, 0)
 
 	nx, ny := steps[0], steps[1]
 	dx, dy := inc.X, inc.Y
 
-	var p V2
+	var p sdf.V2
 	p.X = base.X
 	for x := 0; x < nx; x++ {
 		// read the x + 1 layer
-		l.evaluate(sdf, x+1)
+		l.evaluate(s, x+1)
 		// process all squares in the x and x + 1 layers
 		p.Y = base.Y
 		for y := 0; y < ny; y++ {
 			x0, y0 := p.X, p.Y
 			x1, y1 := x0+dx, y0+dy
-			corners := [4]V2{
+			corners := [4]sdf.V2{
 				{x0, y0},
 				{x1, y0},
 				{x1, y1},
@@ -114,7 +116,7 @@ func marchingSquares(sdf SDF2, box Box2, step float64) []*Line {
 //-----------------------------------------------------------------------------
 
 // generate the line segments for a square
-func msToLines(p [4]V2, v [4]float64, x float64) []*Line {
+func msToLines(p [4]sdf.V2, v [4]float64, x float64) []*Line {
 	// which of the 0..15 patterns do we have?
 	index := 0
 	for i := 0; i < 4; i++ {
@@ -127,7 +129,7 @@ func msToLines(p [4]V2, v [4]float64, x float64) []*Line {
 		return nil
 	}
 	// work out the interpolated points on the edges
-	var points [4]V2
+	var points [4]sdf.V2
 	for i := 0; i < 4; i++ {
 		bit := 1 << uint(i)
 		if msEdgeTable[index]&bit != 0 {
@@ -153,10 +155,10 @@ func msToLines(p [4]V2, v [4]float64, x float64) []*Line {
 
 //-----------------------------------------------------------------------------
 
-func msInterpolate(p1, p2 V2, v1, v2, x float64) V2 {
+func msInterpolate(p1, p2 sdf.V2, v1, v2, x float64) sdf.V2 {
 
-	closeToV1 := Abs(x-v1) < epsilon
-	closeToV2 := Abs(x-v2) < epsilon
+	closeToV1 := sdf.Abs(x-v1) < epsilon
+	closeToV2 := sdf.Abs(x-v2) < epsilon
 
 	if closeToV1 && !closeToV2 {
 		return p1
@@ -175,7 +177,7 @@ func msInterpolate(p1, p2 V2, v1, v2, x float64) V2 {
 		t = (x - v1) / (v2 - v1)
 	}
 
-	return V2{
+	return sdf.V2{
 		p1.X + t*(p2.X-p1.X),
 		p1.Y + t*(p2.Y-p1.Y),
 	}

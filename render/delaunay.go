@@ -11,11 +11,13 @@ Computational Geometry, Joseph O'Rourke, 2nd edition, Code 5.1
 */
 //-----------------------------------------------------------------------------
 
-package sdf
+package render
 
 import (
 	"errors"
 	"sort"
+
+	"github.com/deadsy/sdfx/sdf"
 )
 
 //-----------------------------------------------------------------------------
@@ -24,7 +26,7 @@ import (
 type TriangleI [3]int
 
 // ToTriangle2 given vertex indices and the vertex array, return the triangle with real vertices.
-func (t TriangleI) ToTriangle2(p []V2) Triangle2 {
+func (t TriangleI) ToTriangle2(p []sdf.V2) Triangle2 {
 	return Triangle2{p[t[0]], p[t[1]], p[t[2]]}
 }
 
@@ -112,14 +114,14 @@ type EdgeI [2]int
 
 //-----------------------------------------------------------------------------
 
-// SuperTriangle return the super triangle of a point set, ie: 3 vertices enclosing all points.
-func (vs V2Set) SuperTriangle() (Triangle2, error) {
+// superTriangle return the super triangle of a point set, ie: 3 vertices enclosing all points.
+func superTriangle(vs sdf.V2Set) (Triangle2, error) {
 
 	if len(vs) == 0 {
 		return Triangle2{}, errors.New("no vertices")
 	}
 
-	var p V2
+	var p sdf.V2
 	var k float64
 
 	if len(vs) == 1 {
@@ -130,7 +132,7 @@ func (vs V2Set) SuperTriangle() (Triangle2, error) {
 			k = 1
 		}
 	} else {
-		b := Box2{vs.Min(), vs.Max()}
+		b := sdf.Box2{vs.Min(), vs.Max()}
 		p = b.Center()
 		k = b.Size().MaxComponent() * 2.0
 	}
@@ -140,16 +142,16 @@ func (vs V2Set) SuperTriangle() (Triangle2, error) {
 	// on the hull the circumcenter is going to be arbitrarily far away.
 	k *= 4096.0
 
-	p0 := p.Add(V2{-k, -k})
-	p1 := p.Add(V2{0, k})
-	p2 := p.Add(V2{k, -k})
+	p0 := p.Add(sdf.V2{-k, -k})
+	p1 := p.Add(sdf.V2{0, k})
+	p2 := p.Add(sdf.V2{k, -k})
 	return Triangle2{p0, p1, p2}, nil
 }
 
 //-----------------------------------------------------------------------------
 
 // Circumcenter returns the circumcenter of a triangle.
-func (t Triangle2) Circumcenter() (V2, error) {
+func (t Triangle2) Circumcenter() (sdf.V2, error) {
 
 	var m1, m2, mx1, mx2, my1, my2 float64
 	var xc, yc float64
@@ -162,12 +164,12 @@ func (t Triangle2) Circumcenter() (V2, error) {
 	y2 := t[1].Y
 	y3 := t[2].Y
 
-	fabsy1y2 := Abs(y1 - y2)
-	fabsy2y3 := Abs(y2 - y3)
+	fabsy1y2 := sdf.Abs(y1 - y2)
+	fabsy2y3 := sdf.Abs(y2 - y3)
 
 	// Check for coincident points
 	if fabsy1y2 < epsilon && fabsy2y3 < epsilon {
-		return V2{}, errors.New("coincident points")
+		return sdf.V2{}, errors.New("coincident points")
 	}
 
 	if fabsy1y2 < epsilon {
@@ -197,12 +199,12 @@ func (t Triangle2) Circumcenter() (V2, error) {
 		}
 	}
 
-	return V2{xc, yc}, nil
+	return sdf.V2{xc, yc}, nil
 }
 
 // InCircumcircle return inside == true if the point is inside the circumcircle of the triangle.
 // Returns done == true if the vertex and the subsequent x-ordered vertices are outside the circumcircle.
-func (t Triangle2) InCircumcircle(p V2) (inside, done bool) {
+func (t Triangle2) InCircumcircle(p sdf.V2) (inside, done bool) {
 	c, err := t.Circumcenter()
 	if err != nil {
 		inside = false
@@ -234,16 +236,16 @@ func (t Triangle2) InCircumcircle(p V2) (inside, done bool) {
 //-----------------------------------------------------------------------------
 
 // Delaunay2d returns the delaunay triangulation of a 2d point set.
-func (vs V2Set) Delaunay2d() (TriangleISet, error) {
+func Delaunay2d(vs sdf.V2Set) (TriangleISet, error) {
 
 	// number of vertices
 	n := len(vs)
 
 	// sort the vertices by x value
-	sort.Sort(V2SetByX(vs))
+	sort.Sort(sdf.V2SetByX(vs))
 
 	// work out the super triangle
-	t, err := vs.SuperTriangle()
+	t, err := superTriangle(vs)
 	if err != nil {
 		return nil, err
 	}
@@ -342,7 +344,7 @@ func (vs V2Set) Delaunay2d() (TriangleISet, error) {
 // Delaunay2dSlow returns the delaunay triangulation of a 2d point set.
 // This is a slow reference implementation for testing faster algorithms.
 // See: Computational Geometry, Joseph O'Rourke, 2nd edition, Code 5.1
-func (vs V2Set) Delaunay2dSlow() (TriangleISet, error) {
+func Delaunay2dSlow(vs sdf.V2Set) (TriangleISet, error) {
 
 	// number of vertices
 	n := len(vs)
@@ -401,7 +403,7 @@ func (vs V2Set) Delaunay2dSlow() (TriangleISet, error) {
 		}
 
 		// get the next triangle
-		if NextCombination(n, c) == false {
+		if nextCombination(n, c) == false {
 			break
 		}
 	}

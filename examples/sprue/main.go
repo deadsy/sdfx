@@ -23,6 +23,7 @@ package main
 import (
 	"math"
 
+	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
 )
 
@@ -58,7 +59,7 @@ func sprue(r, l, k float64) sdf.SDF3 {
 //-----------------------------------------------------------------------------
 
 func main() {
-	sdf.RenderSTL(sdf.ScaleUniform3D(sprue(20, 100, 3000), shrink), 300, "sprue.stl")
+	render.RenderSTL(sdf.ScaleUniform3D(sprue(20, 100, 3000), shrink), 300, "sprue.stl")
 }
 
 //-----------------------------------------------------------------------------

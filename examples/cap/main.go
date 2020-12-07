@@ -10,7 +10,10 @@ This is a simple round cap that fits onto the outside of a tube.
 
 package main
 
-import "github.com/deadsy/sdfx/sdf"
+import (
+	"github.com/deadsy/sdfx/render"
+	"github.com/deadsy/sdfx/sdf"
+)
 
 //-----------------------------------------------------------------------------
 
@@ -43,7 +46,7 @@ func tubeCap() sdf.SDF3 {
 //-----------------------------------------------------------------------------
 
 func main() {
-	sdf.RenderSTL(sdf.ScaleUniform3D(tubeCap(), shrink), 120, "cap.stl")
+	render.RenderSTL(sdf.ScaleUniform3D(tubeCap(), shrink), 120, "cap.stl")
 }
 
 //-----------------------------------------------------------------------------

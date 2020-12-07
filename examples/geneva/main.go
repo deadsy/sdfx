@@ -12,6 +12,7 @@ import (
 	"log"
 
 	"github.com/deadsy/sdfx/obj"
+	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
 )
 
@@ -71,12 +72,12 @@ func main() {
 	driven3d = sdf.Difference3D(driven3d, hole3d)
 
 	meshCells := 300
-	sdf.RenderSTL(driver3d, meshCells, "driver.stl")
-	sdf.RenderSTL(driven3d, meshCells, "driven.stl")
+	render.RenderSTL(driver3d, meshCells, "driver.stl")
+	render.RenderSTL(driven3d, meshCells, "driven.stl")
 
 	driver3d = sdf.Transform3D(driver3d, sdf.Translate3d(sdf.V3{-0.8 * k.DrivenRadius, 0, 0}))
 	driven3d = sdf.Transform3D(driven3d, sdf.Translate3d(sdf.V3{k.DrivenRadius, 0, 0}))
-	sdf.RenderSTL(sdf.Union3D(driver3d, driven3d), meshCells, "geneva.stl")
+	render.RenderSTL(sdf.Union3D(driver3d, driven3d), meshCells, "geneva.stl")
 }
 
 //-----------------------------------------------------------------------------

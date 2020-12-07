@@ -12,6 +12,7 @@ import (
 	"log"
 
 	"github.com/deadsy/sdfx/obj"
+	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
 )
 
@@ -68,7 +69,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	sdf.RenderSTL(bc, 200, "container.stl")
+	render.RenderSTL(bc, 200, "container.stl")
 }
 
 //-----------------------------------------------------------------------------

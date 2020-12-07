@@ -12,6 +12,7 @@ import (
 	"log"
 
 	"github.com/deadsy/sdfx/obj"
+	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
 )
 
@@ -38,9 +39,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("error: %s\n", err)
 	}
-	sdf.RenderSTL(s[0], 300, "panel.stl")
-	sdf.RenderSTL(s[1], 300, "top.stl")
-	sdf.RenderSTL(s[2], 300, "bottom.stl")
+	render.RenderSTL(s[0], 300, "panel.stl")
+	render.RenderSTL(s[1], 300, "top.stl")
+	render.RenderSTL(s[2], 300, "bottom.stl")
 }
 
 //-----------------------------------------------------------------------------

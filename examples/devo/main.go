@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
 )
 
@@ -100,7 +101,7 @@ func main() {
 	}
 
 	//s = sdf.Cut3D(s, V3{0, 0, 0}, sdf.V3{0, 1, 0})
-	sdf.RenderSTL(s, 150, "energy_dome.stl")
+	render.RenderSTL(s, 150, "energy_dome.stl")
 }
 
 //-----------------------------------------------------------------------------
