@@ -143,7 +143,7 @@ func Test_Line(t *testing.T) {
 	}
 	for _, p := range points {
 		d := l.Distance(p.p)
-		if Abs(d-p.d) > tolerance {
+		if math.Abs(d-p.d) > tolerance {
 			fmt.Printf("%+v %f (expected) %f (actual)\n", p.p, p.d, d)
 			t.Error("FAIL")
 		}
@@ -174,7 +174,7 @@ func Test_Line(t *testing.T) {
 				t.Error("FAIL")
 			}
 		} else {
-			if Abs(test.t0-t0) > tolerance || Abs(test.t1-t1) > tolerance {
+			if math.Abs(test.t0-t0) > tolerance || math.Abs(test.t1-t1) > tolerance {
 				fmt.Printf("l0: %+v\n", l0)
 				fmt.Printf("l1: %+v\n", l1)
 				fmt.Printf("%f %f (expected) %f %f (actual)\n", test.t0, test.t1, t0, t1)
@@ -272,7 +272,7 @@ func Test_Polygon2(t *testing.T) {
 	for i := 0; i < 10000; i++ {
 		b := NewBox2(V2{0, 0}, V2{20 * k, 20 * k})
 		p := b.Random()
-		if Abs(s0.Evaluate(p)-s1.Evaluate(p)) > tolerance {
+		if math.Abs(s0.Evaluate(p)-s1.Evaluate(p)) > tolerance {
 			t.Error("FAIL")
 		}
 	}
@@ -309,7 +309,7 @@ func Test_Polygon3(t *testing.T) {
 	for i := 0; i < 1000; i++ {
 		b := NewBox2(V2{0, 0}, V2{10 * b, 10 * b})
 		p := b.Random()
-		if Abs(s0.Evaluate(p)-s1.Evaluate(p)) > tolerance {
+		if math.Abs(s0.Evaluate(p)-s1.Evaluate(p)) > tolerance {
 			t.Error("FAIL")
 		}
 	}
@@ -423,7 +423,7 @@ func Test_TriDiagonal(t *testing.T) {
 		t.Error("FAIL")
 	}
 	for i := 0; i < n; i++ {
-		if Abs(x[i]-x0[i]) > tolerance {
+		if math.Abs(x[i]-x0[i]) > tolerance {
 			t.Error("FAIL")
 		}
 	}
@@ -435,7 +435,7 @@ func Test_TriDiagonal(t *testing.T) {
 		t.Error("FAIL")
 	}
 	for i := 0; i < n; i++ {
-		if Abs(x[i]-x0[i]) > tolerance {
+		if math.Abs(x[i]-x0[i]) > tolerance {
 			t.Error("FAIL")
 		}
 	}
@@ -452,7 +452,7 @@ func Test_TriDiagonal(t *testing.T) {
 		t.Error("FAIL")
 	}
 	for i := 0; i < n; i++ {
-		if Abs(x[i]-x0[i]) > tolerance {
+		if math.Abs(x[i]-x0[i]) > tolerance {
 			t.Error("FAIL")
 		}
 	}
