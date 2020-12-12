@@ -54,7 +54,10 @@ func boxTab3d(k *boxTabParms) (sdf.SDF3, error) {
 		// adjust the tab, 4 * k.Wall above, 2 * k.Wall below
 		tab = sdf.Transform3D(tab, sdf.Translate3d(sdf.V3{0, -w, 0}))
 		// put a hole in the tab
-		hole := sdf.Cylinder3D(w, 0.5*k.Hole, 0)
+		hole, err := sdf.Cylinder3D(w, 0.5*k.Hole, 0)
+		if err != nil {
+			return nil, err
+		}
 		hole = sdf.Transform3D(hole, sdf.Translate3d(sdf.V3{0, -k.HoleOffset, 0}))
 		tab = sdf.Difference3D(tab, hole)
 	}
@@ -93,7 +96,10 @@ type boxHoleParms struct {
 
 // boxHole3d returns an oriented countersunk hole for the box side.
 func boxHole3d(k *boxHoleParms) (sdf.SDF3, error) {
-	hole := CounterSunkHole3D(k.Length, 0.5*k.Hole)
+	hole, err := CounterSunkHole3D(k.Length, 0.5*k.Hole)
+	if err != nil {
+		return nil, err
+	}
 	hole = sdf.Transform3D(hole, sdf.Translate3d(sdf.V3{0, 0, 0.5 * k.Length}))
 	m := sdf.Identity3d()
 	switch k.Orientation {

@@ -29,55 +29,79 @@ type StandoffParms struct {
 }
 
 // pillarWeb returns a single pillar web
-func pillarWeb(k *StandoffParms) sdf.SDF3 {
+func pillarWeb(k *StandoffParms) (sdf.SDF3, error) {
 	w := sdf.NewPolygon()
 	w.Add(0, 0)
 	w.Add(0.5*k.WebDiameter, 0)
 	w.Add(0, k.WebHeight)
 	s := sdf.Extrude3D(sdf.Polygon2D(w.Vertices()), k.WebWidth)
 	m := sdf.Translate3d(sdf.V3{0, 0, -0.5 * k.PillarHeight}).Mul(sdf.RotateX(sdf.DtoR(90.0)))
-	return sdf.Transform3D(s, m)
+	return sdf.Transform3D(s, m), nil
 }
 
 // pillarWebs returns a set of pillar webs
-func pillarWebs(k *StandoffParms) sdf.SDF3 {
+func pillarWebs(k *StandoffParms) (sdf.SDF3, error) {
 	if k.NumberWebs == 0 {
-		return nil
+		// no webs
+		return nil, nil
 	}
-	return sdf.RotateCopy3D(pillarWeb(k), k.NumberWebs)
+	web, err := pillarWeb(k)
+	if err != nil {
+		return nil, err
+	}
+	return sdf.RotateCopy3D(web, k.NumberWebs), nil
 }
 
 // pillar returns a cylindrical pillar
-func pillar(k *StandoffParms) sdf.SDF3 {
+func pillar(k *StandoffParms) (sdf.SDF3, error) {
 	return sdf.Cylinder3D(k.PillarHeight, 0.5*k.PillarDiameter, 0)
 }
 
 // pillarHole returns a pillar screw hole (or support stub)
-func pillarHole(k *StandoffParms) sdf.SDF3 {
+func pillarHole(k *StandoffParms) (sdf.SDF3, error) {
 	if k.HoleDiameter == 0.0 || k.HoleDepth == 0.0 {
-		return nil
+		// no hole
+		return nil, nil
 	}
-	s := sdf.Cylinder3D(math.Abs(k.HoleDepth), 0.5*k.HoleDiameter, 0)
+	s, err := sdf.Cylinder3D(math.Abs(k.HoleDepth), 0.5*k.HoleDiameter, 0)
+	if err != nil {
+		return nil, err
+	}
 	zOfs := 0.5 * (k.PillarHeight - k.HoleDepth)
-	return sdf.Transform3D(s, sdf.Translate3d(sdf.V3{0, 0, zOfs}))
+	return sdf.Transform3D(s, sdf.Translate3d(sdf.V3{0, 0, zOfs})), nil
 }
 
 // Standoff3D returns a single board standoff.
-func Standoff3D(k *StandoffParms) sdf.SDF3 {
-	s0 := sdf.Union3D(pillar(k), pillarWebs(k))
+func Standoff3D(k *StandoffParms) (sdf.SDF3, error) {
+	pillar, err := pillar(k)
+	if err != nil {
+		return nil, err
+	}
+	webs, err := pillarWebs(k)
+	if err != nil {
+		return nil, err
+	}
+	s := sdf.Union3D(pillar, webs)
 	if k.NumberWebs != 0 {
 		// Cut off any part of the webs that protrude from the top of the pillar
-		s0 = sdf.Intersect3D(s0, sdf.Cylinder3D(k.PillarHeight, k.WebDiameter, 0))
+		cut, err := sdf.Cylinder3D(k.PillarHeight, k.WebDiameter, 0)
+		if err != nil {
+			return nil, err
+		}
+		s = sdf.Intersect3D(s, cut)
 	}
 	// Add the pillar hole/stub
+	hole, err := pillarHole(k)
+	if err != nil {
+		return nil, err
+	}
 	if k.HoleDepth >= 0.0 {
-		// hole
-		s0 = sdf.Difference3D(s0, pillarHole(k))
+		s = sdf.Difference3D(s, hole)
 	} else {
 		// support stub
-		s0 = sdf.Union3D(s0, pillarHole(k))
+		s = sdf.Union3D(s, hole)
 	}
-	return s0
+	return s, nil
 }
 
 //-----------------------------------------------------------------------------

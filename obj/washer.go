@@ -42,8 +42,14 @@ func Washer3D(k *WasherParms) (sdf.SDF3, error) {
 	var s sdf.SDF3
 	if k.Remove == 0 {
 		// difference of cylinders
-		outer := sdf.Cylinder3D(k.Thickness, k.OuterRadius, 0)
-		inner := sdf.Cylinder3D(k.Thickness, k.InnerRadius, 0)
+		outer, err := sdf.Cylinder3D(k.Thickness, k.OuterRadius, 0)
+		if err != nil {
+			return nil, err
+		}
+		inner, err := sdf.Cylinder3D(k.Thickness, k.InnerRadius, 0)
+		if err != nil {
+			return nil, err
+		}
 		s = sdf.Difference3D(outer, inner)
 	} else {
 		// build a 2d profile box

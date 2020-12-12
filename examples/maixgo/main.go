@@ -56,7 +56,8 @@ func boardStandoffs() sdf.SDF3 {
 		{x0, y0 + y, zOfs},
 		{x0 + x, y0 + y, zOfs},
 	}
-	return sdf.Multi3D(obj.Standoff3D(k), positions)
+	standoff, _ := obj.Standoff3D(k)
+	return sdf.Multi3D(standoff, positions)
 }
 
 //-----------------------------------------------------------------------------
@@ -81,7 +82,8 @@ func bezelStandoffs() sdf.SDF3 {
 		{x0, y0 + y, zOfs},
 		{x0 + x, y0 + y, zOfs},
 	}
-	return sdf.Multi3D(obj.Standoff3D(k), positions)
+	standoff, _ := obj.Standoff3D(k)
+	return sdf.Multi3D(standoff, positions)
 }
 
 //-----------------------------------------------------------------------------

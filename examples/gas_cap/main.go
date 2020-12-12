@@ -40,15 +40,17 @@ func capInner() sdf.SDF3 {
 	return sdf.Transform3D(screw, sdf.Translate3d(sdf.V3{0, 0, -capThickness}))
 }
 
-func capHole() sdf.SDF3 {
+func capHole() (sdf.SDF3, error) {
 	if holeRadius == 0 {
-		return nil
+		// no hole
+		return nil, nil
 	}
 	return sdf.Cylinder3D(capHeight, holeRadius, 0)
 }
 
 func gasCap() sdf.SDF3 {
-	inner := sdf.Union3D(capInner(), capHole())
+	hole, _ := capHole()
+	inner := sdf.Union3D(capInner(), hole)
 	return sdf.Difference3D(capOuter(), inner)
 }
 

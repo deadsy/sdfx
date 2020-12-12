@@ -88,11 +88,15 @@ func KnurledHead3D(
 		Height: pitch * 0.3,
 		Theta:  sdf.DtoR(45),
 	}
-	knurl3d, err := Knurl3D(&k)
+	knurl, err := Knurl3D(&k)
 	if err != nil {
 		return nil, err
 	}
-	return sdf.Union3D(sdf.Cylinder3D(h, r, cylinderRound), knurl3d), nil
+	cylinder, err := sdf.Cylinder3D(h, r, cylinderRound)
+	if err != nil {
+		return nil, err
+	}
+	return sdf.Union3D(cylinder, knurl), nil
 }
 
 //-----------------------------------------------------------------------------

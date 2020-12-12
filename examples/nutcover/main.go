@@ -9,6 +9,7 @@ nut cover
 package main
 
 import (
+	"log"
 	"math"
 
 	"github.com/deadsy/sdfx/obj"
@@ -31,33 +32,46 @@ func hexRadius(f2f float64) float64 {
 	return f2f / (2.0 * math.Cos(sdf.DtoR(30)))
 }
 
-func cover() sdf.SDF3 {
+func cover() (sdf.SDF3, error) {
 	r := (hexRadius(nutFlat2Flat) * nutFit) + wallThickness
 	h := recessHeight + wallThickness
 	return sdf.Cylinder3D(2*h, r, 0.1*r)
 }
 
-func recess() sdf.SDF3 {
+func recess() (sdf.SDF3, error) {
 	r := hexRadius(nutFlat2Flat) * nutFit
 	h := recessHeight
-	s, _ := obj.HexHead3D(r, 2*h, "")
-	return s
+	return obj.HexHead3D(r, 2*h, "")
 }
 
-func counterbore() sdf.SDF3 {
+func counterbore() (sdf.SDF3, error) {
 	r := counterBoreDiameter * 0.5
 	h := counterBoreDepth
 	return sdf.Cylinder3D(2*h, r, 0)
 }
 
-func nutcover() sdf.SDF3 {
-	s0 := cover()
-	s1 := sdf.Union3D(recess(), counterbore())
-	return sdf.Cut3D(sdf.Difference3D(s0, s1), sdf.V3{0, 0, 0}, sdf.V3{0, 0, 1})
+func nutcover() (sdf.SDF3, error) {
+	cover, err := cover()
+	if err != nil {
+		return nil, err
+	}
+	recess, err := recess()
+	if err != nil {
+		return nil, err
+	}
+	counterbore, err := counterbore()
+	if err != nil {
+		return nil, err
+	}
+	cover = sdf.Difference3D(cover, sdf.Union3D(recess, counterbore))
+	return sdf.Cut3D(cover, sdf.V3{0, 0, 0}, sdf.V3{0, 0, 1}), nil
 }
 
 func main() {
-	s := nutcover()
+	s, err := nutcover()
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
 	// un-comment for a cut-away view
 	//s = sdf.Cut3D(s, sdf.V3{0, 0, 0}, sdf.V3{1, 0, 0})
 	render.RenderSTL(s, 150, "cover.stl")

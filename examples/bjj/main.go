@@ -82,11 +82,11 @@ func plate() SDF3 {
 	h := 5.0
 
 	// plate
-	s0 := Cylinder3D(h, r, 0)
+	s0, _ := Cylinder3D(h, r, 0)
 	// holes for attachment screws
 	s1 := Extrude3D(plate_holes_2d(), h)
 	// center hole
-	s2 := Cylinder3D(h, ch_r, 0)
+	s2, _ := Cylinder3D(h, ch_r, 0)
 	// indent for locking rod
 	m := Translate3d(V3{0, 0, h/2 - rod_r}).Mul(RotateX(DtoR(-90.0)))
 	s3 := Transform3D(locking_rod(), m)
@@ -136,7 +136,7 @@ func gears() SDF3 {
 	s1 := Transform3D(g1, Translate3d(V3{0, 0, -g_height / 2.0}))
 
 	// center hole
-	s2 := Cylinder3D(2.0*g_height, ch_r, 0)
+	s2, _ := Cylinder3D(2.0*g_height, ch_r, 0)
 
 	// holes for attachment screws
 	screw_depth := 10.0

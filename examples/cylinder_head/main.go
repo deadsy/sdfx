@@ -162,9 +162,9 @@ func valve(d float64, mode string) SDF3 {
 		delta := h * math.Tan(valve_draft)
 		r1 := valve_radius + valve_wall
 		r0 := r1 + delta
-		s = Cone3D(h, r0, r1, 0)
+		s, _ = Cone3D(h, r0, r1, 0)
 	} else if mode == "hole" {
-		s = Cylinder3D(h, valve_radius, 0)
+		s, _ = Cylinder3D(h, valve_radius, 0)
 	} else {
 		panic("bad mode")
 	}
@@ -205,11 +205,11 @@ func cylinder_head(d float64, mode string) SDF3 {
 	if mode == "dome" {
 		z_ofs := (head_height - dome_height) / 2
 		extra_z := general_round * 2
-		s = Cylinder3D(dome_height+extra_z, dome_radius, general_round)
+		s, _ = Cylinder3D(dome_height+extra_z, dome_radius, general_round)
 		s = Transform3D(s, Translate3d(V3{d, 0, -z_ofs - extra_z}))
 	} else if mode == "chamber" {
 		z_ofs := (head_height - cylinder_height) / 2
-		s = Cylinder3D(cylinder_height, cylinder_radius, 0)
+		s, _ = Cylinder3D(cylinder_height, cylinder_radius, 0)
 		s = Transform3D(s, Translate3d(V3{d, 0, -z_ofs}))
 	} else {
 		panic("bad mode")
@@ -307,14 +307,14 @@ func manifold_set(r float64) SDF3 {
 
 	h := dim(2)
 
-	s_ex := Cylinder3D(h, r, 0)
+	s_ex, _ := Cylinder3D(h, r, 0)
 	m := Translate3d(V3{0, 0, h / 2})
 	m = RotateX(DtoR(-90)).Mul(m)
 	m = RotateZ(DtoR(exhaust_theta)).Mul(m)
 	m = Translate3d(V3{exhaust_x_offset, valve_y_offset, eb_z_offset}).Mul(m)
 	s_ex = Transform3D(s_ex, m)
 
-	s_in := Cylinder3D(h, r, 0)
+	s_in, _ := Cylinder3D(h, r, 0)
 	m = Translate3d(V3{0, 0, h / 2})
 	m = RotateX(DtoR(-90)).Mul(m)
 	m = RotateZ(DtoR(inlet_theta)).Mul(m)

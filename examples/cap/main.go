@@ -11,6 +11,8 @@ This is a simple round cap that fits onto the outside of a tube.
 package main
 
 import (
+	"log"
+
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
 )
@@ -29,24 +31,34 @@ const shrink = 1.0 / 0.999 // PLA ~0.1%
 
 //-----------------------------------------------------------------------------
 
-func tubeCap() sdf.SDF3 {
+func tubeCap() (sdf.SDF3, error) {
 
 	h := innerHeight + wallThickness
 	r := (innerDiameter * 0.5) + wallThickness
-	outer := sdf.Cylinder3D(h, r, 1.0)
+	outer, err := sdf.Cylinder3D(h, r, 1.0)
+	if err != nil {
+		return nil, err
+	}
 
 	h = innerHeight
 	r = innerDiameter * 0.5
-	inner := sdf.Cylinder3D(h, r, 1.0)
+	inner, err := sdf.Cylinder3D(h, r, 1.0)
 	inner = sdf.Transform3D(inner, sdf.Translate3d(sdf.V3{0, 0, wallThickness * 0.5}))
+	if err != nil {
+		return nil, err
+	}
 
-	return sdf.Difference3D(outer, inner)
+	return sdf.Difference3D(outer, inner), nil
 }
 
 //-----------------------------------------------------------------------------
 
 func main() {
-	render.RenderSTL(sdf.ScaleUniform3D(tubeCap(), shrink), 120, "cap.stl")
+	c, err := tubeCap()
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	render.RenderSTL(sdf.ScaleUniform3D(c, shrink), 120, "cap.stl")
 }
 
 //-----------------------------------------------------------------------------

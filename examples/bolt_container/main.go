@@ -50,7 +50,7 @@ func boltContainer() (sdf.SDF3, error) {
 	l = screwLength + hexHeight
 	round := screwRadius * 0.1
 	ofs := (l / 2) - (hexHeight / 2) + baseThickness
-	cavity := sdf.Cylinder3D(l, r, round)
+	cavity, _ := sdf.Cylinder3D(l, r, round)
 	cavity = sdf.Transform3D(cavity, sdf.Translate3d(sdf.V3{0, 0, ofs}))
 
 	return sdf.Difference3D(sdf.Union3D(hex, screw), cavity), nil

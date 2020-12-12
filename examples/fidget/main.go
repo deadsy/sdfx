@@ -98,14 +98,16 @@ func body1() (sdf.SDF3, error) {
 	// periphery holes
 	s2 := obj.BoltCircle3D(t, r+clearance, r1, n)
 	// center hole
-	s3 := sdf.Cylinder3D(t, r+clearance, 0)
-
+	s3, err := sdf.Cylinder3D(t, r+clearance, 0)
+	if err != nil {
+		return nil, err
+	}
 	return sdf.Difference3D(s1, sdf.Union3D(s2, s3)), nil
 }
 
 //-----------------------------------------------------------------------------
 
-func body2() sdf.SDF3 {
+func body2() (sdf.SDF3, error) {
 	t := bearingThickness
 	r := bearingOuterOD / 2
 	r0 := r + 4.0
@@ -124,10 +126,18 @@ func body2() sdf.SDF3 {
 	arms := sdf.RotateUnion3D(arm, 6, sdf.RotateZ(sdf.DtoR(60)))
 
 	// add the center
-	body := sdf.Union3D(sdf.Cylinder3D(t, r0, 0), arms)
+	body, err := sdf.Cylinder3D(t, r0, 0)
+	if err != nil {
+		return nil, err
+	}
+	body = sdf.Union3D(body, arms)
 
 	// remove the center hole
-	return sdf.Difference3D(body, sdf.Cylinder3D(t, r, 0))
+	hole, err := sdf.Cylinder3D(t, r, 0)
+	if err != nil {
+		return nil, err
+	}
+	return sdf.Difference3D(body, hole), nil
 }
 
 //-----------------------------------------------------------------------------
@@ -209,13 +219,18 @@ func spincapWasher() (sdf.SDF3, error) {
 //-----------------------------------------------------------------------------
 
 func main() {
-	b1, err := body1()
+	body1, err := body1()
 	if err != nil {
 		log.Fatal(err)
 	}
+	render.RenderSTL(body1, 300, "body1.stl")
 
-	render.RenderSTL(b1, 300, "body1.stl")
-	render.RenderSTL(body2(), 300, "body2.stl")
+	body2, err := body2()
+	if err != nil {
+		log.Fatal(err)
+	}
+	render.RenderSTL(body2, 300, "body2.stl")
+
 	render.RenderSTL(spincapSingle(), 150, "cap_single.stl")
 	render.RenderSTL(spincapDouble(true), 150, "cap_double_male.stl")
 	render.RenderSTL(spincapDouble(false), 150, "cap_double_female.stl")

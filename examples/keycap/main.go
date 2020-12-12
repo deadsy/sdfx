@@ -48,8 +48,8 @@ func roundCap(diameter, height, wall float64) sdf.SDF3 {
 	rOuter := 0.5 * diameter
 	rInner := 0.5 * (diameter - (2.0 * wall))
 
-	outer := sdf.Cylinder3D(height, rOuter, 0)
-	inner := sdf.Cylinder3D(height, rInner, 0)
+	outer, _ := sdf.Cylinder3D(height, rOuter, 0)
+	inner, _ := sdf.Cylinder3D(height, rInner, 0)
 	inner = sdf.Transform3D(inner, sdf.Translate3d(sdf.V3{0, 0, wall}))
 
 	keycap := sdf.Difference3D(outer, inner)

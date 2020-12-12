@@ -7,6 +7,7 @@ package sdf
 import (
 	"fmt"
 	"math"
+	"runtime"
 )
 
 //-----------------------------------------------------------------------------
@@ -238,6 +239,18 @@ func ZeroSmall(x, y, epsilon float64) float64 {
 		return 0
 	}
 	return x
+}
+
+//-----------------------------------------------------------------------------
+
+// ErrMsg returns an error with a message function name and line number.
+func ErrMsg(msg string) error {
+	pc, _, line, ok := runtime.Caller(1)
+	if !ok {
+		return fmt.Errorf("?: %s", msg)
+	}
+	fn := runtime.FuncForPC(pc)
+	return fmt.Errorf("%s line %d: %s", fn.Name(), line, msg)
 }
 
 //-----------------------------------------------------------------------------

@@ -65,7 +65,8 @@ func standoffs() sdf.SDF3 {
 		{116.0, 10.0, zOfs}, // H8
 	}
 
-	return sdf.Multi3D(obj.Standoff3D(k), positions)
+	s, _ := obj.Standoff3D(k)
+	return sdf.Multi3D(s, positions)
 }
 
 //-----------------------------------------------------------------------------
@@ -181,7 +182,7 @@ func frontPanel() sdf.SDF3 {
 
 	// Add buttons to the finger button
 	bHeight := 4.0
-	b := sdf.Cylinder3D(bHeight, 1.4, 0)
+	b, _ := sdf.Cylinder3D(bHeight, 1.4, 0)
 	b0 := sdf.Transform3D(b, sdf.Translate3d(pb0.ToV3(-0.5*bHeight)))
 	b1 := sdf.Transform3D(b, sdf.Translate3d(pb1.ToV3(-0.5*bHeight)))
 

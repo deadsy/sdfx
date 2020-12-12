@@ -48,11 +48,11 @@ func flange() sdf.SDF3 {
 	base := sdf.Extrude3D(obj.Panel2D(pp), 2.0*baseThickness)
 
 	// outer pipe
-	outerPipe := sdf.Cylinder3D(2.0*pipeLength, pipeRadius+pipeWall, 0.0)
+	outerPipe, _ := sdf.Cylinder3D(2.0*pipeLength, pipeRadius+pipeWall, 0.0)
 	outerPipe = sdf.Transform3D(outerPipe, sdf.Translate3d(pipeOffset.ToV3(0)))
 
 	// inner pipe
-	innerPipe := sdf.Cylinder3D(2.0*pipeLength, pipeRadius, 0.0)
+	innerPipe, _ := sdf.Cylinder3D(2.0*pipeLength, pipeRadius, 0.0)
 	innerPipe = sdf.Transform3D(innerPipe, sdf.Translate3d(pipeOffset.ToV3(0)))
 
 	// combine the outer pipe and base (with a fillet)

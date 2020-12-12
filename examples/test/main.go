@@ -86,7 +86,10 @@ func test10() error {
 }
 
 func test11() error {
-	s := Capsule3D(0.3, 1.4)
+	s, err := Capsule3D(0.3, 1.4)
+	if err != nil {
+		return err
+	}
 	render.RenderSTL(s, 200, "test.stl")
 	return nil
 }
@@ -300,7 +303,10 @@ func test22() error {
 }
 
 func test26() error {
-	s := Cylinder3D(5, 2, 1)
+	s, err := Cylinder3D(5, 2, 1)
+	if err != nil {
+		return err
+	}
 	render.RenderSTL(s, 200, "test.stl")
 	return nil
 }
@@ -308,13 +314,20 @@ func test26() error {
 func test27() error {
 	r := 5.0
 	posn := V3Set{{2 * r, 2 * r, 0}, {-r, r, 0}, {r, -r, 0}, {-r, -r, 0}, {0, 0, 0}}
-	s := Multi3D(Cylinder3D(3, 1, 0), posn)
+	cylinder, err := Cylinder3D(3, 1, 0)
+	if err != nil {
+		return err
+	}
+	s := Multi3D(cylinder, posn)
 	render.RenderSTL(s, 200, "test.stl")
 	return nil
 }
 
 func test28() error {
-	s := Cone3D(20, 12, 8, 2)
+	s, err := Cone3D(20, 12, 8, 2)
+	if err != nil {
+		return err
+	}
 	render.RenderSTL(s, 200, "test.stl")
 	return nil
 }
@@ -335,7 +348,10 @@ func test30() error {
 }
 
 func test31() error {
-	s := obj.CounterSunkHole3D(30, 2)
+	s, err := obj.CounterSunkHole3D(30, 2)
+	if err != nil {
+		return err
+	}
 	render.RenderSTL(s, 200, "test.stl")
 	return nil
 }
@@ -343,7 +359,7 @@ func test31() error {
 func test32() error {
 	s0, err := MakeFlatFlankCam(0.094, DtoR(2.0*57.5), 0.625)
 	if err != nil {
-		log.Panicf("error: %s", err)
+		return err
 	}
 	s1 := Extrude3D(s0, 0.1)
 	render.RenderSTL(s1, 200, "test.stl")
@@ -430,7 +446,10 @@ func test40() error {
 }
 
 func test41() error {
-	s0 := Cylinder3D(20.0, 5.0, 0)
+	s0, err := Cylinder3D(20.0, 5.0, 0)
+	if err != nil {
+		return err
+	}
 	s1 := Slice2D(s0, V3{0, 0, 0}, V3{0, 1, 1})
 	s2 := Revolve3D(s1)
 	render.RenderSTL(s2, 200, "test.stl")

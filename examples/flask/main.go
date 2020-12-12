@@ -57,7 +57,8 @@ func alignmentHoles() sdf.SDF3 {
 	w := lugBaseWidth
 	h := (lugBaseThickness + padThickness + wallThickness + cornerLength) * 2.0
 	xofs := w * 0.8 * 0.5
-	return sdf.Multi3D(sdf.Cylinder3D(h, holeRadius, 0), sdf.V3Set{{xofs, 0, 0}, {-xofs, 0, 0}})
+	cylinder, _ := sdf.Cylinder3D(h, holeRadius, 0)
+	return sdf.Multi3D(cylinder, sdf.V3Set{{xofs, 0, 0}, {-xofs, 0, 0}})
 }
 
 // pinLug returns a single pin lug.
@@ -136,7 +137,8 @@ func oddSide(height float64) sdf.SDF3 {
 	// mounting/pull holes
 	h := 3.0 * d
 	yofs := (height*1.1 - cornerThickness) * 0.5
-	holes := sdf.Multi3D(sdf.Cylinder3D(h, holeRadius, 0), sdf.V3Set{{0, yofs, 0}, {0, -yofs, 0}})
+	hole, _ := sdf.Cylinder3D(h, holeRadius, 0)
+	holes := sdf.Multi3D(hole, sdf.V3Set{{0, yofs, 0}, {0, -yofs, 0}})
 
 	// hook into internal sand key
 	sx = 0.8 * sx
@@ -208,7 +210,8 @@ func flaskSideProfile(width float64) sdf.SDF2 {
 func pullHoles(width float64) sdf.SDF3 {
 	h := (wallThickness + keyDepth) * 2.0
 	xofs := width * 0.9 * 0.5
-	return sdf.Multi3D(sdf.Cylinder3D(h, holeRadius, 0), sdf.V3Set{{xofs, 0, 0}, {-xofs, 0, 0}})
+	hole, _ := sdf.Cylinder3D(h, holeRadius, 0)
+	return sdf.Multi3D(hole, sdf.V3Set{{xofs, 0, 0}, {-xofs, 0, 0}})
 }
 
 func flaskHalf(width, height float64) sdf.SDF3 {

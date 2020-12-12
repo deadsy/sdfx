@@ -54,18 +54,18 @@ func main() {
 	driver3d := sdf.Extrude3D(sDriver, wheelHeight)
 	driver3d = sdf.Transform3D(driver3d, sdf.Translate3d(sdf.V3{0, 0, wheelHeight / 2}))
 	// add a base
-	base3d := sdf.Cylinder3D(wheelHeight, baseRadius, 0)
+	base3d, _ := sdf.Cylinder3D(wheelHeight, baseRadius, 0)
 	base3d = sdf.Transform3D(base3d, sdf.Translate3d(sdf.V3{0, 0, -wheelHeight / 2}))
 	driver3d = sdf.Union3D(driver3d, base3d)
 	// remove a center hole
-	hole3d := sdf.Cylinder3D(2*wheelHeight, holeRadius, 0)
+	hole3d, _ := sdf.Cylinder3D(2*wheelHeight, holeRadius, 0)
 	driver3d = sdf.Difference3D(driver3d, hole3d)
 
 	// extrude the driven wheel
 	driven3d := sdf.Extrude3D(sDriven, wheelHeight)
 	driven3d = sdf.Transform3D(driven3d, sdf.Translate3d(sdf.V3{0, 0, -wheelHeight / 2}))
 	// add a hub
-	hub3d := sdf.Cylinder3D(wheelHeight, hubRadius, 0)
+	hub3d, _ := sdf.Cylinder3D(wheelHeight, hubRadius, 0)
 	hub3d = sdf.Transform3D(hub3d, sdf.Translate3d(sdf.V3{0, 0, wheelHeight / 2}))
 	driven3d = sdf.Union3D(driven3d, hub3d)
 	// remove a center hole
