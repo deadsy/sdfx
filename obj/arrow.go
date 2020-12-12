@@ -1,7 +1,7 @@
 //-----------------------------------------------------------------------------
 /*
 
-Arrows
+Arrows and Coordinate Axes
 
 */
 //-----------------------------------------------------------------------------
@@ -33,7 +33,7 @@ func arrowStyle3D(style byte, size [2]float64, tail bool) (sdf.SDF3, error) {
 		}
 		cone = sdf.Transform3D(cone, sdf.Translate3d(sdf.V3{0, 0, size[0] * 0.5}))
 		if tail {
-      // flip it
+			// flip it
 			cone = sdf.Transform3D(cone, sdf.RotateX(sdf.Pi))
 		}
 		return cone, nil
@@ -95,6 +95,69 @@ func Arrow3D(k *ArrowParms) (sdf.SDF3, error) {
 		tail = sdf.Transform3D(tail, sdf.Translate3d(sdf.V3{0, 0, -zOfs}))
 	}
 	return sdf.Union3D(axis, head, tail), nil
+}
+
+//-----------------------------------------------------------------------------
+
+func axis3D(a, b, r float64) (sdf.SDF3, error) {
+	if a == b {
+		return nil, nil
+	}
+	// ensure a < b
+	if a > b {
+		a, b = b, a
+	}
+	style := "cc"
+	if a == 0 {
+		style = "c."
+	}
+	if b == 0 {
+		style = ".c"
+	}
+	l0 := b - a
+	r0 := r
+	r1 := r * 1.5
+	l1 := r * 3
+	k := ArrowParms{
+		Axis:  [2]float64{l0, r0},
+		Head:  [2]float64{l1, r1},
+		Tail:  [2]float64{l1, r1},
+		Style: style,
+	}
+	s, err := Arrow3D(&k)
+	if err != nil {
+		return nil, err
+	}
+	ofs := (a + b) * 0.5
+	return sdf.Transform3D(s, sdf.Translate3d(sdf.V3{0, 0, ofs})), nil
+}
+
+// Axes3D returns a set of axes for a 1, 2 or 3d coordinate systems.
+func Axes3D(p0, p1 sdf.V3) (sdf.SDF3, error) {
+	// work out the common axis radius
+	r := p0.Sub(p1).Abs().MaxComponent() * 0.025
+	// x-axis
+	x, err := axis3D(p0.X, p1.X, r)
+	if err != nil {
+		return nil, err
+	}
+	if x != nil {
+		x = sdf.Transform3D(x, sdf.RotateY(sdf.DtoR(90)))
+	}
+	// y-axis
+	y, err := axis3D(p0.Y, p1.Y, r)
+	if err != nil {
+		return nil, err
+	}
+	if y != nil {
+		y = sdf.Transform3D(y, sdf.RotateX(sdf.DtoR(-90)))
+	}
+	// z-axis
+	z, err := axis3D(p0.Z, p1.Z, r)
+	if err != nil {
+		return nil, err
+	}
+	return sdf.Union3D(x, y, z), nil
 }
 
 //-----------------------------------------------------------------------------

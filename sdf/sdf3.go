@@ -492,11 +492,14 @@ type ConeSDF3 struct {
 
 // Cone3D returns the SDF3 for a trucated cone (round > 0 gives rounded edges).
 func Cone3D(height, r0, r1, round float64) (SDF3, error) {
+	if height <= 0 {
+		return nil, ErrMsg("height <= 0")
+	}
 	if round < 0 {
-		return nil, errors.New("round < 0")
+		return nil, ErrMsg("round < 0")
 	}
 	if height < 2.0*round {
-		return nil, errors.New("height < 2 * round")
+		return nil, ErrMsg("height < 2 * round")
 	}
 	s := ConeSDF3{}
 	s.height = (height / 2) - round
