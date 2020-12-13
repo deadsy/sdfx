@@ -9,7 +9,6 @@ Nuts: Simple Nut for 3d printing.
 package obj
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/deadsy/sdfx/sdf"
@@ -32,7 +31,7 @@ func Nut(k *NutParms) (sdf.SDF3, error) {
 		return nil, err
 	}
 	if k.Tolerance < 0 {
-		return nil, errors.New("tolerance < 0")
+		return nil, sdf.ErrMsg("tolerance < 0")
 	}
 
 	// nut body
@@ -45,7 +44,7 @@ func Nut(k *NutParms) (sdf.SDF3, error) {
 	case "knurl":
 		nut, err = KnurledHead3D(nr, nh, nr*0.25)
 	default:
-		return nil, fmt.Errorf("unknown style \"%s\"", k.Style)
+		return nil, sdf.ErrMsg(fmt.Sprintf("unknown style \"%s\"", k.Style))
 	}
 	if err != nil {
 		return nil, err

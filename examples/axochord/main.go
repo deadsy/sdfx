@@ -78,7 +78,7 @@ var cherryD2 = 0.1378 * sdf.MillimetresPerInch
 var cherryD3 = 0.0386 * sdf.MillimetresPerInch
 
 // cherryMX returns the SDF2 for a cherry MX plate cutout.
-func cherryMX() sdf.SDF2 {
+func cherryMX() (sdf.SDF2, error) {
 
 	cherryOfs := ((cherryD0 / 2.0) - cherryD3) - (cherryD2 / 2.0)
 
@@ -91,7 +91,7 @@ func cherryMX() sdf.SDF2 {
 	r4 := sdf.Union2D(r2, r3)
 	r5 := sdf.Transform2D(r4, sdf.Rotate2d(sdf.Pi*0.5))
 
-	return sdf.Union2D(r0, r4, r5)
+	return sdf.Union2D(r0, r4, r5), nil
 }
 
 //-----------------------------------------------------------------------------
@@ -111,8 +111,12 @@ func panel() (sdf.SDF3, error) {
 		HoleMargin:   [4]float64{5.0, 5.0, 5.0, 5.0},
 		HolePattern:  [4]string{"xx", "x", "xx", "x"},
 	}
+	panel, err := obj.Panel2D(pp)
+	if err != nil {
+		return nil, err
+	}
 	// extrude to 3d
-	return sdf.Extrude3D(obj.Panel2D(pp), 2.0*(bH0+bH1)), nil
+	return sdf.Extrude3D(panel, 2.0*(bH0+bH1)), nil
 }
 
 //-----------------------------------------------------------------------------
@@ -132,7 +136,12 @@ func main() {
 
 	render.RenderSTL(upper, 400, "upper.stl")
 	render.RenderSTL(lower, 400, "lower.stl")
-	render.RenderDXF(cherryMX(), 400, "plate.dxf")
+
+	cherryMX, err := cherryMX()
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	render.RenderDXF(cherryMX, 400, "plate.dxf")
 }
 
 //-----------------------------------------------------------------------------

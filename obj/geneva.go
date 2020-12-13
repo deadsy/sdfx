@@ -11,7 +11,6 @@ See: https://en.wikipedia.org/wiki/Geneva_drive
 package obj
 
 import (
-	"errors"
 	"math"
 
 	"github.com/deadsy/sdfx/sdf"
@@ -33,19 +32,19 @@ type GenevaParms struct {
 func Geneva2D(k *GenevaParms) (sdf.SDF2, sdf.SDF2, error) {
 
 	if k.NumSectors < 2 {
-		return nil, nil, errors.New("invalid number of sectors, must be > 2")
+		return nil, nil, sdf.ErrMsg("invalid number of sectors, must be > 2")
 	}
 	if k.CenterDistance <= 0 ||
 		k.DrivenRadius <= 0 ||
 		k.DriverRadius <= 0 ||
 		k.PinRadius <= 0 {
-		return nil, nil, errors.New("invalid dimensions, must be > 0")
+		return nil, nil, sdf.ErrMsg("invalid dimensions, must be > 0")
 	}
 	if k.Clearance < 0 {
-		return nil, nil, errors.New("invalid clearance, must be >= 0")
+		return nil, nil, sdf.ErrMsg("invalid clearance, must be >= 0")
 	}
 	if k.CenterDistance > k.DrivenRadius+k.DriverRadius {
-		return nil, nil, errors.New("center distance is too large")
+		return nil, nil, sdf.ErrMsg("center distance is too large")
 	}
 
 	// work out the pin offset from the center of the driver wheel

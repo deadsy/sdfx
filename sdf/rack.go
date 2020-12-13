@@ -28,7 +28,7 @@ func GearRack2D(
 	pressureAngle float64, // gear pressure angle (radians)
 	backlash float64, // backlash expressed as units of pitch circumference
 	baseHeight float64, // height of rack base
-) SDF2 {
+) (SDF2, error) {
 	s := GearRackSDF2{}
 
 	// addendum: distance from pitch line to top of tooth
@@ -61,7 +61,7 @@ func GearRack2D(
 	s.pitch = pitch
 	s.length = pitch * numberTeeth / 2.0
 	s.bb = Box2{V2{-s.length, 0}, V2{s.length, toothHeight}}
-	return &s
+	return &s, nil
 }
 
 // Evaluate returns the minimum distance to the gear rack.

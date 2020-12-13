@@ -9,7 +9,6 @@
 package obj
 
 import (
-	"errors"
 	"math"
 	"strings"
 
@@ -79,7 +78,7 @@ func boxTab3d(k *boxTabParms) (sdf.SDF3, error) {
 		m = m.Mul(sdf.Translate3d(sdf.V3{(-0.5 + k.Clearance) * w, 0, -0.5 * k.Length}))
 		m = m.Mul(sdf.RotateY(sdf.DtoR(90)))
 	default:
-		return nil, errors.New("invalid tab orientation")
+		return nil, sdf.ErrMsg("invalid tab orientation")
 	}
 	return sdf.Transform3D(tab, m), nil
 }
@@ -116,7 +115,7 @@ func boxHole3d(k *boxHoleParms) (sdf.SDF3, error) {
 		m = m.Mul(sdf.Translate3d(sdf.V3{0, k.YOffset, -k.ZOffset}))
 		m = m.Mul(sdf.RotateY(sdf.DtoR(90)))
 	default:
-		return nil, errors.New("invalid hole orientation")
+		return nil, sdf.ErrMsg("invalid hole orientation")
 	}
 	return sdf.Transform3D(hole, m), nil
 }
@@ -154,33 +153,36 @@ type PanelBoxParms struct {
 func PanelBox3D(k *PanelBoxParms) ([]sdf.SDF3, error) {
 	// sanity checks
 	if k.Size.X <= 0 || k.Size.Y <= 0 || k.Size.Z <= 0 {
-		return nil, errors.New("invalid box size")
+		return nil, sdf.ErrMsg("invalid box size")
 	}
 	if k.Wall <= 0 {
-		return nil, errors.New("invalid wall size")
+		return nil, sdf.ErrMsg("invalid wall size, k.Wall <= 0")
 	}
 	if k.Panel <= 0 {
-		return nil, errors.New("invalid panel size")
+		return nil, sdf.ErrMsg("invalid panel size, k.Panel <= 0")
 	}
 	if k.Rounding < 0 {
-		return nil, errors.New("invalid rounding size")
+		return nil, sdf.ErrMsg("invalid rounding size, k.Rounding < 0")
 	}
-	if k.FrontInset < 0 || k.BackInset < 0 {
-		return nil, errors.New("invalid front/back inset size")
+	if k.FrontInset < 0 {
+		return nil, sdf.ErrMsg("invalid front inset size, k.FrontInset < 0")
+	}
+	if k.BackInset < 0 {
+		return nil, sdf.ErrMsg("invalid back inset size, k.BackInset < 0")
 	}
 	if k.Clearance < 0 || k.Clearance > 1.0 {
-		return nil, errors.New("invalid clearance")
+		return nil, sdf.ErrMsg("invalid clearance")
 	}
 	if k.Clearance == 0 {
 		// set a default
 		k.Clearance = 0.05
 	}
 	if k.Hole < 0 {
-		return nil, errors.New("invalid screw hole size")
+		return nil, sdf.ErrMsg("invalid hole size, k.Hole < 0")
 	}
 	if k.Hole > 0 {
 		if !strings.Contains(k.SideTabs, "T") && !strings.Contains(k.SideTabs, "B") {
-			return nil, errors.New("screw hole is non-zero, but there are no screw tabs (T/B)")
+			return nil, sdf.ErrMsg("hole is non-zero, but there are no tabs (T/B)")
 		}
 	}
 
@@ -189,7 +191,7 @@ func PanelBox3D(k *PanelBoxParms) ([]sdf.SDF3, error) {
 
 	midZ := k.Size.Z - k.FrontInset - k.BackInset - 2.0*(panelGap+2.0*k.Wall)
 	if midZ <= 0.0 {
-		return nil, errors.New("the front and back panel depths exceed the total box length")
+		return nil, sdf.ErrMsg("the front and back panel depths exceed the total box length")
 	}
 
 	outerSize := sdf.V2{k.Size.X, k.Size.Y}

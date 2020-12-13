@@ -9,6 +9,8 @@ Pipe Flange with a Square base
 package main
 
 import (
+	"log"
+
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
@@ -35,7 +37,7 @@ const pipeFillet = 0.95 * pipeWall
 
 //-----------------------------------------------------------------------------
 
-func flange() sdf.SDF3 {
+func flange() (sdf.SDF3, error) {
 
 	// base
 	pp := &obj.PanelParms{
@@ -45,7 +47,11 @@ func flange() sdf.SDF3 {
 		HoleMargin:   [4]float64{12.0, 12.0, 12.0, 12.0},
 		HolePattern:  [4]string{"x", "x", "x", "x"},
 	}
-	base := sdf.Extrude3D(obj.Panel2D(pp), 2.0*baseThickness)
+	panel, err := obj.Panel2D(pp)
+	if err != nil {
+		return nil, err
+	}
+	base := sdf.Extrude3D(panel, 2.0*baseThickness)
 
 	// outer pipe
 	outerPipe, _ := sdf.Cylinder3D(2.0*pipeLength, pipeRadius+pipeWall, 0.0)
@@ -63,13 +69,17 @@ func flange() sdf.SDF3 {
 	s := sdf.Difference3D(s0, innerPipe)
 
 	// return the upper half
-	return sdf.Cut3D(s, sdf.V3{0, 0, 0}, sdf.V3{0, 0, 1})
+	return sdf.Cut3D(s, sdf.V3{0, 0, 0}, sdf.V3{0, 0, 1}), nil
 }
 
 //-----------------------------------------------------------------------------
 
 func main() {
-	render.RenderSTL(sdf.ScaleUniform3D(flange(), shrink), 300, "flange.stl")
+	flange, err := flange()
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	render.RenderSTL(sdf.ScaleUniform3D(flange, shrink), 300, "flange.stl")
 }
 
 //-----------------------------------------------------------------------------

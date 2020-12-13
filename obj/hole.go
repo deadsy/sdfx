@@ -64,11 +64,11 @@ func BoltCircle2D(
 	holeRadius float64, // radius of bolt holes
 	circleRadius float64, // radius of bolt circle
 	numHoles int, // number of bolts
-) sdf.SDF2 {
+) (sdf.SDF2, error) {
 	s := sdf.Circle2D(holeRadius)
 	s = sdf.Transform2D(s, sdf.Translate2d(sdf.V2{circleRadius, 0}))
 	s = sdf.RotateCopy2D(s, numHoles)
-	return s
+	return s, nil
 }
 
 // BoltCircle3D returns a 3D object for a flange bolt circle.
@@ -77,9 +77,12 @@ func BoltCircle3D(
 	holeRadius float64, // radius of bolt holes
 	circleRadius float64, // radius of bolt circle
 	numHoles int, // number of bolts
-) sdf.SDF3 {
-	s := BoltCircle2D(holeRadius, circleRadius, numHoles)
-	return sdf.Extrude3D(s, holeDepth)
+) (sdf.SDF3, error) {
+	s, err := BoltCircle2D(holeRadius, circleRadius, numHoles)
+	if err != nil {
+		return nil, err
+	}
+	return sdf.Extrude3D(s, holeDepth), nil
 }
 
 //-----------------------------------------------------------------------------

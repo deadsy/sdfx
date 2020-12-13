@@ -96,7 +96,10 @@ func body1() (sdf.SDF3, error) {
 	}
 
 	// periphery holes
-	s2 := obj.BoltCircle3D(t, r+clearance, r1, n)
+	s2, err := obj.BoltCircle3D(t, r+clearance, r1, n)
+	if err != nil {
+		return nil, err
+	}
 	// center hole
 	s3, err := sdf.Cylinder3D(t, r+clearance, 0)
 	if err != nil {

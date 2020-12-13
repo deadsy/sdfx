@@ -23,16 +23,16 @@ import (
 //-----------------------------------------------------------------------------
 
 // material shrinkage
-var shrink = 1.0 / 0.999 // PLA ~0.1%
-//var shrink = 1.0/0.995; // ABS ~0.5%
+const shrink = 1.0 / 0.999 // PLA ~0.1%
+//const shrink = 1.0/0.995; // ABS ~0.5%
 
 //-----------------------------------------------------------------------------
 
-var baseThickness = 3.0
+const baseThickness = 3.0
 
 //-----------------------------------------------------------------------------
 
-func boardStandoffs() sdf.SDF3 {
+func boardStandoffs() (sdf.SDF3, error) {
 	pillarHeight := 14.0
 	zOfs := 0.5 * (pillarHeight + baseThickness)
 	// standoffs with screw holes
@@ -57,12 +57,12 @@ func boardStandoffs() sdf.SDF3 {
 		{x0 + x, y0 + y, zOfs},
 	}
 	standoff, _ := obj.Standoff3D(k)
-	return sdf.Multi3D(standoff, positions)
+	return sdf.Multi3D(standoff, positions), nil
 }
 
 //-----------------------------------------------------------------------------
 
-func bezelStandoffs() sdf.SDF3 {
+func bezelStandoffs() (sdf.SDF3, error) {
 	pillarHeight := 22.0
 	zOfs := 0.5 * (pillarHeight + baseThickness)
 	// standoffs with screw holes
@@ -83,16 +83,19 @@ func bezelStandoffs() sdf.SDF3 {
 		{x0 + x, y0 + y, zOfs},
 	}
 	standoff, _ := obj.Standoff3D(k)
-	return sdf.Multi3D(standoff, positions)
+	return sdf.Multi3D(standoff, positions), nil
 }
 
 //-----------------------------------------------------------------------------
 
-func speakerHoles(d float64, ofs sdf.V2) sdf.SDF2 {
+func speakerHoles(d float64, ofs sdf.V2) (sdf.SDF2, error) {
 	holeRadius := 1.7
 	s0 := sdf.Circle2D(holeRadius)
-	s1 := obj.BoltCircle2D(holeRadius, d*0.3, 6)
-	return sdf.Transform2D(sdf.Union2D(s0, s1), sdf.Translate2d(ofs))
+	s1, err := obj.BoltCircle2D(holeRadius, d*0.3, 6)
+	if err != nil {
+		return nil, err
+	}
+	return sdf.Transform2D(sdf.Union2D(s0, s1), sdf.Translate2d(ofs)), nil
 }
 
 func speakerHolder(d float64, ofs sdf.V2) (sdf.SDF3, error) {
@@ -136,16 +139,27 @@ func bezel() (sdf.SDF3, error) {
 	c1 = sdf.Transform2D(c1, sdf.Translate2d(sdf.V2{44, -20}))
 
 	// speaker holes cutout
-	c2 := speakerHoles(speakerDiameter, speakerOfs)
+	c2, err := speakerHoles(speakerDiameter, speakerOfs)
+	if err != nil {
+		return nil, err
+	}
 
 	// extrude the bezel
 	s0 := sdf.Extrude3D(sdf.Difference2D(b0, sdf.Union2D(l0, c0, c1, c2)), baseThickness)
 
 	// add the board standoffs
-	s0 = sdf.Union3D(s0, boardStandoffs())
+	boardStandoffs, err := boardStandoffs()
+	if err != nil {
+		return nil, err
+	}
+	s0 = sdf.Union3D(s0, boardStandoffs)
 
 	// add the bezel standoffs (with foot rounding)
-	s1 := sdf.Union3D(s0, bezelStandoffs())
+	bezelStandoffs, err := bezelStandoffs()
+	if err != nil {
+		return nil, err
+	}
+	s1 := sdf.Union3D(s0, bezelStandoffs)
 	s1.(*sdf.UnionSDF3).SetMin(sdf.PolyMin(3.0))
 
 	// speaker holder
@@ -162,7 +176,7 @@ func bezel() (sdf.SDF3, error) {
 func main() {
 	b, err := bezel()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("error: %s", err)
 	}
 	render.RenderSTL(sdf.ScaleUniform3D(b, shrink), 330, "bezel.stl")
 }

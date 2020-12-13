@@ -32,12 +32,12 @@ type PanelParms struct {
 }
 
 // Panel2D returns a 2d panel with holes on the edges.
-func Panel2D(k *PanelParms) sdf.SDF2 {
+func Panel2D(k *PanelParms) (sdf.SDF2, error) {
 	// panel
 	s0 := sdf.Box2D(k.Size, k.CornerRadius)
 	if k.HoleDiameter <= 0.0 {
 		// no holes
-		return s0
+		return s0, nil
 	}
 
 	// corners
@@ -55,7 +55,7 @@ func Panel2D(k *PanelParms) sdf.SDF2 {
 	holes = append(holes, sdf.LineOf2D(hole, br, bl, k.HolePattern[2]))
 	holes = append(holes, sdf.LineOf2D(hole, bl, tl, k.HolePattern[3]))
 
-	return sdf.Difference2D(s0, sdf.Union2D(holes...))
+	return sdf.Difference2D(s0, sdf.Union2D(holes...)), nil
 }
 
 //-----------------------------------------------------------------------------

@@ -127,7 +127,7 @@ func gears() (sdf.SDF3, error) {
 	// 12 tooth spur gear
 	g0_teeth := 12
 	g0_pd := float64(g0_teeth) * gear_module
-	g0_2d := obj.InvoluteGear(
+	g0_2d, err := obj.InvoluteGear(
 		g0_teeth,
 		gear_module,
 		sdf.DtoR(pressure_angle),
@@ -136,12 +136,15 @@ func gears() (sdf.SDF3, error) {
 		g0_pd/2.0,
 		involute_facets,
 	)
+	if err != nil {
+		return nil, err
+	}
 	g0 := sdf.Extrude3D(g0_2d, g_height)
 
 	// 16 tooth spur gear
 	g1_teeth := 16
 	g1_pd := float64(g1_teeth) * gear_module
-	g1_2d := obj.InvoluteGear(
+	g1_2d, err := obj.InvoluteGear(
 		g1_teeth,
 		gear_module,
 		sdf.DtoR(pressure_angle),
@@ -150,6 +153,9 @@ func gears() (sdf.SDF3, error) {
 		g1_pd/2.0,
 		involute_facets,
 	)
+	if err != nil {
+		return nil, err
+	}
 	g1 := sdf.Extrude3D(g1_2d, g_height)
 
 	s0 := sdf.Transform3D(g0, sdf.Translate3d(sdf.V3{0, 0, g_height / 2.0}))

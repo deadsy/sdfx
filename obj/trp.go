@@ -15,7 +15,6 @@ rounded edges minimise sand crumbling.
 package obj
 
 import (
-	"errors"
 	"math"
 
 	"github.com/deadsy/sdfx/sdf"
@@ -34,16 +33,16 @@ type TruncRectPyramidParms struct {
 // TruncRectPyramid3D returns a truncated rectangular pyramid with rounded edges.
 func TruncRectPyramid3D(k *TruncRectPyramidParms) (sdf.SDF3, error) {
 	if k.Size.LessThanZero() {
-		return nil, errors.New("size vector components < 0")
+		return nil, sdf.ErrMsg("size vector components < 0")
 	}
 	if k.BaseAngle <= 0 || k.BaseAngle > sdf.DtoR(90) {
-		return nil, errors.New("base angle must be (0,90] degrees")
+		return nil, sdf.ErrMsg("base angle must be (0,90] degrees")
 	}
 	if k.BaseRadius < 0 {
-		return nil, errors.New("base radius < 0")
+		return nil, sdf.ErrMsg("base radius < 0")
 	}
 	if k.RoundRadius < 0 {
-		return nil, errors.New("round radius < 0")
+		return nil, sdf.ErrMsg("round radius < 0")
 	}
 	h := k.Size.Z
 	dr := h / math.Tan(k.BaseAngle)

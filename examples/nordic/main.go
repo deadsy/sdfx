@@ -9,6 +9,8 @@ Nordic nRF52x Development Board Mounting Kits
 package main
 
 import (
+	"log"
+
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
@@ -27,7 +29,7 @@ var shrink = 1.0 / 0.999 // PLA ~0.1%
 // nRF52DK
 // https://www.nordicsemi.com/Software-and-tools/Development-Kits/nRF52-DK
 
-func nRF52dkStandoffs() sdf.SDF3 {
+func nRF52dkStandoffs() (sdf.SDF3, error) {
 
 	zOfs := 0.5 * (pillarHeight + baseThickness)
 
@@ -55,10 +57,10 @@ func nRF52dkStandoffs() sdf.SDF3 {
 	s, _ = obj.Standoff3D(k)
 	s1 := sdf.Multi3D(s, positions1)
 
-	return sdf.Union3D(s0, s1)
+	return sdf.Union3D(s0, s1), nil
 }
 
-func nRF52dk() sdf.SDF3 {
+func nRF52dk() (sdf.SDF3, error) {
 
 	baseX := 120.0
 	baseY := 64.0
@@ -73,7 +75,10 @@ func nRF52dk() sdf.SDF3 {
 		HoleMargin:   [4]float64{5.0, 5.0, 5.0, 5.0},
 		HolePattern:  [4]string{"x", "x", "x", "x"},
 	}
-	s0 := obj.Panel2D(pp)
+	s0, err := obj.Panel2D(pp)
+	if err != nil {
+		return nil, err
+	}
 
 	// cutouts
 	c1 := sdf.Box2D(sdf.V2{53.0, 35.0}, 3.0)
@@ -88,18 +93,21 @@ func nRF52dk() sdf.SDF3 {
 	s2 = sdf.Transform3D(s2, sdf.Translate3d(sdf.V3{xOfs, yOfs, 0}))
 
 	// add the standoffs
-	s3 := nRF52dkStandoffs()
+	s3, err := nRF52dkStandoffs()
+	if err != nil {
+		return nil, err
+	}
 	s4 := sdf.Union3D(s2, s3)
 	s4.(*sdf.UnionSDF3).SetMin(sdf.PolyMin(3.0))
 
-	return s4
+	return s4, nil
 }
 
 //-----------------------------------------------------------------------------
 // nRF52833DK
 // https://www.nordicsemi.com/Software-and-tools/Development-Kits/nRF52833-DK
 
-func nRF52833dkStandoffs() sdf.SDF3 {
+func nRF52833dkStandoffs() (sdf.SDF3, error) {
 
 	zOfs := 0.5 * (pillarHeight + baseThickness)
 
@@ -116,7 +124,11 @@ func nRF52833dkStandoffs() sdf.SDF3 {
 		{2600.0 * sdf.Mil, 1600.0 * sdf.Mil, zOfs},
 		{5050.0 * sdf.Mil, 1825.0 * sdf.Mil, zOfs},
 	}
-	s, _ := obj.Standoff3D(k)
+	s, err := obj.Standoff3D(k)
+	if err != nil {
+		return nil, err
+	}
+
 	s0 := sdf.Multi3D(s, positions0)
 
 	// standoffs with support stubs
@@ -126,13 +138,17 @@ func nRF52833dkStandoffs() sdf.SDF3 {
 		{3550.0 * sdf.Mil, 2200.0 * sdf.Mil, zOfs},
 		{3800.0 * sdf.Mil, 300.0 * sdf.Mil, zOfs},
 	}
-	s, _ = obj.Standoff3D(k)
+	s, err = obj.Standoff3D(k)
+	if err != nil {
+		return nil, err
+	}
+
 	s1 := sdf.Multi3D(s, positions1)
 
-	return sdf.Union3D(s0, s1)
+	return sdf.Union3D(s0, s1), nil
 }
 
-func nRF52833dk() sdf.SDF3 {
+func nRF52833dk() (sdf.SDF3, error) {
 
 	baseX := 154.0
 	baseY := 64.0
@@ -147,8 +163,10 @@ func nRF52833dk() sdf.SDF3 {
 		HoleMargin:   [4]float64{5.0, 5.0, 5.0, 5.0},
 		HolePattern:  [4]string{"x", "x", "x", "x"},
 	}
-	s0 := obj.Panel2D(pp)
-
+	s0, err := obj.Panel2D(pp)
+	if err != nil {
+		return nil, err
+	}
 	// cutouts
 	c1 := sdf.Box2D(sdf.V2{53.0, 35.0}, 3.0)
 	c1 = sdf.Transform2D(c1, sdf.Translate2d(sdf.V2{-40.0, 0}))
@@ -162,18 +180,32 @@ func nRF52833dk() sdf.SDF3 {
 	s2 = sdf.Transform3D(s2, sdf.Translate3d(sdf.V3{xOfs, yOfs, 0}))
 
 	// add the standoffs
-	s3 := nRF52833dkStandoffs()
+	s3, err := nRF52833dkStandoffs()
+	if err != nil {
+		return nil, err
+	}
+
 	s4 := sdf.Union3D(s2, s3)
 	s4.(*sdf.UnionSDF3).SetMin(sdf.PolyMin(3.0))
 
-	return s4
+	return s4, nil
 }
 
 //-----------------------------------------------------------------------------
 
 func main() {
-	render.RenderSTL(sdf.ScaleUniform3D(nRF52dk(), shrink), 300, "nrf52dk.stl")
-	render.RenderSTL(sdf.ScaleUniform3D(nRF52833dk(), shrink), 300, "nrf52833dk.stl")
+
+	nRF52dk, err := nRF52dk()
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	render.RenderSTL(sdf.ScaleUniform3D(nRF52dk, shrink), 300, "nrf52dk.stl")
+
+	nRF52833dk, err := nRF52833dk()
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	render.RenderSTL(sdf.ScaleUniform3D(nRF52833dk, shrink), 300, "nrf52833dk.stl")
 }
 
 //-----------------------------------------------------------------------------

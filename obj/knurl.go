@@ -14,7 +14,6 @@ multistart screw "threads".
 package obj
 
 import (
-	"errors"
 	"math"
 
 	"github.com/deadsy/sdfx/sdf"
@@ -46,22 +45,22 @@ func knurlProfile(k *KnurlParms) sdf.SDF2 {
 // Knurl3D returns a knurled cylinder.
 func Knurl3D(k *KnurlParms) (sdf.SDF3, error) {
 	if k.Length <= 0 {
-		return nil, errors.New("length <= 0")
+		return nil, sdf.ErrMsg("length <= 0")
 	}
 	if k.Radius <= 0 {
-		return nil, errors.New("radius <= 0")
+		return nil, sdf.ErrMsg("radius <= 0")
 	}
 	if k.Pitch <= 0 {
-		return nil, errors.New("pitch <= 0")
+		return nil, sdf.ErrMsg("pitch <= 0")
 	}
 	if k.Height <= 0 {
-		return nil, errors.New("height <= 0")
+		return nil, sdf.ErrMsg("height <= 0")
 	}
 	if k.Theta < 0 {
-		return nil, errors.New("theta < 0")
+		return nil, sdf.ErrMsg("theta < 0")
 	}
 	if k.Theta >= sdf.DtoR(90) {
-		return nil, errors.New("theta >= 90")
+		return nil, sdf.ErrMsg("theta >= 90")
 	}
 	// Work out the number of starts using the desired helix angle.
 	n := int(sdf.Tau * k.Radius * math.Tan(k.Theta) / k.Pitch)

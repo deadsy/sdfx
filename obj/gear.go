@@ -97,7 +97,7 @@ func InvoluteGear(
 	clearance float64, // additional root clearance
 	ringWidth float64, // width of ring wall (from root circle)
 	facets int, // number of facets for involute flank
-) sdf.SDF2 {
+) (sdf.SDF2, error) {
 
 	// pitch radius
 	pitchRadius := float64(numberTeeth) * gearModule / 2.0
@@ -128,7 +128,7 @@ func InvoluteGear(
 	root := sdf.Circle2D(rootRadius)
 	ring := sdf.Circle2D(ringRadius)
 
-	return sdf.Difference2D(sdf.Union2D(gear, root), ring)
+	return sdf.Difference2D(sdf.Union2D(gear, root), ring), nil
 }
 
 //-----------------------------------------------------------------------------

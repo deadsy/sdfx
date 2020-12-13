@@ -61,12 +61,15 @@ func cc18b() (SDF3, error) {
 		return nil, err
 	}
 	// bolt circle for the top flange
-	top_holes_3d := obj.BoltCircle3D(
+	top_holes_3d, err := obj.BoltCircle3D(
 		2.0,       // hole_depth
 		0.5/2.0,   // hole_radius
 		14.50/2.0, // circle_radius
 		6,         // num_holes
 	)
+	if err != nil {
+		return nil, err
+	}
 	m := RotateZ(DtoR(30))
 	m = Translate3d(V3{0, 0, 1.0 + 19.0}).Mul(m)
 	top_holes_3d = Transform3D(top_holes_3d, m)
@@ -87,12 +90,15 @@ func cc18b() (SDF3, error) {
 		return nil, err
 	}
 	// bolt circle for the side flanges
-	side_holes_3d := obj.BoltCircle3D(
+	side_holes_3d, err := obj.BoltCircle3D(
 		2.0,      // hole_depth
 		1.0/2.0,  // hole_radius
 		14.0/2.0, // circle_radius
 		4,        // num_holes
 	)
+	if err != nil {
+		return nil, err
+	}
 	m = RotateZ(DtoR(45))
 	m = Translate3d(V3{0, 0, 1.0 + 12.0}).Mul(m)
 	side_holes_3d = Transform3D(side_holes_3d, m)
