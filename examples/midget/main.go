@@ -10,6 +10,8 @@ Popular Mechanics 1936
 package main
 
 import (
+	"log"
+
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
 )
@@ -23,9 +25,20 @@ const shrink = 1.0 / 0.999 // PLA ~0.1%
 //-----------------------------------------------------------------------------
 
 func main() {
-	scale := shrink * sdf.MillimetresPerInch
-	render.RenderSTL(sdf.ScaleUniform3D(cylinderPattern(true, true), scale), 330, "cylinder_pattern.stl")
-	render.RenderSTL(sdf.ScaleUniform3D(ccFrontPattern(), scale), 300, "crankcase_front.stl")
+	const scale = shrink * sdf.MillimetresPerInch
+
+	cp, err := cylinderPattern(true, true)
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	render.RenderSTL(sdf.ScaleUniform3D(cp, scale), 330, "cylinder_pattern.stl")
+
+	ccfp, err := ccFrontPattern()
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	render.RenderSTL(sdf.ScaleUniform3D(ccfp, scale), 300, "crankcase_front.stl")
+
 	//render.RenderSTL(sdf.ScaleUniform3D(cylinderCoreBox(), shrink), 330, "cylinder_corebox.stl")
 }
 

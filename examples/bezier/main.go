@@ -32,7 +32,10 @@ func bowlingPin() error {
 		return err
 	}
 	s0 := sdf.Polygon2D(p.Vertices())
-	s1 := sdf.Revolve3D(s0)
+	s1, err := sdf.Revolve3D(s0)
+	if err != nil {
+		return err
+	}
 	render.RenderSTL(s1, 300, "bowlingpin.stl")
 	return nil
 }
@@ -50,7 +53,10 @@ func egg1() error {
 		return err
 	}
 	s0 := sdf.Polygon2D(p.Vertices())
-	s1 := sdf.Revolve3D(s0)
+	s1, err := sdf.Revolve3D(s0)
+	if err != nil {
+		return err
+	}
 	render.RenderSTL(s1, 300, "egg1.stl")
 	return nil
 }
@@ -72,7 +78,10 @@ func egg2() error {
 		return err
 	}
 	s0 := sdf.Polygon2D(p.Vertices())
-	s1 := sdf.Revolve3D(s0)
+	s1, err := sdf.Revolve3D(s0)
+	if err != nil {
+		return err
+	}
 	render.RenderSTL(s1, 300, "egg2.stl")
 	return nil
 }
@@ -116,7 +125,10 @@ func bowl() error {
 		return err
 	}
 	s0 := sdf.Polygon2D(p.Vertices())
-	s1 := sdf.RevolveTheta3D(s0, sdf.DtoR(270))
+	s1, err := sdf.RevolveTheta3D(s0, sdf.DtoR(270))
+	if err != nil {
+		return err
+	}
 	render.RenderSTL(s1, 300, "bowl.stl")
 	return nil
 }
@@ -158,7 +170,10 @@ func vase() error {
 		return err
 	}
 	s0 := sdf.Polygon2D(p.Vertices())
-	s1 := sdf.Revolve3D(s0)
+	s1, err := sdf.Revolve3D(s0)
+	if err != nil {
+		return err
+	}
 	render.RenderSTL(s1, 300, "vase.stl")
 	return nil
 }

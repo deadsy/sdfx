@@ -1,28 +1,37 @@
-// wallaby camshaft
+//-----------------------------------------------------------------------------
+/*
+
+Wallaby Camshaft
+
+*/
+//-----------------------------------------------------------------------------
 
 package main
 
 import (
+	"log"
 	"math"
 
 	"github.com/deadsy/sdfx/render"
-	. "github.com/deadsy/sdfx/sdf"
+	"github.com/deadsy/sdfx/sdf"
 )
 
-func main() {
+//-----------------------------------------------------------------------------
+
+func camshaft() (sdf.SDF3, error) {
 
 	// build the shaft from an SoR
-	l0 := 13.0 / 16.0
-	r0 := (5.0 / 16.0) / 2.0
-	l1 := (3.0/32.0)*2.0 + (5.0/16.0)*2.0 + (11.0 / 16.0) + (3.0/16.0)*4.0
-	r1 := (13.0 / 32.0) / 2.0
-	l2 := 1.0 / 2.0
-	r2 := (5.0 / 16.0) / 2.0
-	l3 := 3.0 / 8.0
-	r3 := r2 - l3*math.Tan(DtoR(10.0))
-	l4 := 1.0 / 4.0
+	const l0 = 13.0 / 16.0
+	const r0 = (5.0 / 16.0) / 2.0
+	const l1 = (3.0/32.0)*2.0 + (5.0/16.0)*2.0 + (11.0 / 16.0) + (3.0/16.0)*4.0
+	const r1 = (13.0 / 32.0) / 2.0
+	const l2 = 1.0 / 2.0
+	const r2 = (5.0 / 16.0) / 2.0
+	const l3 = 3.0 / 8.0
+	r3 := r2 - l3*math.Tan(sdf.DtoR(10.0))
+	const l4 = 1.0 / 4.0
 
-	p := NewPolygon()
+	p := sdf.NewPolygon()
 	p.Add(0, 0)
 	p.Add(r0, 0).Rel()
 	p.Add(0, l0).Rel()
@@ -34,42 +43,56 @@ func main() {
 	p.Add(0, l4).Rel()
 	p.Add(-r3, 0).Rel()
 
-	shaft_2d := Polygon2D(p.Vertices())
-	shaft_3d := Revolve3D(shaft_2d)
-
+	shaft2d := sdf.Polygon2D(p.Vertices())
+	shaft3d, err := sdf.Revolve3D(shaft2d)
+	if err != nil {
+		return nil, err
+	}
 	// make the cams
-	valve_diameter := 0.25
-	rocker_ratio := 1.0
-	lift := valve_diameter * rocker_ratio * 0.25
-	cam_diameter := 5.0 / 8.0
-	cam_width := 3.0 / 16.0
-	k := 1.05
-	inlet_theta := DtoR(-110)
+	const valveDiameter = 0.25
+	const rockerRatio = 1.0
+	const lift = valveDiameter * rockerRatio * 0.25
+	const camDiameter = 5.0 / 8.0
+	const camWidth = 3.0 / 16.0
+	const k = 1.05
+	inletTheta := sdf.DtoR(-110)
 
-	inlet_2d, _ := MakeThreeArcCam(lift, DtoR(115), cam_diameter, k)
-	inlet_3d := Extrude3D(inlet_2d, cam_width)
-	exhaust_2d, _ := MakeThreeArcCam(lift, DtoR(125), cam_diameter, k)
-	exhaust_3d := Extrude3D(exhaust_2d, cam_width)
+	inlet2d, _ := sdf.MakeThreeArcCam(lift, sdf.DtoR(115), camDiameter, k)
+	inlet3d := sdf.Extrude3D(inlet2d, camWidth)
+	exhaust2d, _ := sdf.MakeThreeArcCam(lift, sdf.DtoR(125), camDiameter, k)
+	exhaust3d := sdf.Extrude3D(exhaust2d, camWidth)
 
-	z_ofs := (13.0 / 16.0) + (3.0 / 32.0) + (cam_width / 2.0)
-	m := Translate3d(V3{0, 0, z_ofs})
-	m = RotateZ(0).Mul(m)
-	ex4 := Transform3D(exhaust_3d, m)
+	zOfs := (13.0 / 16.0) + (3.0 / 32.0) + (camWidth / 2.0)
+	m := sdf.Translate3d(sdf.V3{0, 0, zOfs})
+	m = sdf.RotateZ(0).Mul(m)
+	ex4 := sdf.Transform3D(exhaust3d, m)
 
-	z_ofs += (5.0 / 16.0) + cam_width
-	m = Translate3d(V3{0, 0, z_ofs})
-	m = RotateZ(inlet_theta).Mul(m)
-	in3 := Transform3D(inlet_3d, m)
+	zOfs += (5.0 / 16.0) + camWidth
+	m = sdf.Translate3d(sdf.V3{0, 0, zOfs})
+	m = sdf.RotateZ(inletTheta).Mul(m)
+	in3 := sdf.Transform3D(inlet3d, m)
 
-	z_ofs += (11.0 / 16.0) + cam_width
-	m = Translate3d(V3{0, 0, z_ofs})
-	m = RotateZ(inlet_theta + Pi).Mul(m)
-	in2 := Transform3D(inlet_3d, m)
+	zOfs += (11.0 / 16.0) + camWidth
+	m = sdf.Translate3d(sdf.V3{0, 0, zOfs})
+	m = sdf.RotateZ(inletTheta + sdf.Pi).Mul(m)
+	in2 := sdf.Transform3D(inlet3d, m)
 
-	z_ofs += (5.0 / 16.0) + cam_width
-	m = Translate3d(V3{0, 0, z_ofs})
-	m = RotateZ(Pi).Mul(m)
-	ex1 := Transform3D(exhaust_3d, m)
+	zOfs += (5.0 / 16.0) + camWidth
+	m = sdf.Translate3d(sdf.V3{0, 0, zOfs})
+	m = sdf.RotateZ(sdf.Pi).Mul(m)
+	ex1 := sdf.Transform3D(exhaust3d, m)
 
-	render.RenderSTL(Union3D(shaft_3d, ex1, in2, in3, ex4), 400, "camshaft.stl")
+	return sdf.Union3D(shaft3d, ex1, in2, in3, ex4), nil
 }
+
+//-----------------------------------------------------------------------------
+
+func main() {
+	s, err := camshaft()
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	render.RenderSTL(s, 400, "camshaft.stl")
+}
+
+//-----------------------------------------------------------------------------

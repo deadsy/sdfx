@@ -21,6 +21,7 @@ a * sqrt(h) = constant
 package main
 
 import (
+	"log"
 	"math"
 
 	"github.com/deadsy/sdfx/render"
@@ -37,7 +38,7 @@ const shrink = 1.0 / 0.999 // PLA ~0.1%
 
 const steps = 20
 
-func sprue(r, l, k float64) sdf.SDF3 {
+func sprue(r, l, k float64) (sdf.SDF3, error) {
 
 	a0 := math.Pi * r * r
 	h0 := math.Pow(k/a0, 2)
@@ -59,7 +60,11 @@ func sprue(r, l, k float64) sdf.SDF3 {
 //-----------------------------------------------------------------------------
 
 func main() {
-	render.RenderSTL(sdf.ScaleUniform3D(sprue(20, 100, 3000), shrink), 300, "sprue.stl")
+	s, err := sprue(20, 100, 3000)
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	render.RenderSTL(sdf.ScaleUniform3D(s, shrink), 300, "sprue.stl")
 }
 
 //-----------------------------------------------------------------------------

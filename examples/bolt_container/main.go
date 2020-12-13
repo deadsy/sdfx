@@ -42,7 +42,10 @@ func boltContainer() (sdf.SDF3, error) {
 	isoThread := sdf.ISOThread(r, threadPitch, true)
 	screw := sdf.Screw3D(isoThread, l, threadPitch, 1)
 	// chamfer the thread
-	screw = obj.ChamferedCylinder(screw, 0, 0.25)
+	screw, err = obj.ChamferedCylinder(screw, 0, 0.25)
+	if err != nil {
+		return nil, err
+	}
 	screw = sdf.Transform3D(screw, sdf.Translate3d(sdf.V3{0, 0, l / 2}))
 
 	// build the internal cavity
@@ -50,7 +53,10 @@ func boltContainer() (sdf.SDF3, error) {
 	l = screwLength + hexHeight
 	round := screwRadius * 0.1
 	ofs := (l / 2) - (hexHeight / 2) + baseThickness
-	cavity, _ := sdf.Cylinder3D(l, r, round)
+	cavity, err := sdf.Cylinder3D(l, r, round)
+	if err != nil {
+		return nil, err
+	}
 	cavity = sdf.Transform3D(cavity, sdf.Translate3d(sdf.V3{0, 0, ofs}))
 
 	return sdf.Difference3D(sdf.Union3D(hex, screw), cavity), nil

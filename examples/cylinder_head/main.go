@@ -131,7 +131,7 @@ func sparkplug(mode string, x_ofs float64) SDF3 {
 		panic("bad mode")
 	}
 	s0 := Polygon2D(vlist)
-	s := Revolve3D(s0)
+	s, _ := Revolve3D(s0)
 	m := RotateX(Pi/2 - sp_theta)
 	m = Translate3d(V3{x_ofs, sp_y_ofs, sp_z_ofs}).Mul(m)
 	s = Transform3D(s, m)

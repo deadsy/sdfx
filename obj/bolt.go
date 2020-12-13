@@ -9,7 +9,6 @@ Bolt: Simple Bolts for 3d printing.
 package obj
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/deadsy/sdfx/sdf"
@@ -34,13 +33,13 @@ func Bolt(k *BoltParms) (sdf.SDF3, error) {
 		return nil, err
 	}
 	if k.TotalLength < 0 {
-		return nil, errors.New("total length < 0")
+		return nil, sdf.ErrMsg("TotalLength < 0")
 	}
 	if k.ShankLength < 0 {
-		return nil, errors.New("shank length < 0")
+		return nil, sdf.ErrMsg("ShankLength < 0")
 	}
 	if k.Tolerance < 0 {
-		return nil, errors.New("tolerance < 0")
+		return nil, sdf.ErrMsg("Tolerance < 0")
 	}
 
 	// head
@@ -53,7 +52,7 @@ func Bolt(k *BoltParms) (sdf.SDF3, error) {
 	case "knurl":
 		head, err = KnurledHead3D(hr, hh, hr*0.25)
 	default:
-		return nil, fmt.Errorf("unknown style \"%s\"", k.Style)
+		return nil, sdf.ErrMsg(fmt.Sprintf("unknown style \"%s\"", k.Style))
 	}
 	if err != nil {
 		return nil, err
@@ -80,7 +79,10 @@ func Bolt(k *BoltParms) (sdf.SDF3, error) {
 		isoThread := sdf.ISOThread(r, t.Pitch, true)
 		thread = sdf.Screw3D(isoThread, threadLength, t.Pitch, 1)
 		// chamfer the thread
-		thread = ChamferedCylinder(thread, 0, 0.5)
+		thread, err = ChamferedCylinder(thread, 0, 0.5)
+		if err != nil {
+			return nil, err
+		}
 		thread = sdf.Transform3D(thread, sdf.Translate3d(sdf.V3{0, 0, threadOffset}))
 	}
 

@@ -119,7 +119,10 @@ func body2() (sdf.SDF3, error) {
 	p.Add(r0, t/2)
 	p.Add(r, t/2)
 	theta := sdf.DtoR(270)
-	arm := sdf.RevolveTheta3D(sdf.Polygon2D(p.Vertices()), theta)
+	arm, err := sdf.RevolveTheta3D(sdf.Polygon2D(p.Vertices()), theta)
+	if err != nil {
+		return nil, err
+	}
 	arm = sdf.Transform3D(arm, sdf.Translate3d(sdf.V3{-1.5 * r0, 0, 0}))
 
 	// create 6 arms
@@ -146,7 +149,7 @@ func body2() (sdf.SDF3, error) {
 func spincap(
 	pinR float64, // pin radius
 	pinL float64, // pin length
-) sdf.SDF3 {
+) (sdf.SDF3, error) {
 
 	t := 3.0  // thickness of the spin cap
 	st := 1.0 // spacer thickness
@@ -170,7 +173,7 @@ func spincap(
 //-----------------------------------------------------------------------------
 
 // Push to fit spincap for single spinner.
-func spincapSingle() sdf.SDF3 {
+func spincapSingle() (sdf.SDF3, error) {
 	gap := 1.0
 	r := (bearingInnerID / 2) - clearance
 	l := (bearingThickness - gap) / 2
@@ -180,7 +183,7 @@ func spincapSingle() sdf.SDF3 {
 //-----------------------------------------------------------------------------
 
 // Threaded spincap for double spinners.
-func spincapDouble(male bool) sdf.SDF3 {
+func spincapDouble(male bool) (sdf.SDF3, error) {
 	r := (bearingInnerID / 2) - clearance
 	threadR := r * 0.8
 	threadPitch := 1.0
@@ -191,15 +194,26 @@ func spincapDouble(male bool) sdf.SDF3 {
 		// Add an external screw thread.
 		t := sdf.ISOThread(threadR-threadTolerance, threadPitch, true)
 		screw := sdf.Screw3D(t, bearingThickness, threadPitch, 1)
-		screw = obj.ChamferedCylinder(screw, 0, 0.5)
+		screw, err := obj.ChamferedCylinder(screw, 0, 0.5)
+		if err != nil {
+			return nil, err
+		}
 		screw = sdf.Transform3D(screw, sdf.Translate3d(sdf.V3{0, 0, 1.5 * l}))
-		return sdf.Union3D(spincap(r, l+0.5), screw)
+		sc, err := spincap(r, l+0.5)
+		if err != nil {
+			return nil, err
+		}
+		return sdf.Union3D(sc, screw), nil
 	}
 	// Add an internal screw thread.
 	t := sdf.ISOThread(threadR, threadPitch, false)
 	screw := sdf.Screw3D(t, bearingThickness, threadPitch, 1)
 	screw = sdf.Transform3D(screw, sdf.Translate3d(sdf.V3{0, 0, l * 0.5}))
-	return sdf.Difference3D(spincap(r, l-0.5), screw)
+	sc, err := spincap(r, l-0.5)
+	if err != nil {
+		return nil, err
+	}
+	return sdf.Difference3D(sc, screw), nil
 }
 
 // Inner washer for double spinner.
@@ -221,23 +235,37 @@ func spincapWasher() (sdf.SDF3, error) {
 func main() {
 	body1, err := body1()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("error: %s", err)
 	}
 	render.RenderSTL(body1, 300, "body1.stl")
 
 	body2, err := body2()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("error: %s", err)
 	}
 	render.RenderSTL(body2, 300, "body2.stl")
 
-	render.RenderSTL(spincapSingle(), 150, "cap_single.stl")
-	render.RenderSTL(spincapDouble(true), 150, "cap_double_male.stl")
-	render.RenderSTL(spincapDouble(false), 150, "cap_double_female.stl")
+	scs, err := spincapSingle()
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	render.RenderSTL(scs, 150, "cap_single.stl")
+
+	scdm, err := spincapDouble(true)
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	render.RenderSTL(scdm, 150, "cap_double_male.stl")
+
+	scdf, err := spincapDouble(false)
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	render.RenderSTL(scdf, 150, "cap_double_female.stl")
 
 	scw, err := spincapWasher()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("error: %s", err)
 	}
 	render.RenderSTL(scw, 150, "washer.stl")
 }

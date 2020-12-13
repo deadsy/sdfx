@@ -12,7 +12,10 @@ import (
 
 func test1() error {
 	s0 := Box2D(V2{0.8, 1.2}, 0.05)
-	s1 := RevolveTheta3D(s0, DtoR(225))
+	s1, err := RevolveTheta3D(s0, DtoR(225))
+	if err != nil {
+		return err
+	}
 	render.RenderSTL(s1, 200, "test.stl")
 	return nil
 }
@@ -27,7 +30,10 @@ func test2() error {
 func test3() error {
 	s0 := Circle2D(0.1)
 	s0 = Transform2D(s0, Translate2d(V2{1, 0}))
-	s1 := Revolve3D(s0)
+	s1, err := Revolve3D(s0)
+	if err != nil {
+		return err
+	}
 	render.RenderSTL(s1, 200, "test.stl")
 	return nil
 }
@@ -35,7 +41,10 @@ func test3() error {
 func test4() error {
 	s0 := Box2D(V2{0.2, 0.4}, 0.05)
 	s0 = Transform2D(s0, Translate2d(V2{1, 0}))
-	s1 := RevolveTheta3D(s0, DtoR(270))
+	s1, err := RevolveTheta3D(s0, DtoR(270))
+	if err != nil {
+		return err
+	}
 	render.RenderSTL(s1, 200, "test.stl")
 	return nil
 }
@@ -44,7 +53,10 @@ func test5() error {
 	s0 := Box2D(V2{0.2, 0.4}, 0.05)
 	s0 = Transform2D(s0, Rotate2d(DtoR(45)))
 	s0 = Transform2D(s0, Translate2d(V2{1, 0}))
-	s1 := RevolveTheta3D(s0, DtoR(315))
+	s1, err := RevolveTheta3D(s0, DtoR(315))
+	if err != nil {
+		return err
+	}
 	render.RenderSTL(s1, 200, "test.stl")
 	return nil
 }
@@ -103,7 +115,11 @@ func test12() error {
 	}
 	s0 := Polygon2D(points)
 	s0 = Transform2D(s0, Translate2d(V2{0.8, 0}))
-	s1 := RevolveTheta3D(s0, DtoR(360))
+	s1, err := RevolveTheta3D(s0, DtoR(360))
+	if err != nil {
+		return err
+	}
+
 	render.RenderSTL(s1, 200, "test.stl")
 	return nil
 }
@@ -112,7 +128,10 @@ func test13() error {
 	k := 0.4
 	s0 := Polygon2D([]V2{{k, -k}, {k, k}, {-k, k}, {-k, -k}})
 	s0 = Transform2D(s0, Translate2d(V2{0.8, 0}))
-	s1 := RevolveTheta3D(s0, DtoR(270))
+	s1, err := RevolveTheta3D(s0, DtoR(270))
+	if err != nil {
+		return err
+	}
 	render.RenderSTL(s1, 200, "test.stl")
 	return nil
 }
@@ -138,8 +157,10 @@ func test14() error {
 	}
 
 	s0 := Polygon2D(points)
-	s1 := RevolveTheta3D(s0, DtoR(300))
-
+	s1, err := RevolveTheta3D(s0, DtoR(300))
+	if err != nil {
+		return err
+	}
 	render.RenderSTL(s1, 200, "test.stl")
 	return nil
 }
@@ -164,7 +185,11 @@ func test15() error {
 	s0 = Transform2D(s0, Rotate2d(DtoR(theta)))
 	s0 = Transform2D(s0, Translate2d(V2{j, k}))
 
-	s1 := RevolveTheta3D(s0, DtoR(300))
+	s1, err := RevolveTheta3D(s0, DtoR(300))
+	if err != nil {
+		return err
+	}
+
 	s1 = Transform3D(s1, Rotate3d(V3{0, 0, 1}, DtoR(30)))
 
 	render.RenderSTL(s1, 200, "test.stl")
@@ -195,7 +220,11 @@ func test16() error {
 	s0 = Transform2D(s0, Rotate2d(DtoR(theta)))
 	s0 = Transform2D(s0, Translate2d(V2{j, k}))
 
-	s1 := RevolveTheta3D(s0, DtoR(300))
+	s1, err := RevolveTheta3D(s0, DtoR(300))
+	if err != nil {
+		return err
+	}
+
 	s1 = Transform3D(s1, Rotate3d(V3{0, 0, 1}, DtoR(30)))
 
 	render.RenderSTL(s1, 200, "test.stl")
@@ -219,7 +248,11 @@ func test17() error {
 	s0 := Polygon2D(points)
 	s0 = Transform2D(s0, Translate2d(V2{j, k}))
 
-	s1 := RevolveTheta3D(s0, DtoR(300))
+	s1, err := RevolveTheta3D(s0, DtoR(300))
+	if err != nil {
+		return err
+	}
+
 	s1 = Transform3D(s1, Rotate3d(V3{0, 0, 1}, DtoR(30)))
 
 	render.RenderSTL(s1, 200, "test.stl")
@@ -251,7 +284,11 @@ func test18() error {
 	}
 
 	s0 := Polygon2D(points)
-	s1 := RevolveTheta3D(s0, DtoR(300))
+	s1, err := RevolveTheta3D(s0, DtoR(300))
+	if err != nil {
+		return err
+	}
+
 	s1 = Transform3D(s1, Rotate3d(V3{0, 0, 1}, DtoR(30)))
 
 	render.RenderSTL(s1, 200, "test.stl")
@@ -451,7 +488,10 @@ func test41() error {
 		return err
 	}
 	s1 := Slice2D(s0, V3{0, 0, 0}, V3{0, 1, 1})
-	s2 := Revolve3D(s1)
+	s2, err := Revolve3D(s1)
+	if err != nil {
+		return err
+	}
 	render.RenderSTL(s2, 200, "test.stl")
 	return nil
 }

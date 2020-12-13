@@ -27,11 +27,11 @@ const cylinderInnerRadius = 1.0 * 0.5
 const cylinderWaistRadius = 1.5 * 0.5
 const cylinderBodyRadius = 2.0 * 0.5
 
-func cylinderCoreBox() sdf.SDF3 {
-	return nil
+func cylinderCoreBox() (sdf.SDF3, error) {
+	return nil, nil
 }
 
-func cylinderBase() sdf.SDF3 {
+func cylinderBase() (sdf.SDF3, error) {
 
 	const draft = 3.0
 
@@ -47,14 +47,17 @@ func cylinderBase() sdf.SDF3 {
 		BaseRadius:  round,
 		RoundRadius: round * 1.5,
 	}
-	base0, _ := obj.TruncRectPyramid3D(&k)
+	base0, err := obj.TruncRectPyramid3D(&k)
+	if err != nil {
+		return nil, err
+	}
 	base1 := sdf.Transform3D(base0, sdf.MirrorXY())
 	base := sdf.Union3D(base0, base1)
 	base = sdf.Cut3D(base, sdf.V3{0, 0, 0}, sdf.V3{0, 1, 0})
-	return sdf.Transform3D(base, sdf.RotateX(sdf.DtoR(90)))
+	return sdf.Transform3D(base, sdf.RotateX(sdf.DtoR(90))), nil
 }
 
-func cylinderPattern(core, split bool) sdf.SDF3 {
+func cylinderPattern(core, split bool) (sdf.SDF3, error) {
 
 	draft := math.Tan(sdf.DtoR(3.0))
 	const smooth0 = 0.125
@@ -77,10 +80,15 @@ func cylinderPattern(core, split bool) sdf.SDF3 {
 	p.Add(r2-r1, draft*(r2-r1)).Rel().Smooth(smooth0, smoothN)
 	p.Add(0, l1).Rel().Smooth(smooth1, smoothN)
 	p.Add(-r2, draft*r2).Rel()
-	body := sdf.Revolve3D(sdf.Polygon2D(p.Vertices()))
-
+	body, err := sdf.Revolve3D(sdf.Polygon2D(p.Vertices()))
+	if err != nil {
+		return nil, err
+	}
 	// cylinder base
-	base := cylinderBase()
+	base, err := cylinderBase()
+	if err != nil {
+		return nil, err
+	}
 	base = sdf.Transform3D(base, sdf.Translate3d(sdf.V3{0, 0, cylinderBaseOffset}))
 
 	// add the base to the body pattern
@@ -92,7 +100,10 @@ func cylinderPattern(core, split bool) sdf.SDF3 {
 	p.Add(r0, draft*r0).Rel().Smooth(smooth1, smoothN)
 	p.Add(0, l2).Rel().Smooth(smooth1, smoothN)
 	p.Add(-r0, draft*r0).Rel()
-	corePrint := sdf.Revolve3D(sdf.Polygon2D(p.Vertices()))
+	corePrint, err := sdf.Revolve3D(sdf.Polygon2D(p.Vertices()))
+	if err != nil {
+		return nil, err
+	}
 
 	var cylinder sdf.SDF3
 	if core {
@@ -105,7 +116,7 @@ func cylinderPattern(core, split bool) sdf.SDF3 {
 		cylinder = sdf.Cut3D(cylinder, sdf.V3{0, 0, 0}, sdf.V3{0, 1, 0})
 	}
 
-	return cylinder
+	return cylinder, nil
 }
 
 //-----------------------------------------------------------------------------

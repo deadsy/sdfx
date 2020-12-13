@@ -30,7 +30,7 @@ const mountThickness = 0.25
 //-----------------------------------------------------------------------------
 
 // mountLugs returns the lugs used to mount the motor.
-func mountLugs() sdf.SDF3 {
+func mountLugs() (sdf.SDF3, error) {
 	const draft = 3.0
 	const thickness = 0.25
 
@@ -41,13 +41,16 @@ func mountLugs() sdf.SDF3 {
 		RoundRadius: crankcaseOuterHeight * 0.1,
 	}
 
-	s, _ := obj.TruncRectPyramid3D(&k)
-	return sdf.Transform3D(s, sdf.Translate3d(sdf.V3{0, thickness * 0.5, 0}))
+	s, err := obj.TruncRectPyramid3D(&k)
+	if err != nil {
+		return nil, err
+	}
+	return sdf.Transform3D(s, sdf.Translate3d(sdf.V3{0, thickness * 0.5, 0})), nil
 }
 
 //-----------------------------------------------------------------------------
 
-func cylinderMount() sdf.SDF3 {
+func cylinderMount() (sdf.SDF3, error) {
 	const draft = 3.0
 
 	k := obj.TruncRectPyramidParms{
@@ -57,14 +60,17 @@ func cylinderMount() sdf.SDF3 {
 		RoundRadius: crankcaseOuterHeight * 0.1,
 	}
 
-	s, _ := obj.TruncRectPyramid3D(&k)
-	return sdf.Transform3D(s, sdf.Translate3d(sdf.V3{0, crankcaseInnerRadius, 0}))
+	s, err := obj.TruncRectPyramid3D(&k)
+	if err != nil {
+		return nil, err
+	}
+	return sdf.Transform3D(s, sdf.Translate3d(sdf.V3{0, crankcaseInnerRadius, 0})), nil
 }
 
 //-----------------------------------------------------------------------------
 
 // boltLugs returns lugs that hold the crankcase halves together.
-func boltLugs() sdf.SDF3 {
+func boltLugs() (sdf.SDF3, error) {
 
 	const draft = 3.0
 
@@ -74,7 +80,10 @@ func boltLugs() sdf.SDF3 {
 		BaseRadius:  boltLugRadius,
 		RoundRadius: crankcaseOuterHeight * 0.1,
 	}
-	lug, _ := obj.TruncRectPyramid3D(&k)
+	lug, err := obj.TruncRectPyramid3D(&k)
+	if err != nil {
+		return nil, err
+	}
 
 	// position the lugs
 	r := crankcaseOuterRadius
@@ -88,12 +97,12 @@ func boltLugs() sdf.SDF3 {
 		{d, -d, 0},
 	}
 
-	return sdf.Multi3D(lug, positions)
+	return sdf.Multi3D(lug, positions), nil
 }
 
 //-----------------------------------------------------------------------------
 
-func basePattern() sdf.SDF3 {
+func basePattern() (sdf.SDF3, error) {
 
 	const draft = 3.0
 
@@ -103,35 +112,48 @@ func basePattern() sdf.SDF3 {
 		BaseRadius:  crankcaseOuterRadius,
 		RoundRadius: crankcaseOuterHeight * 0.1,
 	}
-	body, _ := obj.TruncRectPyramid3D(&k)
+	body, err := obj.TruncRectPyramid3D(&k)
+	if err != nil {
+		return nil, err
+	}
 
 	// add the bolt/mount lugs to the body with filleting
-	s := sdf.Union3D(body, boltLugs(), mountLugs())
+	bl, err := boltLugs()
+	if err != nil {
+		return nil, err
+	}
+	ml, err := mountLugs()
+	if err != nil {
+		return nil, err
+	}
+	s := sdf.Union3D(body, bl, ml)
 	s.(*sdf.UnionSDF3).SetMin(sdf.PolyMin(0.1))
 
 	// cleanup the top artifacts caused by the filleting
 	s = sdf.Cut3D(s, sdf.V3{0, 0, crankcaseOuterHeight}, sdf.V3{0, 0, -1})
 
 	// add the cylinder mount
-	s = sdf.Union3D(s, cylinderMount())
+	cm, err := cylinderMount()
+	if err != nil {
+		return nil, err
+	}
+	s = sdf.Union3D(s, cm)
 	s.(*sdf.UnionSDF3).SetMin(sdf.PolyMin(0.1))
 
 	// cleanup the bottom artifacts caused by the filleting
 	s = sdf.Cut3D(s, sdf.V3{0, 0, 0}, sdf.V3{0, 0, 1})
 
-	return s
+	return s, nil
 }
 
 //-----------------------------------------------------------------------------
 
-func ccRearPattern() sdf.SDF3 {
-	s := basePattern()
-	return s
+func ccRearPattern() (sdf.SDF3, error) {
+	return basePattern()
 }
 
-func ccFrontPattern() sdf.SDF3 {
-	s := basePattern()
-	return s
+func ccFrontPattern() (sdf.SDF3, error) {
+	return basePattern()
 }
 
 //-----------------------------------------------------------------------------

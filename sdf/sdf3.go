@@ -68,7 +68,13 @@ type SorSDF3 struct {
 }
 
 // RevolveTheta3D returns an SDF3 for a solid of revolution.
-func RevolveTheta3D(sdf SDF2, theta float64) SDF3 {
+func RevolveTheta3D(sdf SDF2, theta float64) (SDF3, error) {
+	if sdf == nil {
+		return nil, nil
+	}
+	if theta < 0 {
+		return nil, ErrMsg("theta < 0")
+	}
 	s := SorSDF3{}
 	s.sdf = sdf
 	// normalize theta
@@ -98,11 +104,11 @@ func RevolveTheta3D(sdf SDF2, theta float64) SDF3 {
 	vmin := vset.Min().MulScalar(l)
 	vmax := vset.Max().MulScalar(l)
 	s.bb = Box3{V3{vmin.X, vmin.Y, bb.Min.Y}, V3{vmax.X, vmax.Y, bb.Max.Y}}
-	return &s
+	return &s, nil
 }
 
 // Revolve3D returns an SDF3 for a solid of revolution.
-func Revolve3D(sdf SDF2) SDF3 {
+func Revolve3D(sdf SDF2) (SDF3, error) {
 	return RevolveTheta3D(sdf, 0)
 }
 

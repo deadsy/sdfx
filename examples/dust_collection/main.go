@@ -1,7 +1,7 @@
 //-----------------------------------------------------------------------------
 /*
 
-Dust collection adapters
+Dust Collection Adapters
 
 */
 //-----------------------------------------------------------------------------
@@ -9,34 +9,35 @@ Dust collection adapters
 package main
 
 import (
+	"log"
 	"math"
 
 	"github.com/deadsy/sdfx/render"
-	. "github.com/deadsy/sdfx/sdf"
+	"github.com/deadsy/sdfx/sdf"
 )
 
 //-----------------------------------------------------------------------------
 
 // dust deputy tapered pipe
 var dd_od = 51.0
-var dd_taper = DtoR(2.0)
+var dd_taper = sdf.DtoR(2.0)
 var dd_length = 39.0
 
 // vacuum hose 2.5" male fitting
 var vh_od = 58.0
 var vh_clearance = 0.6
-var vh_taper = DtoR(0.4)
+var vh_taper = sdf.DtoR(0.4)
 
 // pvc pipe outside diameters
-var pvc3_od = 3.26 * MillimetresPerInch
-var pvc2_od = 2.375 * MillimetresPerInch
+var pvc3_od = 3.26 * sdf.MillimetresPerInch
+var pvc2_od = 2.375 * sdf.MillimetresPerInch
 
 var wall_thickness = 4.0
 
 //-----------------------------------------------------------------------------
 
 // adapter: female dust deputy, female 2.5" vacuum
-func fdd_to_fvh25() {
+func fdd_to_fvh25() error {
 
 	t := wall_thickness
 	transition_length := 15.0
@@ -52,7 +53,7 @@ func fdd_to_fvh25() {
 	h2 := h1 + transition_length
 	h3 := h2 + vh_length
 
-	p := NewPolygon()
+	p := sdf.NewPolygon()
 	p.Add(r0+t, h0)
 	p.Add(r1+t, h1).Smooth(t, 4)
 	p.Add(r2+t, h2).Smooth(t, 4)
@@ -62,14 +63,18 @@ func fdd_to_fvh25() {
 	p.Add(r1, h1).Smooth(t, 4)
 	p.Add(r0, h0)
 
-	s := Revolve3D(Polygon2D(p.Vertices()))
+	s, err := sdf.Revolve3D(sdf.Polygon2D(p.Vertices()))
+	if err != nil {
+		return err
+	}
 	render.RenderSTL(s, 150, "fdd_fvh25.stl")
+	return nil
 }
 
 //-----------------------------------------------------------------------------
 
 // adapter: male 2.5" vacuum, male 3" pvc
-func mvh25_to_mpvc(pvc_od float64) {
+func mvh25_to_mpvc(pvc_od float64) error {
 
 	t := wall_thickness
 	transition_length := 15.0
@@ -82,7 +87,7 @@ func mvh25_to_mpvc(pvc_od float64) {
 	h2 := h1 + transition_length
 	h3 := h2 + 20.0
 
-	p := NewPolygon()
+	p := sdf.NewPolygon()
 	p.Add(r0, h0)
 	p.Add(r0, h1).Smooth(t, 4)
 	p.Add(r1, h2).Smooth(t, 4)
@@ -92,14 +97,18 @@ func mvh25_to_mpvc(pvc_od float64) {
 	p.Add(r0-t, h1).Smooth(t, 4)
 	p.Add(r0-t, h0)
 
-	s := Revolve3D(Polygon2D(p.Vertices()))
+	s, err := sdf.Revolve3D(sdf.Polygon2D(p.Vertices()))
+	if err != nil {
+		return err
+	}
 	render.RenderSTL(s, 150, "mvh25_mpvc.stl")
+	return nil
 }
 
 //-----------------------------------------------------------------------------
 
 // adapter: female dust deputy, male 3" pvc
-func fdd_to_mpvc(pvc_od float64) {
+func fdd_to_mpvc(pvc_od float64) error {
 
 	t := wall_thickness
 	transition_length := 15.0
@@ -113,7 +122,7 @@ func fdd_to_mpvc(pvc_od float64) {
 	h2 := h1 + transition_length
 	h3 := h2 + dd_length
 
-	p := NewPolygon()
+	p := sdf.NewPolygon()
 	p.Add(r0, h0)
 	p.Add(r0, h1).Smooth(t, 4)
 	p.Add(r1, h2).Smooth(t, 4)
@@ -123,16 +132,29 @@ func fdd_to_mpvc(pvc_od float64) {
 	p.Add(r0-t, h1).Smooth(t, 4)
 	p.Add(r0-t, h0)
 
-	s := Revolve3D(Polygon2D(p.Vertices()))
+	s, err := sdf.Revolve3D(sdf.Polygon2D(p.Vertices()))
+	if err != nil {
+		return err
+	}
 	render.RenderSTL(s, 150, "fdd_mpvc.stl")
+	return nil
 }
 
 //-----------------------------------------------------------------------------
 
 func main() {
-	fdd_to_fvh25()
-	mvh25_to_mpvc(pvc2_od)
-	fdd_to_mpvc(pvc2_od)
+	err := fdd_to_fvh25()
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	err = mvh25_to_mpvc(pvc2_od)
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	err = fdd_to_mpvc(pvc2_od)
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
 }
 
 //-----------------------------------------------------------------------------

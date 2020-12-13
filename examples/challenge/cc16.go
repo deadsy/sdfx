@@ -13,7 +13,7 @@ import (
 // CAD Challenge #16 Part A
 // https://www.reddit.com/r/cad/comments/5t5z31/cad_challenge_16/
 
-func cc16a() SDF3 {
+func cc16a() (SDF3, error) {
 
 	base_w := 4.5
 	base_d := 2.0
@@ -45,7 +45,10 @@ func cc16a() SDF3 {
 	block_2d = Cut2D(block_2d, V2{0, 0}, V2{0, 1})
 	block_3d := Extrude3D(block_2d, block_w)
 
-	cb_3d, _ := obj.CounterBoredHole3D(block_w, hole_radius, cb_radius, cb_depth)
+	cb_3d, err := obj.CounterBoredHole3D(block_w, hole_radius, cb_radius, cb_depth)
+	if err != nil {
+		return nil, err
+	}
 	cb_3d = Transform3D(cb_3d, Translate3d(V3{block_l / 2, 0, 0}))
 	block_3d = Difference3D(block_3d, cb_3d)
 
@@ -54,14 +57,14 @@ func cc16a() SDF3 {
 	m = Translate3d(V3{0, y_ofs, 0}).Mul(m)
 	block_3d = Transform3D(block_3d, m)
 
-	return Union3D(base_3d, block_3d)
+	return Union3D(base_3d, block_3d), nil
 }
 
 //-----------------------------------------------------------------------------
 // CAD Challenge #16 Part B
 // https://www.reddit.com/r/cad/comments/5t5z31/cad_challenge_16/
 
-func cc16b() SDF3 {
+func cc16b() (SDF3, error) {
 
 	// Base
 	base_w := 120.0
@@ -154,7 +157,11 @@ func cc16b() SDF3 {
 	hole_h := 84.0 - base_h
 	hole_r := 35.0 / 2.0
 	chamfer_d := 2.0
-	hole_3d, _ := obj.ChamferedHole3D(support_w, hole_r, chamfer_d)
+	hole_3d, err := obj.ChamferedHole3D(support_w, hole_r, chamfer_d)
+	if err != nil {
+		return nil, err
+	}
+
 	q = Translate3d(V3{0, hole_h, 0})
 	hole_3d = Transform3D(hole_3d, q)
 	support_3d = Difference3D(support_3d, hole_3d)
@@ -200,7 +207,7 @@ func cc16b() SDF3 {
 	gusset1_3d := Transform3D(gusset_3d, Translate3d(V3{-gusset_xofs, 0, 0}))
 	gusset_3d = Union3D(gusset0_3d, gusset1_3d)
 
-	return Union3D(base_3d, support_3d, gusset_3d)
+	return Union3D(base_3d, support_3d, gusset_3d), nil
 }
 
 //-----------------------------------------------------------------------------

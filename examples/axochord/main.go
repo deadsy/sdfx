@@ -9,6 +9,7 @@ OmniKeys 3 x 12 chord keys
 package main
 
 import (
+	"log"
 	"math"
 	"strings"
 
@@ -30,7 +31,7 @@ var bTheta = sdf.DtoR(20.0) // button angle
 const buttonsV = 3 // number of vertical buttons
 const buttonsH = 3 //12 // number of horizontal buttons
 
-func buttonCavity() sdf.SDF3 {
+func buttonCavity() (sdf.SDF3, error) {
 	p := sdf.NewPolygon()
 	p.Add(0, -(bH0 + bH1))
 	p.Add(bR0, 0).Rel()
@@ -46,11 +47,15 @@ func buttonCavity() sdf.SDF3 {
 }
 
 // return the button matrix
-func buttons() sdf.SDF3 {
+func buttons() (sdf.SDF3, error) {
 	// single key column
 	d := buttonsV * bDeltaV
 	p := sdf.V3{-math.Sin(bTheta) * d, math.Cos(bTheta) * d, 0}
-	col := sdf.LineOf3D(buttonCavity(), sdf.V3{}, p, strings.Repeat("x", buttonsV))
+	bc, err := buttonCavity()
+	if err != nil {
+		return nil, err
+	}
+	col := sdf.LineOf3D(bc, sdf.V3{}, p, strings.Repeat("x", buttonsV))
 	// multiple key columns
 	d = buttonsH * bDeltaH
 	p = sdf.V3{d, 0, 0}
@@ -59,7 +64,7 @@ func buttons() sdf.SDF3 {
 	d = (buttonsV - 1) * bDeltaV
 	dx := 0.5 * (((buttonsH - 1) * bDeltaH) - (d * math.Sin(bTheta)))
 	dy := 0.5 * d * math.Cos(bTheta)
-	return sdf.Transform3D(matrix, sdf.Translate3d(sdf.V3{-dx, -dy, 0}))
+	return sdf.Transform3D(matrix, sdf.Translate3d(sdf.V3{-dx, -dy, 0})), nil
 }
 
 //-----------------------------------------------------------------------------
@@ -91,7 +96,7 @@ func cherryMX() sdf.SDF2 {
 
 //-----------------------------------------------------------------------------
 
-func panel() sdf.SDF3 {
+func panel() (sdf.SDF3, error) {
 	v := (buttonsV - 1) * bDeltaV
 	vx := v * math.Sin(bTheta)
 	vy := v * math.Cos(bTheta)
@@ -107,13 +112,21 @@ func panel() sdf.SDF3 {
 		HolePattern:  [4]string{"xx", "x", "xx", "x"},
 	}
 	// extrude to 3d
-	return sdf.Extrude3D(obj.Panel2D(pp), 2.0*(bH0+bH1))
+	return sdf.Extrude3D(obj.Panel2D(pp), 2.0*(bH0+bH1)), nil
 }
 
 //-----------------------------------------------------------------------------
 
 func main() {
-	s := sdf.Difference3D(panel(), buttons())
+	panel, err := panel()
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	buttons, err := buttons()
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	s := sdf.Difference3D(panel, buttons)
 	upper := sdf.Cut3D(s, sdf.V3{}, sdf.V3{0, 0, 1})
 	lower := sdf.Cut3D(s, sdf.V3{}, sdf.V3{0, 0, -1})
 

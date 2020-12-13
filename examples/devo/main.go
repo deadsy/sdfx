@@ -49,7 +49,10 @@ func dome(r, h, w float64) (sdf.SDF3, error) {
 	p.Add(-stepX1, 0).Rel().Smooth(fillet, 4)
 	p.Add(-stepX0, stepH3).Rel().Smooth(fillet, 4)
 	p.Add(0, height)
-	outer := sdf.Revolve3D(sdf.Polygon2D(p.Vertices()))
+	outer, err := sdf.Revolve3D(sdf.Polygon2D(p.Vertices()))
+	if err != nil {
+		return nil, err
+	}
 
 	// inner shell
 
@@ -79,12 +82,14 @@ func dome(r, h, w float64) (sdf.SDF3, error) {
 
 	b.Close()
 
-	p, err := b.Polygon()
+	p, err = b.Polygon()
 	if err != nil {
 		return nil, err
 	}
-	inner := sdf.Revolve3D(sdf.Polygon2D(p.Vertices()))
-
+	inner, err := sdf.Revolve3D(sdf.Polygon2D(p.Vertices()))
+	if err != nil {
+		return nil, err
+	}
 	return sdf.Difference3D(outer, inner), nil
 }
 
@@ -97,7 +102,7 @@ func main() {
 
 	s, err := dome(radius, h0, wall)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("error: %s", err)
 	}
 
 	//s = sdf.Cut3D(s, V3{0, 0, 0}, sdf.V3{0, 1, 0})

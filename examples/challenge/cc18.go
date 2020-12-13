@@ -44,7 +44,7 @@ func cc18a() {
 //-----------------------------------------------------------------------------
 // Part B
 
-func cc18b() SDF3 {
+func cc18b() (SDF3, error) {
 
 	// build the vertical pipe
 	p := NewPolygon()
@@ -56,7 +56,10 @@ func cc18b() SDF3 {
 	p.Add(6, 21)
 	p.Add(6, 20)
 	p.Add(0, 20)
-	vpipe_3d := Revolve3D(Polygon2D(p.Vertices()))
+	vpipe_3d, err := Revolve3D(Polygon2D(p.Vertices()))
+	if err != nil {
+		return nil, err
+	}
 	// bolt circle for the top flange
 	top_holes_3d := obj.BoltCircle3D(
 		2.0,       // hole_depth
@@ -79,7 +82,10 @@ func cc18b() SDF3 {
 	p.Add(6, 14)
 	p.Add(6, 14.35)
 	p.Add(0, 14.35)
-	hpipe_3d := Revolve3D(Polygon2D(p.Vertices()))
+	hpipe_3d, err := Revolve3D(Polygon2D(p.Vertices()))
+	if err != nil {
+		return nil, err
+	}
 	// bolt circle for the side flanges
 	side_holes_3d := obj.BoltCircle3D(
 		2.0,      // hole_depth
@@ -116,19 +122,22 @@ func cc18b() SDF3 {
 	m = Translate3d(V3{0, 0, 9}).Mul(m)
 	horizontal_hole_3d = Transform3D(horizontal_hole_3d, m)
 
-	return Difference3D(s, Union3D(vertical_hole_3d, horizontal_hole_3d))
+	return Difference3D(s, Union3D(vertical_hole_3d, horizontal_hole_3d)), nil
 }
 
 //-----------------------------------------------------------------------------
 // Part C
 
-func cc18c() SDF3 {
+func cc18c() (SDF3, error) {
 
 	// build the tabs
 	tab_3d := Box3D(V3{43, 12, 20}, 0)
 	tab_3d = Transform3D(tab_3d, Translate3d(V3{43.0 / 2.0, 0, 0}))
 	// tab hole
-	tab_hole_3d, _ := Cylinder3D(12, 7.0/2.0, 0)
+	tab_hole_3d, err := Cylinder3D(12, 7.0/2.0, 0)
+	if err != nil {
+		return nil, err
+	}
 	m := RotateX(DtoR(90))
 	m = Translate3d(V3{35, 0, 0}).Mul(m)
 	tab_hole_3d = Transform3D(tab_hole_3d, m)
@@ -137,7 +146,10 @@ func cc18c() SDF3 {
 	tab_3d = RotateCopy3D(tab_3d, 3)
 
 	// Build the ecntral body
-	body_3d, _ := Cylinder3D(20, 26.3, 0)
+	body_3d, err := Cylinder3D(20, 26.3, 0)
+	if err != nil {
+		return nil, err
+	}
 	body_3d = Union3D(body_3d, tab_3d)
 	body_3d.(*UnionSDF3).SetMin(PolyMin(2.0))
 	// clean up the top and bottom face
@@ -153,16 +165,22 @@ func cc18c() SDF3 {
 		{r_outer - 1.0, 30},
 		{0, 30},
 	}
-	sleeve_3d := Revolve3D(Polygon2D(p))
+	sleeve_3d, err := Revolve3D(Polygon2D(p))
+	if err != nil {
+		return nil, err
+	}
 	sleeve_3d = Transform3D(sleeve_3d, Translate3d(V3{0, 0, -10}))
 	body_3d = Union3D(body_3d, sleeve_3d)
 
 	// Remove the central hole
-	sleeve_hole_3d, _ := Cylinder3D(30, 36.5/2.0, 0)
+	sleeve_hole_3d, err := Cylinder3D(30, 36.5/2.0, 0)
+	if err != nil {
+		return nil, err
+	}
 	sleeve_hole_3d = Transform3D(sleeve_hole_3d, Translate3d(V3{0, 0, 5}))
 	body_3d = Difference3D(body_3d, sleeve_hole_3d)
 
-	return body_3d
+	return body_3d, nil
 }
 
 //-----------------------------------------------------------------------------
