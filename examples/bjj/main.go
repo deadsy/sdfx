@@ -117,7 +117,7 @@ func plate() (sdf.SDF3, error) {
 //-----------------------------------------------------------------------------
 
 var gear_module = 80.0 / 16.0
-var pressure_angle = 20.0
+var pressure_angle = sdf.DtoR(20)
 var involute_facets = 10
 
 func gears() (sdf.SDF3, error) {
@@ -127,15 +127,14 @@ func gears() (sdf.SDF3, error) {
 	// 12 tooth spur gear
 	g0_teeth := 12
 	g0_pd := float64(g0_teeth) * gear_module
-	g0_2d, err := obj.InvoluteGear(
-		g0_teeth,
-		gear_module,
-		sdf.DtoR(pressure_angle),
-		0.0,
-		0.0,
-		g0_pd/2.0,
-		involute_facets,
-	)
+	k := obj.InvoluteGearParms{
+		NumberTeeth:   g0_teeth,
+		Module:        gear_module,
+		PressureAngle: pressure_angle,
+		RingWidth:     g0_pd * 0.5,
+		Facets:        involute_facets,
+	}
+	g0_2d, err := obj.InvoluteGear(&k)
 	if err != nil {
 		return nil, err
 	}
@@ -144,15 +143,14 @@ func gears() (sdf.SDF3, error) {
 	// 16 tooth spur gear
 	g1_teeth := 16
 	g1_pd := float64(g1_teeth) * gear_module
-	g1_2d, err := obj.InvoluteGear(
-		g1_teeth,
-		gear_module,
-		sdf.DtoR(pressure_angle),
-		0.0,
-		0.0,
-		g1_pd/2.0,
-		involute_facets,
-	)
+	k = obj.InvoluteGearParms{
+		NumberTeeth:   g1_teeth,
+		Module:        gear_module,
+		PressureAngle: pressure_angle,
+		RingWidth:     g1_pd * 0.5,
+		Facets:        involute_facets,
+	}
+	g1_2d, err := obj.InvoluteGear(&k)
 	if err != nil {
 		return nil, err
 	}

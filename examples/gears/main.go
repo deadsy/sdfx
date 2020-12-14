@@ -26,15 +26,14 @@ var numberTeeth = 20
 //-----------------------------------------------------------------------------
 
 func gear() (sdf.SDF3, error) {
-	gear2d, err := obj.InvoluteGear(
-		numberTeeth, // number of gear teeth
-		module,      // gear_module
-		pa,          // pressure_angle
-		0.0,         // backlash
-		0.0,         // clearance
-		0.05,        // ring_width
-		7,           // facets
-	)
+	k := obj.InvoluteGearParms{
+		NumberTeeth:   numberTeeth,
+		Module:        module,
+		PressureAngle: pa,
+		RingWidth:     0.05,
+		Facets:        7,
+	}
+	gear2d, err := obj.InvoluteGear(&k)
 	if err != nil {
 		return nil, err
 	}
@@ -44,13 +43,13 @@ func gear() (sdf.SDF3, error) {
 //-----------------------------------------------------------------------------
 
 func rack() (sdf.SDF3, error) {
-	rack2d, err := sdf.GearRack2D(
-		11,     // number of rack teeth
-		module, // gear_module
-		pa,     // pressure_angle
-		0.00,   // backlash
-		0.025,  // base_height
-	)
+	k := sdf.GearRackParms{
+		NumberTeeth:   11,
+		Module:        module,
+		PressureAngle: pa,
+		BaseHeight:    0.025,
+	}
+	rack2d, err := sdf.GearRack2D(&k)
 	if err != nil {
 		return nil, err
 	}

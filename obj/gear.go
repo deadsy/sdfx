@@ -88,43 +88,67 @@ func involuteGearTooth(
 
 //-----------------------------------------------------------------------------
 
+type InvoluteGearParms struct {
+	NumberTeeth   int     // number of gear teeth
+	Module        float64 // pitch circle diameter / number of gear teeth
+	PressureAngle float64 // gear pressure angle (radians)
+	Backlash      float64 // backlash expressed as per-tooth distance at pitch circumference
+	Clearance     float64 // additional root clearance
+	RingWidth     float64 // width of ring wall (from root circle)
+	Facets        int     // number of facets for involute flank
+}
+
 // InvoluteGear returns an 2D polygon for an involute gear.
-func InvoluteGear(
-	numberTeeth int, // number of gear teeth
-	gearModule float64, // pitch circle diameter / number of gear teeth
-	pressureAngle float64, // gear pressure angle (radians)
-	backlash float64, // backlash expressed as per-tooth distance at pitch circumference
-	clearance float64, // additional root clearance
-	ringWidth float64, // width of ring wall (from root circle)
-	facets int, // number of facets for involute flank
-) (sdf.SDF2, error) {
+func InvoluteGear(k *InvoluteGearParms) (sdf.SDF2, error) {
+
+	if k.NumberTeeth <= 0 {
+		return nil, sdf.ErrMsg("k.NumberTeeth <= 0")
+	}
+	if k.Module <= 0 {
+		return nil, sdf.ErrMsg("k.Module <= 0")
+	}
+	if k.PressureAngle <= 0 {
+		return nil, sdf.ErrMsg("k.PressureAngle <= 0")
+	}
+	if k.Backlash < 0 {
+		return nil, sdf.ErrMsg("k.Backlash <= 0")
+	}
+	if k.Clearance < 0 {
+		return nil, sdf.ErrMsg("k.Clearance < 0")
+	}
+	if k.RingWidth < 0 {
+		return nil, sdf.ErrMsg("k.RingWidth < 0")
+	}
+	if k.Facets <= 0 {
+		return nil, sdf.ErrMsg("k.Facets <= 0")
+	}
 
 	// pitch radius
-	pitchRadius := float64(numberTeeth) * gearModule / 2.0
+	pitchRadius := float64(k.NumberTeeth) * k.Module * 0.5
 
 	// base circle radius
-	baseRadius := pitchRadius * math.Cos(pressureAngle)
+	baseRadius := pitchRadius * math.Cos(k.PressureAngle)
 
 	// addendum: radial distance from pitch circle to outside circle
-	addendum := gearModule * 1.0
+	addendum := k.Module * 1.0
 	// dedendum: radial distance from pitch circle to root circle
-	dedendum := addendum + clearance
+	dedendum := addendum + k.Clearance
 
 	outerRadius := pitchRadius + addendum
 	rootRadius := pitchRadius - dedendum
-	ringRadius := rootRadius - ringWidth
+	ringRadius := rootRadius - k.RingWidth
 
 	tooth := involuteGearTooth(
-		numberTeeth,
-		gearModule,
+		k.NumberTeeth,
+		k.Module,
 		rootRadius,
 		baseRadius,
 		outerRadius,
-		backlash,
-		facets,
+		k.Backlash,
+		k.Facets,
 	)
 
-	gear := sdf.RotateCopy2D(tooth, numberTeeth)
+	gear := sdf.RotateCopy2D(tooth, k.NumberTeeth)
 	root := sdf.Circle2D(rootRadius)
 	ring := sdf.Circle2D(ringRadius)
 

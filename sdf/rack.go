@@ -13,6 +13,14 @@ import "math"
 //-----------------------------------------------------------------------------
 // 2D Gear Rack
 
+type GearRackParms struct {
+	NumberTeeth   int     // number of rack teeth
+	Module        float64 // pitch circle diameter / number of gear teeth
+	PressureAngle float64 // gear pressure angle (radians)
+	Backlash      float64 // backlash expressed as units of pitch circumference
+	BaseHeight    float64 // height of rack base
+}
+
 // GearRackSDF2 is a 2d linear gear rack.
 type GearRackSDF2 struct {
 	tooth  SDF2    // polygon for rack tooth
@@ -22,36 +30,47 @@ type GearRackSDF2 struct {
 }
 
 // GearRack2D returns the 2D profile for a gear rack.
-func GearRack2D(
-	numberTeeth float64, // number of rack teeth
-	gearModule float64, // pitch circle diameter / number of gear teeth
-	pressureAngle float64, // gear pressure angle (radians)
-	backlash float64, // backlash expressed as units of pitch circumference
-	baseHeight float64, // height of rack base
-) (SDF2, error) {
+func GearRack2D(k *GearRackParms) (SDF2, error) {
+
+	if k.NumberTeeth <= 0 {
+		return nil, ErrMsg("k.NumberTeeth <= 0")
+	}
+	if k.Module <= 0 {
+		return nil, ErrMsg("k.Module <= 0")
+	}
+	if k.PressureAngle <= 0 {
+		return nil, ErrMsg("k.PressureAngle <= 0")
+	}
+	if k.Backlash < 0 {
+		return nil, ErrMsg("k.Backlash <= 0")
+	}
+	if k.BaseHeight < 0 {
+		return nil, ErrMsg("k.BaseHeight < 0")
+	}
+
 	s := GearRackSDF2{}
 
 	// addendum: distance from pitch line to top of tooth
-	addendum := gearModule * 1.0
+	addendum := k.Module * 1.0
 	// dedendum: distance from pitch line to root of tooth
-	dedendum := gearModule * 1.25
+	dedendum := k.Module * 1.25
 	// total tooth height
-	toothHeight := baseHeight + addendum + dedendum
+	toothHeight := k.BaseHeight + addendum + dedendum
 	// tooth_pitch: tooth to tooth distance along pitch line
-	pitch := gearModule * Pi
+	pitch := k.Module * Pi
 
 	// x size of tooth flank
-	dx := (addendum + dedendum) * math.Tan(pressureAngle)
+	dx := (addendum + dedendum) * math.Tan(k.PressureAngle)
 	// 1/2 x size of tooth top
 	dxt := ((pitch / 2.0) - dx) / 2.0
 	// x size of backlash
-	bl := backlash / 2.0
+	bl := k.Backlash / 2.0
 
 	// create a half tooth profile centered on the y-axis
 	tooth := []V2{
 		{pitch, 0},
-		{pitch, baseHeight},
-		{dx + dxt - bl, baseHeight},
+		{pitch, k.BaseHeight},
+		{dx + dxt - bl, k.BaseHeight},
 		{dxt - bl, toothHeight},
 		{-pitch, toothHeight},
 		{-pitch, 0},
@@ -59,7 +78,7 @@ func GearRack2D(
 
 	s.tooth = Polygon2D(tooth)
 	s.pitch = pitch
-	s.length = pitch * numberTeeth / 2.0
+	s.length = pitch * float64(k.NumberTeeth) * 0.5
 	s.bb = Box2{V2{-s.length, 0}, V2{s.length, toothHeight}}
 	return &s, nil
 }
