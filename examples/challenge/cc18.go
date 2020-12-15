@@ -137,7 +137,10 @@ func cc18b() (SDF3, error) {
 func cc18c() (SDF3, error) {
 
 	// build the tabs
-	tab_3d := Box3D(V3{43, 12, 20}, 0)
+	tab_3d, err := Box3D(V3{43, 12, 20}, 0)
+	if err != nil {
+		return nil, err
+	}
 	tab_3d = Transform3D(tab_3d, Translate3d(V3{43.0 / 2.0, 0, 0}))
 	// tab hole
 	tab_hole_3d, err := Cylinder3D(12, 7.0/2.0, 0)

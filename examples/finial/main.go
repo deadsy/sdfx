@@ -59,7 +59,11 @@ func finial2() error {
 	}
 	column_3d = Transform3D(column_3d, Translate3d(V3{0, 0, column_ofs}))
 
-	ball_3d := Sphere3D(ball_radius)
+	ball_3d, err := Sphere3D(ball_radius)
+	if err != nil {
+		return err
+	}
+
 	ball_3d = Transform3D(ball_3d, Translate3d(V3{0, 0, ball_ofs}))
 
 	base_3d := Extrude3D(s0, base_height)
@@ -68,7 +72,7 @@ func finial2() error {
 	bc_3d.(*UnionSDF3).SetMin(PolyMin(round))
 
 	render.RenderSTLSlow(Union3D(bc_3d, base_3d), 300, "f2.stl")
-	return err
+	return nil
 }
 
 //-----------------------------------------------------------------------------
@@ -92,7 +96,11 @@ func finial1() error {
 	}
 	column_3d = Transform3D(column_3d, Translate3d(V3{0, 0, column_ofs}))
 
-	ball_3d := Sphere3D(ball_radius)
+	ball_3d, err := Sphere3D(ball_radius)
+	if err != nil {
+		return err
+	}
+
 	ball_3d = Transform3D(ball_3d, Translate3d(V3{0, 0, ball_ofs}))
 
 	base_3d := Extrude3D(s0, base_height)
@@ -101,7 +109,7 @@ func finial1() error {
 	bc_3d.(*UnionSDF3).SetMin(PolyMin(round))
 
 	render.RenderSTLSlow(Union3D(bc_3d, base_3d), 300, "f1.stl")
-	return err
+	return nil
 }
 
 //-----------------------------------------------------------------------------

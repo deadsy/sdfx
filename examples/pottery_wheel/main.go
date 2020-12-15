@@ -176,7 +176,10 @@ func core_box() (sdf.SDF3, error) {
 	w := 4.2 * shaft_radius
 	d := 1.2 * shaft_radius
 	h := (core_height + shaft_length) * 1.1
-	box_3d := sdf.Box3D(sdf.V3{h, w, d}, 0)
+	box_3d, err := sdf.Box3D(sdf.V3{h, w, d}, 0)
+	if err != nil {
+		return nil, err
+	}
 
 	// holes in the box
 	dy := w * 0.37
@@ -188,8 +191,10 @@ func core_box() (sdf.SDF3, error) {
 		{dx, -dy, 0},
 		{-dx, -dy, 0},
 	}
-
-	hole, _ := sdf.Cylinder3D(d, hole_radius, 0)
+	hole, err := sdf.Cylinder3D(d, hole_radius, 0)
+	if err != nil {
+		return nil, err
+	}
 	holes_3d := sdf.Multi3D(hole, positions)
 
 	// Drill the holes

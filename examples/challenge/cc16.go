@@ -105,7 +105,11 @@ func cc16b() (SDF3, error) {
 	// cut out the rails
 	rail_w := 15.0 // rails have square cross section
 	rail_zofs := (base_h - rail_w) / 2.0
-	rail_3d := Box3D(V3{rail_w, base_d, rail_w}, 0)
+	rail_3d, err := Box3D(V3{rail_w, base_d, rail_w}, 0)
+	if err != nil {
+		return nil, err
+	}
+
 	rail0_3d := Transform3D(rail_3d, Translate3d(V3{base_hole_xofs, 0, -rail_zofs}))
 	rail1_3d := Transform3D(rail_3d, Translate3d(V3{-base_hole_xofs, 0, -rail_zofs}))
 	base_3d = Difference3D(base_3d, rail0_3d)

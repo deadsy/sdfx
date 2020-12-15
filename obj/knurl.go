@@ -45,30 +45,36 @@ func knurlProfile(k *KnurlParms) sdf.SDF2 {
 // Knurl3D returns a knurled cylinder.
 func Knurl3D(k *KnurlParms) (sdf.SDF3, error) {
 	if k.Length <= 0 {
-		return nil, sdf.ErrMsg("length <= 0")
+		return nil, sdf.ErrMsg("Length <= 0")
 	}
 	if k.Radius <= 0 {
-		return nil, sdf.ErrMsg("radius <= 0")
+		return nil, sdf.ErrMsg("Radius <= 0")
 	}
 	if k.Pitch <= 0 {
-		return nil, sdf.ErrMsg("pitch <= 0")
+		return nil, sdf.ErrMsg("Pitch <= 0")
 	}
 	if k.Height <= 0 {
-		return nil, sdf.ErrMsg("height <= 0")
+		return nil, sdf.ErrMsg("Height <= 0")
 	}
 	if k.Theta < 0 {
-		return nil, sdf.ErrMsg("theta < 0")
+		return nil, sdf.ErrMsg("Theta < 0")
 	}
 	if k.Theta >= sdf.DtoR(90) {
-		return nil, sdf.ErrMsg("theta >= 90")
+		return nil, sdf.ErrMsg("Theta >= 90")
 	}
 	// Work out the number of starts using the desired helix angle.
 	n := int(sdf.Tau * k.Radius * math.Tan(k.Theta) / k.Pitch)
 	// build the knurl profile.
 	knurl2d := knurlProfile(k)
 	// create the left/right hand spirals
-	knurl0_3d := sdf.Screw3D(knurl2d, k.Length, k.Pitch, n)
-	knurl1_3d := sdf.Screw3D(knurl2d, k.Length, k.Pitch, -n)
+	knurl0_3d, err := sdf.Screw3D(knurl2d, k.Length, k.Pitch, n)
+	if err != nil {
+		return nil, err
+	}
+	knurl1_3d, err := sdf.Screw3D(knurl2d, k.Length, k.Pitch, -n)
+	if err != nil {
+		return nil, err
+	}
 	return sdf.Intersect3D(knurl0_3d, knurl1_3d), nil
 }
 

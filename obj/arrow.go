@@ -23,7 +23,7 @@ func arrowStyle3D(style byte, size [2]float64, tail bool) (sdf.SDF3, error) {
 	}
 	// ball
 	if style == 'b' {
-		return sdf.Sphere3D(size[1]), nil
+		return sdf.Sphere3D(size[1])
 	}
 	// cone
 	if style == 'c' {

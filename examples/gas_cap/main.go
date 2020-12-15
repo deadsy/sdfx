@@ -9,6 +9,8 @@ Replacement Cap for Plastic Gas/Oil Can
 package main
 
 import (
+	"log"
+
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
@@ -29,15 +31,17 @@ const threadRadius = threadDiameter / 2.0
 
 //-----------------------------------------------------------------------------
 
-func capOuter() sdf.SDF3 {
-	s, _ := obj.KnurledHead3D(capRadius, capHeight, capRadius*0.25)
-	return s
+func capOuter() (sdf.SDF3, error) {
+	return obj.KnurledHead3D(capRadius, capHeight, capRadius*0.25)
 }
 
-func capInner() sdf.SDF3 {
+func capInner() (sdf.SDF3, error) {
 	tp := sdf.PlasticButtressThread(threadRadius, threadPitch)
-	screw := sdf.Screw3D(tp, capHeight, threadPitch, 1)
-	return sdf.Transform3D(screw, sdf.Translate3d(sdf.V3{0, 0, -capThickness}))
+	screw, err := sdf.Screw3D(tp, capHeight, threadPitch, 1)
+	if err != nil {
+		return nil, err
+	}
+	return sdf.Transform3D(screw, sdf.Translate3d(sdf.V3{0, 0, -capThickness})), nil
 }
 
 func capHole() (sdf.SDF3, error) {
@@ -48,16 +52,34 @@ func capHole() (sdf.SDF3, error) {
 	return sdf.Cylinder3D(capHeight, holeRadius, 0)
 }
 
-func gasCap() sdf.SDF3 {
-	hole, _ := capHole()
-	inner := sdf.Union3D(capInner(), hole)
-	return sdf.Difference3D(capOuter(), inner)
+func gasCap() (sdf.SDF3, error) {
+	// hole
+	hole, err := capHole()
+	if err != nil {
+		return nil, err
+	}
+	// inner
+	inner, err := capInner()
+	if err != nil {
+		return nil, err
+	}
+	inner = sdf.Union3D(inner, hole)
+	// outer
+	outer, err := capOuter()
+	if err != nil {
+		return nil, err
+	}
+	return sdf.Difference3D(outer, inner), nil
 }
 
 //-----------------------------------------------------------------------------
 
 func main() {
-	render.RenderSTLSlow(gasCap(), 200, "cap.stl")
+	gasCap, err := gasCap()
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	render.RenderSTLSlow(gasCap, 200, "cap.stl")
 }
 
 //-----------------------------------------------------------------------------

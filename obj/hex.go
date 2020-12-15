@@ -31,7 +31,10 @@ func HexHead3D(
 	if round != "" {
 		topRound := radius * 1.6
 		d := radius * math.Cos(sdf.DtoR(30))
-		sphere3d := sdf.Sphere3D(topRound)
+		sphere3d, err := sdf.Sphere3D(topRound)
+		if err != nil {
+			return nil, err
+		}
 		zOfs := math.Sqrt(topRound*topRound-d*d) - height/2
 		if round == "t" || round == "tb" {
 			hex3d = sdf.Intersect3D(hex3d, sdf.Transform3D(sphere3d, sdf.Translate3d(sdf.V3{0, 0, -zOfs})))

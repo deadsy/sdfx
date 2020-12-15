@@ -77,7 +77,10 @@ func Bolt(k *BoltParms) (sdf.SDF3, error) {
 		r := t.Radius - k.Tolerance
 		threadOffset := threadLength/2 + shankLength
 		isoThread := sdf.ISOThread(r, t.Pitch, true)
-		thread = sdf.Screw3D(isoThread, threadLength, t.Pitch, 1)
+		thread, err = sdf.Screw3D(isoThread, threadLength, t.Pitch, 1)
+		if err != nil {
+			return nil, err
+		}
 		// chamfer the thread
 		thread, err = ChamferedCylinder(thread, 0, 0.5)
 		if err != nil {

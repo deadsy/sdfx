@@ -62,7 +62,10 @@ func test5() error {
 }
 
 func test6() error {
-	s0 := Sphere3D(0.5)
+	s0, err := Sphere3D(0.5)
+	if err != nil {
+		return err
+	}
 	d := 0.4
 	s1 := Transform3D(s0, Translate3d(V3{0, d, 0}))
 	s2 := Transform3D(s0, Translate3d(V3{0, -d, 0}))
@@ -73,7 +76,10 @@ func test6() error {
 }
 
 func test7() error {
-	s0 := Box3D(V3{0.8, 0.8, 0.05}, 0)
+	s0, err := Box3D(V3{0.8, 0.8, 0.05}, 0)
+	if err != nil {
+		return err
+	}
 	s1 := Transform3D(s0, Rotate3d(V3{1, 0, 0}, DtoR(60)))
 	s2 := Union3D(s0, s1)
 	s2.(*UnionSDF3).SetMin(PolyMin(0.1))
@@ -83,13 +89,19 @@ func test7() error {
 }
 
 func test9() error {
-	s := Sphere3D(10.0)
+	s, err := Sphere3D(10.0)
+	if err != nil {
+		return err
+	}
 	render.RenderSTL(s, 200, "test.stl")
 	return nil
 }
 
 func test10() error {
-	s0 := Box3D(V3{0.8, 0.8, 0.05}, 0)
+	s0, err := Box3D(V3{0.8, 0.8, 0.05}, 0)
+	if err != nil {
+		return err
+	}
 	s1 := Transform3D(s0, Rotate3d(V3{1, 0, 0}, DtoR(60)))
 	s := Union3D(s0, s1)
 	s.(*UnionSDF3).SetMin(PolyMin(0.1))
@@ -119,7 +131,6 @@ func test12() error {
 	if err != nil {
 		return err
 	}
-
 	render.RenderSTL(s1, 200, "test.stl")
 	return nil
 }
@@ -321,7 +332,10 @@ func test20() error {
 func test21() error {
 	r := 2.0
 	k := 1.9
-	s0 := Sphere3D(r)
+	s0, err := Sphere3D(r)
+	if err != nil {
+		return err
+	}
 	s1 := Array3D(s0, V3i{3, 7, 5}, V3{k * r, k * r, k * r})
 	s1.(*ArraySDF3).SetMin(PolyMin(0.8))
 	render.RenderSTL(s1, 200, "test.stl")
@@ -331,7 +345,10 @@ func test21() error {
 func test22() error {
 	r := 4.0
 	d := 20.0
-	s0 := Sphere3D(r)
+	s0, err := Sphere3D(r)
+	if err != nil {
+		return err
+	}
 	s0 = Transform3D(s0, Translate3d(V3{d, 0, 0}))
 	s0 = RotateUnion3D(s0, 5, Rotate3d(V3{0, 0, 1}, DtoR(20)))
 	s0.(*RotateUnionSDF3).SetMin(PolyMin(1.2))
@@ -457,7 +474,10 @@ func test37() error {
 	r := 5.0
 	p := 2.0
 	isoThread := ISOThread(r, p, true)
-	s := Screw3D(isoThread, 50, p, 1)
+	s, err := Screw3D(isoThread, 50, p, 1)
+	if err != nil {
+		return err
+	}
 	render.RenderSTL(s, 400, "screw.stl")
 	return nil
 }
@@ -473,8 +493,14 @@ func test39() error {
 func test40() error {
 	d := 30.0
 	wall := 5.0
-	s0 := Box3D(V3{d, d, d}, wall/2)
-	s1 := Box3D(V3{d - wall, d - wall, d}, wall/2)
+	s0, err := Box3D(V3{d, d, d}, wall/2)
+	if err != nil {
+		return err
+	}
+	s1, err := Box3D(V3{d - wall, d - wall, d}, wall/2)
+	if err != nil {
+		return err
+	}
 	s1 = Transform3D(s1, Translate3d(V3{0, 0, wall / 2}))
 	s := Difference3D(s0, s1)
 	s.(*DifferenceSDF3).SetMax(PolyMax(2))

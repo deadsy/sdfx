@@ -11,8 +11,7 @@ TODO Add a retaining lip to the base or top so the lid stays in place.
 package main
 
 import (
-	"errors"
-	"fmt"
+	"log"
 
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
@@ -33,23 +32,27 @@ const lidPosition = 0.75 // 0..1 position of lid on box
 func box() error {
 
 	if outerRadius < wallThickness {
-		return errors.New("outerRadius < wallThickness")
+		return sdf.ErrMsg("outerRadius < wallThickness")
 	}
 
 	innerOfs := outerRadius - wallThickness
 	outerOfs := innerOfs + wallThickness
 
 	if sizeX < outerOfs {
-		return errors.New("sizeX < outerOfs")
+		return sdf.ErrMsg("sizeX < outerOfs")
 	}
 	if sizeY < outerOfs {
-		return errors.New("sizeY < outerOfs")
+		return sdf.ErrMsg("sizeY < outerOfs")
 	}
 	if sizeZ < outerOfs {
-		return errors.New("sizeZ < outerOfs")
+		return sdf.ErrMsg("sizeZ < outerOfs")
 	}
 
-	baseBox := sdf.Box3D(sdf.V3{sizeX - outerOfs, sizeY - outerOfs, sizeZ - outerOfs}, 0)
+	baseBox, err := sdf.Box3D(sdf.V3{sizeX - outerOfs, sizeY - outerOfs, sizeZ - outerOfs}, 0)
+	if err != nil {
+		return err
+	}
+
 	innerBox := sdf.Offset3D(baseBox, innerOfs)
 	outerBox := sdf.Offset3D(baseBox, outerOfs)
 	box := sdf.Difference3D(outerBox, innerBox)
@@ -69,7 +72,7 @@ func box() error {
 func main() {
 	err := box()
 	if err != nil {
-		fmt.Printf("%s\n", err)
+		log.Fatalf("error: %s", err)
 	}
 }
 

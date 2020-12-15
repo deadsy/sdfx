@@ -196,8 +196,11 @@ func spincapDouble(male bool) (sdf.SDF3, error) {
 	if male {
 		// Add an external screw thread.
 		t := sdf.ISOThread(threadR-threadTolerance, threadPitch, true)
-		screw := sdf.Screw3D(t, bearingThickness, threadPitch, 1)
-		screw, err := obj.ChamferedCylinder(screw, 0, 0.5)
+		screw, err := sdf.Screw3D(t, bearingThickness, threadPitch, 1)
+		if err != nil {
+			return nil, err
+		}
+		screw, err = obj.ChamferedCylinder(screw, 0, 0.5)
 		if err != nil {
 			return nil, err
 		}
@@ -210,7 +213,10 @@ func spincapDouble(male bool) (sdf.SDF3, error) {
 	}
 	// Add an internal screw thread.
 	t := sdf.ISOThread(threadR, threadPitch, false)
-	screw := sdf.Screw3D(t, bearingThickness, threadPitch, 1)
+	screw, err := sdf.Screw3D(t, bearingThickness, threadPitch, 1)
+	if err != nil {
+		return nil, err
+	}
 	screw = sdf.Transform3D(screw, sdf.Translate3d(sdf.V3{0, 0, l * 0.5}))
 	sc, err := spincap(r, l-0.5)
 	if err != nil {

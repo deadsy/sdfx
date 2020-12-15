@@ -310,7 +310,7 @@ func Screw3D(
 	length float64, // length of screw
 	pitch float64, // thread to thread distance
 	starts int, // number of thread starts (< 0 for left hand threads)
-) SDF3 {
+) (SDF3, error) {
 	s := ScrewSDF3{}
 	s.thread = thread
 	s.pitch = pitch
@@ -321,7 +321,7 @@ func Screw3D(
 	bb := s.thread.BoundingBox()
 	r := bb.Max.Y
 	s.bb = Box3{V3{-r, -r, -s.length}, V3{r, r, s.length}}
-	return &s
+	return &s, nil
 }
 
 // Evaluate returns the minimum distance to a 3d screw form.

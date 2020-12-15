@@ -13,6 +13,7 @@ import "math"
 //-----------------------------------------------------------------------------
 // 2D Gear Rack
 
+// GearRackParms defines the parameters for a gear rack.
 type GearRackParms struct {
 	NumberTeeth   int     // number of rack teeth
 	Module        float64 // pitch circle diameter / number of gear teeth
@@ -33,19 +34,19 @@ type GearRackSDF2 struct {
 func GearRack2D(k *GearRackParms) (SDF2, error) {
 
 	if k.NumberTeeth <= 0 {
-		return nil, ErrMsg("k.NumberTeeth <= 0")
+		return nil, ErrMsg("NumberTeeth <= 0")
 	}
 	if k.Module <= 0 {
-		return nil, ErrMsg("k.Module <= 0")
+		return nil, ErrMsg("Module <= 0")
 	}
 	if k.PressureAngle <= 0 {
-		return nil, ErrMsg("k.PressureAngle <= 0")
+		return nil, ErrMsg("PressureAngle <= 0")
 	}
 	if k.Backlash < 0 {
-		return nil, ErrMsg("k.Backlash <= 0")
+		return nil, ErrMsg("Backlash <= 0")
 	}
 	if k.BaseHeight < 0 {
-		return nil, ErrMsg("k.BaseHeight < 0")
+		return nil, ErrMsg("BaseHeight < 0")
 	}
 
 	s := GearRackSDF2{}

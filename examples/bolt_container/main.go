@@ -40,7 +40,10 @@ func boltContainer() (sdf.SDF3, error) {
 	r := screwRadius - tolerance
 	l := screwLength
 	isoThread := sdf.ISOThread(r, threadPitch, true)
-	screw := sdf.Screw3D(isoThread, l, threadPitch, 1)
+	screw, err := sdf.Screw3D(isoThread, l, threadPitch, 1)
+	if err != nil {
+		return nil, err
+	}
 	// chamfer the thread
 	screw, err = obj.ChamferedCylinder(screw, 0, 0.25)
 	if err != nil {

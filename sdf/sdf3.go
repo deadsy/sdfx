@@ -384,13 +384,19 @@ type BoxSDF3 struct {
 }
 
 // Box3D return an SDF3 for a 3d box (rounded corners with round > 0).
-func Box3D(size V3, round float64) SDF3 {
+func Box3D(size V3, round float64) (SDF3, error) {
+	if size.LTEZero() {
+		return nil, ErrMsg("size <= 0")
+	}
+	if round < 0 {
+		return nil, ErrMsg("round < 0")
+	}
 	size = size.MulScalar(0.5)
 	s := BoxSDF3{}
 	s.size = size.SubScalar(round)
 	s.round = round
 	s.bb = Box3{size.Neg(), size}
-	return &s
+	return &s, nil
 }
 
 // Evaluate returns the minimum distance to a 3d box.
@@ -413,12 +419,15 @@ type SphereSDF3 struct {
 }
 
 // Sphere3D return an SDF3 for a sphere.
-func Sphere3D(radius float64) SDF3 {
+func Sphere3D(radius float64) (SDF3, error) {
+	if radius <= 0 {
+		return nil, ErrMsg("radius <= 0")
+	}
 	s := SphereSDF3{}
 	s.radius = radius
 	d := V3{radius, radius, radius}
 	s.bb = Box3{d.Neg(), d}
-	return &s
+	return &s, nil
 }
 
 // Evaluate returns the minimum distance to a sphere.

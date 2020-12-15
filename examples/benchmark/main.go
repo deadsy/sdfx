@@ -25,6 +25,6 @@ func main() {
 	s2d = Polygon2D(Nagon(12, 10.0))
 	BenchmarkSDF2("poly12 SDF2", s2d)
 
-	s3d := Box3D(V3{10, 20, 30}, 1)
+	s3d, _ := Box3D(V3{10, 20, 30}, 1)
 	BenchmarkSDF3("box SDF3", s3d)
 }

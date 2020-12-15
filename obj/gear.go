@@ -88,6 +88,7 @@ func involuteGearTooth(
 
 //-----------------------------------------------------------------------------
 
+// InvoluteGearParms defines the parameters for an involute gear.
 type InvoluteGearParms struct {
 	NumberTeeth   int     // number of gear teeth
 	Module        float64 // pitch circle diameter / number of gear teeth
@@ -102,25 +103,25 @@ type InvoluteGearParms struct {
 func InvoluteGear(k *InvoluteGearParms) (sdf.SDF2, error) {
 
 	if k.NumberTeeth <= 0 {
-		return nil, sdf.ErrMsg("k.NumberTeeth <= 0")
+		return nil, sdf.ErrMsg("NumberTeeth <= 0")
 	}
 	if k.Module <= 0 {
-		return nil, sdf.ErrMsg("k.Module <= 0")
+		return nil, sdf.ErrMsg("Module <= 0")
 	}
 	if k.PressureAngle <= 0 {
-		return nil, sdf.ErrMsg("k.PressureAngle <= 0")
+		return nil, sdf.ErrMsg("PressureAngle <= 0")
 	}
 	if k.Backlash < 0 {
-		return nil, sdf.ErrMsg("k.Backlash <= 0")
+		return nil, sdf.ErrMsg("Backlash <= 0")
 	}
 	if k.Clearance < 0 {
-		return nil, sdf.ErrMsg("k.Clearance < 0")
+		return nil, sdf.ErrMsg("Clearance < 0")
 	}
 	if k.RingWidth < 0 {
-		return nil, sdf.ErrMsg("k.RingWidth < 0")
+		return nil, sdf.ErrMsg("RingWidth < 0")
 	}
 	if k.Facets <= 0 {
-		return nil, sdf.ErrMsg("k.Facets <= 0")
+		return nil, sdf.ErrMsg("Facets <= 0")
 	}
 
 	// pitch radius

@@ -45,7 +45,10 @@ func boxTab3d(k *boxTabParms) (sdf.SDF3, error) {
 
 	// add a cutout to give some tab/body clearance
 	w1 := 2.0 * k.Clearance * w
-	cutout := sdf.Box3D(sdf.V3{l, h - 2.0*k.Wall, w1}, 0)
+	cutout, err := sdf.Box3D(sdf.V3{l, h - 2.0*k.Wall, w1}, 0)
+	if err != nil {
+		return nil, err
+	}
 	cutout = sdf.Transform3D(cutout, sdf.Translate3d(sdf.V3{0, -w, 0.5 * (w - w1)}))
 	tab = sdf.Difference3D(tab, cutout)
 

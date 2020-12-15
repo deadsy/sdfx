@@ -51,14 +51,24 @@ func (a V2) Equals(b V2, tolerance float64) bool {
 		math.Abs(a.Y-b.Y) <= tolerance)
 }
 
-// LessThanZero returns true if any vector components are < 0.
-func (a V3) LessThanZero() bool {
+// LTZero returns true if any vector components are < 0.
+func (a V3) LTZero() bool {
 	return (a.X < 0) || (a.Y < 0) || (a.Z < 0)
 }
 
-// LessThanZero returns true if any vector components are < 0.
-func (a V2) LessThanZero() bool {
+// LTEZero returns true if any vector components are <= 0.
+func (a V3) LTEZero() bool {
+	return (a.X <= 0) || (a.Y <= 0) || (a.Z <= 0)
+}
+
+// LTZero returns true if any vector components are < 0.
+func (a V2) LTZero() bool {
 	return (a.X < 0) || (a.Y < 0)
+}
+
+// LTEZero returns true if any vector components are < 0.
+func (a V2) LTEZero() bool {
+	return (a.X <= 0) || (a.Y <= 0)
 }
 
 //-----------------------------------------------------------------------------
