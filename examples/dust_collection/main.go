@@ -12,6 +12,7 @@ import (
 	"log"
 	"math"
 
+	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
 )
@@ -19,39 +20,37 @@ import (
 //-----------------------------------------------------------------------------
 
 // dust deputy tapered pipe
-var dd_od = 51.0
-var dd_taper = sdf.DtoR(2.0)
-var dd_length = 39.0
+const ddOuterDiameter = 51.0
+const ddLength = 39.0
+
+var ddTaper = sdf.DtoR(2.0)
 
 // vacuum hose 2.5" male fitting
-var vh_od = 58.0
-var vh_clearance = 0.6
-var vh_taper = sdf.DtoR(0.4)
+const vhOuterDiameter = 58.0
+const vhClearance = 0.6
 
-// pvc pipe outside diameters
-var pvc3_od = 3.26 * sdf.MillimetresPerInch
-var pvc2_od = 2.375 * sdf.MillimetresPerInch
+var vhTaper = sdf.DtoR(0.4)
 
-var wall_thickness = 4.0
+const wallThickness = 4.0
 
 //-----------------------------------------------------------------------------
 
-// adapter: female dust deputy, female 2.5" vacuum
-func fdd_to_fvh25() (sdf.SDF3, error) {
+// dust deputy (female), 2.5" vacuum (female)
+func dustDeputyToVacuumFF() (sdf.SDF3, error) {
 
-	t := wall_thickness
-	transition_length := 15.0
-	vh_length := 30.0
+	const t = wallThickness
+	const transitionLength = 15.0
+	const vhLength = 30.0
 
-	r0 := dd_od / 2
-	r1 := r0 - dd_length*math.Tan(dd_taper)
-	r3 := (vh_od + vh_clearance) / 2
-	r2 := r3 - (vh_length * math.Tan(vh_taper))
+	r0 := ddOuterDiameter * 0.5
+	r1 := r0 - ddLength*math.Tan(ddTaper)
+	r3 := (vhOuterDiameter + vhClearance) * 0.5
+	r2 := r3 - (vhLength * math.Tan(vhTaper))
 
 	h0 := 0.0
-	h1 := h0 + dd_length
-	h2 := h1 + transition_length
-	h3 := h2 + vh_length
+	h1 := h0 + ddLength
+	h2 := h1 + transitionLength
+	h3 := h2 + vhLength
 
 	p := sdf.NewPolygon()
 	p.Add(r0+t, h0)
@@ -73,18 +72,23 @@ func fdd_to_fvh25() (sdf.SDF3, error) {
 
 //-----------------------------------------------------------------------------
 
-// adapter: male 2.5" vacuum, male 3" pvc
-func mvh25_to_mpvc(pvc_od float64) (sdf.SDF3, error) {
+// 2.5" vacuum (male) to pipe (male)
+func vacuumToPipeMM(name string) (sdf.SDF3, error) {
 
-	t := wall_thickness
-	transition_length := 15.0
+	k, err := obj.PipeLookup(name, "mm")
+	if err != nil {
+		return nil, err
+	}
 
-	r0 := pvc_od / 2
-	r1 := vh_od / 2
+	t := wallThickness
+	transitionLength := 15.0
+
+	r0 := k.Outer
+	r1 := vhOuterDiameter * 0.5
 
 	h0 := 0.0
 	h1 := h0 + 35.0
-	h2 := h1 + transition_length
+	h2 := h1 + transitionLength
 	h3 := h2 + 20.0
 
 	p := sdf.NewPolygon()
@@ -107,20 +111,25 @@ func mvh25_to_mpvc(pvc_od float64) (sdf.SDF3, error) {
 
 //-----------------------------------------------------------------------------
 
-// adapter: female dust deputy, male 3" pvc
-func fdd_to_mpvc(pvc_od float64) (sdf.SDF3, error) {
+// dust deputy (female) to pipe (male)
+func dustDeputyToPipeFM(name string) (sdf.SDF3, error) {
 
-	t := wall_thickness
-	transition_length := 15.0
+	k, err := obj.PipeLookup(name, "mm")
+	if err != nil {
+		return nil, err
+	}
 
-	r0 := pvc_od / 2
-	r2 := (dd_od / 2) + t
-	r1 := r2 - dd_length*math.Tan(dd_taper)
+	t := wallThickness
+	transitionLength := 15.0
+
+	r0 := k.Outer
+	r2 := (ddOuterDiameter * 0.5) + t
+	r1 := r2 - ddLength*math.Tan(ddTaper)
 
 	h0 := 0.0
 	h1 := h0 + 35.0
-	h2 := h1 + transition_length
-	h3 := h2 + dd_length
+	h2 := h1 + transitionLength
+	h3 := h2 + ddLength
 
 	p := sdf.NewPolygon()
 	p.Add(r0, h0)
@@ -143,24 +152,23 @@ func fdd_to_mpvc(pvc_od float64) (sdf.SDF3, error) {
 //-----------------------------------------------------------------------------
 
 func main() {
-	s, err := fdd_to_fvh25()
+	s, err := dustDeputyToVacuumFF()
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 	render.RenderSTL(s, 150, "fdd_fvh25.stl")
 
-	s, err = mvh25_to_mpvc(pvc2_od)
+	s, err = vacuumToPipeMM("sch40:2")
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 	render.RenderSTL(s, 150, "mvh25_mpvc.stl")
 
-	s, err = fdd_to_mpvc(pvc2_od)
+	s, err = dustDeputyToPipeFM("sch40:2")
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 	render.RenderSTL(s, 150, "fdd_mpvc.stl")
-
 }
 
 //-----------------------------------------------------------------------------

@@ -608,8 +608,17 @@ func test50() error {
 	return nil
 }
 
+func test51() error {
+	s, err := obj.Pipe3D("sch40:1", 100, "mm")
+	if err != nil {
+		return err
+	}
+	render.RenderSTL(s, 300, "test.stl")
+	return nil
+}
+
 func main() {
-	err := test50()
+	err := test51()
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
