@@ -87,7 +87,12 @@ func cc16b() (SDF3, error) {
 		{base_hole_xofs, base_hole_yofs},
 		{-base_hole_xofs, base_hole_yofs},
 	}
-	holes_2d := Multi2D(Circle2D(base_hole_r), holes)
+
+	c, err := Circle2D(base_hole_r)
+	if err != nil {
+		return nil, err
+	}
+	holes_2d := Multi2D(c, holes)
 	base_2d = Difference2D(base_2d, holes_2d)
 
 	// cut out the slotted hole
@@ -125,7 +130,10 @@ func cc16b() (SDF3, error) {
 		{recess_w + recess_h, recess_h},
 		{0, recess_h},
 	}
-	recess_2d := Polygon2D(recess)
+	recess_2d, err := Polygon2D(recess)
+	if err != nil {
+		return nil, err
+	}
 	recess_3d := Extrude3D(recess_2d, base_w)
 	q := RotateX(DtoR(90))
 	q = RotateZ(DtoR(-90)).Mul(q)
@@ -152,8 +160,10 @@ func cc16b() (SDF3, error) {
 	support.Add(-base_w/2, 0)
 	support.Add(-base_w/2, -1)
 	//support.Render("support.dxf")
-	support_2d := Polygon2D(support.Vertices())
-
+	support_2d, err := Polygon2D(support.Vertices())
+	if err != nil {
+		return nil, err
+	}
 	// extrude the support to 3d
 	support_3d := Extrude3D(support_2d, support_w)
 
@@ -196,7 +206,10 @@ func cc16b() (SDF3, error) {
 	gusset.Add(-gusset_l, gusset_l)
 	gusset.Add(-gusset_l, 0)
 	//gusset.Render("gusset.dxf")
-	gusset_2d := Polygon2D(gusset.Vertices())
+	gusset_2d, err := Polygon2D(gusset.Vertices())
+	if err != nil {
+		return nil, err
+	}
 
 	// extrude the gusset to 3d
 	gusset_3d := Extrude3D(gusset_2d, gusset_w)

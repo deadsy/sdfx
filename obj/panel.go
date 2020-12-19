@@ -47,7 +47,10 @@ func Panel2D(k *PanelParms) (sdf.SDF2, error) {
 	bl := sdf.V2{-0.5*k.Size.X + k.HoleMargin[3], -0.5*k.Size.Y + k.HoleMargin[2]}
 
 	// holes
-	hole := sdf.Circle2D(0.5 * k.HoleDiameter)
+	hole, err := sdf.Circle2D(0.5 * k.HoleDiameter)
+	if err != nil {
+		return nil, err
+	}
 	var holes []sdf.SDF2
 	// clockwise: top, right, bottom, left
 	holes = append(holes, sdf.LineOf2D(hole, tl, tr, k.HolePattern[0]))

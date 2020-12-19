@@ -34,7 +34,11 @@ func pillarWeb(k *StandoffParms) (sdf.SDF3, error) {
 	w.Add(0, 0)
 	w.Add(0.5*k.WebDiameter, 0)
 	w.Add(0, k.WebHeight)
-	s := sdf.Extrude3D(sdf.Polygon2D(w.Vertices()), k.WebWidth)
+	p, err := sdf.Polygon2D(w.Vertices())
+	if err != nil {
+		return nil, err
+	}
+	s := sdf.Extrude3D(p, k.WebWidth)
 	m := sdf.Translate3d(sdf.V3{0, 0, -0.5 * k.PillarHeight}).Mul(sdf.RotateX(sdf.DtoR(90.0)))
 	return sdf.Transform3D(s, m), nil
 }

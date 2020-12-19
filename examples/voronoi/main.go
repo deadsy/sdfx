@@ -9,7 +9,7 @@ Voronoi Diagram and Delaunay Triangulation
 package main
 
 import (
-	"fmt"
+	"log"
 
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
@@ -26,7 +26,10 @@ func main() {
 	path := "voronoi.png"
 
 	// use a 0 radius circle as a point
-	point := sdf.Circle2D(0.0)
+	point, err := sdf.Circle2D(0.0)
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
 
 	// build an SDF for the points
 	var s0 sdf.SDF2
@@ -36,12 +39,10 @@ func main() {
 
 	// work out the region we will sample
 	bb := s0.BoundingBox().ScaleAboutCenter(k)
-
-	fmt.Printf("rendering %s (%dx%d)\n", path, pixels[0], pixels[1])
+	log.Printf("rendering %s (%dx%d)\n", path, pixels[0], pixels[1])
 	d, err := render.NewPNG(path, bb, pixels)
 	if err != nil {
-		fmt.Printf("%s\n", err)
-		return
+		log.Fatalf("error: %s", err)
 	}
 
 	d.RenderSDF2(s0)

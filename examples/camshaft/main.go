@@ -43,7 +43,11 @@ func camshaft() (sdf.SDF3, error) {
 	p.Add(0, l4).Rel()
 	p.Add(-r3, 0).Rel()
 
-	shaft2d := sdf.Polygon2D(p.Vertices())
+	shaft2d, err := sdf.Polygon2D(p.Vertices())
+	if err != nil {
+		return nil, err
+	}
+
 	shaft3d, err := sdf.Revolve3D(shaft2d)
 	if err != nil {
 		return nil, err

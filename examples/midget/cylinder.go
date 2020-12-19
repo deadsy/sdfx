@@ -80,7 +80,11 @@ func cylinderPattern(core, split bool) (sdf.SDF3, error) {
 	p.Add(r2-r1, draft*(r2-r1)).Rel().Smooth(smooth0, smoothN)
 	p.Add(0, l1).Rel().Smooth(smooth1, smoothN)
 	p.Add(-r2, draft*r2).Rel()
-	body, err := sdf.Revolve3D(sdf.Polygon2D(p.Vertices()))
+	s, err := sdf.Polygon2D(p.Vertices())
+	if err != nil {
+		return nil, err
+	}
+	body, err := sdf.Revolve3D(s)
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +104,11 @@ func cylinderPattern(core, split bool) (sdf.SDF3, error) {
 	p.Add(r0, draft*r0).Rel().Smooth(smooth1, smoothN)
 	p.Add(0, l2).Rel().Smooth(smooth1, smoothN)
 	p.Add(-r0, draft*r0).Rel()
-	corePrint, err := sdf.Revolve3D(sdf.Polygon2D(p.Vertices()))
+	s, err = sdf.Polygon2D(p.Vertices())
+	if err != nil {
+		return nil, err
+	}
+	corePrint, err := sdf.Revolve3D(s)
 	if err != nil {
 		return nil, err
 	}

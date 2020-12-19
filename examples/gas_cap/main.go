@@ -36,7 +36,10 @@ func capOuter() (sdf.SDF3, error) {
 }
 
 func capInner() (sdf.SDF3, error) {
-	tp := sdf.PlasticButtressThread(threadRadius, threadPitch)
+	tp, err := sdf.PlasticButtressThread(threadRadius, threadPitch)
+	if err != nil {
+		return nil, err
+	}
 	screw, err := sdf.Screw3D(tp, capHeight, threadPitch, 1)
 	if err != nil {
 		return nil, err

@@ -73,12 +73,15 @@ type CircleSDF2 struct {
 }
 
 // Circle2D returns the SDF2 for a 2d circle.
-func Circle2D(radius float64) SDF2 {
+func Circle2D(radius float64) (SDF2, error) {
+	if radius < 0 {
+		return nil, ErrMsg("radius < 0")
+	}
 	s := CircleSDF2{}
 	s.radius = radius
 	d := V2{radius, radius}
 	s.bb = Box2{d.Neg(), d}
-	return &s
+	return &s, nil
 }
 
 // Evaluate returns the minimum distance to a 2d circle.
@@ -230,12 +233,12 @@ type PolySDF2 struct {
 }
 
 // Polygon2D returns an SDF2 made from a closed set of line segments.
-func Polygon2D(vertex []V2) SDF2 {
+func Polygon2D(vertex []V2) (SDF2, error) {
 	s := PolySDF2{}
 
 	n := len(vertex)
 	if n < 3 {
-		return nil
+		return nil, ErrMsg("number of vertices < 3")
 	}
 
 	// Close the loop (if necessary)
@@ -261,7 +264,7 @@ func Polygon2D(vertex []V2) SDF2 {
 	}
 
 	s.bb = Box2{vmin, vmax}
-	return &s
+	return &s, nil
 }
 
 // Evaluate returns the minimum distance for a 2d polygon.

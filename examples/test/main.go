@@ -28,7 +28,10 @@ func test2() error {
 }
 
 func test3() error {
-	s0 := Circle2D(0.1)
+	s0, err := Circle2D(0.1)
+	if err != nil {
+		return err
+	}
 	s0 = Transform2D(s0, Translate2d(V2{1, 0}))
 	s1, err := Revolve3D(s0)
 	if err != nil {
@@ -125,7 +128,10 @@ func test12() error {
 		{k, k},
 		{-k, k},
 	}
-	s0 := Polygon2D(points)
+	s0, err := Polygon2D(points)
+	if err != nil {
+		return err
+	}
 	s0 = Transform2D(s0, Translate2d(V2{0.8, 0}))
 	s1, err := RevolveTheta3D(s0, DtoR(360))
 	if err != nil {
@@ -137,7 +143,10 @@ func test12() error {
 
 func test13() error {
 	k := 0.4
-	s0 := Polygon2D([]V2{{k, -k}, {k, k}, {-k, k}, {-k, -k}})
+	s0, err := Polygon2D([]V2{{k, -k}, {k, k}, {-k, k}, {-k, -k}})
+	if err != nil {
+		return err
+	}
 	s0 = Transform2D(s0, Translate2d(V2{0.8, 0}))
 	s1, err := RevolveTheta3D(s0, DtoR(270))
 	if err != nil {
@@ -167,7 +176,10 @@ func test14() error {
 		{j + c*a + s*b, k + s*a - c*b},
 	}
 
-	s0 := Polygon2D(points)
+	s0, err := Polygon2D(points)
+	if err != nil {
+		return err
+	}
 	s1, err := RevolveTheta3D(s0, DtoR(300))
 	if err != nil {
 		return err
@@ -192,7 +204,10 @@ func test15() error {
 		{-a, b},
 	}
 
-	s0 := Polygon2D(points)
+	s0, err := Polygon2D(points)
+	if err != nil {
+		return err
+	}
 	s0 = Transform2D(s0, Rotate2d(DtoR(theta)))
 	s0 = Transform2D(s0, Translate2d(V2{j, k}))
 
@@ -227,7 +242,10 @@ func test16() error {
 		{-b1, -c},
 	}
 
-	s0 := Polygon2D(points)
+	s0, err := Polygon2D(points)
+	if err != nil {
+		return err
+	}
 	s0 = Transform2D(s0, Rotate2d(DtoR(theta)))
 	s0 = Transform2D(s0, Translate2d(V2{j, k}))
 
@@ -256,7 +274,10 @@ func test17() error {
 		{-a, -b},
 	}
 
-	s0 := Polygon2D(points)
+	s0, err := Polygon2D(points)
+	if err != nil {
+		return err
+	}
 	s0 = Transform2D(s0, Translate2d(V2{j, k}))
 
 	s1, err := RevolveTheta3D(s0, DtoR(300))
@@ -294,7 +315,10 @@ func test18() error {
 		{0, h4},
 	}
 
-	s0 := Polygon2D(points)
+	s0, err := Polygon2D(points)
+	if err != nil {
+		return err
+	}
 	s1, err := RevolveTheta3D(s0, DtoR(300))
 	if err != nil {
 		return err
@@ -309,7 +333,10 @@ func test18() error {
 func test19() error {
 	r := 2.0
 	k := 1.9
-	s0 := Circle2D(r)
+	s0, err := Circle2D(r)
+	if err != nil {
+		return err
+	}
 	s1 := Array2D(s0, V2i{3, 7}, V2{k * r, k * r})
 	s1.(*ArraySDF2).SetMin(PolyMin(0.8))
 	s2 := Extrude3D(s1, 1.0)
@@ -320,7 +347,10 @@ func test19() error {
 func test20() error {
 	r := 4.0
 	d := 20.0
-	s0 := Circle2D(r)
+	s0, err := Circle2D(r)
+	if err != nil {
+		return err
+	}
 	s0 = Transform2D(s0, Translate2d(V2{d, 0}))
 	s0 = RotateUnion2D(s0, 5, Rotate2d(DtoR(20)))
 	s0.(*RotateUnionSDF2).SetMin(PolyMin(1.2))
@@ -473,7 +503,10 @@ func test36() error {
 func test37() error {
 	r := 5.0
 	p := 2.0
-	isoThread := ISOThread(r, p, true)
+	isoThread, err := ISOThread(r, p, true)
+	if err != nil {
+		return err
+	}
 	s, err := Screw3D(isoThread, 50, p, 1)
 	if err != nil {
 		return err
@@ -535,8 +568,14 @@ func test43() error {
 
 func test44() error {
 	r := 100.0
-	s0 := Polygon2D(Nagon(5, r))
-	s1 := Circle2D(r / 2)
+	s0, err := Polygon2D(Nagon(5, r))
+	if err != nil {
+		return err
+	}
+	s1, err := Circle2D(r / 2)
+	if err != nil {
+		return err
+	}
 	s2, err := Loft3D(s1, s0, 200.0, 20.0)
 	if err != nil {
 		return err
@@ -546,7 +585,10 @@ func test44() error {
 }
 
 func test49() error {
-	s0 := Circle2D(0.8)
+	s0, err := Circle2D(0.8)
+	if err != nil {
+		return err
+	}
 	render.RenderDXF(s0, 50, "test.dxf")
 	return nil
 }

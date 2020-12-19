@@ -24,7 +24,10 @@ func HexHead3D(
 ) (sdf.SDF3, error) {
 	// basic hex body
 	cornerRound := radius * 0.08
-	hex2d := sdf.Polygon2D(sdf.Nagon(6, radius-cornerRound))
+	hex2d, err := sdf.Polygon2D(sdf.Nagon(6, radius-cornerRound))
+	if err != nil {
+		return nil, err
+	}
 	hex2d = sdf.Offset2D(hex2d, cornerRound)
 	hex3d := sdf.Extrude3D(hex2d, height)
 	// round out the top and/or bottom as required

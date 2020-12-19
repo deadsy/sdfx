@@ -90,7 +90,10 @@ func bezelStandoffs() (sdf.SDF3, error) {
 
 func speakerHoles(d float64, ofs sdf.V2) (sdf.SDF2, error) {
 	holeRadius := 1.7
-	s0 := sdf.Circle2D(holeRadius)
+	s0, err := sdf.Circle2D(holeRadius)
+	if err != nil {
+		return nil, err
+	}
 	s1, err := obj.BoltCircle2D(holeRadius, d*0.3, 6)
 	if err != nil {
 		return nil, err
@@ -131,11 +134,17 @@ func bezel() (sdf.SDF3, error) {
 	l0 := sdf.Box2D(lcd, 2)
 
 	// camera cutout
-	c0 := sdf.Circle2D(7.25)
+	c0, err := sdf.Circle2D(7.25)
+	if err != nil {
+		return nil, err
+	}
 	c0 = sdf.Transform2D(c0, sdf.Translate2d(sdf.V2{42, 0}))
 
 	// led hole cutout
-	c1 := sdf.Circle2D(2)
+	c1, err := sdf.Circle2D(2)
+	if err != nil {
+		return nil, err
+	}
 	c1 = sdf.Transform2D(c1, sdf.Translate2d(sdf.V2{44, -20}))
 
 	// speaker holes cutout

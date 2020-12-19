@@ -39,7 +39,10 @@ func boltContainer() (sdf.SDF3, error) {
 	// build the screw portion
 	r := screwRadius - tolerance
 	l := screwLength
-	isoThread := sdf.ISOThread(r, threadPitch, true)
+	isoThread, err := sdf.ISOThread(r, threadPitch, true)
+	if err != nil {
+		return nil, err
+	}
 	screw, err := sdf.Screw3D(isoThread, l, threadPitch, 1)
 	if err != nil {
 		return nil, err

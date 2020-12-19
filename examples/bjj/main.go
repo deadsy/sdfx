@@ -52,7 +52,12 @@ func bushing() (sdf.SDF3, error) {
 	p.Add(r2, h0)
 	p.Add(r2, h1)
 	p.Add(r0, h1)
-	return sdf.Revolve3D(sdf.Polygon2D(p.Vertices()))
+
+	s, err := sdf.Polygon2D(p.Vertices())
+	if err != nil {
+		return nil, err
+	}
+	return sdf.Revolve3D(s)
 }
 
 //-----------------------------------------------------------------------------
@@ -60,7 +65,10 @@ func bushing() (sdf.SDF3, error) {
 // plateHoles2D returns 4 holes to attach the plate to the gear stack.
 func plateHoles2D() (sdf.SDF2, error) {
 	d := 17.0
-	h := sdf.Circle2D(1.2)
+	h, err := sdf.Circle2D(1.2)
+	if err != nil {
+		return nil, err
+	}
 	s0 := sdf.Transform2D(h, sdf.Translate2d(sdf.V2{d, d}))
 	s1 := sdf.Transform2D(h, sdf.Translate2d(sdf.V2{-d, -d}))
 	s2 := sdf.Transform2D(h, sdf.Translate2d(sdf.V2{-d, d}))
@@ -72,7 +80,10 @@ const rod_r = (1.0 / 16.0) * sdf.MillimetresPerInch * 1.10
 
 func lockingRod() (sdf.SDF3, error) {
 	l := 62.0
-	s0 := sdf.Circle2D(rod_r)
+	s0, err := sdf.Circle2D(rod_r)
+	if err != nil {
+		return nil, err
+	}
 	s1 := sdf.Box2D(sdf.V2{2 * rod_r, rod_r}, 0)
 	s1 = sdf.Transform2D(s1, sdf.Translate2d(sdf.V2{0, -0.5 * rod_r}))
 	s2 := sdf.Union2D(s0, s1)
@@ -125,13 +136,10 @@ func gears() (sdf.SDF3, error) {
 	g_height := 10.0
 
 	// 12 tooth spur gear
-	g0_teeth := 12
-	g0_pd := float64(g0_teeth) * gear_module
 	k := obj.InvoluteGearParms{
-		NumberTeeth:   g0_teeth,
+		NumberTeeth:   12,
 		Module:        gear_module,
 		PressureAngle: pressure_angle,
-		RingWidth:     g0_pd * 0.5,
 		Facets:        involute_facets,
 	}
 	g0_2d, err := obj.InvoluteGear(&k)
@@ -141,13 +149,10 @@ func gears() (sdf.SDF3, error) {
 	g0 := sdf.Extrude3D(g0_2d, g_height)
 
 	// 16 tooth spur gear
-	g1_teeth := 16
-	g1_pd := float64(g1_teeth) * gear_module
 	k = obj.InvoluteGearParms{
-		NumberTeeth:   g1_teeth,
+		NumberTeeth:   16,
 		Module:        gear_module,
 		PressureAngle: pressure_angle,
-		RingWidth:     g1_pd * 0.5,
 		Facets:        involute_facets,
 	}
 	g1_2d, err := obj.InvoluteGear(&k)

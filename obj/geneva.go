@@ -54,9 +54,15 @@ func Geneva2D(k *GenevaParms) (sdf.SDF2, sdf.SDF2, error) {
 	pinOffset := math.Sqrt((d * d) + (r * r) - (2 * d * r * math.Cos(theta)))
 
 	// driven wheel
-	sDriven := sdf.Circle2D(k.DrivenRadius - k.Clearance)
+	sDriven, err := sdf.Circle2D(k.DrivenRadius - k.Clearance)
+	if err != nil {
+		return nil, nil, err
+	}
 	// cutouts for the driver wheel
-	s := sdf.Circle2D(k.DriverRadius + k.Clearance)
+	s, err := sdf.Circle2D(k.DriverRadius + k.Clearance)
+	if err != nil {
+		return nil, nil, err
+	}
 	s = sdf.Transform2D(s, sdf.Translate2d(sdf.V2{k.CenterDistance, 0}))
 	s = sdf.RotateCopy2D(s, k.NumSectors)
 	sDriven = sdf.Difference2D(sDriven, s)
@@ -69,13 +75,22 @@ func Geneva2D(k *GenevaParms) (sdf.SDF2, sdf.SDF2, error) {
 	sDriven = sdf.Difference2D(sDriven, s)
 
 	// driver wheel
-	sDriver := sdf.Circle2D(k.DriverRadius - k.Clearance)
+	sDriver, err := sdf.Circle2D(k.DriverRadius - k.Clearance)
+	if err != nil {
+		return nil, nil, err
+	}
 	// cutout for the driven wheel
-	s = sdf.Circle2D(k.DrivenRadius + k.Clearance)
+	s, err = sdf.Circle2D(k.DrivenRadius + k.Clearance)
+	if err != nil {
+		return nil, nil, err
+	}
 	s = sdf.Transform2D(s, sdf.Translate2d(sdf.V2{k.CenterDistance, 0}))
 	sDriver = sdf.Difference2D(sDriver, s)
 	// driver pin
-	s = sdf.Circle2D(k.PinRadius)
+	s, err = sdf.Circle2D(k.PinRadius)
+	if err != nil {
+		return nil, nil, err
+	}
 	s = sdf.Transform2D(s, sdf.Translate2d(sdf.V2{pinOffset, 0}))
 	sDriver = sdf.Union2D(sDriver, s)
 

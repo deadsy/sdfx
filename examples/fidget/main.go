@@ -72,7 +72,7 @@ func flower(n int, r0, r1, r2 float64) (sdf.SDF2, error) {
 		return nil, err
 	}
 
-	return sdf.Polygon2D(p.Vertices()), nil
+	return sdf.Polygon2D(p.Vertices())
 }
 
 func body1() (sdf.SDF3, error) {
@@ -121,8 +121,12 @@ func body2() (sdf.SDF3, error) {
 	p.Add(r0, -t/2)
 	p.Add(r0, t/2)
 	p.Add(r, t/2)
+	s, err := sdf.Polygon2D(p.Vertices())
+	if err != nil {
+		return nil, err
+	}
 	theta := sdf.DtoR(270)
-	arm, err := sdf.RevolveTheta3D(sdf.Polygon2D(p.Vertices()), theta)
+	arm, err := sdf.RevolveTheta3D(s, theta)
 	if err != nil {
 		return nil, err
 	}
@@ -170,7 +174,12 @@ func spincap(
 	p.Add(pinR, pinL)
 	p.Add(0, pinL)
 
-	return sdf.Revolve3D(sdf.Polygon2D(p.Vertices()))
+	s, err := sdf.Polygon2D(p.Vertices())
+	if err != nil {
+		return nil, err
+	}
+
+	return sdf.Revolve3D(s)
 }
 
 //-----------------------------------------------------------------------------
@@ -195,7 +204,10 @@ func spincapDouble(male bool) (sdf.SDF3, error) {
 
 	if male {
 		// Add an external screw thread.
-		t := sdf.ISOThread(threadR-threadTolerance, threadPitch, true)
+		t, err := sdf.ISOThread(threadR-threadTolerance, threadPitch, true)
+		if err != nil {
+			return nil, err
+		}
 		screw, err := sdf.Screw3D(t, bearingThickness, threadPitch, 1)
 		if err != nil {
 			return nil, err
@@ -212,7 +224,10 @@ func spincapDouble(male bool) (sdf.SDF3, error) {
 		return sdf.Union3D(sc, screw), nil
 	}
 	// Add an internal screw thread.
-	t := sdf.ISOThread(threadR, threadPitch, false)
+	t, err := sdf.ISOThread(threadR, threadPitch, false)
+	if err != nil {
+		return nil, err
+	}
 	screw, err := sdf.Screw3D(t, bearingThickness, threadPitch, 1)
 	if err != nil {
 		return nil, err

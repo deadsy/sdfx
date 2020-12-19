@@ -61,7 +61,7 @@ func exhaust_boss(mode string, x_ofs float64) SDF3 {
 	if mode == "body" {
 		s0 = NewFlange1(eb_distance, eb_main_radius, eb_side_radius)
 	} else if mode == "hole" {
-		s0 = Circle2D(eb_hole_radius)
+		s0, _ = Circle2D(eb_hole_radius)
 	} else {
 		panic("bad mode")
 	}
@@ -130,7 +130,7 @@ func sparkplug(mode string, x_ofs float64) SDF3 {
 	} else {
 		panic("bad mode")
 	}
-	s0 := Polygon2D(vlist)
+	s0, _ := Polygon2D(vlist)
 	s, _ := Revolve3D(s0)
 	m := RotateX(Pi/2 - sp_theta)
 	m = Translate3d(V3{x_ofs, sp_y_ofs, sp_z_ofs}).Mul(m)
@@ -255,7 +255,8 @@ var stud_locations = []V2{
 }
 
 func head_stud_holes() SDF3 {
-	s := Multi2D(Circle2D(stud_hole_radius), stud_locations)
+	c, _ := Circle2D(stud_hole_radius)
+	s := Multi2D(c, stud_locations)
 	return Extrude3D(s, head_height)
 }
 
@@ -276,7 +277,8 @@ func head_wall_inner_2d() SDF2 {
 	l := head_length - (2 * head_wall_thickness)
 	w := head_width - (2 * head_wall_thickness)
 	s0 := Box2D(V2{l, w}, 0)
-	s1 := Multi2D(Circle2D(stud_boss_radius), stud_locations)
+	c, _ := Circle2D(stud_boss_radius)
+	s1 := Multi2D(c, stud_locations)
 	s := Difference2D(s0, s1)
 	s.(*DifferenceSDF2).SetMax(PolyMax(general_round))
 	return s

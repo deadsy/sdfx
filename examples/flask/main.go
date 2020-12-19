@@ -14,6 +14,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"math"
 
 	"github.com/deadsy/sdfx/obj"
@@ -53,12 +54,15 @@ const lugBaseWidth = padWidth * 0.95
 //-----------------------------------------------------------------------------
 
 // alignmentHoles returns an SDF3 for the alignment holes between the flask and pin lugs pattern.
-func alignmentHoles() sdf.SDF3 {
+func alignmentHoles() (sdf.SDF3, error) {
 	w := lugBaseWidth
 	h := (lugBaseThickness + padThickness + wallThickness + cornerLength) * 2.0
 	xofs := w * 0.8 * 0.5
-	cylinder, _ := sdf.Cylinder3D(h, holeRadius, 0)
-	return sdf.Multi3D(cylinder, sdf.V3Set{{xofs, 0, 0}, {-xofs, 0, 0}})
+	cylinder, err := sdf.Cylinder3D(h, holeRadius, 0)
+	if err != nil {
+		return nil, err
+	}
+	return sdf.Multi3D(cylinder, sdf.V3Set{{xofs, 0, 0}, {-xofs, 0, 0}}), nil
 }
 
 // pinLug returns a single pin lug.
@@ -74,7 +78,7 @@ func pinLug(w float64) (sdf.SDF3, error) {
 }
 
 // pinLugs returns an SDF3 for the pin lugs pattern.
-func pinLugs() sdf.SDF3 {
+func pinLugs() (sdf.SDF3, error) {
 	// build the base
 	w := lugBaseWidth
 	r := lugThickness*0.5 + lugOffset
@@ -84,19 +88,31 @@ func pinLugs() sdf.SDF3 {
 		BaseRadius:  r,
 		RoundRadius: lugBaseThickness * 0.25,
 	}
-	base, _ := obj.TruncRectPyramid3D(&k)
+	base, err := obj.TruncRectPyramid3D(&k)
+	if err != nil {
+		return nil, err
+	}
 
 	// build the pin lugs
 	pinWidth := w - 2.0*lugOffset
-	pin, _ := pinLug(pinWidth)
+	pin, err := pinLug(pinWidth)
+	if err != nil {
+		return nil, err
+	}
 	yofs := 0.5 * (pinWidth - lugThickness)
 	pin0 := sdf.Transform3D(pin, sdf.Translate3d(sdf.V3{0, yofs, lugBaseThickness}))
 	pin1 := sdf.Transform3D(pin, sdf.Translate3d(sdf.V3{0, -yofs, lugBaseThickness}))
 
+	// combine the base and pins
 	s := sdf.Union3D(base, pin0, pin1)
 	s.(*sdf.UnionSDF3).SetMin(sdf.PolyMin(lugBaseThickness * 0.75))
 
-	return sdf.Difference3D(s, alignmentHoles())
+	// add alignment holes
+	holes, err := alignmentHoles()
+	if err != nil {
+		return nil, err
+	}
+	return sdf.Difference3D(s, holes), nil
 }
 
 //-----------------------------------------------------------------------------
@@ -117,7 +133,7 @@ func sandKey(size sdf.V3) (sdf.SDF3, error) {
 //-----------------------------------------------------------------------------
 
 // oddSide returns an SDF3 for the odd sides at either end of the flask pattern.
-func oddSide(height float64) sdf.SDF3 {
+func oddSide(height float64) (sdf.SDF3, error) {
 
 	theta45 := sdf.DtoR(45)
 
@@ -147,13 +163,13 @@ func oddSide(height float64) sdf.SDF3 {
 	key, _ := sandKey(sdf.V3{sx, sy, sz})
 	key = sdf.Transform3D(key, sdf.Translate3d(sdf.V3{0.5 * sx, 0, 0}))
 
-	return sdf.Difference3D(sdf.Union3D(base, key), holes)
+	return sdf.Difference3D(sdf.Union3D(base, key), holes), nil
 }
 
 //-----------------------------------------------------------------------------
 
 // sideDraftProfile returns the 2d profile for the side draft of the flask pattern.
-func sideDraftProfile(height float64) sdf.SDF2 {
+func sideDraftProfile(height float64) (sdf.SDF2, error) {
 
 	h0 := keyDepth + wallThickness + cornerLength
 	w0 := height * 0.5
@@ -166,15 +182,18 @@ func sideDraftProfile(height float64) sdf.SDF2 {
 	p.Add(w1, h0)
 	p.Add(w2, h0)
 
-	s0 := sdf.Polygon2D(p.Vertices())
+	s0, err := sdf.Polygon2D(p.Vertices())
+	if err != nil {
+		return nil, err
+	}
 	s1 := sdf.Transform2D(s0, sdf.MirrorY())
-	return sdf.Union2D(s0, s1)
+	return sdf.Union2D(s0, s1), nil
 }
 
 //-----------------------------------------------------------------------------
 
 // flaskSideProfile returns a half 2D extrusion profile for the flask.
-func flaskSideProfile(width float64) sdf.SDF2 {
+func flaskSideProfile(width float64) (sdf.SDF2, error) {
 
 	theta45 := sdf.DtoR(45)
 	theta135 := sdf.DtoR(135)
@@ -207,44 +226,64 @@ func flaskSideProfile(width float64) sdf.SDF2 {
 }
 
 // pullHoles returns an SDF3 for the flask pull holes.
-func pullHoles(width float64) sdf.SDF3 {
+func pullHoles(width float64) (sdf.SDF3, error) {
 	h := (wallThickness + keyDepth) * 2.0
 	xofs := width * 0.9 * 0.5
 	hole, _ := sdf.Cylinder3D(h, holeRadius, 0)
-	return sdf.Multi3D(hole, sdf.V3Set{{xofs, 0, 0}, {-xofs, 0, 0}})
+	return sdf.Multi3D(hole, sdf.V3Set{{xofs, 0, 0}, {-xofs, 0, 0}}), nil
 }
 
-func flaskHalf(width, height float64) sdf.SDF3 {
-	return sdf.Extrude3D(flaskSideProfile(width), height)
+func flaskHalf(width, height float64) (sdf.SDF3, error) {
+	s, err := flaskSideProfile(width)
+	if err != nil {
+		return nil, err
+	}
+	return sdf.Extrude3D(s, height), nil
 }
 
 // flaskSide returns an SDF3 for the flask side.
-func flaskSide(width, height float64) sdf.SDF3 {
+func flaskSide(width, height float64) (sdf.SDF3, error) {
 
 	// create the flask
-	side0 := flaskHalf(width, height)
+	side0, err := flaskHalf(width, height)
+	if err != nil {
+		return nil, err
+	}
 	side1 := sdf.Transform3D(side0, sdf.MirrorYZ())
 	flaskBody := sdf.Union3D(side0, side1)
 
 	w := width + 2.0*cornerLength
 
 	// internal sand key
-	key, _ := sandKey(sdf.V3{w, height * keyRatio, keyDepth})
+	key, err := sandKey(sdf.V3{w, height * keyRatio, keyDepth})
+	if err != nil {
+		return nil, err
+	}
 	key = sdf.Transform3D(key, sdf.RotateX(sdf.DtoR(-90)))
 
 	// side draft
-	sideDraft := sdf.Extrude3D(sideDraftProfile(height), w)
+	s, err := sideDraftProfile(height)
+	if err != nil {
+		return nil, err
+	}
+	sideDraft := sdf.Extrude3D(s, w)
 	sideDraft = sdf.Transform3D(sideDraft, sdf.RotateY(sdf.DtoR(90)))
 
 	// alignment holes
-	aHoles := alignmentHoles()
+	aHoles, err := alignmentHoles()
+	if err != nil {
+		return nil, err
+	}
 	aHoles = sdf.Transform3D(aHoles, sdf.RotateX(sdf.DtoR(90)))
 
 	// pull holes
-	pHoles := pullHoles(width)
+	pHoles, err := pullHoles(width)
+	if err != nil {
+		return nil, err
+	}
 	pHoles = sdf.Transform3D(pHoles, sdf.RotateX(sdf.DtoR(90)))
 
-	return sdf.Difference3D(flaskBody, sdf.Union3D(key, sideDraft, aHoles, pHoles))
+	return sdf.Difference3D(flaskBody, sdf.Union3D(key, sideDraft, aHoles, pHoles)), nil
 }
 
 //-----------------------------------------------------------------------------
@@ -253,14 +292,27 @@ func main() {
 	widths := []float64{150, 200, 250, 300}
 	height := 95.0
 	for _, w := range widths {
-		s := flaskSide(w, height)
+		s, err := flaskSide(w, height)
+		if err != nil {
+			log.Fatalf("error: %s", err)
+		}
 		// rotate for the preferred print orientation
 		s = sdf.Transform3D(s, sdf.RotateX(-sdf.DtoR(sideDraft)))
 		name := fmt.Sprintf("flask_%d.stl", int(w))
 		render.RenderSTL(sdf.ScaleUniform3D(s, shrink), 300, name)
 	}
-	render.RenderSTL(sdf.ScaleUniform3D(pinLugs(), shrink), 120, "pins.stl")
-	render.RenderSTL(sdf.ScaleUniform3D(oddSide(height), shrink), 300, "odd_side.stl")
+
+	pinLugs, err := pinLugs()
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	render.RenderSTL(sdf.ScaleUniform3D(pinLugs, shrink), 120, "pins.stl")
+
+	oddSide, err := oddSide(height)
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	render.RenderSTL(sdf.ScaleUniform3D(oddSide, shrink), 300, "odd_side.stl")
 }
 
 //-----------------------------------------------------------------------------

@@ -65,7 +65,10 @@ func BoltCircle2D(
 	circleRadius float64, // radius of bolt circle
 	numHoles int, // number of bolts
 ) (sdf.SDF2, error) {
-	s := sdf.Circle2D(holeRadius)
+	s, err := sdf.Circle2D(holeRadius)
+	if err != nil {
+		return nil, err
+	}
 	s = sdf.Transform2D(s, sdf.Translate2d(sdf.V2{circleRadius, 0}))
 	s = sdf.RotateCopy2D(s, numHoles)
 	return s, nil

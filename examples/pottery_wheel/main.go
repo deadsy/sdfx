@@ -92,7 +92,7 @@ func wheel_profile() (sdf.SDF2, error) {
 		s.Add(0, hub_height-shaft_length)
 	}
 
-	return sdf.Polygon2D(s.Vertices()), nil
+	return sdf.Polygon2D(s.Vertices())
 }
 
 // build 2d web profile
@@ -109,7 +109,7 @@ func web_profile() (sdf.SDF2, error) {
 	s.Add(x0, 0)
 
 	//s.Render("web.dxf")
-	return sdf.Polygon2D(s.Vertices()), nil
+	return sdf.Polygon2D(s.Vertices())
 }
 
 // build the wheel pattern
@@ -166,7 +166,7 @@ func core_profile() (sdf.SDF2, error) {
 	s.Add(0, core_height+shaft_length)
 
 	//s.Render("core.dxf")
-	return sdf.Polygon2D(s.Vertices()), nil
+	return sdf.Polygon2D(s.Vertices())
 }
 
 // build the core box

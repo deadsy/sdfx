@@ -49,7 +49,11 @@ func dome(r, h, w float64) (sdf.SDF3, error) {
 	p.Add(-stepX1, 0).Rel().Smooth(fillet, 4)
 	p.Add(-stepX0, stepH3).Rel().Smooth(fillet, 4)
 	p.Add(0, height)
-	outer, err := sdf.Revolve3D(sdf.Polygon2D(p.Vertices()))
+	s, err := sdf.Polygon2D(p.Vertices())
+	if err != nil {
+		return nil, err
+	}
+	outer, err := sdf.Revolve3D(s)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +90,13 @@ func dome(r, h, w float64) (sdf.SDF3, error) {
 	if err != nil {
 		return nil, err
 	}
-	inner, err := sdf.Revolve3D(sdf.Polygon2D(p.Vertices()))
+
+	s, err = sdf.Polygon2D(p.Vertices())
+	if err != nil {
+		return nil, err
+	}
+
+	inner, err := sdf.Revolve3D(s)
 	if err != nil {
 		return nil, err
 	}

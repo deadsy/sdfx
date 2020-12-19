@@ -31,7 +31,10 @@ func bowlingPin() error {
 	if err != nil {
 		return err
 	}
-	s0 := sdf.Polygon2D(p.Vertices())
+	s0, err := sdf.Polygon2D(p.Vertices())
+	if err != nil {
+		return err
+	}
 	s1, err := sdf.Revolve3D(s0)
 	if err != nil {
 		return err
@@ -52,7 +55,10 @@ func egg1() error {
 	if err != nil {
 		return err
 	}
-	s0 := sdf.Polygon2D(p.Vertices())
+	s0, err := sdf.Polygon2D(p.Vertices())
+	if err != nil {
+		return err
+	}
 	s1, err := sdf.Revolve3D(s0)
 	if err != nil {
 		return err
@@ -77,7 +83,10 @@ func egg2() error {
 	if err != nil {
 		return err
 	}
-	s0 := sdf.Polygon2D(p.Vertices())
+	s0, err := sdf.Polygon2D(p.Vertices())
+	if err != nil {
+		return err
+	}
 	s1, err := sdf.Revolve3D(s0)
 	if err != nil {
 		return err
@@ -124,7 +133,10 @@ func bowl() error {
 	if err != nil {
 		return err
 	}
-	s0 := sdf.Polygon2D(p.Vertices())
+	s0, err := sdf.Polygon2D(p.Vertices())
+	if err != nil {
+		return err
+	}
 	s1, err := sdf.RevolveTheta3D(s0, sdf.DtoR(270))
 	if err != nil {
 		return err
@@ -169,7 +181,10 @@ func vase() error {
 	if err != nil {
 		return err
 	}
-	s0 := sdf.Polygon2D(p.Vertices())
+	s0, err := sdf.Polygon2D(p.Vertices())
+	if err != nil {
+		return err
+	}
 	s1, err := sdf.Revolve3D(s0)
 	if err != nil {
 		return err
@@ -224,7 +239,10 @@ func shape() error {
 	if err != nil {
 		return err
 	}
-	s0 := sdf.Polygon2D(p.Vertices())
+	s0, err := sdf.Polygon2D(p.Vertices())
+	if err != nil {
+		return err
+	}
 
 	b = sdf.NewBezier()
 	b.Add(37.142857, 663.790780)
@@ -245,7 +263,10 @@ func shape() error {
 	if err != nil {
 		return err
 	}
-	s1 := sdf.Polygon2D(p.Vertices())
+	s1, err := sdf.Polygon2D(p.Vertices())
+	if err != nil {
+		return err
+	}
 
 	b = sdf.NewBezier()
 	b.Add(105.714290, -381.923510)
@@ -266,7 +287,10 @@ func shape() error {
 	if err != nil {
 		return err
 	}
-	s2 := sdf.Polygon2D(p.Vertices())
+	s2, err := sdf.Polygon2D(p.Vertices())
+	if err != nil {
+		return err
+	}
 
 	b = sdf.NewBezier()
 	b.Add(-668.571430, -247.637800)
@@ -287,7 +311,10 @@ func shape() error {
 	if err != nil {
 		return err
 	}
-	s3 := sdf.Polygon2D(p.Vertices())
+	s3, err := sdf.Polygon2D(p.Vertices())
+	if err != nil {
+		return err
+	}
 
 	b = sdf.NewBezier()
 	b.Add(-697.142850, 569.505060)
@@ -308,7 +335,10 @@ func shape() error {
 	if err != nil {
 		return err
 	}
-	s4 := sdf.Polygon2D(p.Vertices())
+	s4, err := sdf.Polygon2D(p.Vertices())
+	if err != nil {
+		return err
+	}
 
 	b = sdf.NewBezier()
 	b.Add(-288.571430, 106.647920)
@@ -329,7 +359,10 @@ func shape() error {
 	if err != nil {
 		return err
 	}
-	s5 := sdf.Polygon2D(p.Vertices())
+	s5, err := sdf.Polygon2D(p.Vertices())
+	if err != nil {
+		return err
+	}
 
 	s2d := sdf.Difference2D(s0, sdf.Union2D(s1, s2, s3, s4, s5))
 	s3d, err := sdf.ExtrudeRounded3D(s2d, 200, 20)

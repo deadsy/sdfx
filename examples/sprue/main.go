@@ -53,7 +53,10 @@ func sprue(r, l, k float64) (sdf.SDF3, error) {
 	}
 	p.Add(0, l)
 
-	s := sdf.Polygon2D(p.Vertices())
+	s, err := sdf.Polygon2D(p.Vertices())
+	if err != nil {
+		return nil, err
+	}
 	return sdf.Revolve3D(s)
 }
 

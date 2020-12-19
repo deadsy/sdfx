@@ -22,7 +22,11 @@ func ChamferedCylinder(s sdf.SDF3, kb, kt float64) (sdf.SDF3, error) {
 	p.Add(r, -l).Chamfer(r * kb)
 	p.Add(r, l).Chamfer(r * kt)
 	p.Add(0, l)
-	cc, err := sdf.Revolve3D(sdf.Polygon2D(p.Vertices()))
+	s0, err := sdf.Polygon2D(p.Vertices())
+	if err != nil {
+		return nil, err
+	}
+	cc, err := sdf.Revolve3D(s0)
 	if err != nil {
 		return nil, err
 	}

@@ -177,7 +177,7 @@ func (t *ThreadParameters) HexHeight() float64 {
 func AcmeThread(
 	radius float64, // radius of thread
 	pitch float64, // thread to thread distance
-) SDF2 {
+) (SDF2, error) {
 
 	h := radius - 0.5*pitch
 	theta := DtoR(29.0 / 2.0)
@@ -205,7 +205,7 @@ func ISOThread(
 	radius float64, // radius of thread
 	pitch float64, // thread to thread distance
 	external bool, // external (or internal) thread
-) SDF2 {
+) (SDF2, error) {
 
 	theta := DtoR(30.0)
 	h := pitch / (2.0 * math.Tan(theta))
@@ -245,7 +245,7 @@ func ISOThread(
 func ANSIButtressThread(
 	radius float64, // radius of thread
 	pitch float64, // thread to thread distance
-) SDF2 {
+) (SDF2, error) {
 	t0 := math.Tan(DtoR(45.0))
 	t1 := math.Tan(DtoR(7.0))
 	b := 0.6 // thread engagement
@@ -271,7 +271,7 @@ func ANSIButtressThread(
 func PlasticButtressThread(
 	radius float64, // radius of thread
 	pitch float64, // thread to thread distance
-) SDF2 {
+) (SDF2, error) {
 	t0 := math.Tan(DtoR(45.0))
 	t1 := math.Tan(DtoR(7.0))
 	b := 0.6 // thread engagement

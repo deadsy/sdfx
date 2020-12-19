@@ -355,7 +355,7 @@ func (s *CubicSplineSDF2) Polygonize(n int) *Polygon {
 }
 
 // PolySpline2D returns a polygon SDF2 approximating a cubic spline SDF2.
-func (s *CubicSplineSDF2) PolySpline2D(n int) SDF2 {
+func (s *CubicSplineSDF2) PolySpline2D(n int) (SDF2, error) {
 	p := s.Polygonize(n)
 	return Polygon2D(p.Vertices())
 }

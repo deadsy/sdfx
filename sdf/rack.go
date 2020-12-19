@@ -76,8 +76,12 @@ func GearRack2D(k *GearRackParms) (SDF2, error) {
 		{-pitch, toothHeight},
 		{-pitch, 0},
 	}
+	tp, err := Polygon2D(tooth)
+	if err != nil {
+		return nil, err
+	}
 
-	s.tooth = Polygon2D(tooth)
+	s.tooth = tp
 	s.pitch = pitch
 	s.length = pitch * float64(k.NumberTeeth) * 0.5
 	s.bb = Box2{V2{-s.length, 0}, V2{s.length, toothHeight}}

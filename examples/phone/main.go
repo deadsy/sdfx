@@ -143,7 +143,8 @@ func clip() SDF3 {
 	// back to the the start with a closed polygon
 	p.Close()
 	//p.Render("clip.dxf")
-	return Extrude3D(Polygon2D(p.Vertices()), 8.0)
+	s, _ := Polygon2D(p.Vertices())
+	return Extrude3D(s, 8.0)
 }
 
 //-----------------------------------------------------------------------------

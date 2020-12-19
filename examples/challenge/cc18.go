@@ -56,10 +56,15 @@ func cc18b() (SDF3, error) {
 	p.Add(6, 21)
 	p.Add(6, 20)
 	p.Add(0, 20)
-	vpipe_3d, err := Revolve3D(Polygon2D(p.Vertices()))
+	s2, err := Polygon2D(p.Vertices())
 	if err != nil {
 		return nil, err
 	}
+	vpipe_3d, err := Revolve3D(s2)
+	if err != nil {
+		return nil, err
+	}
+
 	// bolt circle for the top flange
 	top_holes_3d, err := obj.BoltCircle3D(
 		2.0,       // hole_depth
@@ -85,7 +90,11 @@ func cc18b() (SDF3, error) {
 	p.Add(6, 14)
 	p.Add(6, 14.35)
 	p.Add(0, 14.35)
-	hpipe_3d, err := Revolve3D(Polygon2D(p.Vertices()))
+	s2, err = Polygon2D(p.Vertices())
+	if err != nil {
+		return nil, err
+	}
+	hpipe_3d, err := Revolve3D(s2)
 	if err != nil {
 		return nil, err
 	}
@@ -174,7 +183,11 @@ func cc18c() (SDF3, error) {
 		{r_outer - 1.0, 30},
 		{0, 30},
 	}
-	sleeve_3d, err := Revolve3D(Polygon2D(p))
+	s, err := Polygon2D(p)
+	if err != nil {
+		return nil, err
+	}
+	sleeve_3d, err := Revolve3D(s)
 	if err != nil {
 		return nil, err
 	}

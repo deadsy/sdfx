@@ -43,7 +43,11 @@ func buttonCavity() (sdf.SDF3, error) {
 	p.Add(bR1-bR0, 0).Rel()
 	p.Add(0, bH1).Rel()
 	p.Add(-bR1, 0).Rel()
-	return sdf.Revolve3D(sdf.Polygon2D(p.Vertices()))
+	s, err := sdf.Polygon2D(p.Vertices())
+	if err != nil {
+		return nil, err
+	}
+	return sdf.Revolve3D(s)
 }
 
 // return the button matrix

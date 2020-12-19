@@ -51,7 +51,10 @@ func Nut(k *NutParms) (sdf.SDF3, error) {
 	}
 
 	// internal thread
-	isoThread := sdf.ISOThread(t.Radius+k.Tolerance, t.Pitch, false)
+	isoThread, err := sdf.ISOThread(t.Radius+k.Tolerance, t.Pitch, false)
+	if err != nil {
+		return nil, err
+	}
 	thread, err := sdf.Screw3D(isoThread, nh, t.Pitch, 1)
 	if err != nil {
 		return nil, err

@@ -132,8 +132,19 @@ var pb1 = sdf.V2{pbX + 5.334, 0.8}
 // panelCutouts returns the 2D front panel cutouts
 func panelCutouts() (sdf.SDF2, error) {
 
-	sMidi := sdf.Circle2D(0.5 * 17.0)
-	sJack := sdf.Circle2D(0.5 * 11.5)
+	sMidi, err := sdf.Circle2D(0.5 * 17.0)
+	if err != nil {
+		return nil, err
+	}
+	sJack0, err := sdf.Circle2D(0.5 * 11.5)
+	if err != nil {
+		return nil, err
+	}
+	sJack1, err := sdf.Circle2D(0.5 * 5.5)
+	if err != nil {
+		return nil, err
+	}
+
 	sLed := sdf.Box2D(sdf.V2{1.6, 1.6}, 0)
 
 	k := obj.FingerButtonParms{
@@ -154,9 +165,9 @@ func panelCutouts() (sdf.SDF2, error) {
 	holes := []panelHole{
 		{sdf.V2{midiX, 10.2}, sMidi},                         // MIDI DIN Jack
 		{sdf.V2{midiX + 20.32, 10.2}, sMidi},                 // MIDI DIN Jack
-		{sdf.V2{jackX, 8.14}, sJack},                         // 1/4" Stereo Jack
-		{sdf.V2{jackX + 19.5, 8.14}, sJack},                  // 1/4" Stereo Jack
-		{sdf.V2{107.6, 2.3}, sdf.Circle2D(0.5 * 5.5)},        // 3.5 mm Headphone Jack
+		{sdf.V2{jackX, 8.14}, sJack0},                        // 1/4" Stereo Jack
+		{sdf.V2{jackX + 19.5, 8.14}, sJack0},                 // 1/4" Stereo Jack
+		{sdf.V2{107.6, 2.3}, sJack1},                         // 3.5 mm Headphone Jack
 		{sdf.V2{ledX, 0.5}, sLed},                            // LED
 		{sdf.V2{ledX + 3.635, 0.5}, sLed},                    // LED
 		{pb0, sButton},                                       // Push Button

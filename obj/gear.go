@@ -49,7 +49,7 @@ func involuteGearTooth(
 	outerRadius float64, // radius at the outside of the tooth
 	backlash float64, // backlash expressed as units of pitch circumference
 	facets int, // number of facets for involute flank
-) sdf.SDF2 {
+) (sdf.SDF2, error) {
 
 	pitchRadius := float64(numberTeeth) * gearModule / 2.0
 
@@ -137,9 +137,8 @@ func InvoluteGear(k *InvoluteGearParms) (sdf.SDF2, error) {
 
 	outerRadius := pitchRadius + addendum
 	rootRadius := pitchRadius - dedendum
-	ringRadius := rootRadius - k.RingWidth
 
-	tooth := involuteGearTooth(
+	tooth, err := involuteGearTooth(
 		k.NumberTeeth,
 		k.Module,
 		rootRadius,
@@ -148,10 +147,26 @@ func InvoluteGear(k *InvoluteGearParms) (sdf.SDF2, error) {
 		k.Backlash,
 		k.Facets,
 	)
+	if err != nil {
+		return nil, err
+	}
 
 	gear := sdf.RotateCopy2D(tooth, k.NumberTeeth)
-	root := sdf.Circle2D(rootRadius)
-	ring := sdf.Circle2D(ringRadius)
+
+	root, err := sdf.Circle2D(rootRadius)
+	if err != nil {
+		return nil, err
+	}
+
+	// ring
+	ringRadius := 0.0
+	if k.RingWidth > 0 {
+		ringRadius = rootRadius - k.RingWidth
+	}
+	ring, err := sdf.Circle2D(ringRadius)
+	if err != nil {
+		return nil, err
+	}
 
 	return sdf.Difference2D(sdf.Union2D(gear, root), ring), nil
 }

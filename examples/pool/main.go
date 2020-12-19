@@ -1,19 +1,29 @@
+//-----------------------------------------------------------------------------
+/*
+
+Pool Model
+
+*/
+//-----------------------------------------------------------------------------
+
 package main
 
 import (
-	"fmt"
+	"log"
 
 	"github.com/deadsy/sdfx/render"
-	. "github.com/deadsy/sdfx/sdf"
+	"github.com/deadsy/sdfx/sdf"
 )
 
-const CUBIC_INCHES_PER_GALLON = 231.0
+//-----------------------------------------------------------------------------
+
+const cubicInchesPerGallon = 231.0
 
 // pool dimensions are in inches
-var pool_w = 234.0
-var pool_l = 477.0
+const poolWidth = 234.0
+const poolLength = 477.0
 
-var pool_depth = []V2{
+var poolDepth = []sdf.V2{
 	{0.0, 43.0},
 	{101.0, 46.0},
 	{202.0, 58.0},
@@ -22,17 +32,31 @@ var pool_depth = []V2{
 	{477.0, 96.0},
 }
 
-var vol = (7738.3005 * 1000.0) / CUBIC_INCHES_PER_GALLON // gallons
+const vol = (7738.3005 * 1000.0) / cubicInchesPerGallon // gallons
+
+//-----------------------------------------------------------------------------
+
+func pool() (sdf.SDF3, error) {
+	log.Printf("pool volume %f gallons\n", vol)
+	p := sdf.NewPolygon()
+	p.Add(0, 0)
+	p.AddV2Set(poolDepth)
+	p.Add(poolLength, 0)
+	profile, err := sdf.Polygon2D(p.Vertices())
+	if err != nil {
+		return nil, err
+	}
+	return sdf.Extrude3D(profile, poolWidth), nil
+}
+
+//-----------------------------------------------------------------------------
 
 func main() {
-	fmt.Printf("pool volume %f gallons\n", vol)
-
-	p := NewPolygon()
-	p.Add(0, 0)
-	p.AddV2Set(pool_depth)
-	p.Add(pool_l, 0)
-
-	profile := Polygon2D(p.Vertices())
-	pool := Extrude3D(profile, pool_w)
+	pool, err := pool()
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
 	render.RenderSTL(pool, 300, "pool.stl")
 }
+
+//-----------------------------------------------------------------------------

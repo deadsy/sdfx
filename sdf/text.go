@@ -87,7 +87,9 @@ func glyphCurve(g *truetype.GlyphBuf, n int) (SDF2, bool, error) {
 	if err != nil {
 		return nil, false, err
 	}
-	return Polygon2D(p.Vertices()), sum > 0, nil
+
+	s, err := Polygon2D(p.Vertices())
+	return s, sum > 0, err
 }
 
 // glyphConvert returns the SDF2 for a glyph

@@ -37,7 +37,7 @@ var wall_thickness = 4.0
 //-----------------------------------------------------------------------------
 
 // adapter: female dust deputy, female 2.5" vacuum
-func fdd_to_fvh25() error {
+func fdd_to_fvh25() (sdf.SDF3, error) {
 
 	t := wall_thickness
 	transition_length := 15.0
@@ -63,18 +63,18 @@ func fdd_to_fvh25() error {
 	p.Add(r1, h1).Smooth(t, 4)
 	p.Add(r0, h0)
 
-	s, err := sdf.Revolve3D(sdf.Polygon2D(p.Vertices()))
+	s, err := sdf.Polygon2D(p.Vertices())
 	if err != nil {
-		return err
+		return nil, err
 	}
-	render.RenderSTL(s, 150, "fdd_fvh25.stl")
-	return nil
+
+	return sdf.Revolve3D(s)
 }
 
 //-----------------------------------------------------------------------------
 
 // adapter: male 2.5" vacuum, male 3" pvc
-func mvh25_to_mpvc(pvc_od float64) error {
+func mvh25_to_mpvc(pvc_od float64) (sdf.SDF3, error) {
 
 	t := wall_thickness
 	transition_length := 15.0
@@ -97,18 +97,18 @@ func mvh25_to_mpvc(pvc_od float64) error {
 	p.Add(r0-t, h1).Smooth(t, 4)
 	p.Add(r0-t, h0)
 
-	s, err := sdf.Revolve3D(sdf.Polygon2D(p.Vertices()))
+	s, err := sdf.Polygon2D(p.Vertices())
 	if err != nil {
-		return err
+		return nil, err
 	}
-	render.RenderSTL(s, 150, "mvh25_mpvc.stl")
-	return nil
+
+	return sdf.Revolve3D(s)
 }
 
 //-----------------------------------------------------------------------------
 
 // adapter: female dust deputy, male 3" pvc
-func fdd_to_mpvc(pvc_od float64) error {
+func fdd_to_mpvc(pvc_od float64) (sdf.SDF3, error) {
 
 	t := wall_thickness
 	transition_length := 15.0
@@ -132,29 +132,35 @@ func fdd_to_mpvc(pvc_od float64) error {
 	p.Add(r0-t, h1).Smooth(t, 4)
 	p.Add(r0-t, h0)
 
-	s, err := sdf.Revolve3D(sdf.Polygon2D(p.Vertices()))
+	s, err := sdf.Polygon2D(p.Vertices())
 	if err != nil {
-		return err
+		return nil, err
 	}
-	render.RenderSTL(s, 150, "fdd_mpvc.stl")
-	return nil
+
+	return sdf.Revolve3D(s)
 }
 
 //-----------------------------------------------------------------------------
 
 func main() {
-	err := fdd_to_fvh25()
+	s, err := fdd_to_fvh25()
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	err = mvh25_to_mpvc(pvc2_od)
+	render.RenderSTL(s, 150, "fdd_fvh25.stl")
+
+	s, err = mvh25_to_mpvc(pvc2_od)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	err = fdd_to_mpvc(pvc2_od)
+	render.RenderSTL(s, 150, "mvh25_mpvc.stl")
+
+	s, err = fdd_to_mpvc(pvc2_od)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
+	render.RenderSTL(s, 150, "fdd_mpvc.stl")
+
 }
 
 //-----------------------------------------------------------------------------

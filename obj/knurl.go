@@ -31,7 +31,7 @@ type KnurlParms struct {
 }
 
 // knurlProfile returns a 2D knurl profile.
-func knurlProfile(k *KnurlParms) sdf.SDF2 {
+func knurlProfile(k *KnurlParms) (sdf.SDF2, error) {
 	knurl := sdf.NewPolygon()
 	knurl.Add(k.Pitch/2, 0)
 	knurl.Add(k.Pitch/2, k.Radius)
@@ -65,7 +65,10 @@ func Knurl3D(k *KnurlParms) (sdf.SDF3, error) {
 	// Work out the number of starts using the desired helix angle.
 	n := int(sdf.Tau * k.Radius * math.Tan(k.Theta) / k.Pitch)
 	// build the knurl profile.
-	knurl2d := knurlProfile(k)
+	knurl2d, err := knurlProfile(k)
+	if err != nil {
+		return nil, err
+	}
 	// create the left/right hand spirals
 	knurl0_3d, err := sdf.Screw3D(knurl2d, k.Length, k.Pitch, n)
 	if err != nil {
