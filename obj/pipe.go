@@ -108,27 +108,114 @@ func PipeLookup(name, units string) (*PipeParameters, error) {
 
 //-----------------------------------------------------------------------------
 
-// Pipe3D returns a length of the named standard pipe.
-func Pipe3D(name string, length float64, units string) (sdf.SDF3, error) {
+// Pipe3D returns a length of pipe.
+func Pipe3D(oRadius, iRadius, length float64) (sdf.SDF3, error) {
+	if oRadius <= 0 {
+		return nil, sdf.ErrMsg("oRadius <= 0")
+	}
+	if iRadius <= 0 {
+		return nil, sdf.ErrMsg("iRadius <= 0")
+	}
+	if oRadius <= iRadius {
+		return nil, sdf.ErrMsg("oRadius <= iRadius")
+	}
 	if length < 0 {
 		return nil, sdf.ErrMsg("length < 0")
 	}
 	if length == 0 {
 		return nil, nil
 	}
-	k, err := PipeLookup(name, units)
+	outer, err := sdf.Cylinder3D(length, oRadius, 0)
 	if err != nil {
 		return nil, err
 	}
-	outer, err := sdf.Cylinder3D(length, k.Outer, 0)
-	if err != nil {
-		return nil, err
-	}
-	inner, err := sdf.Cylinder3D(length, k.Inner, 0)
+	inner, err := sdf.Cylinder3D(length, iRadius, 0)
 	if err != nil {
 		return nil, err
 	}
 	return sdf.Difference3D(outer, inner), nil
+}
+
+//-----------------------------------------------------------------------------
+
+// StdPipe3D returns a length of the named standard pipe.
+func StdPipe3D(name, units string, length float64) (sdf.SDF3, error) {
+	k, err := PipeLookup(name, units)
+	if err != nil {
+		return nil, err
+	}
+	return Pipe3D(k.Outer, k.Inner, length)
+}
+
+//-----------------------------------------------------------------------------
+
+func elbowArm(
+	radius float64, // radius of arm cylinder
+	length float64, // length of arm
+	dirn sdf.V3, // direction of arm
+) (sdf.SDF3, error) {
+	if radius <= 0 {
+		return nil, sdf.ErrMsg("radius <= 0")
+	}
+	if length < radius {
+		return nil, sdf.ErrMsg("length < radius")
+	}
+	s, err := sdf.Cylinder3D(length+(2*radius), radius, radius)
+	if err != nil {
+		return nil, err
+	}
+	s = sdf.Cut3D(s, sdf.V3{0, 0, 0.5 * length}, sdf.V3{0, 0, -1})
+	m := sdf.Translate3d(sdf.V3{0, 0, length * 0.5})
+	m = sdf.V3{0, 0, 1}.RotateToVector(dirn).Mul(m)
+	return sdf.Transform3D(s, m), nil
+}
+
+// elbow constructs a solid 90 degree elbow from 2 cylinders.
+func elbow(
+	radius float64, // radius of elbow arm
+	lengthX float64, // length of x-axis arm
+	lengthZ float64, // length of z-axis arm
+) (sdf.SDF3, error) {
+	ex, err := elbowArm(radius, lengthX, sdf.V3{1, 0, 0})
+	if err != nil {
+		return nil, err
+	}
+	ez, err := elbowArm(radius, lengthZ, sdf.V3{0, 0, 1})
+	if err != nil {
+		return nil, err
+	}
+	return sdf.Union3D(ex, ez), nil
+}
+
+// PipeElbow3D constructs a 90 degree pipe elbow.
+func PipeElbow3D(outerRadius, innerRadius, lengthX, lengthZ float64) (sdf.SDF3, error) {
+	if outerRadius <= 0 {
+		return nil, sdf.ErrMsg("outerRadius <= 0")
+	}
+	if innerRadius <= 0 {
+		return nil, sdf.ErrMsg("innerRadius <= 0")
+	}
+	if outerRadius <= innerRadius {
+		return nil, sdf.ErrMsg("outerRadius <= innerRadius")
+	}
+	outer, err := elbow(outerRadius, lengthX, lengthZ)
+	if err != nil {
+		return nil, err
+	}
+	inner, err := elbow(innerRadius, lengthX, lengthZ)
+	if err != nil {
+		return nil, err
+	}
+	return sdf.Difference3D(outer, inner), nil
+}
+
+// StdPipeElbow3D constructs a standard 90 degree pipe elbow.
+func StdPipeElbow3D(name, units string, lengthX, lengthZ float64) (sdf.SDF3, error) {
+	k, err := PipeLookup(name, units)
+	if err != nil {
+		return nil, err
+	}
+	return PipeElbow3D(k.Outer, k.Inner, lengthX, lengthZ)
 }
 
 //-----------------------------------------------------------------------------

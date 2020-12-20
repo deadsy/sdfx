@@ -428,6 +428,34 @@ func PolarToXY(r, theta float64) V2 {
 }
 
 //-----------------------------------------------------------------------------
+
+// RotateToVector returns the rotation matrix that transforms a to b.
+func (a V3) RotateToVector(b V3) M44 {
+	a = a.Normalize()
+	b = b.Normalize()
+	// are the vectors the same?
+	if a.Equals(b, epsilon) {
+		return Identity3d()
+	}
+	// are the vectors opposite (180 degress apart)?
+	if a.Neg().Equals(b, epsilon) {
+		return M44{-1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1}
+	}
+	// general case
+	// See:	https://math.stackexchange.com/questions/180418/calculate-rotation-matrix-to-align-vector-a-to-vector-b-in-3d
+	v := a.Cross(b)
+	k := 1 / (1 + a.Dot(b))
+	vx := M33{0, -v.Z, v.Y, v.Z, 0, -v.X, -v.Y, v.X, 0}
+	r := Identity2d().Add(vx).Add(vx.Mul(vx).Scale(k))
+	return M44{
+		r.x00, r.x01, r.x02, 0,
+		r.x10, r.x11, r.x12, 0,
+		r.x20, r.x21, r.x22, 0,
+		0, 0, 0, 1,
+	}
+}
+
+//-----------------------------------------------------------------------------
 // Sort By X for a V2Set
 
 // V2SetByX used to sort V2Set by X-value.

@@ -365,6 +365,40 @@ func (a M22) Mul(b M22) M22 {
 }
 
 //-----------------------------------------------------------------------------
+
+// Add adds 3x3 matrices.
+func (a M33) Add(b M33) M33 {
+	return M33{
+		x00: a.x00 + b.x00,
+		x10: a.x10 + b.x10,
+		x20: a.x20 + b.x20,
+		x01: a.x01 + b.x01,
+		x11: a.x11 + b.x11,
+		x21: a.x21 + b.x21,
+		x02: a.x02 + b.x02,
+		x12: a.x12 + b.x12,
+		x22: a.x22 + b.x22,
+	}
+}
+
+//-----------------------------------------------------------------------------
+
+// Scale scales a 3x3 matrix.
+func (a M33) Scale(k float64) M33 {
+	return M33{
+		x00: k * a.x00,
+		x10: k * a.x10,
+		x20: k * a.x20,
+		x01: k * a.x01,
+		x11: k * a.x11,
+		x21: k * a.x21,
+		x02: k * a.x02,
+		x12: k * a.x12,
+		x22: k * a.x22,
+	}
+}
+
+//-----------------------------------------------------------------------------
 // Transform bounding boxes - keep them axis aligned
 // http://dev.theomader.com/transform-bounding-boxes/
 

@@ -609,7 +609,16 @@ func test50() error {
 }
 
 func test51() error {
-	s, err := obj.Pipe3D("sch40:1", 100, "mm")
+	s, err := obj.StdPipe3D("sch40:1", "mm", 100)
+	if err != nil {
+		return err
+	}
+	render.RenderSTL(s, 300, "test.stl")
+	return nil
+}
+
+func test52() error {
+	s, err := obj.StdPipeElbow3D("sch40:1", "mm", 30, 40)
 	if err != nil {
 		return err
 	}
@@ -618,7 +627,7 @@ func test51() error {
 }
 
 func main() {
-	err := test51()
+	err := test52()
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
