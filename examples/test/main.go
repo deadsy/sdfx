@@ -1,7 +1,14 @@
+//-----------------------------------------------------------------------------
+/*
+
+Short Tests for primitives and objects.
+
+*/
+//-----------------------------------------------------------------------------
+
 package main
 
 import (
-	"fmt"
 	"log"
 	"math"
 
@@ -10,20 +17,22 @@ import (
 	. "github.com/deadsy/sdfx/sdf"
 )
 
+//-----------------------------------------------------------------------------
+
 func test1() error {
 	s0 := Box2D(V2{0.8, 1.2}, 0.05)
 	s1, err := RevolveTheta3D(s0, DtoR(225))
 	if err != nil {
 		return err
 	}
-	render.RenderSTL(s1, 200, "test.stl")
+	render.RenderSTL(s1, 200, "test1.stl")
 	return nil
 }
 
 func test2() error {
 	s0 := Box2D(V2{0.8, 1.2}, 0.1)
 	s1 := Extrude3D(s0, 0.3)
-	render.RenderSTL(s1, 200, "test.stl")
+	render.RenderSTL(s1, 200, "test2.stl")
 	return nil
 }
 
@@ -37,7 +46,7 @@ func test3() error {
 	if err != nil {
 		return err
 	}
-	render.RenderSTL(s1, 200, "test.stl")
+	render.RenderSTL(s1, 200, "test3.stl")
 	return nil
 }
 
@@ -48,7 +57,7 @@ func test4() error {
 	if err != nil {
 		return err
 	}
-	render.RenderSTL(s1, 200, "test.stl")
+	render.RenderSTL(s1, 200, "test4.stl")
 	return nil
 }
 
@@ -60,7 +69,7 @@ func test5() error {
 	if err != nil {
 		return err
 	}
-	render.RenderSTL(s1, 200, "test.stl")
+	render.RenderSTL(s1, 200, "test5.stl")
 	return nil
 }
 
@@ -74,7 +83,7 @@ func test6() error {
 	s2 := Transform3D(s0, Translate3d(V3{0, -d, 0}))
 	s3 := Union3D(s1, s2)
 	s3.(*UnionSDF3).SetMin(PolyMin(0.1))
-	render.RenderSTL(s3, 200, "test.stl")
+	render.RenderSTL(s3, 200, "test6.stl")
 	return nil
 }
 
@@ -87,7 +96,7 @@ func test7() error {
 	s2 := Union3D(s0, s1)
 	s2.(*UnionSDF3).SetMin(PolyMin(0.1))
 	s3 := Transform3D(s2, Rotate3d(V3{0, 0, 1}, DtoR(-30)))
-	render.RenderSTL(s3, 200, "test.stl")
+	render.RenderSTL(s3, 200, "test7.stl")
 	return nil
 }
 
@@ -96,7 +105,7 @@ func test9() error {
 	if err != nil {
 		return err
 	}
-	render.RenderSTL(s, 200, "test.stl")
+	render.RenderSTL(s, 200, "test9.stl")
 	return nil
 }
 
@@ -108,16 +117,16 @@ func test10() error {
 	s1 := Transform3D(s0, Rotate3d(V3{1, 0, 0}, DtoR(60)))
 	s := Union3D(s0, s1)
 	s.(*UnionSDF3).SetMin(PolyMin(0.1))
-	render.RenderSTL(s, 200, "test.stl")
+	render.RenderSTL(s, 200, "test10.stl")
 	return nil
 }
 
 func test11() error {
-	s, err := Capsule3D(0.3, 1.4)
+	s, err := Capsule3D(3.0, 1.4)
 	if err != nil {
 		return err
 	}
-	render.RenderSTL(s, 200, "test.stl")
+	render.RenderSTL(s, 200, "test11.stl")
 	return nil
 }
 
@@ -137,7 +146,7 @@ func test12() error {
 	if err != nil {
 		return err
 	}
-	render.RenderSTL(s1, 200, "test.stl")
+	render.RenderSTL(s1, 200, "test12.stl")
 	return nil
 }
 
@@ -152,7 +161,7 @@ func test13() error {
 	if err != nil {
 		return err
 	}
-	render.RenderSTL(s1, 200, "test.stl")
+	render.RenderSTL(s1, 200, "test13.stl")
 	return nil
 }
 
@@ -184,7 +193,7 @@ func test14() error {
 	if err != nil {
 		return err
 	}
-	render.RenderSTL(s1, 200, "test.stl")
+	render.RenderSTL(s1, 200, "test14.stl")
 	return nil
 }
 
@@ -218,7 +227,7 @@ func test15() error {
 
 	s1 = Transform3D(s1, Rotate3d(V3{0, 0, 1}, DtoR(30)))
 
-	render.RenderSTL(s1, 200, "test.stl")
+	render.RenderSTL(s1, 200, "test15.stl")
 	return nil
 }
 
@@ -256,7 +265,7 @@ func test16() error {
 
 	s1 = Transform3D(s1, Rotate3d(V3{0, 0, 1}, DtoR(30)))
 
-	render.RenderSTL(s1, 200, "test.stl")
+	render.RenderSTL(s1, 200, "test16.stl")
 	return nil
 }
 
@@ -287,7 +296,7 @@ func test17() error {
 
 	s1 = Transform3D(s1, Rotate3d(V3{0, 0, 1}, DtoR(30)))
 
-	render.RenderSTL(s1, 200, "test.stl")
+	render.RenderSTL(s1, 200, "test17.stl")
 	return nil
 }
 
@@ -326,7 +335,7 @@ func test18() error {
 
 	s1 = Transform3D(s1, Rotate3d(V3{0, 0, 1}, DtoR(30)))
 
-	render.RenderSTL(s1, 200, "test.stl")
+	render.RenderSTL(s1, 200, "test18.stl")
 	return nil
 }
 
@@ -340,7 +349,7 @@ func test19() error {
 	s1 := Array2D(s0, V2i{3, 7}, V2{k * r, k * r})
 	s1.(*ArraySDF2).SetMin(PolyMin(0.8))
 	s2 := Extrude3D(s1, 1.0)
-	render.RenderSTL(s2, 200, "test.stl")
+	render.RenderSTL(s2, 200, "test19.stl")
 	return nil
 }
 
@@ -355,7 +364,7 @@ func test20() error {
 	s0 = RotateUnion2D(s0, 5, Rotate2d(DtoR(20)))
 	s0.(*RotateUnionSDF2).SetMin(PolyMin(1.2))
 	s1 := Extrude3D(s0, 10.0)
-	render.RenderSTL(s1, 200, "test.stl")
+	render.RenderSTL(s1, 200, "test20.stl")
 	return nil
 }
 
@@ -368,7 +377,7 @@ func test21() error {
 	}
 	s1 := Array3D(s0, V3i{3, 7, 5}, V3{k * r, k * r, k * r})
 	s1.(*ArraySDF3).SetMin(PolyMin(0.8))
-	render.RenderSTL(s1, 200, "test.stl")
+	render.RenderSTL(s1, 200, "test21.stl")
 	return nil
 }
 
@@ -382,7 +391,7 @@ func test22() error {
 	s0 = Transform3D(s0, Translate3d(V3{d, 0, 0}))
 	s0 = RotateUnion3D(s0, 5, Rotate3d(V3{0, 0, 1}, DtoR(20)))
 	s0.(*RotateUnionSDF3).SetMin(PolyMin(1.2))
-	render.RenderSTL(s0, 200, "test.stl")
+	render.RenderSTL(s0, 200, "test22.stl")
 	return nil
 }
 
@@ -391,7 +400,7 @@ func test26() error {
 	if err != nil {
 		return err
 	}
-	render.RenderSTL(s, 200, "test.stl")
+	render.RenderSTL(s, 200, "test26.stl")
 	return nil
 }
 
@@ -403,7 +412,7 @@ func test27() error {
 		return err
 	}
 	s := Multi3D(cylinder, posn)
-	render.RenderSTL(s, 200, "test.stl")
+	render.RenderSTL(s, 200, "test27.stl")
 	return nil
 }
 
@@ -412,14 +421,14 @@ func test28() error {
 	if err != nil {
 		return err
 	}
-	render.RenderSTL(s, 200, "test.stl")
+	render.RenderSTL(s, 200, "test28.stl")
 	return nil
 }
 
 func test29() error {
 	s0 := Line2D(10, 3)
 	s1 := Extrude3D(s0, 4)
-	render.RenderSTL(s1, 200, "test.stl")
+	render.RenderSTL(s1, 200, "test29.stl")
 	return nil
 }
 
@@ -427,7 +436,7 @@ func test30() error {
 	s0 := Line2D(10, 3)
 	s0 = Cut2D(s0, V2{4, 0}, V2{1, 1})
 	s1 := Extrude3D(s0, 4)
-	render.RenderSTL(s1, 200, "test.stl")
+	render.RenderSTL(s1, 200, "test30.stl")
 	return nil
 }
 
@@ -436,7 +445,7 @@ func test31() error {
 	if err != nil {
 		return err
 	}
-	render.RenderSTL(s, 200, "test.stl")
+	render.RenderSTL(s, 200, "test31.stl")
 	return nil
 }
 
@@ -446,7 +455,7 @@ func test32() error {
 		return err
 	}
 	s1 := Extrude3D(s0, 0.1)
-	render.RenderSTL(s1, 200, "test.stl")
+	render.RenderSTL(s1, 200, "cam0.stl")
 	return nil
 }
 
@@ -455,9 +464,8 @@ func test33() error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("%+v\n", s0)
 	s1 := Extrude3D(s0, 4)
-	render.RenderSTL(s1, 200, "test.stl")
+	render.RenderSTL(s1, 200, "cam1.stl")
 	return nil
 }
 
@@ -467,7 +475,7 @@ func test34() error {
 		return err
 	}
 	s1 := Extrude3D(s0, 0.1)
-	render.RenderSTL(s1, 200, "test.stl")
+	render.RenderSTL(s1, 200, "cam2.stl")
 	return nil
 }
 
@@ -478,7 +486,7 @@ func test35() error {
 	s0 = Transform2D(s0, Translate2d(V2{d, 0}))
 	s0 = RotateCopy2D(s0, 15)
 	s1 := Extrude3D(s0, 10.0)
-	render.RenderSTL(s1, 200, "test.stl")
+	render.RenderSTL(s1, 200, "rotate_copy.stl")
 	return nil
 }
 
@@ -517,9 +525,8 @@ func test37() error {
 
 func test39() error {
 	s0 := NewFlange1(30, 20, 10)
-	fmt.Printf("%+v\n", s0)
 	s1 := Extrude3D(s0, 5)
-	render.RenderSTL(s1, 200, "test.stl")
+	render.RenderSTL(s1, 200, "flange.stl")
 	return nil
 }
 
@@ -537,7 +544,7 @@ func test40() error {
 	s1 = Transform3D(s1, Translate3d(V3{0, 0, wall / 2}))
 	s := Difference3D(s0, s1)
 	s.(*DifferenceSDF3).SetMax(PolyMax(2))
-	render.RenderSTL(s, 200, "test.stl")
+	render.RenderSTL(s, 200, "rounded_box.stl")
 	return nil
 }
 
@@ -551,7 +558,7 @@ func test41() error {
 	if err != nil {
 		return err
 	}
-	render.RenderSTL(s2, 200, "test.stl")
+	render.RenderSTL(s2, 200, "ellipsoid_egg.stl")
 	return nil
 }
 
@@ -562,7 +569,7 @@ func test43() error {
 	if err != nil {
 		return err
 	}
-	render.RenderSTL(s1, 300, "test.stl")
+	render.RenderSTL(s1, 300, "cut2d.stl")
 	return nil
 }
 
@@ -580,7 +587,7 @@ func test44() error {
 	if err != nil {
 		return err
 	}
-	render.RenderSTL(s2, 300, "test.stl")
+	render.RenderSTL(s2, 300, "loft.stl")
 	return err
 }
 
@@ -589,7 +596,7 @@ func test49() error {
 	if err != nil {
 		return err
 	}
-	render.RenderDXF(s0, 50, "test.dxf")
+	render.RenderDXF(s0, 50, "circle_2d.dxf")
 	return nil
 }
 
@@ -604,7 +611,7 @@ func test50() error {
 	if err != nil {
 		return err
 	}
-	render.RenderSTL(s, 300, "test.stl")
+	render.RenderSTL(s, 300, "washer.stl")
 	return nil
 }
 
@@ -613,7 +620,7 @@ func test51() error {
 	if err != nil {
 		return err
 	}
-	render.RenderSTL(s, 300, "test.stl")
+	render.RenderSTL(s, 300, "standard_pipe.stl")
 	return nil
 }
 
@@ -622,13 +629,76 @@ func test52() error {
 	if err != nil {
 		return err
 	}
-	render.RenderSTL(s, 300, "test.stl")
+	render.RenderSTL(s, 300, "pipe_elbow.stl")
 	return nil
 }
 
+//-----------------------------------------------------------------------------
+
+type testFunc func() error
+
+var testFuncs = []testFunc{
+	test1,
+	test2,
+	test3,
+	test4,
+	test5,
+	test6,
+	test7,
+	//test8,
+	test9,
+	test10,
+	test11,
+	test12,
+	test13,
+	test14,
+	test15,
+	test16,
+	test17,
+	test18,
+	test19,
+	test20,
+	test21,
+	test22,
+	//test23,
+	//test24,
+	//test25,
+	test26,
+	test27,
+	test28,
+	test29,
+	test30,
+	test31,
+	test32,
+	test33,
+	test34,
+	test35,
+	test36,
+	test37,
+	//test38,
+	test39,
+	test40,
+	test41,
+	//test42,
+	test43,
+	test44,
+	//test45,
+	//test46,
+	//test47,
+	//test48,
+	test49,
+	test50,
+	test51,
+	test52,
+}
+
 func main() {
-	err := test52()
-	if err != nil {
-		log.Fatalf("error: %s", err)
+	for i, test := range testFuncs {
+		err := test()
+		if err != nil {
+			log.Fatalf("error with testFuncs[%d]: %s\n", i, err)
+		}
 	}
 }
+
+//-----------------------------------------------------------------------------

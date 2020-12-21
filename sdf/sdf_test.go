@@ -753,6 +753,24 @@ func Test_Rotate_To_Vector(t *testing.T) {
 			t.Error("FAIL")
 		}
 	}
+
+	box := NewBox3(V3{}, V3{100, 100, 100})
+	for i := 0; i < 1000; i++ {
+		a := box.Random()
+		b := box.Random()
+		ax := a.RotateToVector(b).MulPosition(a)
+		// ax should have the same magnitude as a
+		if math.Abs(ax.Length()-a.Length()) > 1e-10 {
+			t.Error("FAIL")
+		}
+		// ax should have the same direction as b
+		ax = ax.Normalize()
+		b = b.Normalize()
+		if !ax.Equals(b, epsilon) {
+			t.Error("FAIL")
+		}
+	}
+
 }
 
 //-----------------------------------------------------------------------------

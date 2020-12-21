@@ -429,8 +429,13 @@ func PolarToXY(r, theta float64) V2 {
 
 //-----------------------------------------------------------------------------
 
-// RotateToVector returns the rotation matrix that transforms a to b.
+// RotateToVector returns the rotation matrix that transforms a onto the same direction as b.
 func (a V3) RotateToVector(b V3) M44 {
+	// is either vector == 0?
+	if a.Equals(V3{}, epsilon) || b.Equals(V3{}, epsilon) {
+		return Identity3d()
+	}
+	// normalize both vectors
 	a = a.Normalize()
 	b = b.Normalize()
 	// are the vectors the same?
@@ -439,14 +444,18 @@ func (a V3) RotateToVector(b V3) M44 {
 	}
 	// are the vectors opposite (180 degress apart)?
 	if a.Neg().Equals(b, epsilon) {
-		return M44{-1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1}
+		return M44{
+			-1, 0, 0, 0,
+			0, -1, 0, 0,
+			0, 0, -1, 0,
+			0, 0, 0, 1}
 	}
 	// general case
 	// See:	https://math.stackexchange.com/questions/180418/calculate-rotation-matrix-to-align-vector-a-to-vector-b-in-3d
 	v := a.Cross(b)
 	k := 1 / (1 + a.Dot(b))
 	vx := M33{0, -v.Z, v.Y, v.Z, 0, -v.X, -v.Y, v.X, 0}
-	r := Identity2d().Add(vx).Add(vx.Mul(vx).Scale(k))
+	r := Identity2d().Add(vx).Add(vx.Mul(vx).MulScalar(k))
 	return M44{
 		r.x00, r.x01, r.x02, 0,
 		r.x10, r.x11, r.x12, 0,

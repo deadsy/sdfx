@@ -366,7 +366,7 @@ func (a M22) Mul(b M22) M22 {
 
 //-----------------------------------------------------------------------------
 
-// Add adds 3x3 matrices.
+// Add two 3x3 matrices.
 func (a M33) Add(b M33) M33 {
 	return M33{
 		x00: a.x00 + b.x00,
@@ -383,8 +383,8 @@ func (a M33) Add(b M33) M33 {
 
 //-----------------------------------------------------------------------------
 
-// Scale scales a 3x3 matrix.
-func (a M33) Scale(k float64) M33 {
+// MulScalar multiplies each 3x3 matrix component by a scalar.
+func (a M33) MulScalar(k float64) M33 {
 	return M33{
 		x00: k * a.x00,
 		x10: k * a.x10,
