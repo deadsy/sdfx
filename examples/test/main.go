@@ -624,15 +624,6 @@ func test51() error {
 	return nil
 }
 
-func test52() error {
-	s, err := obj.StdPipeElbow3D("sch40:1", "mm", 30, 40)
-	if err != nil {
-		return err
-	}
-	render.RenderSTL(s, 300, "pipe_elbow.stl")
-	return nil
-}
-
 //-----------------------------------------------------------------------------
 
 type testFunc func() error
@@ -689,7 +680,6 @@ var testFuncs = []testFunc{
 	test49,
 	test50,
 	test51,
-	test52,
 }
 
 func main() {

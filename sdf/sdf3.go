@@ -1103,7 +1103,7 @@ func LineOf3D(s SDF3, p0, p1 V3, pattern string) SDF3 {
 
 //-----------------------------------------------------------------------------
 
-// Multi3D creates a union of an SDF3 at a set of 3D positions.
+// Multi3D creates a union of an SDF3 at translated positions.
 func Multi3D(s SDF3, positions V3Set) SDF3 {
 	if (s == nil) || (len(positions) == 0) {
 		return nil
@@ -1111,6 +1111,20 @@ func Multi3D(s SDF3, positions V3Set) SDF3 {
 	objects := make([]SDF3, len(positions))
 	for i, p := range positions {
 		objects[i] = Transform3D(s, Translate3d(p))
+	}
+	return Union3D(objects...)
+}
+
+//-----------------------------------------------------------------------------
+
+// Orient3D creates a union of an SDF3 at oriented directions.
+func Orient3D(s SDF3, base V3, directions V3Set) SDF3 {
+	if (s == nil) || (len(directions) == 0) {
+		return nil
+	}
+	objects := make([]SDF3, len(directions))
+	for i, d := range directions {
+		objects[i] = Transform3D(s, base.RotateToVector(d))
 	}
 	return Union3D(objects...)
 }

@@ -11,6 +11,7 @@ package obj
 import (
 	"fmt"
 	"log"
+	"math"
 
 	"github.com/deadsy/sdfx/sdf"
 )
@@ -22,7 +23,6 @@ type PipeParameters struct {
 	Name  string  // name
 	Outer float64 // outer radius
 	Inner float64 // inner radius
-	Wall  float64 // wall thickness
 	Units string  // "inch" or "mm"
 }
 
@@ -39,7 +39,6 @@ func (m pipeDatabase) Sch40Add(name string, outer, inner float64) {
 		Name:  name,
 		Outer: outer * 0.5,
 		Inner: inner * 0.5,
-		Wall:  (outer - inner) * 0.5,
 		Units: "inch",
 	}
 	m[name] = &k
@@ -100,7 +99,6 @@ func PipeLookup(name, units string) (*PipeParameters, error) {
 	k0 := PipeParameters{
 		Outer: k.Outer * scale,
 		Inner: k.Inner * scale,
-		Wall:  k.Wall * scale,
 		Units: units,
 	}
 	return &k0, nil
@@ -149,11 +147,7 @@ func StdPipe3D(name, units string, length float64) (sdf.SDF3, error) {
 
 //-----------------------------------------------------------------------------
 
-func elbowArm(
-	radius float64, // radius of arm cylinder
-	length float64, // length of arm
-	dirn sdf.V3, // direction of arm
-) (sdf.SDF3, error) {
+func connectorArm(radius, length float64) (sdf.SDF3, error) {
 	if radius <= 0 {
 		return nil, sdf.ErrMsg("radius <= 0")
 	}
@@ -165,57 +159,132 @@ func elbowArm(
 		return nil, err
 	}
 	s = sdf.Cut3D(s, sdf.V3{0, 0, 0.5 * length}, sdf.V3{0, 0, -1})
-	m := sdf.Translate3d(sdf.V3{0, 0, length * 0.5})
-	m = sdf.V3{0, 0, 1}.RotateToVector(dirn).Mul(m)
-	return sdf.Transform3D(s, m), nil
+	return sdf.Transform3D(s, sdf.Translate3d(sdf.V3{0, 0, length * 0.5})), nil
 }
 
-// elbow constructs a solid 90 degree elbow from 2 cylinders.
-func elbow(
-	radius float64, // radius of elbow arm
-	lengthX float64, // length of x-axis arm
-	lengthZ float64, // length of z-axis arm
-) (sdf.SDF3, error) {
-	ex, err := elbowArm(radius, lengthX, sdf.V3{1, 0, 0})
+func pipeConnector1(radius, length float64, cfg [6]bool) (sdf.SDF3, error) {
+	var dirn []sdf.V3
+	if cfg[0] {
+		dirn = append(dirn, sdf.V3{1, 0, 0})
+	}
+	if cfg[1] {
+		dirn = append(dirn, sdf.V3{-1, 0, 0})
+	}
+	if cfg[2] {
+		dirn = append(dirn, sdf.V3{0, 1, 0})
+	}
+	if cfg[3] {
+		dirn = append(dirn, sdf.V3{0, -1, 0})
+	}
+	if cfg[4] {
+		dirn = append(dirn, sdf.V3{0, 0, 1})
+	}
+	if cfg[5] {
+		dirn = append(dirn, sdf.V3{0, 0, -1})
+	}
+	if len(dirn) < 1 {
+		return nil, sdf.ErrMsg("no connectors")
+	}
+	s, err := connectorArm(radius, length)
 	if err != nil {
 		return nil, err
 	}
-	ez, err := elbowArm(radius, lengthZ, sdf.V3{0, 0, 1})
-	if err != nil {
-		return nil, err
-	}
-	return sdf.Union3D(ex, ez), nil
+	return sdf.Orient3D(s, sdf.V3{0, 0, 1}, dirn), nil
 }
 
-// PipeElbow3D constructs a 90 degree pipe elbow.
-func PipeElbow3D(outerRadius, innerRadius, lengthX, lengthZ float64) (sdf.SDF3, error) {
-	if outerRadius <= 0 {
-		return nil, sdf.ErrMsg("outerRadius <= 0")
-	}
-	if innerRadius <= 0 {
-		return nil, sdf.ErrMsg("innerRadius <= 0")
-	}
-	if outerRadius <= innerRadius {
-		return nil, sdf.ErrMsg("outerRadius <= innerRadius")
-	}
-	outer, err := elbow(outerRadius, lengthX, lengthZ)
+func pipeConnector2(outer, inner, length float64, cfg [6]bool) (sdf.SDF3, error) {
+	// outer
+	s, err := pipeConnector1(outer, length, cfg)
 	if err != nil {
 		return nil, err
 	}
-	inner, err := elbow(innerRadius, lengthX, lengthZ)
-	if err != nil {
-		return nil, err
+	// inner
+	if inner > 0 {
+		inner, err := pipeConnector1(inner, length, cfg)
+		if err != nil {
+			return nil, err
+		}
+		s = sdf.Difference3D(s, inner)
 	}
-	return sdf.Difference3D(outer, inner), nil
+	return s, nil
 }
 
-// StdPipeElbow3D constructs a standard 90 degree pipe elbow.
-func StdPipeElbow3D(name, units string, lengthX, lengthZ float64) (sdf.SDF3, error) {
-	k, err := PipeLookup(name, units)
+// PipeConnectorParms defines an n-way female pipe connector.
+type PipeConnectorParms struct {
+	Length        float64 // length of connector arm to center
+	OuterRadius   float64 // outer radius of connector arm
+	InnerRadius   float64 // inner radius of connector arm
+	RecessDepth   float64 // depth for recessed stop
+	RecessWidth   float64 // width of internal recess step
+	Configuration [6]bool // position of arms. +x,-x,+y,-y,+z,-z
+}
+
+// PipeConnector3D returns an n-way female pipe connector.
+func PipeConnector3D(k *PipeConnectorParms) (sdf.SDF3, error) {
+
+	if k.Length <= 0 {
+		return nil, sdf.ErrMsg("k.Length <= 0")
+	}
+	if k.OuterRadius <= 0 {
+		return nil, sdf.ErrMsg("k.OuterRadius <= 0")
+	}
+	if k.InnerRadius < 0 {
+		return nil, sdf.ErrMsg("k.InnerRadius < 0")
+	}
+	if k.RecessDepth < 0 {
+		return nil, sdf.ErrMsg("k.RecessDepth < 0")
+	}
+	if k.RecessWidth < 0 {
+		return nil, sdf.ErrMsg("k.RecessWidth < 0")
+	}
+	if k.InnerRadius >= k.OuterRadius {
+		return nil, sdf.ErrMsg("k.InnerRadius >= k.OuterRadius")
+	}
+	if k.RecessDepth >= k.Length {
+		return nil, sdf.ErrMsg("k.RecessDepth >= k.Length")
+	}
+	if k.RecessWidth >= k.InnerRadius {
+		return nil, sdf.ErrMsg("k.RecessWidth >= k.InnerRadius")
+	}
+
+	// outer surface
+	s, err := pipeConnector2(k.OuterRadius, k.InnerRadius, k.Length, k.Configuration)
 	if err != nil {
 		return nil, err
 	}
-	return PipeElbow3D(k.Outer, k.Inner, lengthX, lengthZ)
+
+	// recessed stop
+	if k.RecessWidth > 0 {
+		length := k.Length - k.RecessDepth
+		inner := k.InnerRadius - k.RecessWidth
+		recess, err := pipeConnector2(k.InnerRadius, inner, length, k.Configuration)
+		if err != nil {
+			return nil, err
+		}
+		s = sdf.Union3D(s, recess)
+	}
+
+	return s, nil
+}
+
+//-----------------------------------------------------------------------------
+
+// StdPipeConnector3D returns an n-way female pipe connector for a standard pipe size.
+func StdPipeConnector3D(name, units string, length float64, cfg [6]bool) (sdf.SDF3, error) {
+	p, err := PipeLookup(name, units)
+	if err != nil {
+		return nil, err
+	}
+	wall := p.Outer - p.Inner
+	k := PipeConnectorParms{
+		Length:        length,
+		OuterRadius:   p.Outer + wall,
+		InnerRadius:   p.Outer,
+		RecessDepth:   math.Min(2*p.Outer, length-p.Outer-(0.5*wall)),
+		RecessWidth:   wall,
+		Configuration: cfg,
+	}
+	return PipeConnector3D(&k)
 }
 
 //-----------------------------------------------------------------------------
