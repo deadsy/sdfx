@@ -18,14 +18,37 @@ import (
 
 // WasherParms defines the parameters for a washer.
 type WasherParms struct {
-	Thickness   float64 // thickness
+	Thickness   float64 // thickness (3d only)
 	InnerRadius float64 // inner radius
 	OuterRadius float64 // outer radius
 	Remove      float64 // fraction of complete washer removed
 }
 
-// Washer3D returns a washer.
-// This is also used to create circular walls.
+//-----------------------------------------------------------------------------
+
+// Washer2D returns a 2d washer.
+func Washer2D(k *WasherParms) (sdf.SDF2, error) {
+	if k.InnerRadius >= k.OuterRadius {
+		return nil, sdf.ErrMsg("InnerRadius >= OuterRadius")
+	}
+	if k.Remove != 0 {
+		return nil, sdf.ErrMsg("TODO support Remove != 0")
+	}
+	outer, err := sdf.Circle2D(k.OuterRadius)
+	if err != nil {
+		return nil, err
+	}
+	inner, err := sdf.Circle2D(k.InnerRadius)
+	if err != nil {
+		return nil, err
+	}
+	return sdf.Difference2D(outer, inner), nil
+}
+
+//-----------------------------------------------------------------------------
+
+// Washer3D returns a 3d washer.
+// This can also be used to create circular walls.
 func Washer3D(k *WasherParms) (sdf.SDF3, error) {
 	if k.Thickness <= 0 {
 		return nil, sdf.ErrMsg("Thickness <= 0")

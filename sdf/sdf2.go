@@ -188,6 +188,45 @@ func (s *OffsetSDF2) BoundingBox() Box2 {
 }
 
 //-----------------------------------------------------------------------------
+
+// IntersectionSDF2 is the intersection of two SDF2s.
+type IntersectionSDF2 struct {
+	s0  SDF2
+	s1  SDF2
+	max MaxFunc
+	bb  Box2
+}
+
+// Intersect2D returns the intersection of two SDF2s.
+func Intersect2D(s0, s1 SDF2) SDF2 {
+	if s0 == nil || s1 == nil {
+		return nil
+	}
+	s := IntersectionSDF2{}
+	s.s0 = s0
+	s.s1 = s1
+	s.max = math.Max
+	// TODO fix bounding box
+	s.bb = s0.BoundingBox()
+	return &s
+}
+
+// Evaluate returns the minimum distance to the SDF2 intersection.
+func (s *IntersectionSDF2) Evaluate(p V2) float64 {
+	return s.max(s.s0.Evaluate(p), s.s1.Evaluate(p))
+}
+
+// SetMax sets the maximum function to control blending.
+func (s *IntersectionSDF2) SetMax(max MaxFunc) {
+	s.max = max
+}
+
+// BoundingBox returns the bounding box of an SDF2 intersection.
+func (s *IntersectionSDF2) BoundingBox() Box2 {
+	return s.bb
+}
+
+//-----------------------------------------------------------------------------
 // Cut an SDF2 along a line
 
 // CutSDF2 is an SDF2 made by cutting across an existing SDF2.
