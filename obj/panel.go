@@ -26,7 +26,7 @@ import "github.com/deadsy/sdfx/sdf"
 type PanelParms struct {
 	Size         sdf.V2     // size of the panel
 	CornerRadius float64    // radius of rounded corners
-	HoleDiameter float64    // radius of panel holes
+	HoleDiameter float64    // diameter of panel holes
 	HoleMargin   [4]float64 // hole margins for top, right, bottom, left
 	HolePattern  [4]string  // hole pattern for top, right, bottom, left
 }
@@ -59,6 +59,50 @@ func Panel2D(k *PanelParms) (sdf.SDF2, error) {
 	holes = append(holes, sdf.LineOf2D(hole, bl, tl, k.HolePattern[3]))
 
 	return sdf.Difference2D(s0, sdf.Union2D(holes...)), nil
+}
+
+//-----------------------------------------------------------------------------
+
+const erU = 1.75 * sdf.MillimetresPerInch
+const erHP = 0.2 * sdf.MillimetresPerInch
+
+// EuroRackPanel returns a 2d eurorack synthesizer module panel (in mm).
+func EuroRackPanel(u, hp float64) (sdf.SDF2, error) {
+
+	if u < 1 {
+		return nil, sdf.ErrMsg("u < 1")
+	}
+	if hp <= 1 {
+		return nil, sdf.ErrMsg("hp <= 1")
+	}
+
+	// gaps between adjacent panels (doepfer 3U module spec)
+	const vGap = ((3 * erU) - 128.5) * 0.5
+	const hGap = ((3 * erHP) - 15) * 0.5
+	// edge to mount hole margins
+	const vMargin = 3.0
+	const hMargin = (3 * erHP * 0.5) - hGap
+	const holeDiameter = 3.2
+
+	x := (hp * erHP) - (2 * hGap)
+	y := (u * erU) - (2 * vGap)
+
+	k := PanelParms{
+		Size:         sdf.V2{x, y},
+		CornerRadius: erHP * 0.1,
+		HoleDiameter: holeDiameter,
+		HoleMargin:   [4]float64{vMargin, hMargin, vMargin, hMargin},
+	}
+
+	if hp < 8 {
+		// two holes
+		k.HolePattern = [4]string{"x", "", "", "x"}
+	} else {
+		// four holes
+		k.HolePattern = [4]string{"x", "x", "x", "x"}
+	}
+
+	return Panel2D(&k)
 }
 
 //-----------------------------------------------------------------------------
