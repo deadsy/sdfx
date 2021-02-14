@@ -62,18 +62,22 @@ func Panel2D(k *PanelParms) (sdf.SDF2, error) {
 }
 
 //-----------------------------------------------------------------------------
+// EuroRack Module Panels: http://www.doepfer.de/a100_man/a100m_e.htm
 
 const erU = 1.75 * sdf.MillimetresPerInch
 const erHP = 0.2 * sdf.MillimetresPerInch
 
 // EuroRackPanel returns a 2d eurorack synthesizer module panel (in mm).
-func EuroRackPanel(u, hp float64) (sdf.SDF2, error) {
+func EuroRackPanel(u, hp, round float64) (sdf.SDF2, error) {
 
 	if u < 1 {
 		return nil, sdf.ErrMsg("u < 1")
 	}
 	if hp <= 1 {
 		return nil, sdf.ErrMsg("hp <= 1")
+	}
+	if round < 0 {
+		return nil, sdf.ErrMsg("round < 0")
 	}
 
 	// gaps between adjacent panels (doepfer 3U module spec)
@@ -89,7 +93,7 @@ func EuroRackPanel(u, hp float64) (sdf.SDF2, error) {
 
 	k := PanelParms{
 		Size:         sdf.V2{x, y},
-		CornerRadius: erHP * 0.1,
+		CornerRadius: round,
 		HoleDiameter: holeDiameter,
 		HoleMargin:   [4]float64{vMargin, hMargin, vMargin, hMargin},
 	}
