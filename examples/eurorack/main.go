@@ -22,7 +22,7 @@ import (
 var shrink = 1.0 / 0.999 // PLA ~0.1%
 //var shrink = 1.0/0.995; // ABS ~0.5%
 
-const panelThickness = 2 // mm
+const panelThickness = 3 // mm
 
 //-----------------------------------------------------------------------------
 
@@ -30,7 +30,7 @@ func standoff(h float64) (sdf.SDF3, error) {
 	// standoff with screw hole
 	k := &obj.StandoffParms{
 		PillarHeight:   h,
-		PillarDiameter: 6,
+		PillarDiameter: 8,
 		HoleDepth:      10,
 		HoleDiameter:   2.4, // #4 screw
 	}
@@ -48,6 +48,58 @@ func halfBreadBoardStandoffs(h float64) (sdf.SDF3, error) {
 		{0, 1450 * sdf.Mil, 0},
 	}
 	return sdf.Multi3D(s, positions), nil
+}
+
+//-----------------------------------------------------------------------------
+
+// testHoles returns a panel with various holes for test fitting.
+func testHoles() (sdf.SDF3, error) {
+
+	const xInc = 15
+	const yInc = 15
+	const rInc = 0.1
+
+	const nX = 5
+	const nY = 8
+
+	xOfs := 0.0
+	yOfs := 0.0
+	r := 1.5
+
+	s := make([]sdf.SDF2, nX*nY)
+	i := 0
+
+	for j := 0; j < nY; j++ {
+		for k := 0; k < nX; k++ {
+			c, _ := sdf.Circle2D(r)
+			s[i] = sdf.Transform2D(c, sdf.Translate2d(sdf.V2{xOfs, yOfs}))
+			i += 1
+			r += rInc
+			xOfs += xInc
+		}
+		xOfs = 0.0
+		yOfs += yInc
+	}
+
+	h := sdf.Union2D(s...)
+	xOfs = -float64(nX-1) * xInc * 0.5
+	yOfs = -float64(nY-1) * yInc * 0.5
+	h = sdf.Transform2D(h, sdf.Translate2d(sdf.V2{xOfs, yOfs}))
+	holes := sdf.Extrude3D(h, panelThickness)
+
+	k := obj.PanelParms{
+		Size:         sdf.V2{(nX + 1) * xInc, (nY + 1) * yInc},
+		CornerRadius: xInc * 0.2,
+	}
+
+	p, err := obj.Panel2D(&k)
+	if err != nil {
+		return nil, err
+	}
+	panel := sdf.Extrude3D(p, panelThickness)
+
+	return sdf.Difference3D(panel, holes), nil
+
 }
 
 //-----------------------------------------------------------------------------
@@ -92,7 +144,7 @@ func arPanel() (sdf.SDF3, error) {
 
 	// spdt switch
 	spdt, _ := sdf.Circle2D(2.5)
-	spdt = sdf.Transform2D(spdt, sdf.Translate2d(sdf.V2{0, -25}))
+	spdt = sdf.Transform2D(spdt, sdf.Translate2d(sdf.V2{0, -22}))
 
 	cutouts := sdf.Extrude3D(sdf.Union2D(pb, cv0, cv1, led, pot0, pot1, spdt), panelThickness)
 
@@ -107,6 +159,13 @@ func main() {
 		log.Fatalf("error: %s", err)
 	}
 	render.RenderSTL(sdf.ScaleUniform3D(p0, shrink), 300, "ar_panel.stl")
+
+	p1, err := testHoles()
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	render.RenderSTL(sdf.ScaleUniform3D(p1, shrink), 300, "holes.stl")
+
 }
 
 //-----------------------------------------------------------------------------
