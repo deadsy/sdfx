@@ -168,3 +168,53 @@ func EuroRackPanel3D(k *EuroRackParms) (sdf.SDF3, error) {
 }
 
 //-----------------------------------------------------------------------------
+
+// PanelHoleParms defines the parameters for a panel hole.
+type PanelHoleParms struct {
+	Diameter    float64 // hole diameter
+	Thickness   float64 // panel thickness
+	Indent      sdf.V3  // indent size
+	Offset      float64 // indent offset from main axis
+	Orientation float64 // orientation of indent, 0 == x-axis
+}
+
+// PanelHole3D returns a panel hole and an indent for a retention pin.
+func PanelHole3D(k *PanelHoleParms) (sdf.SDF3, error) {
+
+	if k.Diameter <= 0 {
+		return nil, sdf.ErrMsg("k.Diameter <= 0")
+	}
+	if k.Thickness <= 0 {
+		return nil, sdf.ErrMsg("k.Thickness <= 0")
+	}
+	if k.Indent.LTZero() {
+		return nil, sdf.ErrMsg("k.Indent < 0")
+	}
+	if k.Offset < 0 {
+		return nil, sdf.ErrMsg("k.Offset")
+	}
+
+	// build the hole
+	s, err := sdf.Cylinder3D(k.Thickness, k.Diameter*0.5, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	if k.Offset == 0 || k.Indent.X == 0 || k.Indent.Y == 0 || k.Indent.Z == 0 {
+		return s, nil
+	}
+
+	// build the indent
+	indent, err := sdf.Box3D(k.Indent, 0)
+	zOfs := (k.Thickness - k.Indent.Z) * 0.5
+	indent = sdf.Transform3D(indent, sdf.Translate3d(sdf.V3{k.Offset, 0, zOfs}))
+
+	s = sdf.Union3D(s, indent)
+	if k.Orientation != 0 {
+		s = sdf.Transform3D(s, sdf.RotateZ(k.Orientation))
+	}
+
+	return s, nil
+}
+
+//-----------------------------------------------------------------------------

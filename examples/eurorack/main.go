@@ -24,6 +24,10 @@ var shrink = 1.0 / 0.999 // PLA ~0.1%
 
 //-----------------------------------------------------------------------------
 
+const panelThickness = 2.5 // mm
+
+//-----------------------------------------------------------------------------
+
 func standoff(h float64) (sdf.SDF3, error) {
 	// standoff with screw hole
 	k := &obj.StandoffParms{
@@ -49,18 +53,76 @@ func halfBreadBoardStandoffs(h float64) (sdf.SDF3, error) {
 }
 
 //-----------------------------------------------------------------------------
+// panel holes and/or indents for mounted components
+
+// pot0 return the panel hole/indent for a potentiometer
+func pot0() (sdf.SDF3, error) {
+	k := obj.PanelHoleParms{
+		Diameter:  9.4,
+		Thickness: panelThickness,
+		Indent:    sdf.V3{1, 3, 1.5},
+		Offset:    10.8,
+		//Orientation: sdf.DtoR(0),
+	}
+	return obj.PanelHole3D(&k)
+}
+
+// pot1 return the panel hole/indent for a potentiometer
+func pot1() (sdf.SDF3, error) {
+	k := obj.PanelHoleParms{
+		Diameter:  7.2,
+		Thickness: panelThickness,
+		Indent:    sdf.V3{1, 2, 1},
+		Offset:    7.0,
+		//Orientation: sdf.DtoR(0),
+	}
+	return obj.PanelHole3D(&k)
+}
+
+// spdt return the panel hole/indent for a spdt switch
+func spdt() (sdf.SDF3, error) {
+	k := obj.PanelHoleParms{
+		Diameter:  6.2,
+		Thickness: panelThickness,
+		Indent:    sdf.V3{1, 2, 1},
+		Offset:    5.4,
+		//Orientation: sdf.DtoR(0),
+	}
+	return obj.PanelHole3D(&k)
+}
+
+// led returns the panel hole for an led bezel
+func led() (sdf.SDF3, error) {
+	k := obj.PanelHoleParms{
+		Diameter:  7.0,
+		Thickness: panelThickness,
+	}
+	return obj.PanelHole3D(&k)
+}
+
+// jack35 returns the panel hole/indent for a 3.5 mm audio jack
+func jack35() (sdf.SDF3, error) {
+	k := obj.PanelHoleParms{
+		Diameter:  6.4,
+		Thickness: panelThickness,
+		Indent:    sdf.V3{1, 2, 1},
+		Offset:    4.9,
+		//Orientation: sdf.DtoR(0),
+	}
+	return obj.PanelHole3D(&k)
+}
+
+//-----------------------------------------------------------------------------
 
 // arPanel returns the panel for an attack/release module.
 func arPanel() (sdf.SDF3, error) {
-
-	const panelThickness = 2.5 // mm
 
 	// 3u x 12hp panel
 	k := obj.EuroRackParms{
 		U:            3,
 		HP:           12,
 		CornerRadius: 3,
-		HoleDiameter: 0,
+		HoleDiameter: 3.6,
 		Thickness:    panelThickness,
 		Ridge:        true,
 	}
@@ -80,30 +142,43 @@ func arPanel() (sdf.SDF3, error) {
 	s.(*sdf.UnionSDF3).SetMin(sdf.PolyMin(2))
 
 	// push button
-	pb := sdf.Box2D(sdf.V2{13.2, 10.8}, 0)
-	pb = sdf.Transform2D(pb, sdf.Translate2d(sdf.V2{0, 0}))
+	pb, err := sdf.Box3D(sdf.V3{13.2, 10.8, panelThickness}, 0)
+	if err != nil {
+		return nil, err
+	}
+	pb = sdf.Transform3D(pb, sdf.Translate3d(sdf.V3{0, 0, 0}))
 
 	// cv input/output
-	cv, _ := sdf.Circle2D(3.1)
-	cv0 := sdf.Transform2D(cv, sdf.Translate2d(sdf.V2{-20, -45}))
-	cv1 := sdf.Transform2D(cv, sdf.Translate2d(sdf.V2{20, -45}))
+	cv, err := jack35()
+	if err != nil {
+		return nil, err
+	}
+	cv0 := sdf.Transform3D(cv, sdf.Translate3d(sdf.V3{-20, -45, 0}))
+	cv1 := sdf.Transform3D(cv, sdf.Translate3d(sdf.V3{20, -45, 0}))
 
 	// LED
-	led, _ := sdf.Circle2D(3.5)
-	led = sdf.Transform2D(led, sdf.Translate2d(sdf.V2{0, -45}))
+	led, err := led()
+	if err != nil {
+		return nil, err
+	}
+	led = sdf.Transform3D(led, sdf.Translate3d(sdf.V3{0, -45, 0}))
 
 	// attack/release pots
-	pot, _ := sdf.Circle2D(4.7)
-	pot0 := sdf.Transform2D(pot, sdf.Translate2d(sdf.V2{-15, 25}))
-	pot1 := sdf.Transform2D(pot, sdf.Translate2d(sdf.V2{15, 25}))
+	pot, err := pot0()
+	if err != nil {
+		return nil, err
+	}
+	pot0 := sdf.Transform3D(pot, sdf.Translate3d(sdf.V3{-15, 25, 0}))
+	pot1 := sdf.Transform3D(pot, sdf.Translate3d(sdf.V3{15, 25, 0}))
 
 	// spdt switch
-	spdt, _ := sdf.Circle2D(3.1)
-	spdt = sdf.Transform2D(spdt, sdf.Translate2d(sdf.V2{0, -22}))
+	spdt, err := spdt()
+	if err != nil {
+		return nil, err
+	}
+	spdt = sdf.Transform3D(spdt, sdf.Translate3d(sdf.V3{0, -22, 0}))
 
-	cutouts := sdf.Extrude3D(sdf.Union2D(pb, cv0, cv1, led, pot0, pot1, spdt), panelThickness)
-
-	return sdf.Difference3D(s, cutouts), nil
+	return sdf.Difference3D(s, sdf.Union3D(pb, cv0, cv1, led, pot0, pot1, spdt)), nil
 }
 
 //-----------------------------------------------------------------------------

@@ -49,7 +49,7 @@ func testHoles() (sdf.SDF3, error) {
 		for k := 0; k < nX; k++ {
 			c, _ := sdf.Circle2D(r)
 			s[i] = sdf.Transform2D(c, sdf.Translate2d(sdf.V2{xOfs, yOfs}))
-			i ++
+			i++
 			r += rInc
 			xOfs += xInc
 		}
