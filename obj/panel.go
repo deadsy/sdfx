@@ -151,7 +151,7 @@ func EuroRackPanel3D(k *EuroRackParms) (sdf.SDF3, error) {
 	}
 	// create a reinforcing ridge
 	xSize := k.Thickness
-	ySize := erUSize(k.U) - 15.0
+	ySize := erUSize(k.U) - 18.0
 	zSize := k.Thickness * 1.5
 	r, err := sdf.Box3D(sdf.V3{xSize, ySize, zSize}, 0)
 	if err != nil {

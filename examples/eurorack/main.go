@@ -60,8 +60,8 @@ func pot0() (sdf.SDF3, error) {
 	k := obj.PanelHoleParms{
 		Diameter:  9.4,
 		Thickness: panelThickness,
-		Indent:    sdf.V3{1, 3, 1.5},
-		Offset:    10.8,
+		Indent:    sdf.V3{2, 4, 2},
+		Offset:    11.0,
 		//Orientation: sdf.DtoR(0),
 	}
 	return obj.PanelHole3D(&k)
@@ -72,7 +72,7 @@ func pot1() (sdf.SDF3, error) {
 	k := obj.PanelHoleParms{
 		Diameter:  7.2,
 		Thickness: panelThickness,
-		Indent:    sdf.V3{1, 2, 1},
+		Indent:    sdf.V3{2, 2, 1.5},
 		Offset:    7.0,
 		//Orientation: sdf.DtoR(0),
 	}
@@ -84,7 +84,7 @@ func spdt() (sdf.SDF3, error) {
 	k := obj.PanelHoleParms{
 		Diameter:  6.2,
 		Thickness: panelThickness,
-		Indent:    sdf.V3{1, 2, 1},
+		Indent:    sdf.V3{2, 2, 1.5},
 		Offset:    5.4,
 		//Orientation: sdf.DtoR(0),
 	}
@@ -105,7 +105,7 @@ func jack35() (sdf.SDF3, error) {
 	k := obj.PanelHoleParms{
 		Diameter:  6.4,
 		Thickness: panelThickness,
-		Indent:    sdf.V3{1, 2, 1},
+		Indent:    sdf.V3{2, 2, 1.5},
 		Offset:    4.9,
 		//Orientation: sdf.DtoR(0),
 	}
