@@ -114,6 +114,60 @@ func jack35() (sdf.SDF3, error) {
 
 //-----------------------------------------------------------------------------
 
+// powerBoardMount returns a pcb mount for a SynthRotek Noise Filtering Power Distribution Board.
+func powerBoardMount() (sdf.SDF3, error) {
+
+	const baseThickness = 3
+	const standoffHeight = 10
+	const xSpace = 0.9 * sdf.MillimetresPerInch
+	const ySpace = 1.1 * sdf.MillimetresPerInch
+
+	// standoffs
+	s0, err := standoff(standoffHeight)
+	if err != nil {
+		return nil, err
+	}
+	// 4x2 sections
+	const zOfs = (baseThickness + standoffHeight) * 0.5
+	positions := sdf.V3Set{
+		{-1.5 * xSpace, -0.5 * ySpace, zOfs},
+		{-1.5 * xSpace, 0.5 * ySpace, zOfs},
+		{-0.5 * xSpace, -0.5 * ySpace, zOfs},
+		{-0.5 * xSpace, 0.5 * ySpace, zOfs},
+		{0.5 * xSpace, -0.5 * ySpace, zOfs},
+		{0.5 * xSpace, 0.5 * ySpace, zOfs},
+		{1.5 * xSpace, -0.5 * ySpace, zOfs},
+		{1.5 * xSpace, 0.5 * ySpace, zOfs},
+	}
+	s1 := sdf.Multi3D(s0, positions)
+
+	// base
+	const baseX = (4 - 0.1) * xSpace
+	const baseY = 1.5 * ySpace
+	k := obj.PanelParms{
+		Size:         sdf.V2{baseX, baseY},
+		CornerRadius: 5.0,
+		HoleDiameter: 3.5,
+		HoleMargin:   [4]float64{5.0, 5.0, 5.0, 5.0},
+		HolePattern:  [4]string{"", ".x", "", ".x"},
+	}
+	s2, err := obj.Panel2D(&k)
+	if err != nil {
+		return nil, err
+	}
+
+	// cutout
+	c0 := sdf.Box2D(sdf.V2{3 * xSpace, 0.5 * ySpace}, 3.0)
+	s3 := sdf.Extrude3D(sdf.Difference2D(s2, c0), baseThickness)
+
+	s4 := sdf.Union3D(s3, s1)
+	s4.(*sdf.UnionSDF3).SetMin(sdf.PolyMin(3.0))
+
+	return s4, nil
+}
+
+//-----------------------------------------------------------------------------
+
 // arPanel returns the panel for an attack/release module.
 func arPanel() (sdf.SDF3, error) {
 
@@ -184,11 +238,19 @@ func arPanel() (sdf.SDF3, error) {
 //-----------------------------------------------------------------------------
 
 func main() {
+
 	p0, err := arPanel()
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 	render.RenderSTL(sdf.ScaleUniform3D(p0, shrink), 300, "ar_panel.stl")
+
+	pb, err := powerBoardMount()
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	render.RenderSTL(sdf.ScaleUniform3D(pb, shrink), 300, "pb_mount.stl")
+
 }
 
 //-----------------------------------------------------------------------------
