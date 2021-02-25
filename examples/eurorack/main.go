@@ -143,13 +143,13 @@ func powerBoardMount() (sdf.SDF3, error) {
 
 	// base
 	const baseX = (4 - 0.1) * xSpace
-	const baseY = 1.5 * ySpace
+	const baseY = 2.0 * ySpace
 	k := obj.PanelParms{
 		Size:         sdf.V2{baseX, baseY},
 		CornerRadius: 5.0,
 		HoleDiameter: 3.5,
 		HoleMargin:   [4]float64{5.0, 5.0, 5.0, 5.0},
-		HolePattern:  [4]string{"", ".x", "", ".x"},
+		HolePattern:  [4]string{"x", "x", "x", "x"},
 	}
 	s2, err := obj.Panel2D(&k)
 	if err != nil {
