@@ -168,6 +168,42 @@ func powerBoardMount() (sdf.SDF3, error) {
 
 //-----------------------------------------------------------------------------
 
+// powerPanel returns a mounting panel for a ac-14-f16a power connector.
+func powerPanel() (sdf.SDF3, error) {
+
+	const baseThickness = 4
+
+	k := obj.PanelParms{
+		Size:         sdf.V2{75, 85},
+		CornerRadius: 5.0,
+		HoleDiameter: 4.0,
+		HoleMargin:   [4]float64{5.0, 5.0, 5.0, 5.0},
+		HolePattern:  [4]string{"x", "x", "x", "x"},
+	}
+
+	s, err := obj.Panel2D(&k)
+	if err != nil {
+		return nil, err
+	}
+
+	// panel cutout
+	c0 := sdf.Box2D(sdf.V2{28, 48}, 3)
+
+	// mounting holes
+	hole, err := sdf.Circle2D(0.5 * 4.5)
+	if err != nil {
+		return nil, err
+	}
+	c1 := sdf.Transform2D(hole, sdf.Translate2d(sdf.V2{20, 0}))
+	c2 := sdf.Transform2D(hole, sdf.Translate2d(sdf.V2{-20, 0}))
+
+	cutouts := sdf.Union2D(c0, c1, c2)
+
+	return sdf.Extrude3D(sdf.Difference2D(s, cutouts), baseThickness), nil
+}
+
+//-----------------------------------------------------------------------------
+
 // arPanel returns the panel for an attack/release module.
 func arPanel() (sdf.SDF3, error) {
 
@@ -245,12 +281,17 @@ func main() {
 	}
 	render.RenderSTL(sdf.ScaleUniform3D(p0, shrink), 300, "ar_panel.stl")
 
-	pb, err := powerBoardMount()
+	p1, err := powerBoardMount()
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.RenderSTL(sdf.ScaleUniform3D(pb, shrink), 300, "pb_mount.stl")
+	render.RenderSTL(sdf.ScaleUniform3D(p1, shrink), 300, "pwr_mount.stl")
 
+	p2, err := powerPanel()
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	render.RenderSTL(sdf.ScaleUniform3D(p2, shrink), 300, "pwr_panel.stl")
 }
 
 //-----------------------------------------------------------------------------

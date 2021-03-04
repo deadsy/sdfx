@@ -34,6 +34,7 @@ type PanelParms struct {
 	HoleDiameter float64    // diameter of panel holes
 	HoleMargin   [4]float64 // hole margins for top, right, bottom, left
 	HolePattern  [4]string  // hole pattern for top, right, bottom, left
+	Thickness    float64    // panel thickness (3d only)
 }
 
 // Panel2D returns a 2d panel with holes on the edges.
@@ -64,6 +65,18 @@ func Panel2D(k *PanelParms) (sdf.SDF2, error) {
 	holes = append(holes, sdf.LineOf2D(hole, bl, tl, k.HolePattern[3]))
 
 	return sdf.Difference2D(s0, sdf.Union2D(holes...)), nil
+}
+
+// Panel3D returns a 3d panel with holes on the edges.
+func Panel3D(k *PanelParms) (sdf.SDF3, error) {
+	if k.Thickness <= 0 {
+		return nil, sdf.ErrMsg("k.Thickness <= 0")
+	}
+	s, err := Panel2D(k)
+	if err != nil {
+		return nil, err
+	}
+	return sdf.Extrude3D(s, k.Thickness), nil
 }
 
 //-----------------------------------------------------------------------------
