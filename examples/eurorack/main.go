@@ -174,7 +174,7 @@ func powerPanel() (sdf.SDF3, error) {
 	const baseThickness = 4
 
 	k := obj.PanelParms{
-		Size:         sdf.V2{75, 85},
+		Size:         sdf.V2{85, 95},
 		CornerRadius: 5.0,
 		HoleDiameter: 4.0,
 		HoleMargin:   [4]float64{5.0, 5.0, 5.0, 5.0},
