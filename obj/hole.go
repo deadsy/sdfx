@@ -14,7 +14,7 @@ import "github.com/deadsy/sdfx/sdf"
 
 // CounterBoredHole3D returns the SDF3 for a counterbored hole.
 func CounterBoredHole3D(
-	l float64, // total length
+	l float64, // total length (includes counterbore)
 	r float64, // hole radius
 	cbRadius float64, // counter bore radius
 	cbDepth float64, // counter bore depth
@@ -27,13 +27,13 @@ func CounterBoredHole3D(
 	if err != nil {
 		return nil, err
 	}
-	s1 = sdf.Transform3D(s1, sdf.Translate3d(sdf.V3{0, 0, (l - cbDepth) / 2}))
+	s1 = sdf.Transform3D(s1, sdf.Translate3d(sdf.V3{0, 0, (l - cbDepth) * 0.5}))
 	return sdf.Union3D(s0, s1), nil
 }
 
 // ChamferedHole3D returns the SDF3 for a chamfered hole (45 degrees).
 func ChamferedHole3D(
-	l float64, // total length
+	l float64, // total length (includes chamfer)
 	r float64, // hole radius
 	chRadius float64, // chamfer radius
 ) (sdf.SDF3, error) {
@@ -45,7 +45,7 @@ func ChamferedHole3D(
 	if err != nil {
 		return nil, err
 	}
-	s1 = sdf.Transform3D(s1, sdf.Translate3d(sdf.V3{0, 0, (l - chRadius) / 2}))
+	s1 = sdf.Transform3D(s1, sdf.Translate3d(sdf.V3{0, 0, (l - chRadius) * 0.5}))
 	return sdf.Union3D(s0, s1), nil
 }
 

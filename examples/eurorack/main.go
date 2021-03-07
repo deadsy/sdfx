@@ -168,6 +168,112 @@ func powerBoardMount() (sdf.SDF3, error) {
 
 //-----------------------------------------------------------------------------
 
+var psuSize = sdf.V3{98, 129, 38}
+
+// rt65b returns a model of a Meanwell RT-65B PSU
+func rt65b() (sdf.SDF3, error) {
+
+	body, err := sdf.Box3D(psuSize, 0)
+	if err != nil {
+		return nil, err
+	}
+	// move to the positive octant
+	body = sdf.Transform3D(body, sdf.Translate3d(psuSize.MulScalar(0.5)))
+
+	// m3 screw holes
+	s0, err := obj.CounterBoredHole3D(12, 3.8*0.5, 10.6*0.5, 3.5)
+	if err != nil {
+		return nil, err
+	}
+
+	// vertical screws
+	vs0 := sdf.Transform3D(s0, sdf.RotateY(sdf.DtoR(180)))
+	vs0 = sdf.Transform3D(vs0, sdf.Translate3d(sdf.V3{31, 4.5 + 73.5, 0}))
+	vs1 := sdf.Transform3D(vs0, sdf.Translate3d(sdf.V3{33, 0, 0}))
+
+	// horizontal screws
+	hs0 := sdf.Transform3D(s0, sdf.RotateY(sdf.DtoR(90)))
+	hs0 = sdf.Transform3D(hs0, sdf.Translate3d(sdf.V3{psuSize.X, 32, 38 - 18.5}))
+	hs1 := sdf.Transform3D(hs0, sdf.Translate3d(sdf.V3{0, 77, 9}))
+	hs2 := sdf.Transform3D(hs0, sdf.Translate3d(sdf.V3{0, 77, -9}))
+
+	psu := sdf.Union3D(body, vs0, vs1, hs0, hs1, hs2)
+
+	return psu, nil
+}
+
+// psuMount returns a mount for a Meanwell RT-65B PSU
+func psuMount() (sdf.SDF3, error) {
+
+	// base
+	const baseThickness = 6
+	baseSize := sdf.V2{135, 145}
+	k0 := obj.PanelParms{
+		Size:         baseSize,
+		CornerRadius: 5.0,
+		HoleDiameter: 4.0,
+		HoleMargin:   [4]float64{5.0, 5.0, 5.0, 5.0},
+		HolePattern:  [4]string{"x", "x", "x", "x"},
+		Thickness:    baseThickness,
+	}
+	base, err := obj.Panel3D(&k0)
+	if err != nil {
+		return nil, err
+	}
+
+	// cutout 0
+	k2 := obj.PanelParms{
+		Size:         sdf.V2{90, 55},
+		CornerRadius: 4.0,
+		Thickness:    baseThickness,
+	}
+	c0, err := obj.Panel3D(&k2)
+	if err != nil {
+		return nil, err
+	}
+	c0 = sdf.Transform3D(c0, sdf.Translate3d(sdf.V3{-10, -27.5, 0}))
+
+	// cutout 1
+	k3 := obj.PanelParms{
+		Size:         sdf.V2{90, 30},
+		CornerRadius: 4.0,
+		Thickness:    baseThickness,
+	}
+	c1, err := obj.Panel3D(&k3)
+	if err != nil {
+		return nil, err
+	}
+	c1 = sdf.Transform3D(c1, sdf.Translate3d(sdf.V3{-10, 40, 0}))
+
+	// upright mount
+	uprightSize := sdf.V2{psuSize.Z + baseThickness*0.5, baseSize.Y}
+	k1 := obj.PanelParms{
+		Size:         uprightSize,
+		CornerRadius: 3.0,
+		Thickness:    baseThickness,
+	}
+	upright, err := obj.Panel3D(&k1)
+	if err != nil {
+		return nil, err
+	}
+	upright = sdf.Transform3D(upright, sdf.RotateY(sdf.DtoR(90)))
+	uprightOffset := sdf.V3{psuSize.X + baseThickness, 0, uprightSize.X}.MulScalar(0.5)
+	upright = sdf.Transform3D(upright, sdf.Translate3d(uprightOffset))
+
+	psu, err := rt65b()
+	if err != nil {
+		return nil, err
+	}
+	psuOffset := sdf.V3{-psuSize.X, -psuSize.Y, baseThickness}.MulScalar(0.5)
+	psu = sdf.Transform3D(psu, sdf.Translate3d(psuOffset))
+
+	mount := sdf.Difference3D(sdf.Union3D(base, upright), sdf.Union3D(psu, c0, c1))
+
+	return mount, nil
+}
+
+//-----------------------------------------------------------------------------
+
 // powerPanel returns a mounting panel for a ac-14-f16a power connector.
 func powerPanel() (sdf.SDF3, error) {
 
@@ -292,6 +398,12 @@ func main() {
 		log.Fatalf("error: %s", err)
 	}
 	render.RenderSTL(sdf.ScaleUniform3D(p2, shrink), 300, "pwr_panel.stl")
+
+	p3, err := psuMount()
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	render.RenderSTL(sdf.ScaleUniform3D(p3, shrink), 300, "psu_mount.stl")
 }
 
 //-----------------------------------------------------------------------------
