@@ -19,8 +19,8 @@ import (
 //-----------------------------------------------------------------------------
 
 // material shrinkage
-var shrink = 1.0 / 0.999 // PLA ~0.1%
-//var shrink = 1.0/0.995; // ABS ~0.5%
+const shrink = 1.0 / 0.999 // PLA ~0.1%
+//const shrink = 1.0/0.995; // ABS ~0.5%
 
 //-----------------------------------------------------------------------------
 
@@ -34,7 +34,7 @@ func holePattern(n int) string {
 
 func entranceReducer() (sdf.SDF3, error) {
 
-	const zSize = 4.0
+	const zSize = 0.25 * sdf.MillimetresPerInch
 	const xSize = 6.0 * sdf.MillimetresPerInch
 	const ySize = 1.9 * sdf.MillimetresPerInch
 
@@ -47,9 +47,8 @@ func entranceReducer() (sdf.SDF3, error) {
 		return nil, err
 	}
 
-	const holeHeight = (3.0 / 8.0) * sdf.MillimetresPerInch * 0.5
-	const holeRadius = (3.0 / 8.0) * sdf.MillimetresPerInch * 0.5
-	hole := sdf.Line2D(2*holeHeight, holeRadius)
+	const holeRadius = (3.0 / 16.0) * sdf.MillimetresPerInch
+	hole := sdf.Line2D(2*holeRadius, holeRadius)
 	hole = sdf.Transform2D(hole, sdf.Rotate2d(sdf.DtoR(90)))
 
 	const entranceSize = 4.0 * sdf.MillimetresPerInch
