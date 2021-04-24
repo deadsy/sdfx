@@ -19,8 +19,8 @@ import (
 //-----------------------------------------------------------------------------
 
 // material shrinkage
-var shrink = 1.0 / 0.999 // PLA ~0.1%
-//var shrink = 1.0/0.995; // ABS ~0.5%
+const shrink = 1.0 / 0.999 // PLA ~0.1%
+//const shrink = 1.0/0.995; // ABS ~0.5%
 
 //-----------------------------------------------------------------------------
 
@@ -379,6 +379,38 @@ func arPanel() (sdf.SDF3, error) {
 
 //-----------------------------------------------------------------------------
 
+// bbPanel returns a panel for mounting a half bread board.
+func bbPanel() (sdf.SDF3, error) {
+
+	// 3u x 12hp panel
+	k := obj.EuroRackParms{
+		U:            3,
+		HP:           12,
+		CornerRadius: 3,
+		HoleDiameter: 3.6,
+		Thickness:    panelThickness,
+		Ridge:        true,
+	}
+	s, err := obj.EuroRackPanel3D(&k)
+	if err != nil {
+		return nil, err
+	}
+
+	// breadboard standoffs
+	const standoffHeight = 12
+	so, err := halfBreadBoardStandoffs(standoffHeight)
+	if err != nil {
+		return nil, err
+	}
+	so = sdf.Transform3D(so, sdf.Translate3d(sdf.V3{0, 3, (panelThickness + standoffHeight) * 0.5}))
+	s = sdf.Union3D(s, so)
+	s.(*sdf.UnionSDF3).SetMin(sdf.PolyMin(2))
+
+	return s, nil
+}
+
+//-----------------------------------------------------------------------------
+
 func main() {
 
 	p0, err := arPanel()
@@ -404,6 +436,12 @@ func main() {
 		log.Fatalf("error: %s", err)
 	}
 	render.RenderSTL(sdf.ScaleUniform3D(p3, shrink), 300, "psu_mount.stl")
+
+	p4, err := bbPanel()
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	render.RenderSTL(sdf.ScaleUniform3D(p4, shrink), 300, "bb_panel.stl")
 }
 
 //-----------------------------------------------------------------------------
