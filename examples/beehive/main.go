@@ -10,6 +10,7 @@ package main
 
 import (
 	"log"
+	"math"
 
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
@@ -21,6 +22,91 @@ import (
 // material shrinkage
 const shrink = 1.0 / 0.999 // PLA ~0.1%
 //const shrink = 1.0/0.995; // ABS ~0.5%
+
+//-----------------------------------------------------------------------------
+
+// entrance0 returns an open entrance
+func entrance0(size sdf.V3) (sdf.SDF3, error) {
+	r := size.Y * 0.5
+	s0 := sdf.Line2D(size.X-(2*r), r)
+	s1 := sdf.Extrude3D(s0, size.Z)
+	return s1, nil
+}
+
+// entrance1 returns a vent entrance
+func entrance1(size sdf.V3) (sdf.SDF3, error) {
+
+	const rows = 3
+	const cols = 16
+	const holeRadius = 3.2 * 0.5
+
+	hole, err := sdf.Circle2D(holeRadius)
+	if err != nil {
+		return nil, err
+	}
+
+	size.X -= 2 * holeRadius
+	size.Y -= 2 * holeRadius
+	dx := size.X / (cols - 1)
+	dy := size.Y / (rows - 1)
+	xOfs := -size.X / 2
+	yOfs := size.Y / 2
+
+	positions := []sdf.V2{}
+	x := xOfs
+	for i := 0; i < cols; i++ {
+		y := yOfs
+		for j := 0; j < rows; j++ {
+			positions = append(positions, sdf.V2{x, y})
+			y -= dy
+		}
+		x += dx
+	}
+	s := sdf.Multi2D(hole, positions)
+
+	return sdf.Extrude3D(s, size.Z), nil
+}
+
+func entranceWheel() (sdf.SDF3, error) {
+	const radius = 6.5 * 0.5 * sdf.MillimetresPerInch
+	const thickness = 0.25 * sdf.MillimetresPerInch
+
+	plate, err := sdf.Cylinder3D(thickness, radius, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	hole, err := sdf.Cylinder3D(thickness, 2.5, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	entranceSize := sdf.V3{
+		4 * sdf.MillimetresPerInch,
+		0.5 * sdf.MillimetresPerInch,
+		thickness,
+	}
+
+	const k = 1.6
+	ofs := k * entranceSize.X * 0.5 * math.Tan(sdf.DtoR(30))
+
+	// open entrance
+	e0, err := entrance0(entranceSize)
+	if err != nil {
+		return nil, err
+	}
+	e0 = sdf.Transform3D(e0, sdf.Translate3d(sdf.V3{0, ofs, 0}))
+
+	// vent entrance
+	e1, err := entrance1(entranceSize)
+	if err != nil {
+		return nil, err
+	}
+	e1 = sdf.Transform3D(e1, sdf.Translate3d(sdf.V3{0, ofs, 0}))
+	e1 = sdf.Transform3D(e1, sdf.RotateZ(sdf.DtoR(120)))
+
+	return sdf.Difference3D(plate, sdf.Union3D(e0, e1, hole)), nil
+}
 
 //-----------------------------------------------------------------------------
 
@@ -73,6 +159,11 @@ func main() {
 	}
 	render.RenderSTL(sdf.ScaleUniform3D(p0, shrink), 300, "reducer.stl")
 
+	p1, err := entranceWheel()
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	render.RenderSTL(sdf.ScaleUniform3D(p1, shrink), 300, "wheel.stl")
 }
 
 //-----------------------------------------------------------------------------
