@@ -25,6 +25,49 @@ const shrink = 1.0 / 0.999 // PLA ~0.1%
 
 //-----------------------------------------------------------------------------
 
+const wheelRadius = 6.5 * 0.5 * sdf.MillimetresPerInch
+const wheelThickness = 0.25 * sdf.MillimetresPerInch
+
+//-----------------------------------------------------------------------------
+
+// wheelRetainer returns a retaining clip for the entrance wheel.
+func wheelRetainer() (sdf.SDF3, error) {
+
+	size := sdf.V3{
+		1.75 * sdf.MillimetresPerInch,
+		1.5 * sdf.MillimetresPerInch,
+		1.5 * wheelThickness,
+	}
+
+	const round = 0.25 * sdf.MillimetresPerInch
+	const holeRadius = 7 * 0.5
+	const clearance = 1
+
+	s2d := sdf.Box2D(sdf.V2{size.X, size.Y}, round)
+
+	hole, err := sdf.Circle2D(holeRadius)
+	if err != nil {
+		return nil, err
+	}
+	hole = sdf.Transform2D(hole, sdf.Translate2d(sdf.V2{0, 0.25 * size.Y}))
+	s2d = sdf.Difference2D(s2d, hole)
+
+	s3d := sdf.Extrude3D(s2d, size.Z)
+	s3d = sdf.Transform3D(s3d, sdf.Translate3d(sdf.V3{0, wheelRadius, 0}))
+
+	t := wheelThickness * 0.9
+	ofs := 0.5 * (t - size.Z)
+	wheel, err := sdf.Cylinder3D(t, wheelRadius+clearance, 0)
+	if err != nil {
+		return nil, err
+	}
+	wheel = sdf.Transform3D(wheel, sdf.Translate3d(sdf.V3{0, 0, ofs}))
+
+	return sdf.Difference3D(s3d, wheel), nil
+}
+
+//-----------------------------------------------------------------------------
+
 // entrance0 returns an open entrance
 func entrance0(size sdf.V3) (sdf.SDF3, error) {
 	r := size.Y * 0.5
@@ -67,16 +110,15 @@ func entrance1(size sdf.V3) (sdf.SDF3, error) {
 	return sdf.Extrude3D(s, size.Z), nil
 }
 
+// entranceWheel returns a rotating entrance for a swarm trap.
 func entranceWheel() (sdf.SDF3, error) {
-	const radius = 6.5 * 0.5 * sdf.MillimetresPerInch
-	const thickness = 0.25 * sdf.MillimetresPerInch
 
-	plate, err := sdf.Cylinder3D(thickness, radius, 0)
+	plate, err := sdf.Cylinder3D(wheelThickness, wheelRadius, 0)
 	if err != nil {
 		return nil, err
 	}
 
-	hole, err := sdf.Cylinder3D(thickness, 2.5, 0)
+	hole, err := sdf.Cylinder3D(wheelThickness, 2.5, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +126,7 @@ func entranceWheel() (sdf.SDF3, error) {
 	entranceSize := sdf.V3{
 		4 * sdf.MillimetresPerInch,
 		0.5 * sdf.MillimetresPerInch,
-		thickness,
+		wheelThickness,
 	}
 
 	const k = 1.6
@@ -164,6 +206,12 @@ func main() {
 		log.Fatalf("error: %s", err)
 	}
 	render.RenderSTL(sdf.ScaleUniform3D(p1, shrink), 300, "wheel.stl")
+
+	p2, err := wheelRetainer()
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	render.RenderSTL(sdf.ScaleUniform3D(p2, shrink), 300, "retainer.stl")
 }
 
 //-----------------------------------------------------------------------------
