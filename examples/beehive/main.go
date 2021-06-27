@@ -193,6 +193,63 @@ func entranceReducer() (sdf.SDF3, error) {
 
 //-----------------------------------------------------------------------------
 
+func angleHole() (sdf.SDF3, error) {
+
+	const l = 1.25 * sdf.MillimetresPerInch
+	const t = 0.125 * sdf.MillimetresPerInch
+	const r = 0.125 * sdf.MillimetresPerInch
+
+	k := obj.AngleParms{
+		X:          obj.AngleLeg{l, t},
+		Y:          obj.AngleLeg{l, t},
+		RootRadius: r,
+		Length:     12 * sdf.MillimetresPerInch,
+	}
+
+	s, err := obj.Angle3D(&k)
+	if err != nil {
+		return nil, err
+	}
+
+	s = sdf.Transform3D(s, sdf.Translate3d(sdf.V3{-0.5 * l, -0.5 * l, 0}))
+
+	return s, nil
+}
+
+func antCap() (sdf.SDF3, error) {
+
+	// angle hole
+	angle3d, err := angleHole()
+	if err != nil {
+		return nil, err
+	}
+
+	// outer cap
+	capHeight := 1.75 * sdf.MillimetresPerInch
+	capRadius1 := 0.5 * 2.5 * sdf.MillimetresPerInch
+	capRadius0 := 0.5 * 4.0 * sdf.MillimetresPerInch
+	hat0, err := sdf.Cone3D(capHeight, capRadius0, capRadius1, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	// inner cap
+	const capWall = 0.25 * sdf.MillimetresPerInch
+	capHeight -= capWall
+	capRadius1 -= capWall
+	capRadius0 -= capWall
+	hat1, err := sdf.Cone3D(capHeight, capRadius0, capRadius1, 0)
+	if err != nil {
+		return nil, err
+	}
+	zOfs := -0.5 * capWall
+	hat1 = sdf.Transform3D(hat1, sdf.Translate3d(sdf.V3{0, 0, zOfs}))
+
+	return sdf.Difference3D(hat0, sdf.Union3D(angle3d, hat1)), nil
+}
+
+//-----------------------------------------------------------------------------
+
 func main() {
 
 	p0, err := entranceReducer()
@@ -212,6 +269,12 @@ func main() {
 		log.Fatalf("error: %s", err)
 	}
 	render.RenderSTL(sdf.ScaleUniform3D(p2, shrink), 300, "retainer.stl")
+
+	p3, err := antCap()
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	render.RenderSTL(sdf.ScaleUniform3D(p3, shrink), 300, "antcap.stl")
 }
 
 //-----------------------------------------------------------------------------
