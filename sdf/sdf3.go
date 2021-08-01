@@ -1085,6 +1085,37 @@ func (s *OffsetSDF3) BoundingBox() Box3 {
 
 //-----------------------------------------------------------------------------
 
+// ShellSDF3 shells the surface of an existing SDF3.
+type ShellSDF3 struct {
+	sdf   SDF3    // parent sdf3
+	delta float64 // half shell thickness
+	bb    Box3    // bounding box
+}
+
+// Shell3D returns an SDF3 that shells the surface of an existing SDF3.
+func Shell3D(sdf SDF3, thickness float64) (SDF3, error) {
+	if thickness <= 0 {
+		return nil, ErrMsg("thickness <= 0")
+	}
+	return &ShellSDF3{
+		sdf:   sdf,
+		delta: 0.5 * thickness,
+		bb:    sdf.BoundingBox().Enlarge(V3{thickness, thickness, thickness}),
+	}, nil
+}
+
+// Evaluate returns the minimum distance to a shelled SDF3.
+func (s *ShellSDF3) Evaluate(p V3) float64 {
+	return math.Abs(s.sdf.Evaluate(p)) - s.delta
+}
+
+// BoundingBox returns the bounding box of a shelled SDF3.
+func (s *ShellSDF3) BoundingBox() Box3 {
+	return s.bb
+}
+
+//-----------------------------------------------------------------------------
+
 // LineOf3D returns a union of 3D objects positioned along a line from p0 to p1.
 func LineOf3D(s SDF3, p0, p1 V3, pattern string) SDF3 {
 	var objects []SDF3

@@ -109,6 +109,20 @@ func (a Box3) ScaleAboutCenter(k float64) Box3 {
 
 //-----------------------------------------------------------------------------
 
+// Enlarge returns a new 3d box enlarged by a size vector.
+func (a Box3) Enlarge(v V3) Box3 {
+	v = v.MulScalar(0.5)
+	return Box3{a.Min.Sub(v), a.Max.Add(v)}
+}
+
+// Enlarge returns a new 2d box enlarged by a size vector.
+func (a Box2) Enlarge(v V2) Box2 {
+	v = v.MulScalar(0.5)
+	return Box2{a.Min.Sub(v), a.Max.Add(v)}
+}
+
+//-----------------------------------------------------------------------------
+
 // Vertices returns a slice of 2d box corner vertices.
 func (a Box2) Vertices() V2Set {
 	v := make([]V2, 4)

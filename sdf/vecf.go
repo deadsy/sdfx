@@ -218,6 +218,16 @@ func (a V2) Ceil() V2 {
 	return V2{math.Ceil(a.X), math.Ceil(a.Y)}
 }
 
+// Sin takes the sine of each vector component.
+func (a V3) Sin() V3 {
+	return V3{math.Sin(a.X), math.Sin(a.Y), math.Sin(a.Z)}
+}
+
+// Cos takes the cosine of each vector component.
+func (a V3) Cos() V3 {
+	return V3{math.Cos(a.X), math.Cos(a.Y), math.Cos(a.Z)}
+}
+
 //-----------------------------------------------------------------------------
 
 // Clamp clamps a vector between 2 other vectors.
@@ -442,7 +452,7 @@ func (a V3) RotateToVector(b V3) M44 {
 	if a.Equals(b, epsilon) {
 		return Identity3d()
 	}
-	// are the vectors opposite (180 degress apart)?
+	// are the vectors opposite (180 degrees apart)?
 	if a.Neg().Equals(b, epsilon) {
 		return M44{
 			-1, 0, 0, 0,
