@@ -39,15 +39,15 @@ func gyroidCube() (sdf.SDF3, error) {
 
 func gyroidSurface() (sdf.SDF3, error) {
 
-	l := 80.0     // cube side
-	k := l * 0.25 // 4 cycles per side
+	l := 60.0     // cube side
+	k := l * 0.5 // 2 cycles per side
 
 	s, err := sdf.Gyroid3D(sdf.V3{k, k, k})
 	if err != nil {
 		return nil, err
 	}
 
-	s, err = sdf.Shell3D(s, k*0.05)
+	s, err = sdf.Shell3D(s, k*0.025)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +60,7 @@ func gyroidSurface() (sdf.SDF3, error) {
 	s = sdf.Intersect3D(box, s)
 
 	// remove the isolated bits on the cube corners
-	sphere, err := sdf.Sphere3D(k * 0.1)
+	sphere, err := sdf.Sphere3D(k * 0.15)
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +85,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.RenderSTLSlow(s1, 300, "gyroid_surface.stl")
+	render.RenderSTLSlow(s1, 150, "gyroid_surface.stl")
 }
 
 //-----------------------------------------------------------------------------
