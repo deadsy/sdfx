@@ -36,6 +36,7 @@ type ThreadParameters struct {
 	Pitch        float64 // thread to thread distance of screw
 	HexFlat2Flat float64 // hex head flat to flat distance
 	Units        string  // "inch" or "mm"
+	Taper        float64 // Angle or taper rate of thread for pipes (NPT)
 }
 
 type threadDatabase map[string]*ThreadParameters
@@ -80,6 +81,27 @@ func (m threadDatabase) ISOAdd(
 	m[name] = &t
 }
 
+// NPTAdd adds an National Pipe Thread to the thread database.
+func (m threadDatabase) NPTAdd(
+	name string, // thread name with nominal pipe size (somewhat related to internal diameter)
+	pipeDiam float64, // Outside diameter of pipe
+	tpi float64, // thread per inch
+	ftof float64, // hex head flat to flat distance
+	taper float64, // taper in degrees
+) {
+	if ftof <= 0 {
+		log.Panicf("bad flat to flat distance for thread \"%s\"", name)
+	}
+	t := ThreadParameters{}
+	t.Name = name
+	t.Radius = pipeDiam / 2.0
+	t.Pitch = 1.0 / tpi
+	t.HexFlat2Flat = ftof
+	t.Units = "inch"
+	t.Taper = taper
+	m[name] = &t
+}
+
 // initThreadLookup adds a collection of standard threads to the thread database.
 func initThreadLookup() threadDatabase {
 	m := make(threadDatabase)
@@ -105,6 +127,22 @@ func initThreadLookup() threadDatabase {
 	m.UTSAdd("unf_3/4", 3.0/4.0, 16, 9.0/8.0)
 	m.UTSAdd("unf_7/8", 7.0/8.0, 14, 21.0/16.0)
 	m.UTSAdd("unf_1", 1.0, 12, 3.0/2.0)
+
+	// NPT. Face to face length taken from ASME B16.11 Plug Manufacturer (mm)
+	const NPTTaper = 1.0 + 47.0/60.0 // 1°47'
+	m.NPTAdd("npt_1/8", 0.405, 27, 11.2/25.4, NPTTaper)
+	m.NPTAdd("npt_1/4", 0.540, 18, 15.7/25.4, NPTTaper)
+	m.NPTAdd("npt_3/8", 0.675, 18, 17.5/25.4, NPTTaper)
+	m.NPTAdd("npt_1/2", 0.840, 14, 22.4/25.4, NPTTaper)
+	m.NPTAdd("npt_3/4", 1.050, 14, 26.9/25.4, NPTTaper)
+	m.NPTAdd("npt_1", 1.050, 11.5, 35.1/25.4, NPTTaper)
+	m.NPTAdd("npt_1_1/4", 1.660, 11.5, 44.5/25.4, NPTTaper)
+	m.NPTAdd("npt_1_1/2", 1.900, 11.5, 50.8/25.4, NPTTaper)
+	m.NPTAdd("npt_2", 2.375, 11.5, 63.5/25.4, NPTTaper)
+	m.NPTAdd("npt_2_1/2", 2.875, 8, 76.2/25.4, NPTTaper)
+	m.NPTAdd("npt_3", 3.500, 8, 88.9/25.4, NPTTaper)
+	m.NPTAdd("npt_4", 4.500, 8, 117.3/25.4, NPTTaper)
+
 	// ISO Coarse
 	m.ISOAdd("M1x0.25", 1, 0.25, 1.75)    // ftof?
 	m.ISOAdd("M1.2x0.25", 1.2, 0.25, 2.0) // ftof?
@@ -300,6 +338,7 @@ type ScrewSDF3 struct {
 	pitch  float64 // thread to thread distance
 	lead   float64 // distance per turn (starts * pitch)
 	length float64 // total length of screw
+	taper  float64 // taper rate or angle of thread in degrees
 	starts int     // number of thread starts
 	bb     Box3    // bounding box
 }
@@ -310,11 +349,13 @@ func Screw3D(
 	length float64, // length of screw
 	pitch float64, // thread to thread distance
 	starts int, // number of thread starts (< 0 for left hand threads)
+	taper float64, // taper rate or angle of thread in degrees
 ) (SDF3, error) {
 	s := ScrewSDF3{}
 	s.thread = thread
 	s.pitch = pitch
 	s.length = length / 2
+	s.taper = taper
 	s.lead = -pitch * float64(starts)
 	// Work out the bounding box.
 	// The max-y axis of the sdf2 bounding box is the radius of the thread.
@@ -329,7 +370,11 @@ func (s *ScrewSDF3) Evaluate(p V3) float64 {
 	// map the 3d point back to the xy space of the profile
 	p0 := V2{}
 	// the distance from the 3d z-axis maps to the 2d y-axis
-	p0.Y = math.Sqrt(p.X*p.X + p.Y*p.Y)
+	var taperedDistance float64
+	if s.taper != 0 {
+		taperedDistance = (p.Z) * math.Atan(math.Pi*s.taper/180.)
+	}
+	p0.Y = math.Sqrt(p.X*p.X+p.Y*p.Y) + taperedDistance
 	// the x/y angle and the z-height map to the 2d x-axis
 	// ie: the position along thread pitch
 	theta := math.Atan2(p.Y, p.X)
