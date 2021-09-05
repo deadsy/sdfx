@@ -39,7 +39,7 @@ func gyroidCube() (sdf.SDF3, error) {
 
 func gyroidSurface() (sdf.SDF3, error) {
 
-	l := 60.0     // cube side
+	l := 60.0    // cube side
 	k := l * 0.5 // 2 cycles per side
 
 	s, err := sdf.Gyroid3D(sdf.V3{k, k, k})

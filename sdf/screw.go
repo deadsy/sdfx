@@ -95,7 +95,7 @@ func (m threadDatabase) NPTAdd(
 	t.Name = name
 	t.Radius = diameter / 2.0
 	t.Pitch = 1.0 / tpi
-	t.Taper = math.Atan(1.0/32.0)
+	t.Taper = math.Atan(1.0 / 32.0)
 	t.HexFlat2Flat = ftof
 	t.Units = "inch"
 	m[name] = &t
@@ -349,6 +349,21 @@ func Screw3D(
 	pitch float64, // thread to thread distance
 	starts int, // number of thread starts (< 0 for left hand threads)
 ) (SDF3, error) {
+	if thread == nil {
+		return nil, ErrMsg("thread == nil")
+	}
+	if length <= 0 {
+		return nil, ErrMsg("length <= 0")
+	}
+	if taper < 0 {
+		return nil, ErrMsg("taper < 0")
+	}
+	if taper >= Pi*0.5 {
+		return nil, ErrMsg("taper >= Pi * 0.5")
+	}
+	if pitch <= 0 {
+		return nil, ErrMsg("pitch <= 0")
+	}
 	s := ScrewSDF3{}
 	s.thread = thread
 	s.pitch = pitch
@@ -359,6 +374,8 @@ func Screw3D(
 	// The max-y axis of the sdf2 bounding box is the radius of the thread.
 	bb := s.thread.BoundingBox()
 	r := bb.Max.Y
+	// add the taper increment
+	r += s.length * math.Tan(taper)
 	s.bb = Box3{V3{-r, -r, -s.length}, V3{r, r, s.length}}
 	return &s, nil
 }
