@@ -43,7 +43,7 @@ func boltContainer() (sdf.SDF3, error) {
 	if err != nil {
 		return nil, err
 	}
-	screw, err := sdf.Screw3D(isoThread, l, threadPitch, 1)
+	screw, err := sdf.Screw3D(isoThread, l, threadPitch, 1, 0)
 	if err != nil {
 		return nil, err
 	}
