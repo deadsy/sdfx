@@ -22,6 +22,9 @@ const Tau = 2 * math.Pi
 // MillimetresPerInch is millimetres per inch (25.4)
 const MillimetresPerInch = 25.4
 
+// InchesPerMillimetre is inches per millimetre
+const InchesPerMillimetre = 1.0 / MillimetresPerInch
+
 // Mil is millimetres per 1/1000 of an inch
 const Mil = MillimetresPerInch / 1000.0
 

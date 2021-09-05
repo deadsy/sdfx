@@ -208,7 +208,7 @@ func spincapDouble(male bool) (sdf.SDF3, error) {
 		if err != nil {
 			return nil, err
 		}
-		screw, err := sdf.Screw3D(t, bearingThickness, threadPitch, 1, 0)
+		screw, err := sdf.Screw3D(t, bearingThickness, 0, threadPitch, 1)
 		if err != nil {
 			return nil, err
 		}
@@ -228,7 +228,7 @@ func spincapDouble(male bool) (sdf.SDF3, error) {
 	if err != nil {
 		return nil, err
 	}
-	screw, err := sdf.Screw3D(t, bearingThickness, threadPitch, 1, 0)
+	screw, err := sdf.Screw3D(t, bearingThickness, 0, threadPitch, 1)
 	if err != nil {
 		return nil, err
 	}

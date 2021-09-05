@@ -515,7 +515,7 @@ func test37() error {
 	if err != nil {
 		return err
 	}
-	s, err := Screw3D(isoThread, 50, p, 1, 0)
+	s, err := Screw3D(isoThread, 50, 0, p, 1)
 	if err != nil {
 		return err
 	}

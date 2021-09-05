@@ -80,7 +80,7 @@ func Bolt(k *BoltParms) (sdf.SDF3, error) {
 		if err != nil {
 			return nil, err
 		}
-		thread, err = sdf.Screw3D(isoThread, threadLength, t.Pitch, 1, t.Taper)
+		thread, err = sdf.Screw3D(isoThread, threadLength, t.Taper, t.Pitch, 1)
 		if err != nil {
 			return nil, err
 		}

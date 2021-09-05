@@ -70,11 +70,11 @@ func Knurl3D(k *KnurlParms) (sdf.SDF3, error) {
 		return nil, err
 	}
 	// create the left/right hand spirals
-	knurl0_3d, err := sdf.Screw3D(knurl2d, k.Length, k.Pitch, n, 0)
+	knurl0_3d, err := sdf.Screw3D(knurl2d, k.Length, 0, k.Pitch, n)
 	if err != nil {
 		return nil, err
 	}
-	knurl1_3d, err := sdf.Screw3D(knurl2d, k.Length, k.Pitch, -n, 0)
+	knurl1_3d, err := sdf.Screw3D(knurl2d, k.Length, 0, k.Pitch, -n)
 	if err != nil {
 		return nil, err
 	}
