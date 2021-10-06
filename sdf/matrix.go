@@ -199,6 +199,15 @@ func MirrorYZ() M44 {
 		0, 0, 0, 1}
 }
 
+// MirrorXeqY returns a 4x4 matrix with mirroring across the X == Y plane.
+func MirrorXeqY() M44 {
+	return M44{
+		0, 1, 0, 0,
+		1, 0, 0, 0,
+		0, 0, 1, 0,
+		0, 0, 0, 1}
+}
+
 // MirrorX returns a 3x3 matrix with mirroring across the X axis.
 func MirrorX() M33 {
 	return M33{
