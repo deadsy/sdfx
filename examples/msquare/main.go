@@ -11,6 +11,7 @@ Inspired by: https://fireballtool.com/monster-square/
 package main
 
 import (
+	"fmt"
 	"log"
 	"math"
 
@@ -32,6 +33,7 @@ const draft = 2.0
 //-----------------------------------------------------------------------------
 
 type msParms struct {
+	name          string  // name of model
 	size          float64 // length of square side
 	width         float64 // width of square
 	wallThickness float64 // outside wall thickness
@@ -180,7 +182,7 @@ func corner90(k *msParms) (sdf.SDF3, error) {
 	r := 1.5 * k.wallThickness
 	trp := &obj.TruncRectPyramidParms{
 		Size:        sdf.V3{2.0 * r, 2.0 * r, (k.width * 0.5) + k.allowance},
-		BaseAngle:   sdf.DtoR(90.0 - 2.0*draft),
+		BaseAngle:   sdf.DtoR(90.0 - 3.0*draft),
 		BaseRadius:  r,
 		RoundRadius: k.wallThickness * 0.25,
 	}
@@ -188,7 +190,7 @@ func corner90(k *msParms) (sdf.SDF3, error) {
 	if err != nil {
 		return nil, err
 	}
-	ofs := 1.2 * r
+	ofs := 1.1 * r
 	s = sdf.Transform3D(s, sdf.Translate3d(sdf.V3{ofs, ofs, 0}))
 	return s, nil
 }
@@ -197,7 +199,7 @@ func corner45(k *msParms) (sdf.SDF3, error) {
 	r := 1.8 * k.wallThickness
 	trp := &obj.TruncRectPyramidParms{
 		Size:        sdf.V3{2.0 * r, 2.0 * r, (k.width * 0.5) + k.allowance},
-		BaseAngle:   sdf.DtoR(90.0 - 2.0*draft),
+		BaseAngle:   sdf.DtoR(90.0 - 3.0*draft),
 		BaseRadius:  r,
 		RoundRadius: k.wallThickness * 0.25,
 	}
@@ -238,23 +240,21 @@ func corners(k *msParms) (sdf.SDF3, error) {
 
 //-----------------------------------------------------------------------------
 
-func mSquare(k *msParms, machined bool) ([3]sdf.SDF3, error) {
-
-	var bad [3]sdf.SDF3
+func mSquare(k *msParms, machined bool) error {
 
 	web, err := web(k)
 	if err != nil {
-		return bad, err
+		return err
 	}
 
 	walls, err := walls(k)
 	if err != nil {
-		return bad, err
+		return err
 	}
 
 	corners, err := corners(k)
 	if err != nil {
-		return bad, err
+		return err
 	}
 
 	s := sdf.Union3D(web, walls, corners)
@@ -262,14 +262,20 @@ func mSquare(k *msParms, machined bool) ([3]sdf.SDF3, error) {
 
 	env, err := envelope(k, machined)
 	if err != nil {
-		return bad, err
+		return err
 	}
 	s = sdf.Intersect3D(s, env)
 
-	sUpper := sdf.Cut3D(s, sdf.V3{0, 0, 0}, sdf.V3{0, 0, 1})
-	sLower := sdf.Cut3D(s, sdf.V3{0, 0, 0}, sdf.V3{0, 0, -1})
+	s = sdf.ScaleUniform3D(s, shrink*scale)
+	render.RenderSTLSlow(s, 300, fmt.Sprintf("%s.stl", k.name))
 
-	return [3]sdf.SDF3{s, sUpper, sLower}, nil
+	sUpper := sdf.Cut3D(s, sdf.V3{0, 0, 0}, sdf.V3{0, 0, 1})
+	render.RenderSTLSlow(sUpper, 300, fmt.Sprintf("%s_upper.stl", k.name))
+
+	sLower := sdf.Cut3D(s, sdf.V3{0, 0, 0}, sdf.V3{0, 0, -1})
+	render.RenderSTLSlow(sLower, 300, fmt.Sprintf("%s_lower.stl", k.name))
+
+	return nil
 }
 
 //-----------------------------------------------------------------------------
@@ -277,6 +283,7 @@ func mSquare(k *msParms, machined bool) ([3]sdf.SDF3, error) {
 func main() {
 
 	k := &msParms{
+		name:          "ms8",
 		size:          8.0,
 		width:         3.0,
 		wallThickness: 0.375,
@@ -286,18 +293,27 @@ func main() {
 		allowance:     0.0625,
 	}
 
-	ss, err := mSquare(k, true)
+	err := mSquare(k, false)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	s := sdf.ScaleUniform3D(ss[0], shrink*scale)
-	render.RenderSTLSlow(s, 300, "ms8.stl")
 
-	s = sdf.ScaleUniform3D(ss[1], shrink*scale)
-	render.RenderSTLSlow(s, 300, "ms8_upper.stl")
+	k = &msParms{
+		name:          "ms6",
+		size:          6.0,
+		width:         2.0,
+		wallThickness: 0.25,
+		webThickness:  0.25,
+		holeRadius:    0.375,
+		holeOffset:    0.75,
+		allowance:     0.0625,
+	}
 
-	s = sdf.ScaleUniform3D(ss[2], shrink*scale)
-	render.RenderSTLSlow(s, 300, "ms8_lower.stl")
+	err = mSquare(k, false)
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+
 
 }
 
