@@ -30,6 +30,8 @@ const scale = sdf.MillimetresPerInch
 
 const draft = 2.0
 
+const pinRadius = 0.5 * 4.4 * sdf.InchesPerMillimetre
+
 //-----------------------------------------------------------------------------
 
 type msParms struct {
@@ -41,38 +43,41 @@ type msParms struct {
 	holeRadius    float64 // radius of internal web hole
 	holeOffset    float64 // offset of internal web hole
 	allowance     float64 // machining allowance
+	pinRadius     float64 // alignment pin radius
+	nose          float64 // machined nose length on 45 degree corners
 }
 
 //-----------------------------------------------------------------------------
 
-// envelope for the outside machined surfaces
+// envelope for the outside machined/cast surfaces
 func envelope(k *msParms, machined bool) (sdf.SDF3, error) {
-
-	if machined {
-
-		s, err := sdf.Polygon2D([]sdf.V2{{0, 0}, {k.size, 0}, {0, k.size}})
-		if err != nil {
-			return nil, err
-		}
-		return sdf.Extrude3D(s, k.width), nil
-
-	}
-
-	k0 := -k.allowance
-	k1 := k.size + (1.0*math.Sqrt(2.0))*k.allowance
-	k2 := k.width + 2.0*k.allowance
-
-	s, err := sdf.Polygon2D([]sdf.V2{{k0, k0}, {k0 + k1, 0}, {0, k0 + k1}})
+	c := k.nose
+	l := k.size - c
+	s0, err := sdf.Polygon2D([]sdf.V2{{0, 0}, {l, 0}, {l, c}, {c, l}, {0, l}})
 	if err != nil {
 		return nil, err
 	}
-	return sdf.Extrude3D(s, k2), nil
 
+	// machined
+	if machined {
+		return sdf.Extrude3D(s0, k.width), nil
+	}
+
+	// cast
+	s1 := sdf.Extrude3D(s0, k.width+2.0*k.allowance)
+	if err != nil {
+		return nil, err
+	}
+	s2, err := walls(k)
+	if err != nil {
+		return nil, err
+	}
+	return sdf.Union3D(s1, s2), nil
 }
 
 //-----------------------------------------------------------------------------
 
-// wall returns a wall for the msquare
+// wall returns an outside wall with casting draft of length l
 func wall(k *msParms, l float64) (sdf.SDF3, error) {
 	trp := &obj.TruncRectPyramidParms{
 		Size:        sdf.V3{l, k.wallThickness + k.allowance, (k.width * 0.5) + k.allowance},
@@ -89,27 +94,33 @@ func wall(k *msParms, l float64) (sdf.SDF3, error) {
 	return s, nil
 }
 
+// walls returns the 3 walls for a 45 degreee right angle triangle
 func walls(k *msParms) (sdf.SDF3, error) {
 
-	ofs := 0.5 * k.size
+	k0 := math.Sqrt(2.0)
+	k1 := 1 + k0
+	k2 := 2 + k0
+	r := 0.5 * (k.wallThickness + k.allowance)
 
-	w, err := wall(k, k.size+2.0*k.allowance)
+	// build the x-wall
+	l0 := k.size + (k2 * k.allowance) - (k0 * r)
+	w, err := wall(k, l0)
 	if err != nil {
 		return nil, err
 	}
-
-	// build the x-wall
+	ofs := 0.5*l0 - k.allowance
 	w0 := sdf.Transform3D(w, sdf.Translate3d(sdf.V3{ofs, 0, 0}))
 
 	// build the y-wall
-	w1 := sdf.Transform3D(w, sdf.RotateZ(sdf.DtoR(-90)))
-	w1 = sdf.Transform3D(w1, sdf.Translate3d(sdf.V3{0, ofs, 0}))
+	w1 := sdf.Transform3D(w0, sdf.MirrorXeqY())
 
 	// build the 45-wall
-	w, err = wall(k, math.Sqrt(2.0)*k.size+2.0*k.allowance)
+	l1 := (k0 * k.size) + (2.0 * k1 * k.allowance) - (2.0 * k0 * r)
+	w, err = wall(k, l1)
 	if err != nil {
 		return nil, err
 	}
+	ofs = 0.5 * k.size
 	w2 := sdf.Transform3D(w, sdf.RotateZ(sdf.DtoR(135)))
 	w2 = sdf.Transform3D(w2, sdf.Translate3d(sdf.V3{ofs, ofs, 0}))
 
@@ -179,7 +190,7 @@ func web(k *msParms) (sdf.SDF3, error) {
 //-----------------------------------------------------------------------------
 
 func corner90(k *msParms) (sdf.SDF3, error) {
-	r := 1.5 * k.wallThickness
+	r := 2.0 * k.wallThickness
 	trp := &obj.TruncRectPyramidParms{
 		Size:        sdf.V3{2.0 * r, 2.0 * r, (k.width * 0.5) + k.allowance},
 		BaseAngle:   sdf.DtoR(90.0 - 3.0*draft),
@@ -190,13 +201,13 @@ func corner90(k *msParms) (sdf.SDF3, error) {
 	if err != nil {
 		return nil, err
 	}
-	ofs := 1.1 * r
+	ofs := 0.8 * r
 	s = sdf.Transform3D(s, sdf.Translate3d(sdf.V3{ofs, ofs, 0}))
 	return s, nil
 }
 
 func corner45(k *msParms) (sdf.SDF3, error) {
-	r := 1.8 * k.wallThickness
+	r := 2.3 * k.wallThickness
 	trp := &obj.TruncRectPyramidParms{
 		Size:        sdf.V3{2.0 * r, 2.0 * r, (k.width * 0.5) + k.allowance},
 		BaseAngle:   sdf.DtoR(90.0 - 3.0*draft),
@@ -207,17 +218,15 @@ func corner45(k *msParms) (sdf.SDF3, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	dy := 0.8 * r
+	dy := 0.7 * r
 	dx := dy * (1.0 + math.Sqrt(2.0))
-
 	s = sdf.Transform3D(s, sdf.Translate3d(sdf.V3{k.size - dx, dy, 0}))
 	return s, nil
 }
 
 func corners(k *msParms) (sdf.SDF3, error) {
 
-	// build the 90 degreee corner
+	// build the 90 degree corner
 	c0, err := corner90(k)
 	if err != nil {
 		return nil, err
@@ -236,6 +245,40 @@ func corners(k *msParms) (sdf.SDF3, error) {
 	c2f := sdf.Transform3D(c2, sdf.MirrorXY())
 
 	return sdf.Union3D(c0, c0f, c1, c1f, c2, c2f), nil
+}
+
+//-----------------------------------------------------------------------------
+
+func pin(k *msParms) (sdf.SDF3, error) {
+	return sdf.Cylinder3D(k.width*0.25, k.pinRadius, 0)
+}
+
+// pins returns split-casting alignment pins
+func pins(k *msParms) (sdf.SDF3, error) {
+
+	if k.pinRadius == 0 {
+		return nil, nil
+	}
+
+	// build the pin at the 90 degree corner
+	p0, err := pin(k)
+	if err != nil {
+		return nil, err
+	}
+	ofs := 1.5 * k.wallThickness
+	p0 = sdf.Transform3D(p0, sdf.Translate3d(sdf.V3{ofs, ofs, 0}))
+
+	// build the pins at the 45 degree corners
+	p1, err := pin(k)
+	if err != nil {
+		return nil, err
+	}
+	dy := 1.5 * k.wallThickness
+	dx := dy * (1.0 + math.Sqrt(2.0))
+	p1 = sdf.Transform3D(p1, sdf.Translate3d(sdf.V3{k.size - dx, dy, 0}))
+	p2 := sdf.Transform3D(p1, sdf.MirrorXeqY())
+
+	return sdf.Union3D(p0, p1, p2), nil
 }
 
 //-----------------------------------------------------------------------------
@@ -260,6 +303,14 @@ func mSquare(k *msParms, machined bool) error {
 	s := sdf.Union3D(web, walls, corners)
 	s.(*sdf.UnionSDF3).SetMin(sdf.PolyMin(k.webThickness))
 
+	// remove the pin cavities
+	pins, err := pins(k)
+	if err != nil {
+		return err
+	}
+	s = sdf.Difference3D(s, pins)
+
+	// cleanup with the outside envelope
 	env, err := envelope(k, machined)
 	if err != nil {
 		return err
@@ -282,38 +333,40 @@ func mSquare(k *msParms, machined bool) error {
 
 func main() {
 
+	/*
+
+		k := &msParms{
+			name:          "ms8",
+			size:          8.0,
+			width:         3.0,
+			wallThickness: 0.375,
+			webThickness:  0.25,
+			holeRadius:    0.5,
+			holeOffset:    1.0,
+			allowance:     0.0625,
+			pinRadius:     pinRadius,
+			nose:          0.375,
+		}
+
+	*/
+
 	k := &msParms{
-		name:          "ms8",
-		size:          8.0,
-		width:         3.0,
-		wallThickness: 0.375,
+		name:          "ms6",
+		size:          6.0,
+		width:         2.0,
+		wallThickness: 0.25,
 		webThickness:  0.25,
 		holeRadius:    0.5,
-		holeOffset:    1.0,
+		holeOffset:    0.75,
 		allowance:     0.0625,
+		pinRadius:     pinRadius,
+		nose:          0.25,
 	}
 
 	err := mSquare(k, false)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-
-	k = &msParms{
-		name:          "ms6",
-		size:          6.0,
-		width:         2.0,
-		wallThickness: 0.25,
-		webThickness:  0.25,
-		holeRadius:    0.375,
-		holeOffset:    0.75,
-		allowance:     0.0625,
-	}
-
-	err = mSquare(k, false)
-	if err != nil {
-		log.Fatalf("error: %s", err)
-	}
-
 
 }
 
