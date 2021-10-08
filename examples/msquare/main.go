@@ -250,7 +250,7 @@ func corners(k *msParms) (sdf.SDF3, error) {
 //-----------------------------------------------------------------------------
 
 func pin(k *msParms) (sdf.SDF3, error) {
-	return sdf.Cylinder3D(k.width*0.25, k.pinRadius, 0)
+	return sdf.Cylinder3D(k.width*0.8, k.pinRadius, 0)
 }
 
 // pins returns split-casting alignment pins
@@ -336,6 +336,19 @@ func main() {
 	/*
 
 		k := &msParms{
+			name:          "ms6",
+			size:          6.0,
+			width:         2.0,
+			wallThickness: 0.25,
+			webThickness:  0.25,
+			holeRadius:    0.5,
+			holeOffset:    0.75,
+			allowance:     0.0625,
+			pinRadius:     pinRadius,
+			nose:          0.25,
+		}
+
+		k := &msParms{
 			name:          "ms8",
 			size:          8.0,
 			width:         3.0,
@@ -346,6 +359,19 @@ func main() {
 			allowance:     0.0625,
 			pinRadius:     pinRadius,
 			nose:          0.375,
+		}
+
+		k := &msParms{
+			name:          "ms12",
+			size:          12.0,
+			width:         3.0,
+			wallThickness: 0.375,
+			webThickness:  0.25,
+			holeRadius:    0.75,
+			holeOffset:    1.5,
+			allowance:     0.0625,
+			pinRadius:     pinRadius,
+			nose:          0.5,
 		}
 
 	*/
