@@ -222,8 +222,8 @@ func RenderSTL(
 	path string, //path to filename
 ) {
 	// Default to marching cubes for backwards compatibility (and speed)
-	//RenderSTLCustom(s, meshCells, path, &STLRendererMarchingCubesUniform{})
-	RenderSTLCustom(s, meshCells, path, &STLRendererDualContouring{})
+	RenderSTLCustom(s, meshCells, path, &STLRendererMarchingCubesUniform{})
+	//RenderSTLCustom(s, meshCells, path, &STLRendererDualContouring{})
 }
 
 // RenderSTLSlow renders an SDF3 as an STL file (uses uniform grid sampling).
