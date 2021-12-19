@@ -572,8 +572,10 @@ func (q *dcQefSolver) Solve(rCond float64) sdf.V3 {
 	var x mat.VecDense
 	// SVD
 	svd := new(mat.SVD)
-	svd.Factorize(q.ata, mat.SVDFullU|mat.SVDThinV)
-	_ = svd.SolveVecTo(&x, toVec(atb), svd.Rank(1e-3))
+	if !svd.Factorize(q.ata, mat.SVDThin) {
+		return massPointClone // If factorization fails (for example for Box), return the mass point
+	}
+	_ = svd.SolveVecTo(&x, toVec(atb), svd.Rank(rCond))
 	// QR (needs stabilization)
 	//qr := new(mat.QR)
 	//qr.Factorize(q.ata)

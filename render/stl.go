@@ -222,7 +222,7 @@ func RenderSTL(
 	path string, //path to filename
 ) {
 	// Default to marching cubes for backwards compatibility (and speed)
-	RenderSTLCustom(s, meshCells, path, &STLRendererMarchingCubesUniform{})
+	RenderSTLCustom(s, meshCells, path, &STLRendererMarchingCubesOctree{})
 	//RenderSTLCustom(s, meshCells, path, &STLRendererDualContouring{})
 }
 
