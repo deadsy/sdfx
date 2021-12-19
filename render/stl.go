@@ -145,20 +145,98 @@ func WriteSTL(wg *sync.WaitGroup, path string) (chan<- *Triangle3, error) {
 
 //-----------------------------------------------------------------------------
 
+// STLRenderer is an isosurface generator capable of producing 3D triangles forming a mesh from a SDF
+type STLRenderer interface {
+	// Render builds triangles from the specified SDF
+	Render(sdf3 sdf.SDF3, meshCells int, output chan<- *Triangle3)
+}
+
+// STLRendererMarchingCubesUniform renders using marching cubes (uniform grid sampling)
+type STLRendererMarchingCubesUniform struct{}
+
+func (m *STLRendererMarchingCubesUniform) Render(s sdf.SDF3, meshCells int, output chan<- *Triangle3) {
+	// work out the region we will sample
+	bb0 := s.BoundingBox()
+	bb0Size := bb0.Size()
+	meshInc := bb0Size.MaxComponent() / float64(meshCells)
+	bb1Size := bb0Size.DivScalar(meshInc)
+	bb1Size = bb1Size.Ceil().AddScalar(1)
+	bb1Size = bb1Size.MulScalar(meshInc)
+	bb := sdf.NewBox3(bb0.Center(), bb1Size)
+	for _, tri := range marchingCubes(s, bb, meshInc) {
+		output <- tri
+	}
+}
+
+// STLRendererMarchingCubesOctree renders using marching cubes (octree sampling)
+type STLRendererMarchingCubesOctree struct{}
+
+func (m *STLRendererMarchingCubesOctree) Render(s sdf.SDF3, meshCells int, output chan<- *Triangle3) {
+	// work out the sampling resolution to use
+	bbSize := s.BoundingBox().Size()
+	resolution := bbSize.MaxComponent() / float64(meshCells)
+
+	//cells := bbSize.DivScalar(resolution).ToV3i()
+	//fmt.Printf("rendering %s (%dx%dx%d, resolution %.2f)\n", cells[0], cells[1], cells[2], resolution)
+
+	marchingCubesOctree(s, resolution, output)
+}
+
+// STLRendererDualContouring renders using dual contouring (octree sampling, sharp edges!, automatic simplification)
+type STLRendererDualContouring struct {
+	// Simplify: how much to simplify (if >=0).
+	// NOTE: Meshing might fail with simplification enabled and greater than 0 (FIXME),
+	// but the mesh might can still simplified later using external tools (the main benefit of dual contouring is sharp edges).
+	Simplify float64
+	// RCond [0, 1) is the parameter that controls the accuracy of sharp edges, with lower being more accurate
+	// but it can cause instability leading to large wrong triangles. Leave the default if unsure.
+	RCond float64
+	// LockVertices makes sure each vertex stays in its voxel, avoiding small or bad triangles that may be generated
+	// otherwise, but it also may remove some sharp edges.
+	LockVertices bool
+}
+
+func (m *STLRendererDualContouring) Render(s sdf.SDF3, meshCells int, output chan<- *Triangle3) {
+	if m.RCond == 0 {
+		m.RCond = 1e-3
+	}
+	// work out the sampling resolution to use
+	bbSize := s.BoundingBox().Size()
+	resolution := bbSize.MaxComponent() / float64(meshCells)
+	cells := bbSize.DivScalar(resolution).ToV3i()
+	// Build the octree
+	dcOctreeRootNode := dcNewOctree(cells, m.RCond, m.LockVertices)
+	dcOctreeRootNode.Populate(s)
+	// Simplify it
+	if m.Simplify >= 0 {
+		dcOctreeRootNode.Simplify(s, m.Simplify)
+	}
+	// Generate the final mesh
+	dcOctreeRootNode.GenerateMesh(output)
+}
+
 // RenderSTL renders an SDF3 as an STL file (uses octree sampling).
 func RenderSTL(
 	s sdf.SDF3, //sdf3 to render
 	meshCells int, //number of cells on the longest axis. e.g 200
 	path string, //path to filename
 ) {
+	// Default to marching cubes for backwards compatibility (and speed)
+	RenderSTLCustom(s, meshCells, path, &STLRendererMarchingCubesOctree{})
+	//RenderSTLCustom(s, meshCells, path, &STLRendererDualContouring{})
+}
 
-	// work out the sampling resolution to use
-	bbSize := s.BoundingBox().Size()
-	resolution := bbSize.MaxComponent() / float64(meshCells)
-	cells := bbSize.DivScalar(resolution).ToV3i()
+// RenderSTLSlow renders an SDF3 as an STL file (uses uniform grid sampling).
+func RenderSTLSlow(
+	s sdf.SDF3, //sdf3 to render
+	meshCells int, //number of cells on the longest axis. e.g 200
+	path string, //path to filename
+) {
+	RenderSTLCustom(s, meshCells, path, &STLRendererMarchingCubesUniform{})
+}
 
-	fmt.Printf("rendering %s (%dx%dx%d, resolution %.2f)\n", path, cells[0], cells[1], cells[2], resolution)
-
+// RenderSTLCustom renders an SDF3 as an STL file (using any STLRenderer for mesh generation).
+func RenderSTLCustom(s sdf.SDF3, meshCells int, path string, renderer STLRenderer) {
 	// write the triangles to an STL file
 	var wg sync.WaitGroup
 	output, err := WriteSTL(&wg, path)
@@ -168,38 +246,12 @@ func RenderSTL(
 	}
 
 	// run marching cubes to generate the triangle mesh
-	marchingCubesOctree(s, resolution, output)
+	renderer.Render(s, meshCells, output)
 
 	// stop the STL writer reading on the channel
 	close(output)
 	// wait for the file write to complete
 	wg.Wait()
-}
-
-// RenderSTLSlow renders an SDF3 as an STL file (uses uniform grid sampling).
-func RenderSTLSlow(
-	s sdf.SDF3, //sdf3 to render
-	meshCells int, //number of cells on the longest axis. e.g 200
-	path string, //path to filename
-) {
-	// work out the region we will sample
-	bb0 := s.BoundingBox()
-	bb0Size := bb0.Size()
-	meshInc := bb0Size.MaxComponent() / float64(meshCells)
-	bb1Size := bb0Size.DivScalar(meshInc)
-	bb1Size = bb1Size.Ceil().AddScalar(1)
-	cells := bb1Size.ToV3i()
-	bb1Size = bb1Size.MulScalar(meshInc)
-	bb := sdf.NewBox3(bb0.Center(), bb1Size)
-
-	fmt.Printf("rendering %s (%dx%dx%d)\n", path, cells[0], cells[1], cells[2])
-
-	// run marching cubes to generate the triangle mesh
-	m := marchingCubes(s, bb, meshInc)
-	err := SaveSTL(path, m)
-	if err != nil {
-		fmt.Printf("%s", err)
-	}
 }
 
 //-----------------------------------------------------------------------------
