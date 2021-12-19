@@ -12,6 +12,7 @@ Uses octree space subdivision.
 package render
 
 import (
+	"fmt"
 	"math"
 	"sync"
 
@@ -150,6 +151,28 @@ func marchingCubesOctree(s sdf.SDF3, resolution float64, output chan<- *Triangle
 	dc := newDcache3(s, bb.Min, resolution, levels)
 	// process the octree, start at the top level
 	dc.processCube(&cube{sdf.V3i{0, 0, 0}, levels - 1}, output)
+}
+
+//-----------------------------------------------------------------------------
+
+// MarchingCubesOctree renders using marching cubes with octree space sampling.
+type MarchingCubesOctree struct {
+}
+
+// Info returns a string describing the rendered volume.
+func (m *MarchingCubesOctree) Info(s sdf.SDF3, meshCells int) string {
+	bbSize := s.BoundingBox().Size()
+	resolution := bbSize.MaxComponent() / float64(meshCells)
+	cells := bbSize.DivScalar(resolution).ToV3i()
+	return fmt.Sprintf("%dx%dx%d, resolution %.2f", cells[0], cells[1], cells[2], resolution)
+}
+
+// Render produces a 3d triangle mesh over the bounding volume of an sdf3.
+func (m *MarchingCubesOctree) Render(s sdf.SDF3, meshCells int, output chan<- *Triangle3) {
+	// work out the sampling resolution to use
+	bbSize := s.BoundingBox().Size()
+	resolution := bbSize.MaxComponent() / float64(meshCells)
+	marchingCubesOctree(s, resolution, output)
 }
 
 //-----------------------------------------------------------------------------

@@ -56,9 +56,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.RenderSTL(pool, 300, "pool.stl")
-	// Test rendering with dual contouring to memory
-	(&render.STLRendererDualContouring{}).Render(pool, 100, make(chan *render.Triangle3, 100000))
+	render.ToSTL(pool, 300, "pool1.stl", &render.MarchingCubesOctree{})
+	render.ToSTL(pool, 100, "pool2.stl", &render.DualContouring{})
 }
 
 //-----------------------------------------------------------------------------

@@ -1,7 +1,7 @@
 //-----------------------------------------------------------------------------
 /*
 
-Dual Cotouring
+Dual Contouring
 
 Convert an SDF3 to a triangle mesh.
 Uses octree space subdivision.
@@ -14,11 +14,59 @@ Based on: https://github.com/nickgildea/DualContouringSample
 package render
 
 import (
-	"github.com/deadsy/sdfx/sdf"
-	"gonum.org/v1/gonum/mat"
+	"fmt"
 	"math"
 	"sort"
+
+	"github.com/deadsy/sdfx/sdf"
+	"gonum.org/v1/gonum/mat"
 )
+
+//-----------------------------------------------------------------------------
+
+// DualContouring renders using dual contouring (octree sampling, sharp edges!, automatic simplification)
+type DualContouring struct {
+	// Simplify: how much to simplify (if >=0).
+	// NOTE: Meshing might fail with simplification enabled and greater than 0 (FIXME),
+	// but the mesh might can still simplified later using external tools (the main benefit of dual contouring is sharp edges).
+	Simplify float64
+	// RCond [0, 1) is the parameter that controls the accuracy of sharp edges, with lower being more accurate
+	// but it can cause instability leading to large wrong triangles. Leave the default if unsure.
+	RCond float64
+	// LockVertices makes sure each vertex stays in its voxel, avoiding small or bad triangles that may be generated
+	// otherwise, but it also may remove some sharp edges.
+	LockVertices bool
+}
+
+// Info returns a string describing the rendered volume.
+func (m *DualContouring) Info(s sdf.SDF3, meshCells int) string {
+	bbSize := s.BoundingBox().Size()
+	resolution := bbSize.MaxComponent() / float64(meshCells)
+	cells := bbSize.DivScalar(resolution).ToV3i()
+	return fmt.Sprintf("%dx%dx%d, resolution %.2f", cells[0], cells[1], cells[2], resolution)
+}
+
+// Render produces a 3d triangle mesh over the bounding volume of an sdf3.
+func (m *DualContouring) Render(s sdf.SDF3, meshCells int, output chan<- *Triangle3) {
+	if m.RCond == 0 {
+		m.RCond = 1e-3
+	}
+	// work out the sampling resolution to use
+	bbSize := s.BoundingBox().Size()
+	resolution := bbSize.MaxComponent() / float64(meshCells)
+	cells := bbSize.DivScalar(resolution).ToV3i()
+	// Build the octree
+	dcOctreeRootNode := dcNewOctree(cells, m.RCond, m.LockVertices)
+	dcOctreeRootNode.Populate(s)
+	// Simplify it
+	if m.Simplify >= 0 {
+		dcOctreeRootNode.Simplify(s, m.Simplify)
+	}
+	// Generate the final mesh
+	dcOctreeRootNode.GenerateMesh(output)
+}
+
+//-----------------------------------------------------------------------------
 
 var dcChildMinOffsets = [8]sdf.V3i{
 	{0, 0, 0},
@@ -230,11 +278,11 @@ func (node *dcOctree) computeOctreeLeaf(d sdf.SDF3) {
 		return
 	}
 	// otherwise, the voxel contains the surface, so find the edge intersections
-	const MAX_CROSSINGS = 6 // TODO: Remove?
+	const maxCrossings = 6 // TODO: Remove?
 	edgeCount := 0
 	normalSum := sdf.V3{X: 0, Y: 0, Z: 0}
 	qefSolver := new(dcQefSolver)
-	for i := 0; i < 12 && edgeCount < MAX_CROSSINGS; i++ {
+	for i := 0; i < 12 && edgeCount < maxCrossings; i++ {
 		c1 := dcEdgevmap[i][0]
 		c2 := dcEdgevmap[i][1]
 		m1 := (corners >> c1) & 1
@@ -607,3 +655,5 @@ func toVec(massPointClone sdf.V3) *mat.VecDense {
 func toV3(x mat.Matrix) sdf.V3 {
 	return sdf.V3{X: x.At(0, 0), Y: x.At(1, 0), Z: x.At(2, 0)}
 }
+
+//-----------------------------------------------------------------------------
