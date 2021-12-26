@@ -123,6 +123,20 @@ func (a Box2) Enlarge(v V2) Box2 {
 
 //-----------------------------------------------------------------------------
 
+// Contains checks if the 3d box contains the given vector (considering bounds as inside).
+func (a Box3) Contains(v V3) bool {
+	return a.Min.X <= v.X && a.Min.Y <= v.Y && a.Min.Z <= v.Z &&
+		v.X <= a.Max.X && v.Y <= a.Max.Y && v.Z <= a.Max.Z
+}
+
+// Contains checks if the 2d box contains the given vector (considering bounds as inside).
+func (a Box2) Contains(v V2) bool {
+	return a.Min.X <= v.X && a.Min.Y <= v.Y &&
+		v.X <= a.Max.X && v.Y <= a.Max.Y
+}
+
+//-----------------------------------------------------------------------------
+
 // Vertices returns a slice of 2d box corner vertices.
 func (a Box2) Vertices() V2Set {
 	v := make([]V2, 4)
