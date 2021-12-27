@@ -11,23 +11,23 @@ Based on: https://github.com/nickgildea/DualContouringSample
 */
 //-----------------------------------------------------------------------------
 
-package render
+package dc
 
 import (
 	"fmt"
-	"math"
-	"sort"
-
+	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
 	"gonum.org/v1/gonum/mat"
+	"math"
+	"sort"
 )
 
 //-----------------------------------------------------------------------------
 
-// DualContouring renders using dual contouring (octree sampling, sharp edges!, automatic simplification)
-type DualContouring struct {
+// DualContouringV1 renders using dual contouring (octree sampling, sharp edges!, automatic simplification)
+type DualContouringV1 struct {
 	// Simplify: how much to simplify (if >=0).
-	// NOTE: Meshing might fail with simplification enabled and greater than 0 (FIXME),
+	// NOTE: Meshing might fail with simplification enabled (FIXME),
 	// but the mesh might can still simplified later using external tools (the main benefit of dual contouring is sharp edges).
 	Simplify float64
 	// RCond [0, 1) is the parameter that controls the accuracy of sharp edges, with lower being more accurate
@@ -38,8 +38,13 @@ type DualContouring struct {
 	LockVertices bool
 }
 
+// NewDualContouringV1 see DualContouringV1
+func NewDualContouringV1(simplify float64, RCond float64, lockVertices bool) *DualContouringV1 {
+	return &DualContouringV1{Simplify: simplify, RCond: RCond, LockVertices: lockVertices}
+}
+
 // Info returns a string describing the rendered volume.
-func (m *DualContouring) Info(s sdf.SDF3, meshCells int) string {
+func (m *DualContouringV1) Info(s sdf.SDF3, meshCells int) string {
 	bbSize := s.BoundingBox().Size()
 	resolution := bbSize.MaxComponent() / float64(meshCells)
 	cells := bbSize.DivScalar(resolution).ToV3i()
@@ -47,7 +52,7 @@ func (m *DualContouring) Info(s sdf.SDF3, meshCells int) string {
 }
 
 // Render produces a 3d triangle mesh over the bounding volume of an sdf3.
-func (m *DualContouring) Render(s sdf.SDF3, meshCells int, output chan<- *Triangle3) {
+func (m *DualContouringV1) Render(s sdf.SDF3, meshCells int, output chan<- *render.Triangle3) {
 	if m.RCond == 0 {
 		m.RCond = 1e-3
 	}
@@ -224,45 +229,6 @@ func (node *dcOctree) relToSDF(d sdf.SDF3, i sdf.V3i) sdf.V3 {
 		Div(node.cellCounts.ToV3().DivScalar(float64(node.meshSize)))))
 }
 
-func dcApproximateZeroCrossingPosition(d sdf.SDF3, p0, p1 sdf.V3) sdf.V3 {
-	const steps = 8. // good enough precision? Note that errors easily explode or cause noise/instability on future operations
-	// Original implementation:
-	//minValue := math.MaxFloat64
-	//t := 0.
-	//const increment = 1. / steps // Relative to p0 <--> p1 edge length
-	//for currentT := 0.; currentT <= 1.; currentT += increment {
-	//	p := p0.Add(p1.Sub(p0).MulScalar(currentT))
-	//	d := math.Abs(d.Evaluate(p))
-	//	if d < minValue {
-	//		minValue = d
-	//		t = currentT
-	//	}
-	//}
-	//return p0.Add(p1.Sub(p0).MulScalar(t))
-	// Alternative: binary search. IMPORTANT: leads to better simplification!
-	fakeElems := math.Pow(2, steps)
-	searchSolid := !(d.Evaluate(p0) < 0)
-	foundIndex := sort.Search(int(fakeElems), func(fakeElem int) bool {
-		currentT := float64(fakeElem) / fakeElems
-		p := p0.Add(p1.Sub(p0).MulScalar(currentT))
-		foundSolid := d.Evaluate(p) < 0
-		return searchSolid && foundSolid || !searchSolid && !foundSolid
-	})
-	t := float64(foundIndex) / fakeElems
-	//log.Println("t:", t, "val:", d.Evaluate(p0.Add(p1.Sub(p0).MulScalar(t))))
-	return p0.Add(p1.Sub(p0).MulScalar(t))
-	// TODO: Gradient descent
-}
-
-func dcCalculateSurfaceNormal(d sdf.SDF3, p sdf.V3) sdf.V3 {
-	const eps = 0.001
-	return sdf.V3{
-		X: d.Evaluate(p.Add(sdf.V3{X: eps})) - d.Evaluate(p.Add(sdf.V3{X: -eps})),
-		Y: d.Evaluate(p.Add(sdf.V3{Y: eps})) - d.Evaluate(p.Add(sdf.V3{Y: -eps})),
-		Z: d.Evaluate(p.Add(sdf.V3{Z: eps})) - d.Evaluate(p.Add(sdf.V3{Z: -eps})),
-	}.Normalize() // TODO: Handle length 0??
-}
-
 // computeOctreeLeaf computes the required leaf information that later will be used for meshing
 func (node *dcOctree) computeOctreeLeaf(d sdf.SDF3) {
 	corners := 0
@@ -278,7 +244,7 @@ func (node *dcOctree) computeOctreeLeaf(d sdf.SDF3) {
 		return
 	}
 	// otherwise, the voxel contains the surface, so find the edge intersections
-	const maxCrossings = 6 // TODO: Remove?
+	const maxCrossings = 6
 	edgeCount := 0
 	normalSum := sdf.V3{X: 0, Y: 0, Z: 0}
 	qefSolver := new(dcQefSolver)
@@ -308,7 +274,7 @@ func (node *dcOctree) computeOctreeLeaf(d sdf.SDF3) {
 		index:         -1,
 		corners:       corners,
 		position:      qefPosition,
-		averageNormal: normalSum.DivScalar(float64(edgeCount)).Normalize(), // TODO: 0-length mean normal?
+		averageNormal: normalSum.DivScalar(float64(edgeCount)).Normalize(),
 		qef:           qefSolver,
 	}
 	node.kind = dcOctreeNodeTypeLeaf
@@ -540,7 +506,7 @@ func dcContourProcessEdge(node [4]*dcOctree, dir int, indexBuffer *[]int) {
 	}
 }
 
-func (node *dcOctree) GenerateMesh(output chan<- *Triangle3) {
+func (node *dcOctree) GenerateMesh(output chan<- *render.Triangle3) {
 	vertexBuffer := new([]sdf.V3)
 	indexBuffer := new([]int)
 	// Populate buffers
@@ -548,7 +514,7 @@ func (node *dcOctree) GenerateMesh(output chan<- *Triangle3) {
 	node.contourCellProc(indexBuffer)
 	// Return triangles
 	for tri := 0; tri < len(*indexBuffer)/3; tri++ {
-		triangle := &Triangle3{
+		triangle := &render.Triangle3{
 			V: [3]sdf.V3{
 				(*vertexBuffer)[(*indexBuffer)[tri*3]],
 				(*vertexBuffer)[(*indexBuffer)[tri*3+1]],
@@ -657,3 +623,41 @@ func toV3(x mat.Matrix) sdf.V3 {
 }
 
 //-----------------------------------------------------------------------------
+
+func dcApproximateZeroCrossingPosition(d sdf.SDF3, p0, p1 sdf.V3) sdf.V3 {
+	const steps = 8. // good enough precision? Note that errors easily explode or cause noise/instability on future operations
+	// Original implementation:
+	//minValue := math.MaxFloat64
+	//t := 0.
+	//const increment = 1. / steps // Relative to p0 <--> p1 edge length
+	//for currentT := 0.; currentT <= 1.; currentT += increment {
+	//	p := p0.Add(p1.Sub(p0).MulScalar(currentT))
+	//	d := math.Abs(d.Evaluate(p))
+	//	if d < minValue {
+	//		minValue = d
+	//		t = currentT
+	//	}
+	//}
+	//return p0.Add(p1.Sub(p0).MulScalar(t))
+	// Alternative: binary search. IMPORTANT: leads to better simplification!
+	fakeElems := math.Pow(2, steps)
+	searchSolid := !(d.Evaluate(p0) < 0)
+	foundIndex := sort.Search(int(fakeElems), func(fakeElem int) bool {
+		currentT := float64(fakeElem) / fakeElems
+		p := p0.Add(p1.Sub(p0).MulScalar(currentT))
+		foundSolid := d.Evaluate(p) < 0
+		return searchSolid && foundSolid || !searchSolid && !foundSolid
+	})
+	t := float64(foundIndex) / fakeElems
+	//log.Println("t:", t, "val:", d.Evaluate(p0.Add(p1.Sub(p0).MulScalar(t))))
+	return p0.Add(p1.Sub(p0).MulScalar(t))
+}
+
+func dcCalculateSurfaceNormal(d sdf.SDF3, p sdf.V3) sdf.V3 {
+	const eps = 0.001
+	return sdf.V3{
+		X: d.Evaluate(p.Add(sdf.V3{X: eps})) - d.Evaluate(p.Add(sdf.V3{X: -eps})),
+		Y: d.Evaluate(p.Add(sdf.V3{Y: eps})) - d.Evaluate(p.Add(sdf.V3{Y: -eps})),
+		Z: d.Evaluate(p.Add(sdf.V3{Z: eps})) - d.Evaluate(p.Add(sdf.V3{Z: -eps})),
+	}.Normalize()
+}

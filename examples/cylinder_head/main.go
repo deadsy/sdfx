@@ -11,10 +11,12 @@ No draft version for 3d printing and lost-PLA investment casting.
 package main
 
 import (
-	"math"
-
 	"github.com/deadsy/sdfx/render"
+	"github.com/deadsy/sdfx/render/dc"
 	. "github.com/deadsy/sdfx/sdf"
+	"log"
+	"math"
+	"time"
 )
 
 //-----------------------------------------------------------------------------
@@ -399,6 +401,13 @@ func subtractive() SDF3 {
 func main() {
 	s := Difference3D(additive(), subtractive())
 	render.RenderSTL(s, 400, "head.stl")
+	t1 := time.Now()
+	render.ToSTL(s, 128, "head2.stl", dc.NewDualContouringV1(-1, 0, false))
+	t2 := time.Now()
+	render.ToSTL(s, 128, "head2.stl", dc.NewDualContouringDefault())
+	td2 := time.Since(t2)
+	td1 := t2.Sub(t1)
+	log.Println("DualContouringV1 delta time:", td1, "- DualContouringDefault delta time:", td2)
 }
 
 //-----------------------------------------------------------------------------

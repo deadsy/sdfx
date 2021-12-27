@@ -193,6 +193,81 @@ func ScaleTwistExtrude(height, twist float64, scale V2) ExtrudeFunc {
 }
 
 //-----------------------------------------------------------------------------
+// Raycasting
+//-----------------------------------------------------------------------------
+
+func sigmoidScaled(x float64) float64 {
+	return 2/(1+math.Exp(-x)) - 1
+}
+
+// Raycast3 collides a ray (with an origin point from and a direction dir) with an SDF3.
+// sigmoid is useful for fixing bad distance functions (those that do not accurately represent the distance to the
+// closest surface, but will probably imply more evaluations)
+// stepScale controls precision (less stepSize, more precision, but more SDF evaluations): use 1 if SDF indicates
+// distance to the closest surface.
+// It returns the collision point, how many normalized distances to reach it (t), and the number of steps performed
+// If no surface is found (in maxDist and maxSteps), t is < 0
+func Raycast3(s SDF3, from, dir V3, scaleAndSigmoid, stepScale, epsilon, maxDist float64, maxSteps int) (collision V3, t float64, steps int) {
+	t = 0
+	dirN := dir.Normalize()
+	pos := from
+	for {
+		val := math.Abs(s.Evaluate(pos))
+		//log.Print("Raycast step #", steps, " at ", pos, " with value ", val, "\n")
+		if val < epsilon {
+			collision = pos // Success
+			break
+		}
+		steps++
+		if steps == maxSteps {
+			t = -1 // Failure
+			break
+		}
+		if scaleAndSigmoid > 0 {
+			val = sigmoidScaled(val * 10)
+		}
+		delta := val * stepScale
+		t += delta
+		pos = pos.Add(dirN.MulScalar(delta))
+		if t < 0 || t > maxDist {
+			t = -1 // Failure
+			break
+		}
+	}
+	//log.Println("Raycast did", steps, "steps")
+	return
+}
+
+// Raycast2 see Raycast3. NOTE: implementation using Raycast3 (inefficient?)
+func Raycast2(s SDF2, from, dir V2, scaleAndSigmoid, stepScale, epsilon, maxDist float64, maxSteps int) (V2, float64, int) {
+	collision, t, steps := Raycast3(Extrude3D(s, 1), from.ToV3(0), dir.ToV3(0), scaleAndSigmoid, stepScale, epsilon, maxDist, maxSteps)
+	return V2{collision.X, collision.Y}, t, steps
+}
+
+//-----------------------------------------------------------------------------
+// Normals
+//-----------------------------------------------------------------------------
+
+// Normal3 returns the normal of an SDF3 at a point (doesn't need to be on the surface).
+// Computed by sampling it several times inside a box of side 2*eps centered on p.
+func Normal3(s SDF3, p V3, eps float64) V3 {
+	return V3{
+		X: s.Evaluate(p.Add(V3{X: eps})) - s.Evaluate(p.Add(V3{X: -eps})),
+		Y: s.Evaluate(p.Add(V3{Y: eps})) - s.Evaluate(p.Add(V3{Y: -eps})),
+		Z: s.Evaluate(p.Add(V3{Z: eps})) - s.Evaluate(p.Add(V3{Z: -eps})),
+	}.Normalize()
+}
+
+// Normal2 returns the normal of an SDF3 at a point (doesn't need to be on the surface).
+// Computed by sampling it several times inside a box of side 2*eps centered on p.
+func Normal2(s SDF2, p V2, eps float64) V2 {
+	return V2{
+		X: s.Evaluate(p.Add(V2{X: eps})) - s.Evaluate(p.Add(V2{X: -eps})),
+		Y: s.Evaluate(p.Add(V2{Y: eps})) - s.Evaluate(p.Add(V2{Y: -eps})),
+	}.Normalize()
+}
+
+//-----------------------------------------------------------------------------
 
 // FloatDecode returns a string that decodes the float64 bitfields.
 func FloatDecode(x float64) string {

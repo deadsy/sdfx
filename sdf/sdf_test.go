@@ -7,6 +7,7 @@ package sdf
 import (
 	"fmt"
 	"math"
+	"reflect"
 	"testing"
 )
 
@@ -771,6 +772,60 @@ func Test_Rotate_To_Vector(t *testing.T) {
 		}
 	}
 
+}
+
+//-----------------------------------------------------------------------------
+
+func Test_Raycast(t *testing.T) {
+	testSdf := Box2D(V2{1, 1}, 0.2)
+	eps := 1e-10
+	side, td, steps := Raycast2(testSdf, V2{-1.32442, 0}, V2{1, 0}, 0, 1, eps, 5, 10)
+	if math.Abs(side.X-(-0.5)) > eps {
+		t.Fatal("Should have collided with the side of the cube at -0.5, but got", side, td, steps)
+	}
+	side, td, steps = Raycast2(testSdf, V2{-1.32442, 0}, V2{1, 0}, 1, 0.1, eps, 5, 500)
+	if math.Abs(side.X-(-0.5)) > eps {
+		t.Fatal("Should have collided with the side of the cube at -0.5, but got", side, td, steps)
+	}
+	side, td, steps = Raycast2(testSdf, V2{-1.32442, 0}, V2{1, 0}, 0, 0.1, eps, 5, 1000)
+	if math.Abs(side.X-(-0.5)) > eps {
+		t.Fatal("Should have collided with the side of the cube at -0.5, but got", side, td, steps)
+	}
+	side, td, steps = Raycast2(testSdf, V2{-1.32442, 0}, V2{1, 0}, 0, 1, eps, 0.1, 10)
+	if td >= 0 {
+		t.Fatal("Should have reached maxDist and not collided", side, td, steps)
+	}
+	side, td, steps = Raycast2(testSdf, V2{-1.32442, -1.32442}, V2{1, 1}, 0, 0.1, eps, 5, 10)
+	if side.X < -0.45 {
+		t.Fatal("Should have collided with the ROUND side of the cube at <-0.45, but got", side, td, steps)
+	}
+	side, td, steps = Raycast2(testSdf, V2{0, 0}, V2{1, 0}, 0, 1, eps, 5, 10)
+	if math.Abs(side.X-(0.5)) > eps {
+		t.Fatal("Should have returned surface of the SDF from the inside", side, td, steps)
+	}
+}
+
+//-----------------------------------------------------------------------------
+
+func Test_Normal(t *testing.T) {
+	testSdf := Box2D(V2{1, 1}, 0.2)
+	eps := 1e-10
+	n := Normal2(testSdf, V2{0.5, 0}, eps)
+	if !reflect.DeepEqual(n, V2{1, 0}) {
+		t.Fatal("Bad normal for box's right side: expected {1 0} but got", n)
+	}
+	n = Normal2(testSdf, V2{0.25, 0}, eps)
+	if !reflect.DeepEqual(n, V2{1, 0}) {
+		t.Fatal("Bad normal for box's right side (inside): expected {1 0} but got", n)
+	}
+	n = Normal2(testSdf, V2{0.5, 0.25}, eps)
+	if !reflect.DeepEqual(n, V2{1, 0}) {
+		t.Fatal("Bad normal for box's right side (displaced): expected {1 0} but got", n)
+	}
+	n = Normal2(testSdf, V2{0.45, 0.45}, eps)
+	if !(n.X > 0 && n.Y > 0) {
+		t.Fatal("Bad normal for box's right side (corner): expected {>0 >0} but got", n)
+	}
 }
 
 //-----------------------------------------------------------------------------
