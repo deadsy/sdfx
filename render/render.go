@@ -20,7 +20,14 @@ import (
 // Render3 implementations produce a 3d triangle mesh over the bounding volume of an sdf3.
 type Render3 interface {
 	Render(sdf3 sdf.SDF3, meshCells int, output chan<- *Triangle3)
-	Info(sdf3 sdf.SDF3, meshCells int) string
+	Cells(s sdf.SDF3, meshCells int) (float64, sdf.V3i)
+}
+
+// DefaultRender3Cells is an internal function that avoids duplicate code. Used for Render3 implementations
+func DefaultRender3Cells(s sdf.SDF3, meshCells int) (float64, sdf.V3i) {
+	bbSize := s.BoundingBox().Size()
+	resolution := bbSize.MaxComponent() / float64(meshCells)
+	return resolution, bbSize.DivScalar(resolution).ToV3i()
 }
 
 // ToSTL renders an SDF3 to an STL file.
@@ -30,7 +37,8 @@ func ToSTL(
 	path string, // path to filename
 	r Render3, // rendering method
 ) {
-	fmt.Printf("rendering %s (%s)\n", path, r.Info(s, meshCells))
+	resolution, cells := r.Cells(s, meshCells)
+	fmt.Printf("rendering %s (%dx%dx%d, resolution %.2f)\n", path, cells[0], cells[1], cells[2], resolution)
 	// write the triangles to an STL file
 	var wg sync.WaitGroup
 	output, err := WriteSTL(&wg, path)

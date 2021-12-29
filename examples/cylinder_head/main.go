@@ -16,6 +16,7 @@ import (
 	. "github.com/deadsy/sdfx/sdf"
 	"log"
 	"math"
+	"runtime"
 	"time"
 )
 
@@ -400,7 +401,10 @@ func subtractive() SDF3 {
 
 func main() {
 	s := Difference3D(additive(), subtractive())
-	render.RenderSTL(s, 400, "head.stl")
+
+	mtRenderer := render.NewMtRenderer3(&render.MarchingCubesUniform{}, 0)
+	mtRenderer.AutoSplitsMinimum(runtime.NumCPU())
+	render.ToSTL(s, 400, "head.stl", mtRenderer)
 	t1 := time.Now()
 	render.ToSTL(s, 128, "head2.stl", dc.NewDualContouringV1(-1, 0, false))
 	t2 := time.Now()
@@ -408,6 +412,12 @@ func main() {
 	td2 := time.Since(t2)
 	td1 := t2.Sub(t1)
 	log.Println("DualContouringV1 delta time:", td1, "- DualContouringDefault delta time:", td2)
+	mtRenderer2 := render.NewMtRenderer3(dc.NewDualContouringDefault(), 1)
+	mtRenderer2.AutoSplitsMinimum(runtime.NumCPU())
+	t3 := time.Now()
+	render.ToSTL(s, 128, "head2.stl", mtRenderer2)
+	td3 := time.Since(t3)
+	log.Println("DualContouringDefault delta time:", td2, "- DualContouringDefault MT delta time:", td3)
 }
 
 //-----------------------------------------------------------------------------
