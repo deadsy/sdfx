@@ -123,6 +123,48 @@ func (a Box2) Enlarge(v V2) Box2 {
 
 //-----------------------------------------------------------------------------
 
+// Include makes sure that the box includes the given point by extending it if necessary, returning the new Box3
+func (a Box3) Include(vertex V3) Box3 {
+	if vertex.X < a.Min.X {
+		a.Min.X = vertex.X
+	}
+	if vertex.Y < a.Min.Y {
+		a.Min.Y = vertex.Y
+	}
+	if vertex.Z < a.Min.Z {
+		a.Min.Z = vertex.Z
+	}
+	if vertex.X > a.Max.X {
+		a.Max.X = vertex.X
+	}
+	if vertex.Y > a.Max.Y {
+		a.Max.Y = vertex.Y
+	}
+	if vertex.Z > a.Max.Z {
+		a.Max.Z = vertex.Z
+	}
+	return a // It is a copy (not passed by reference)
+}
+
+// Include makes sure that the box includes the given point by extending it if necessary, returning the new Box2
+func (a Box2) Include(vertex V2) Box2 {
+	if vertex.X < a.Min.X {
+		a.Min.X = vertex.X
+	}
+	if vertex.Y < a.Min.Y {
+		a.Min.Y = vertex.Y
+	}
+	if vertex.X > a.Max.X {
+		a.Max.X = vertex.X
+	}
+	if vertex.Y > a.Max.Y {
+		a.Max.Y = vertex.Y
+	}
+	return a // It is a copy (not passed by reference)
+}
+
+//-----------------------------------------------------------------------------
+
 // Contains checks if the 3d box contains the given vector (considering bounds as inside).
 func (a Box3) Contains(v V3) bool {
 	return a.Min.X <= v.X && a.Min.Y <= v.Y && a.Min.Z <= v.Z &&
