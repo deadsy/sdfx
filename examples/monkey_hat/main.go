@@ -12,11 +12,12 @@ import (
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
+	"log"
 	"os"
+	"time"
 )
 
-func main() {
-
+func monkeyWithHat() sdf.SDF3 {
 	// MONKEY
 	// - Open the STL file
 	file, err := os.OpenFile("monkey.stl", os.O_RDONLY, 0400)
@@ -26,11 +27,12 @@ func main() {
 			panic(err)
 		}
 	}
-	// - Create the SDF from the mesh
-	monkeyImported, err := obj.ImportSTL(file, 0.2, 5)
+	// - Create the SDF from the mesh (a modified Suzanne from Blender with 366 faces)
+	monkeyImported, err := obj.ImportSTL(file)
 	if err != nil {
 		panic(err)
 	}
+	//monkeyImported = sdf.NewVoxelSDF(monkeyImported, 64)
 
 	// HAT
 	hatHeight := 0.5
@@ -49,6 +51,23 @@ func main() {
 	fullHat = sdf.Transform3D(fullHat, sdf.Translate3d(sdf.V3{Y: 0.15, Z: 1}))
 	monkeyHat := sdf.Union3D(monkeyImported, fullHat)
 
-	render.ToSTL(monkeyHat, 256, "monkey-out.stl", &render.MarchingCubesOctree{})
-	//render.ToSTL(monkeyHat, 16, "monkey-out.stl", dc.NewDualContouringDefault())
+	// - Cache the mesh full SDF3 hierarchy for faster evaluation (at the cost of initialization time and memory).
+	//   It also smooths the mesh a little using trilinear interpolation.
+	//   It is actually slower for this mesh (unless meshCells <<< renderer's meshCells), but should be faster for
+	//   more complex meshes (with more triangles) or SDF3 hierarchies that take longer to evaluate.
+	monkeyHat = sdf.NewVoxelSDF(monkeyHat, 64, nil) // Use 32 for harder smoothing demo
+
+	return monkeyHat
+}
+
+func main() {
+	startTime := time.Now()
+	monkeyHat := monkeyWithHat()
+
+	render.ToSTL(monkeyHat, 128, "monkey-out.stl", &render.MarchingCubesUniform{})
+
+	// Dual Contouring is very sensitive to noise (produced when close to shared triangle vertices)
+	//render.ToSTL(monkeyHat, 64, "monkey-out.stl", dc.NewDualContouringDefault())
+
+	log.Println("Monkey + hat rendered in", time.Since(startTime))
 }

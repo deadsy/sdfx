@@ -9,7 +9,6 @@ Pool Model
 package main
 
 import (
-	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/render/dc"
 	"github.com/deadsy/sdfx/sdf"
@@ -59,24 +58,6 @@ func main() {
 	}
 	render.ToSTL(pool, 300, "pool1.stl", &render.MarchingCubesOctree{})
 	render.ToSTL(pool, 15, "pool2.stl", dc.NewDualContouringDefault())
-
-	// Test ImportSTL
-	triChan := make(chan *render.Triangle3)
-	go func() {
-		dc.NewDualContouringDefault().Render(pool, 15, triChan)
-		close(triChan)
-	}()
-	poolRebuilt := obj.ImportTriMesh(triChan, 0.2, 1)
-	render.ToSTL(poolRebuilt, 15, "pool3.stl", dc.NewDualContouringDefault())
-
-	//// Test ImportSTL 2
-	//triChan2 := make(chan *render.Triangle3)
-	//go func() {
-	//	(&render.MarchingCubesOctree{}).Render(pool, 64, triChan2)
-	//	close(triChan2)
-	//}()
-	//poolRebuilt2 := obj.ImportTriMesh(triChan2, 0.2, 1)
-	//render.ToSTL(poolRebuilt2, 64, "pool4.stl", &render.MarchingCubesOctree{})
 }
 
 //-----------------------------------------------------------------------------
