@@ -61,9 +61,9 @@ func toBox2(box3 sdf.Box3) sdf.Box2 {
 
 //type boundedSDF3 struct {
 //	sdf.SDF3
-//	bb sdf.Box3
+//	Bb sdf.Box3
 //}
 //
 //func (b *boundedSDF3) BoundingBox() sdf.Box3 {
-//	return b.bb
+//	return b.Bb
 //}

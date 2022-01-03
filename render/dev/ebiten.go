@@ -31,12 +31,12 @@ func (r *Renderer) Layout(outsideWidth, outsideHeight int) (screenWidth, screenH
 	r.implStateLock.RLock()
 	newScreenSize := sdf.V2i{outsideWidth, outsideHeight}
 	if r.screenSize != newScreenSize {
-		// Reuse previous render if we are zooming out (making the resolution smaller)
+		// Reuse previous render if we are zooming RenderedImg (making the Resolution smaller)
 		r.screenSize = newScreenSize
 		r.implStateLock.RUnlock()
 		r.rerender()
 	} else {
 		r.implStateLock.RUnlock()
 	}
-	return outsideWidth, outsideHeight // Use all available pixels, no re-scaling (unless resolution is modified)
+	return outsideWidth, outsideHeight // Use all available pixels, no re-scaling (unless Resolution is modified)
 }

@@ -18,25 +18,25 @@ func (r *Renderer) onUpdateInputs() {
 	// SHARED CONTROLS
 	if inpututil.IsKeyJustPressed(ebiten.KeyKPAdd) {
 		r.implStateLock.Lock()
-		r.implState.resolution *= 2
-		if r.implState.resolution > 64 {
-			r.implState.resolution = 64
+		r.implState.Resolution *= 2
+		if r.implState.Resolution > 64 {
+			r.implState.Resolution = 64
 		}
 		r.implStateLock.Unlock()
 		r.rerender()
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyKPSubtract) {
 		r.implStateLock.Lock()
-		r.implState.resolution /= 2
-		if r.implState.resolution < 1 {
-			r.implState.resolution = 1
+		r.implState.Resolution /= 2
+		if r.implState.Resolution < 1 {
+			r.implState.Resolution = 1
 		}
 		r.implStateLock.Unlock()
 		r.rerender()
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyB) {
 		r.implStateLock.Lock()
-		r.implState.drawBbs = !r.implState.drawBbs
+		r.implState.DrawBbs = !r.implState.DrawBbs
 		r.implStateLock.Unlock()
 		r.rerender()
 	}
@@ -47,44 +47,53 @@ func (r *Renderer) onUpdateInputs() {
 		_, wheelUpDown := ebiten.Wheel()
 		if wheelUpDown != 0 {
 			r.implStateLock.Lock()
-			scale := 1 - wheelUpDown*r.implState.bb.Size().Length2()*0.02 // Scale depending on current scale
+			scale := 1 - wheelUpDown*r.implState.Bb.Size().Length2()*0.02 // Scale depending on current scale
 			scale = math.Max(0.5, math.Min(2, scale))                     // Reasonable limits
-			r.implState.bb = r.implState.bb.ScaleAboutCenter(scale)
+			r.implState.Bb = r.implState.Bb.ScaleAboutCenter(scale)
 			r.implStateLock.Unlock()
-			r.rerender() // Reuse previous render if we are zooming out!
+			r.rerender()
 		}
 		// Translation
 		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 			// Save the cursor's position for previsualization and applying the final translation
 			cx, cy := ebiten.CursorPosition()
 			r.implStateLock.Lock()
-			r.translateFrom = sdf.V2i{cx, cy}
+			if r.translateFrom[0] == math.MaxInt { // Only if not already moving...
+				r.translateFrom = sdf.V2i{cx, cy}
+			}
 			r.implStateLock.Unlock()
 		}
 		if inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft) {
 			// Actually apply the translation and force a rerender
 			cx, cy := ebiten.CursorPosition()
 			r.implStateLock.Lock()
-			clone := r.implState.bb
-			r.implState.bb = r.implState.bb.Translate(r.translateFrom.ToV2().Sub(sdf.V2i{cx, cy}.ToV2()).Mul(sdf.V2{X: 1, Y: -1}).
-				Div(r.screenSize.ToV2()).Mul(r.implState.bb.Size()))
-			changed := clone != r.implState.bb
-			r.translateFrom = sdf.V2i{math.MaxInt, math.MaxInt}
+			clone := r.implState.Bb
+			r.implState.Bb = r.implState.Bb.Translate(
+				r.translateFrom.ToV2().Sub(sdf.V2i{cx, cy}.ToV2()).Mul(sdf.V2{X: 1, Y: -1}).
+					Div(r.screenSize.ToV2()).Mul(r.implState.Bb.Size()))
+			// Keep displacement until rerender is complete (avoid jump) using callback below + extra variable set here
+			r.translateFromStop = sdf.V2i{cx, cy}
+			changed := clone != r.implState.Bb
 			r.implStateLock.Unlock()
 			if changed {
-				r.rerender()
+				r.rerender(func(err error) {
+					r.implStateLock.Lock()
+					r.translateFrom = sdf.V2i{math.MaxInt, math.MaxInt}
+					r.translateFromStop = sdf.V2i{math.MaxInt, math.MaxInt}
+					r.implStateLock.Unlock()
+				})
 			}
 		}
 		// Reset transform (100% of surface)
 		if inpututil.IsKeyJustPressed(ebiten.KeyR) {
 			r.implStateLock.Lock()
-			r.implState.bb = toBox2(r.impl.BoundingBox()) // 100% zoom (impl2 will fix aspect ratio)
+			r.implState.Bb = toBox2(r.impl.BoundingBox()) // 100% zoom (impl2 will fix aspect ratio)
 			r.implStateLock.Unlock()
 			r.rerender()
 		}
 	//case 3: TODO
 	default:
-		panic("devRendererState.onUpdateInputs not implemented for " + strconv.Itoa(r.impl.Dimensions()) + " dimensions")
+		panic("DevRendererState.onUpdateInputs not implemented for " + strconv.Itoa(r.impl.Dimensions()) + " dimensions")
 	}
 }
 
@@ -103,7 +112,7 @@ func (r *Renderer) drawUI(screen *ebiten.Image) {
 	r.implStateLock.Lock()
 	defer r.implStateLock.Unlock()
 	msg := fmt.Sprintf("TPS: %0.2f/%d\nResolution: %d [+/-]\nShow boxes: %t [B]\nReset transform [R]",
-		ebiten.CurrentTPS(), ebiten.MaxTPS(), r.implState.resolution, r.implState.drawBbs)
+		ebiten.CurrentTPS(), ebiten.MaxTPS(), r.implState.Resolution, r.implState.DrawBbs)
 	drawDefaultTextWithShadow(screen, msg, 5, r.screenSize[1]-5-16*strings.Count(msg, "\n"),
 		color.RGBA{R: 0, G: 200, B: 0, A: 255})
 }
