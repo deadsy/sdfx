@@ -4,11 +4,9 @@ import (
 	"github.com/deadsy/sdfx/sdf"
 	"github.com/hajimehoshi/ebiten"
 	"github.com/subchen/go-trylock/v2"
+	"image"
 	"math"
-	"net/http"
-	"net/rpc"
 	"sync"
-	"time"
 )
 
 // Renderer is a SDF2/SDF3 renderer intended for fast development iterations that renders directly to a window.
@@ -31,14 +29,15 @@ import (
 // It uses [ebiten](https://github.com/hajimehoshi/ebiten) for rendering, which is cross-platform, so it also could
 // be used to showcase a surface (without automatic updates) using a standalone desktop, web or mobile.
 type Renderer struct {
-	impl                devRendererImpl   // the implementation to use SDF2/SDF3/remote process.
-	implState           *DevRendererState // the renderer's state, so impl can be swapped while keeping the state.
-	implStateLock       *sync.RWMutex     // the renderer's state lock
-	cachedRender        *ebiten.Image     // the latest cached render (to avoid rendering every frame, or frame parts even if nothing changed)
-	cachedRenderBb2     sdf.Box2          // what part of the SDF2 the latest cached render represents (no optimization available for SDF3s)
-	cachedPartialRender *ebiten.Image     // the latest partial render (to display render progress visually)
+	impl                devRendererImpl // the implementation to use SDF2/SDF3/remote process.
+	implState           *RendererState  // the renderer's state, so impl can be swapped while keeping the state.
+	implStateLock       *sync.RWMutex   // the renderer's state lock
+	cachedRender        *ebiten.Image   // the latest cached render (to avoid rendering every frame, or frame parts even if nothing changed)
+	cachedRenderCpu     *image.RGBA     // the latest cached render (to avoid rendering every frame, or frame parts even if nothing changed)
+	cachedRenderBb2     sdf.Box2        // what part of the SDF2 the latest cached render represents (no optimization available for SDF3s)
+	cachedPartialRender *ebiten.Image   // the latest partial render (to display render progress visually)
 	cachedRenderLock    *sync.RWMutex
-	screenSize          sdf.V2i           // the screen Resolution
+	screenSize          sdf.V2i           // the screen ResInv
 	renderingCtxCancel  func()            // non-nil if we are currently rendering
 	renderingLock       trylock.TryLocker // locked when we are rendering, use renderingCtx to cancel the previous render
 	translateFrom       sdf.V2i
@@ -48,7 +47,6 @@ type Renderer struct {
 // NewDevRenderer see DevRenderer
 func NewDevRenderer(anySDF interface{}) *Renderer {
 	r := &Renderer{
-		implState:         newDevRendererState(),
 		implStateLock:     &sync.RWMutex{},
 		cachedRenderLock:  &sync.RWMutex{},
 		renderingLock:     trylock.New(),
@@ -63,20 +61,21 @@ func NewDevRenderer(anySDF interface{}) *Renderer {
 	default:
 		panic("anySDF must be either a SDF2 or a SDF3")
 	}
+	r.implState = r.newRendererState()
 	return r
 }
 
 func (r *Renderer) Run() error {
 	// TODO: Find a renderer (environment variable) and connect to it
 	// TODO: Otherwise create the renderer and listen for connections (or try to connect in the case of HTTP)
-	newDevRendererService(r.impl).HandleHTTP("/", "/debug")
-	go http.ListenAndServe(":8549", http.DefaultServeMux)
-	time.Sleep(100 * time.Millisecond)
-	dialHTTP, err := rpc.DialHTTP("tcp", ":8549")
-	if err != nil {
-		return err
-	}
-	remoteRenderer := newDevRendererClient(dialHTTP)
-	r.impl = remoteRenderer
+	//newDevRendererService(r.impl).HandleHTTP("/", "/debug")
+	//go http.ListenAndServe(":8549", http.DefaultServeMux)
+	//time.Sleep(100 * time.Millisecond)
+	//dialHTTP, err := rpc.DialHTTP("tcp", ":8549")
+	//if err != nil {
+	//	return err
+	//}
+	//remoteRenderer := newDevRendererClient(dialHTTP)
+	//r.impl = remoteRenderer
 	return ebiten.RunGame(r)
 }

@@ -53,24 +53,25 @@ func (d *PNG) RenderSDF2(s sdf.SDF2) {
 func (d *PNG) RenderSDF2MinMax(s sdf.SDF2, dmin, dmax float64) {
 	// sample the distance field
 	minMaxSet := dmin != 0 && dmax != 0
-	distance := make([]float64, d.pixels[0]*d.pixels[1])
-	xofs := 0
-	for x := 0; x < d.pixels[0]; x++ {
-		for y := 0; y < d.pixels[1]; y++ {
-			d := s.Evaluate(d.m.ToV2(sdf.V2i{x, y}))
-			if !minMaxSet {
+	if !minMaxSet {
+		//distance := make([]float64, d.pixels[0]*d.pixels[1]) // Less allocations: faster (70ms -> 60ms)
+		//xofs := 0
+		for x := 0; x < d.pixels[0]; x++ {
+			for y := 0; y < d.pixels[1]; y++ {
+				d := s.Evaluate(d.m.ToV2(sdf.V2i{x, y}))
 				dmax = math.Max(dmax, d)
 				dmin = math.Min(dmin, d)
+				//distance[xofs+y] = d
 			}
-			distance[xofs+y] = d
+			//xofs += d.pixels[1]
 		}
-		xofs += d.pixels[1]
 	}
 	// scale and set the pixel values
-	xofs = 0
+	//xofs = 0
 	for x := 0; x < d.pixels[0]; x++ {
 		for y := 0; y < d.pixels[1]; y++ {
-			dist := distance[xofs+y]
+			//dist := distance[xofs+y]
+			dist := s.Evaluate(d.m.ToV2(sdf.V2i{x, y}))
 			// Clamp due to possibly forced min and max
 			var val float64
 			// NOTE: This condition forces the surface to be close to 255/2 gray value, otherwise dmax >>> dmin or viceversa
@@ -82,7 +83,7 @@ func (d *PNG) RenderSDF2MinMax(s sdf.SDF2, dmin, dmax float64) {
 			}
 			d.img.Set(x, y, color.Gray{Y: uint8(val)})
 		}
-		xofs += d.pixels[1]
+		//xofs += d.pixels[1]
 	}
 }
 

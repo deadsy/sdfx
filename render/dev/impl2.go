@@ -10,42 +10,42 @@ import (
 	"math"
 	"runtime"
 	"sync"
+	"sync/atomic"
 )
 
-type devRenderer2 struct {
+type Renderer2 struct {
 	s                sdf.SDF2 // The SDF to render
 	evalMin, evalMax float64  // The pre-computed minimum and maximum of the whole surface (for stable colors and speed)
 }
 
 func newDevRenderer2(s sdf.SDF2) devRendererImpl {
-	r := &devRenderer2{
+	r := &Renderer2{
 		s: s,
 	}
 	return r
 }
 
-func (r *devRenderer2) Dimensions() int {
+func (r *Renderer2) Dimensions() int {
 	return 2
 }
 
-func (r *devRenderer2) BoundingBox() sdf.Box3 {
+func (r *Renderer2) BoundingBox() sdf.Box3 {
 	bb := r.s.BoundingBox()
 	return sdf.Box3{Min: bb.Min.ToV3(0), Max: bb.Max.ToV3(0)}
 }
 
-func (r *devRenderer2) Render(ctx context.Context, screenSize sdf.V2i, state *DevRendererState, stateLock, cachedRenderLock *sync.RWMutex, partialImages chan<- *image.RGBA) (*image.RGBA, error) {
+func (r *Renderer2) Render(ctx context.Context, state *RendererState, stateLock,
+	cachedRenderLock *sync.RWMutex, partialImages chan<- *image.RGBA, fullRender *image.RGBA) error {
 	if r.evalMin == 0 && r.evalMax == 0 { // First render (ignoring external cache)
 		// Compute minimum and maximum evaluate values for a shared color scale for all blocks
-		r.evalMin, r.evalMax = utilSdf2MinMax(r.s, r.s.BoundingBox(), sdf.V2i{64, 64} /* TODO: Configurable? */)
+		r.evalMin, r.evalMax = utilSdf2MinMax(r.s, r.s.BoundingBox(), sdf.V2i{128, 128} /* TODO: Configurable? */)
 		//log.Println("MIN:", r.evalMin, "MAX:", r.evalMax)
 	}
-	stateLock.Lock()
-	if state.Bb.Size().Length2() == 0 {
-		state.Bb = r.s.BoundingBox() // 100% zoom (will fix aspect ratio later)
-	}
-	// Maintain Bb aspect ratio on Resolution change, increasing the size as needed
+
+	fullRenderSize := fullRender.Bounds().Size()
 	bbAspectRatio := state.Bb.Size().X / state.Bb.Size().Y
-	screenAspectRatio := float64(screenSize[0]) / float64(screenSize[1])
+	stateLock.Lock() // Maintain Bb aspect ratio on ResInv change, increasing the size as needed
+	screenAspectRatio := float64(fullRenderSize.X) / float64(fullRenderSize.Y)
 	if math.Abs(bbAspectRatio-screenAspectRatio) > 1e-12 {
 		if bbAspectRatio > screenAspectRatio {
 			scaleYBy := bbAspectRatio / screenAspectRatio
@@ -55,24 +55,24 @@ func (r *devRenderer2) Render(ctx context.Context, screenSize sdf.V2i, state *De
 			state.Bb = sdf.NewBox2(state.Bb.Center(), state.Bb.Size().Mul(sdf.V2{X: scaleXBy, Y: 1}))
 		}
 	}
-	resolution := state.Resolution
 	stateLock.Unlock()
 
 	// Create the new full CPU image (downscaled by resolution)
-	fullImgSize := screenSize.ToV2().DivScalar(float64(resolution)).ToV2i()
-	fullImg := image.NewRGBA(image.Rect(0, 0, fullImgSize[0], fullImgSize[1]))
+	fullImgSize := sdf.V2i{fullRenderSize.X, fullRenderSize.Y} // screenSize.ToV2().DivScalar(float64(resolution)).ToV2i()
+	fullImg := fullRender                                      //image.NewRGBA(image.Rect(0, 0, fullImgSize[0], fullImgSize[1]))
 	for i := 3; i < len(fullImg.Pix); i += 4 {
 		fullImg.Pix[i] = 255 // Set all pixels to transparent initially
 	}
 
 	// Render each blockIndex of the image individually to allow cancelling the render
 	pixelsPerBlock := sdf.V2i{128, 128} /* TODO: Configurable? */
-	// FIXME: Resolution >= 8 causes infinite loop???
 	numBlocks := fullImgSize.ToV2().Div(pixelsPerBlock.ToV2()).Ceil().ToV2i()
+
 	// Parallelize: spawn workers
 	jobCount := numBlocks[0] * numBlocks[1]
-	blockIndexJobs := make(chan sdf.V2i, jobCount)
-	errors := make(chan error)
+	blockIndexJobs := make(chan sdf.V2i)
+	errors := make(chan error, jobCount) // Buffer them to avoid deadlocks
+	errCount := uint32(0)
 	for i := 0; i < runtime.NumCPU(); i++ {
 		go func() {
 			for {
@@ -80,51 +80,68 @@ func (r *devRenderer2) Render(ctx context.Context, screenSize sdf.V2i, state *De
 				if !ok {
 					break
 				}
-				err := r.renderBlock(ctx, fullImg, blockIndexTask, pixelsPerBlock, state, stateLock, cachedRenderLock, numBlocks, fullImgSize, partialImages)
-				errors <- err // Probably nil
+				errors <- r.renderBlock(ctx, fullImg, blockIndexTask, pixelsPerBlock, state, stateLock, cachedRenderLock, numBlocks, fullImgSize, partialImages)
+				if atomic.AddUint32(&errCount, 1) == uint32(jobCount) {
+					close(errors)
+				}
 			}
 		}()
 	}
+
 	// Generate jobs forming a spiral
 	blockIndex := numBlocks.ToV2().DivScalar(2).ToV2i()
 	blockIndexJobs <- blockIndex
 	jobN := 1
-jobSpiral:
-	for n := 0; ; n++ {
+	for n := 0; jobN < jobCount; n++ {
 		stepSize := n/2 + 1            // 1, 1, 2, 2, 3, 3...
 		stepDir := dirs2[n%len(dirs2)] // Up, Right, Down, Left...
 		for step := 0; step < stepSize; step++ {
 			blockIndex = blockIndex.Add(stepDir)
 			if blockIndex[0] >= 0 && blockIndex[1] >= 0 && blockIndex[0] < numBlocks[0] && blockIndex[1] < numBlocks[1] {
+				// This will avoid spawning new tasks if any of them failed previously (racy: solved locking state)
+				select {
+				case err := <-errors:
+					if err != nil {
+						// The first block that renders with an error closes the partial image channel
+						close(blockIndexJobs)
+						if partialImages != nil {
+							close(partialImages)
+						}
+						return err // Quick exit on error
+					}
+				default:
+				}
 				blockIndexJobs <- blockIndex
 				jobN++
 				if jobN == jobCount {
-					break jobSpiral
+					break // Will also break parent loop
 				}
 			}
 		}
 	}
-	//blockIndex := sdf.V2i{}
-	//for blockIndex[0] = 0; blockIndex[0] < numBlocks[0]; blockIndex[0]++ {
-	//	for blockIndex[1] = 0; blockIndex[1] < numBlocks[1]; blockIndex[1]++ {
-	//		blockIndexJobs <- blockIndex
-	//	}
-	//}
 	close(blockIndexJobs)
-	// Return the full image
-	var err error
-	for i := 0; i < jobCount; i++ {
+	// Wait for the full image (only final blocks remaining, as jobs are created as they are ready to be processed)
+	for err := range errors {
 		err = <-errors
 		if err != nil {
-			return fullImg, err // Quick exit on error
+			// The first block that renders with an error closes the partial image channel
+			if partialImages != nil {
+				close(partialImages)
+			}
+			return err // Quick exit on error
 		}
 	}
-	return fullImg, err
+	// If no block threw an error, close partialImages now
+	if partialImages != nil {
+		close(partialImages)
+	}
+	// TODO: Draw bounding boxes over the image
+	return nil
 }
 
-func (r *devRenderer2) renderBlock(ctx context.Context, fullImg *image.RGBA, blockIndex sdf.V2i,
-	pixelsPerBlock sdf.V2i, state *DevRendererState, stateLock, cachedRenderLock *sync.RWMutex, numBlocks sdf.V2i, fullImgSize sdf.V2i,
-	partialImages chan<- *image.RGBA) error {
+func (r *Renderer2) renderBlock(ctx context.Context, fullImg *image.RGBA, blockIndex sdf.V2i,
+	pixelsPerBlock sdf.V2i, state *RendererState, stateLock, cachedRenderLock *sync.RWMutex, numBlocks sdf.V2i, fullImgSize sdf.V2i,
+	partialImages chan<- *image.RGBA) (err error) {
 	select {
 	case <-ctx.Done(): // Render cancelled
 		return ctx.Err()
@@ -136,14 +153,14 @@ func (r *devRenderer2) renderBlock(ctx context.Context, fullImg *image.RGBA, blo
 
 	// Compute positions and sizes
 	blockStartPixel := blockIndex.ToV2().Mul(pixelsPerBlock.ToV2()).ToV2i()
-	blockSizePixels := pixelsPerBlock.AddScalar(1) // nextPowerOf2(state.Resolution)
+	blockSizePixels := pixelsPerBlock.AddScalar(1) // nextPowerOf2(state.ResInv)
 	if blockIndex[0] == numBlocks[0]-1 {
-		blockSizePixels[0] = fullImgSize[0] - blockStartPixel[0] + 1 //+ nextPowerOf2(state.Resolution)
+		blockSizePixels[0] = fullImgSize[0] - blockStartPixel[0] + 1 //+ nextPowerOf2(state.ResInv)
 	}
 	if blockIndex[1] == numBlocks[1]-1 { // Inverted Y
-		blockSizePixels[1] = fullImgSize[1] - blockStartPixel[1] + 1 //+ nextPowerOf2(state.Resolution)
+		blockSizePixels[1] = fullImgSize[1] - blockStartPixel[1] + 1 //+ nextPowerOf2(state.ResInv)
 	}
-	blockSizePixels = blockSizePixels //.ToV2().DivScalar(float64(state.Resolution)).ToV2i()
+	//blockSizePixels = blockSizePixels.ToV2().DivScalar(float64(state.ResInv)).ToV2i()
 	if blockSizePixels[0] == 0 || blockSizePixels[1] == 0 {
 		return nil // Empty block ignored
 	}
@@ -166,7 +183,11 @@ func (r *devRenderer2) renderBlock(ctx context.Context, fullImg *image.RGBA, blo
 	if err != nil {
 		return err
 	}
-	png.RenderSDF2MinMax(r.s, r.evalMin, r.evalMax)
+	evalMin, evalMax := r.evalMin, r.evalMax
+	if state.blackAndWhite {
+		evalMin, evalMax = -1e-12, 1e-12
+	}
+	png.RenderSDF2MinMax(r.s, evalMin, evalMax)
 	blockImg := png.Image()
 
 	// Merge blocks to full render image (CPU, downscaled)
@@ -178,11 +199,6 @@ func (r *devRenderer2) renderBlock(ctx context.Context, fullImg *image.RGBA, blo
 	cachedRenderLock.Unlock()
 
 	// Notify of partial image progress
-	select { // FIXME: Close partialImages from sender to avoid races here!
-	case <-ctx.Done(): // Render cancelled
-		return ctx.Err()
-	default: // Render not cancelled
-	}
 	if err != nil {
 		return err
 	}

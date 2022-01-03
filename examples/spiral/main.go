@@ -21,24 +21,29 @@ import (
 
 //-----------------------------------------------------------------------------
 
-func spiralSdf() (sdf.SDF2, error) {
-	s, err := sdf.ArcSpiral2D(1.0, 20.0, 0.25*sdf.Pi, 8*sdf.Tau, 1.0)
+func spiralSdf() (s interface{}, err error) {
+	s, err = sdf.ArcSpiral2D(1.0, 20.0, 0.25*sdf.Pi, 8*sdf.Tau, 1.0)
 	if err != nil {
 		return nil, err
 	}
 
-	c, err := sdf.Circle2D(22.)
-	if err != nil {
-		return nil, err
-	}
-	s = sdf.Union2D(s, c)
+	// TODO: Leave commented
 
-	c2, err := sdf.Circle2D(20.)
-	if err != nil {
-		return nil, err
-	}
-	c2 = sdf.Transform2D(c2, sdf.Translate2d(sdf.V2{X: 0}))
-	s = sdf.Difference2D(s, c2)
+	//c, err := sdf.Circle2D(22.)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//s = sdf.Union2D(s.(sdf.SDF2), c)
+
+	//c2, err := sdf.Circle2D(20.)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//c2 = sdf.Transform2D(c2, sdf.Translate2d(sdf.V2{X: 0}))
+	//s = sdf.Difference2D(s.(sdf.SDF2), c2)
+
+	//s = sdf.Extrude3D(s.(sdf.SDF2), 2)
+
 	return s, err
 }
 
@@ -74,7 +79,7 @@ func main() {
 			panic(err)
 		}
 	} else {
-		render.RenderDXF(s, 400, "spiral.dxf")
+		render.RenderDXF(s.(sdf.SDF2), 400, "spiral.dxf")
 	}
 }
 

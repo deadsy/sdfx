@@ -18,18 +18,18 @@ func (r *Renderer) onUpdateInputs() {
 	// SHARED CONTROLS
 	if inpututil.IsKeyJustPressed(ebiten.KeyKPAdd) {
 		r.implStateLock.Lock()
-		r.implState.Resolution *= 2
-		if r.implState.Resolution > 64 {
-			r.implState.Resolution = 64
+		r.implState.ResInv /= 2
+		if r.implState.ResInv < 1 {
+			r.implState.ResInv = 1
 		}
 		r.implStateLock.Unlock()
 		r.rerender()
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyKPSubtract) {
 		r.implStateLock.Lock()
-		r.implState.Resolution /= 2
-		if r.implState.Resolution < 1 {
-			r.implState.Resolution = 1
+		r.implState.ResInv *= 2
+		if r.implState.ResInv > 64 {
+			r.implState.ResInv = 64
 		}
 		r.implStateLock.Unlock()
 		r.rerender()
@@ -67,13 +67,16 @@ func (r *Renderer) onUpdateInputs() {
 			// Actually apply the translation and force a rerender
 			cx, cy := ebiten.CursorPosition()
 			r.implStateLock.Lock()
-			clone := r.implState.Bb
-			r.implState.Bb = r.implState.Bb.Translate(
-				r.translateFrom.ToV2().Sub(sdf.V2i{cx, cy}.ToV2()).Mul(sdf.V2{X: 1, Y: -1}).
-					Div(r.screenSize.ToV2()).Mul(r.implState.Bb.Size()))
-			// Keep displacement until rerender is complete (avoid jump) using callback below + extra variable set here
-			r.translateFromStop = sdf.V2i{cx, cy}
-			changed := clone != r.implState.Bb
+			changed := false
+			if r.translateFrom[0] < math.MaxInt { // Only if already moving...
+				clone := r.implState.Bb
+				r.implState.Bb = r.implState.Bb.Translate(
+					r.translateFrom.ToV2().Sub(sdf.V2i{cx, cy}.ToV2()).Mul(sdf.V2{X: 1, Y: -1}).
+						Div(r.screenSize.ToV2()).Mul(r.implState.Bb.Size()))
+				// Keep displacement until rerender is complete (avoid jump) using callback below + extra variable set here
+				r.translateFromStop = sdf.V2i{cx, cy}
+				changed = clone != r.implState.Bb
+			}
 			r.implStateLock.Unlock()
 			if changed {
 				r.rerender(func(err error) {
@@ -91,9 +94,16 @@ func (r *Renderer) onUpdateInputs() {
 			r.implStateLock.Unlock()
 			r.rerender()
 		}
+		// Color
+		if inpututil.IsKeyJustPressed(ebiten.KeyC) {
+			r.implStateLock.Lock()
+			r.implState.blackAndWhite = !r.implState.blackAndWhite
+			r.implStateLock.Unlock()
+			r.rerender()
+		}
 	//case 3: TODO
 	default:
-		panic("DevRendererState.onUpdateInputs not implemented for " + strconv.Itoa(r.impl.Dimensions()) + " dimensions")
+		panic("RendererState.onUpdateInputs not implemented for " + strconv.Itoa(r.impl.Dimensions()) + " dimensions")
 	}
 }
 
@@ -111,8 +121,8 @@ func (r *Renderer) drawUI(screen *ebiten.Image) {
 	// Draw current state and controls
 	r.implStateLock.Lock()
 	defer r.implStateLock.Unlock()
-	msg := fmt.Sprintf("TPS: %0.2f/%d\nResolution: %d [+/-]\nShow boxes: %t [B]\nReset transform [R]",
-		ebiten.CurrentTPS(), ebiten.MaxTPS(), r.implState.Resolution, r.implState.DrawBbs)
+	msg := fmt.Sprintf("TPS: %0.2f/%d\nResolution: %.2f [+/-]\nBlack/White: %t [C]\nShow boxes: %t [B]\nReset transform [R]",
+		ebiten.CurrentTPS(), ebiten.MaxTPS(), 1/float64(r.implState.ResInv), r.implState.blackAndWhite, r.implState.DrawBbs)
 	drawDefaultTextWithShadow(screen, msg, 5, r.screenSize[1]-5-16*strings.Count(msg, "\n"),
 		color.RGBA{R: 0, G: 200, B: 0, A: 255})
 }

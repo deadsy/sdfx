@@ -9,85 +9,88 @@ import (
 	"sync"
 )
 
-// devRendererClient implements devRendererImpl by calling a remote implementation (using Go's net/rpc)
-type devRendererClient struct {
+// RendererClient implements devRendererImpl by calling a remote implementation (using Go's net/rpc)
+type RendererClient struct {
 	cl *rpc.Client
 }
 
-// newDevRendererClient see devRendererClient
+// newDevRendererClient see RendererClient
 func newDevRendererClient(client *rpc.Client) devRendererImpl {
-	return &devRendererClient{cl: client}
+	return &RendererClient{cl: client}
 }
 
-func (d *devRendererClient) Dimensions() int {
+func (d *RendererClient) Dimensions() int {
 	var out int
-	err := d.cl.Call("DevRendererService.Dimensions", &out, &out)
+	err := d.cl.Call("RendererService.Dimensions", &out, &out)
 	if err != nil {
 		log.Println("Error on remote call:", err)
 	}
 	return out
 }
 
-func (d *devRendererClient) BoundingBox() sdf.Box3 {
+func (d *RendererClient) BoundingBox() sdf.Box3 {
 	var out sdf.Box3
-	err := d.cl.Call("DevRendererService.BoundingBox", &out, &out)
+	err := d.cl.Call("RendererService.BoundingBox", &out, &out)
 	if err != nil {
 		log.Println("Error on remote call:", err)
 	}
 	return out
 }
 
-func (d *devRendererClient) Render(ctx context.Context, screenSize sdf.V2i, state *DevRendererState, stateLock, cachedRenderLock *sync.RWMutex, partialRender chan<- *image.RGBA) (*image.RGBA, error) {
+func (d *RendererClient) Render(ctx context.Context, state *RendererState, stateLock, cachedRenderLock *sync.RWMutex, partialRender chan<- *image.RGBA, fullRender *image.RGBA) error {
+	fullRenderSize := fullRender.Bounds().Size()
 	argsOut := &RemoteRenderArgsAndResults{
-		ScreenSize: screenSize,
+		RenderSize: sdf.V2i{fullRenderSize.X, fullRenderSize.Y},
 		State:      state,
 	}
-	err := d.cl.Call("DevRendererService.Render", argsOut, &argsOut)
+	err := d.cl.Call("RendererService.Render", argsOut, &argsOut)
 	if err != nil {
 		log.Println("Error on remote call:", err)
-		return nil, err
+		return nil
 	}
-	return argsOut.RenderedImg, nil
+	*fullRender = *argsOut.RenderedImg
+	return nil
 }
 
-// DevRendererService is the server counter-part to devRendererClient.
+// RendererService is the server counter-part to RendererClient.
 // It provides remote access to a devRendererImpl.
 // It will block until
-type DevRendererService struct {
+type RendererService struct {
 	impl devRendererImpl
 }
 
-// newDevRendererService see DevRendererService
+// newDevRendererService see RendererService
 func newDevRendererService(impl devRendererImpl) *rpc.Server {
 	server := rpc.NewServer()
-	err := server.Register(&DevRendererService{impl: impl})
+	err := server.Register(&RendererService{impl: impl})
 	if err != nil {
 		panic(err) // Shouldn't happen (only on bad implementation)
 	}
 	return server
 }
 
-func (d *DevRendererService) Dimensions(_ int, out *int) error {
+func (d *RendererService) Dimensions(_ int, out *int) error {
 	*out = d.impl.Dimensions()
 	return nil
 }
 
-func (d *DevRendererService) BoundingBox(_ sdf.Box3, out *sdf.Box3) error {
+func (d *RendererService) BoundingBox(_ sdf.Box3, out *sdf.Box3) error {
 	*out = d.impl.BoundingBox()
 	return nil
 }
 
 // RemoteRenderArgsAndResults is an internal structure, exported for (de)serialization reasons
 type RemoteRenderArgsAndResults struct {
-	ScreenSize  sdf.V2i
-	State       *DevRendererState
+	RenderSize  sdf.V2i
+	State       *RendererState
 	RenderedImg *image.RGBA
 }
 
-func (d *DevRendererService) Render(args RemoteRenderArgsAndResults, out *RemoteRenderArgsAndResults) error {
+func (d *RendererService) Render(args RemoteRenderArgsAndResults, out *RemoteRenderArgsAndResults) error {
 	// TODO: Cancelling!
 	// TODO: Publish partial renders!
-	img, err := d.impl.Render(context.Background(), args.ScreenSize, args.State, &sync.RWMutex{}, &sync.RWMutex{}, make(chan *image.RGBA, 512))
+	img := image.NewRGBA(image.Rect(0, 0, args.RenderSize[0], args.RenderSize[1]))
+	err := d.impl.Render(context.Background(), args.State, &sync.RWMutex{}, &sync.RWMutex{}, make(chan *image.RGBA, 512), img)
 	if err != nil {
 		return err
 	}
