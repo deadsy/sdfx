@@ -184,7 +184,7 @@ func (r *Renderer2) renderBlock(ctx context.Context, fullImg *image.RGBA, blockI
 		return err
 	}
 	evalMin, evalMax := r.evalMin, r.evalMax
-	if state.blackAndWhite {
+	if state.BlackAndWhite {
 		evalMin, evalMax = -1e-12, 1e-12
 	}
 	png.RenderSDF2MinMax(r.s, evalMin, evalMax)

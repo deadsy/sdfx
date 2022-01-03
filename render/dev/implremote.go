@@ -2,6 +2,7 @@ package dev
 
 import (
 	"context"
+	"github.com/barkimedes/go-deepcopy"
 	"github.com/deadsy/sdfx/sdf"
 	"image"
 	"log"
@@ -41,28 +42,41 @@ func (d *RendererClient) Render(ctx context.Context, state *RendererState, state
 	fullRenderSize := fullRender.Bounds().Size()
 	argsOut := &RemoteRenderArgsAndResults{
 		RenderSize: sdf.V2i{fullRenderSize.X, fullRenderSize.Y},
-		State:      state,
+		State:      deepcopy.MustAnything(state).(*RendererState),
 	}
-	err := d.cl.Call("RendererService.Render", argsOut, &argsOut)
-	if err != nil {
-		log.Println("Error on remote call:", err)
+
+	call := d.cl.Go("RendererService.Render", argsOut, &argsOut, nil)
+	select {
+	case <-ctx.Done(): // Cancelled (call still running on service unless we call render again, which will cancel it)
+		return ctx.Err()
+	case call := <-call.Done:
+		if call.Error != nil {
+			log.Println("Error on remote call:", call.Error)
+			return nil
+		}
+		stateLock.Lock()
+		*state = *argsOut.State
+		stateLock.Unlock()
+		cachedRenderLock.Lock()
+		*fullRender = *(*call.Reply.(**RemoteRenderArgsAndResults)).RenderedImg
+		cachedRenderLock.Unlock()
 		return nil
 	}
-	*fullRender = *argsOut.RenderedImg
-	return nil
 }
 
 // RendererService is the server counter-part to RendererClient.
 // It provides remote access to a devRendererImpl.
 // It will block until
 type RendererService struct {
-	impl devRendererImpl
+	impl                 devRendererImpl
+	prevRenderCancel     func()
+	prevRenderCancelLock *sync.Mutex
 }
 
 // newDevRendererService see RendererService
 func newDevRendererService(impl devRendererImpl) *rpc.Server {
 	server := rpc.NewServer()
-	err := server.Register(&RendererService{impl: impl})
+	err := server.Register(&RendererService{impl: impl, prevRenderCancel: func() {}, prevRenderCancelLock: &sync.Mutex{}})
 	if err != nil {
 		panic(err) // Shouldn't happen (only on bad implementation)
 	}
@@ -87,10 +101,14 @@ type RemoteRenderArgsAndResults struct {
 }
 
 func (d *RendererService) Render(args RemoteRenderArgsAndResults, out *RemoteRenderArgsAndResults) error {
-	// TODO: Cancelling!
 	// TODO: Publish partial renders!
 	img := image.NewRGBA(image.Rect(0, 0, args.RenderSize[0], args.RenderSize[1]))
-	err := d.impl.Render(context.Background(), args.State, &sync.RWMutex{}, &sync.RWMutex{}, make(chan *image.RGBA, 512), img)
+	var ctx context.Context
+	d.prevRenderCancelLock.Lock()
+	d.prevRenderCancel() // Cancel previous render
+	ctx, d.prevRenderCancel = context.WithCancel(context.Background())
+	d.prevRenderCancelLock.Unlock()
+	err := d.impl.Render(ctx, args.State, &sync.RWMutex{}, &sync.RWMutex{}, make(chan *image.RGBA, 512), img)
 	if err != nil {
 		return err
 	}

@@ -28,13 +28,15 @@ type RendererState struct {
 	DrawBbs bool // Whether to show all bounding boxes (useful for debugging subtraction of SDFs) TODO
 	// SDF2
 	Bb            sdf.Box2 // Controls the scale and displacement
-	blackAndWhite bool     // Force black and white to see the surface better
+	BlackAndWhite bool     // Force black and white to see the surface better
 	// SDF3
 	CamCenter                     sdf.V3  // Arc-Ball camera center
 	CamThetaX, CamThetaY, CamDist float64 // Arc-Ball camera angles and distance
 }
 
 func (r *Renderer) newRendererState() *RendererState {
+	r.implLock.RLock()
+	defer r.implLock.RUnlock()
 	return &RendererState{
 		// TODO: Guess a ResInv based on rendering performance
 		ResInv: 1,

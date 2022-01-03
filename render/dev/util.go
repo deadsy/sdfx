@@ -1,12 +1,20 @@
 package dev
 
 import (
+	"fmt"
 	"github.com/deadsy/sdfx/sdf"
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/text"
 	"golang.org/x/image/font/inconsolata"
 	"image/color"
+	"log"
 	"math"
+	"os"
+	"os/exec"
+	"runtime"
+	"strconv"
+	"syscall"
+	"time"
 )
 
 func nextPowerOf2(v int) int {
@@ -56,6 +64,74 @@ func toBox2(box3 sdf.Box3) sdf.Box2 {
 	return sdf.Box2{
 		Min: sdf.V2{X: box3.Min.X, Y: box3.Min.Y},
 		Max: sdf.V2{X: box3.Max.X, Y: box3.Max.Y},
+	}
+}
+
+func pidExists(pid int32) (bool, error) {
+	if pid <= 0 {
+		return false, fmt.Errorf("invalid pid %v", pid)
+	}
+	proc, err := os.FindProcess(int(pid))
+	if err != nil {
+		return false, err
+	}
+	err = proc.Signal(syscall.Signal(0))
+	if err == nil {
+		if runtime.GOOS == "linux" { // Fix/hack for my system on which this seems broken (go 1.17.5)
+			cmd := exec.Command("kill", "-0", strconv.FormatInt(int64(pid), 10))
+			err := cmd.Run()
+			return err != nil, nil
+		}
+		return true, nil
+	}
+	if err.Error() == "os: process already finished" {
+		return false, nil
+	}
+	errno, ok := err.(syscall.Errno)
+	if !ok {
+		return false, err
+	}
+	switch errno {
+	case syscall.ESRCH:
+		return false, nil
+	case syscall.EPERM:
+		return true, nil
+	}
+	return false, err
+}
+
+func pidTermWaitKill(proc *os.Process, gracePeriod time.Duration) error {
+	if runtime.GOOS == "linux" { // Fix/hack for my system on which this seems broken (go 1.17.5)
+		cmd := exec.Command("kill", strconv.FormatInt(int64(proc.Pid), 10)) // SIGINT
+		err := cmd.Run()
+		if err != nil {
+			return err
+		}
+		for i := 0; i < 10; i++ {
+			exists, err := pidExists(int32(proc.Pid))
+			if err != nil {
+				return err
+			} else if !exists {
+				return nil
+			}
+			time.Sleep(gracePeriod / 10)
+		}
+		cmd = exec.Command("kill", "-9", strconv.FormatInt(int64(proc.Pid), 10)) // FORCE KILL
+		return cmd.Run()
+	} else {
+		err := proc.Signal(os.Interrupt)
+		if err != nil {
+			return err
+		}
+		afterFunc := time.AfterFunc(gracePeriod, func() {
+			err = proc.Kill()
+			if err != nil {
+				log.Println("[DevRenderer] pidTermWaitKill proc.Kill error:", err)
+			}
+		})
+		defer afterFunc.Stop()
+		_, err = proc.Wait()
+		return err
 	}
 }
 

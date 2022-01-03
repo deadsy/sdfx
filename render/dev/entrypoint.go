@@ -6,6 +6,8 @@ import (
 	"github.com/subchen/go-trylock/v2"
 	"image"
 	"math"
+	"os"
+	"os/exec"
 	"sync"
 )
 
@@ -30,6 +32,7 @@ import (
 // be used to showcase a surface (without automatic updates) using a standalone desktop, web or mobile.
 type Renderer struct {
 	impl                devRendererImpl // the implementation to use SDF2/SDF3/remote process.
+	implLock            *sync.RWMutex   // the implementation lock
 	implState           *RendererState  // the renderer's state, so impl can be swapped while keeping the state.
 	implStateLock       *sync.RWMutex   // the renderer's state lock
 	cachedRender        *ebiten.Image   // the latest cached render (to avoid rendering every frame, or frame parts even if nothing changed)
@@ -47,6 +50,7 @@ type Renderer struct {
 // NewDevRenderer see DevRenderer
 func NewDevRenderer(anySDF interface{}) *Renderer {
 	r := &Renderer{
+		implLock:          &sync.RWMutex{},
 		implStateLock:     &sync.RWMutex{},
 		cachedRenderLock:  &sync.RWMutex{},
 		renderingLock:     trylock.New(),
@@ -65,17 +69,13 @@ func NewDevRenderer(anySDF interface{}) *Renderer {
 	return r
 }
 
-func (r *Renderer) Run() error {
-	// TODO: Find a renderer (environment variable) and connect to it
-	// TODO: Otherwise create the renderer and listen for connections (or try to connect in the case of HTTP)
-	//newDevRendererService(r.impl).HandleHTTP("/", "/debug")
-	//go http.ListenAndServe(":8549", http.DefaultServeMux)
-	//time.Sleep(100 * time.Millisecond)
-	//dialHTTP, err := rpc.DialHTTP("tcp", ":8549")
-	//if err != nil {
-	//	return err
-	//}
-	//remoteRenderer := newDevRendererClient(dialHTTP)
-	//r.impl = remoteRenderer
-	return ebiten.RunGame(r)
+const RequestedAddressEnvKey = "SDFX_DEV_RENDERER_CHILD"
+
+func (r *Renderer) Run(runCmd func() *exec.Cmd, watchGlobs ...string) error {
+	requestedAddress := os.Getenv(RequestedAddressEnvKey)
+	if requestedAddress != "" { // Found a parent renderer (environment variable)
+		return r.runChild(requestedAddress)
+	} else { // Otherwise, listen for code changes to spawn a child renderer and create the local renderer
+		return r.runRenderer(runCmd, watchGlobs)
+	}
 }

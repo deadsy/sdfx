@@ -15,6 +15,8 @@ import (
 
 // onUpdateInputs handles inputs
 func (r *Renderer) onUpdateInputs() {
+	r.implLock.RLock()
+	defer r.implLock.RUnlock()
 	// SHARED CONTROLS
 	if inpututil.IsKeyJustPressed(ebiten.KeyKPAdd) {
 		r.implStateLock.Lock()
@@ -97,7 +99,7 @@ func (r *Renderer) onUpdateInputs() {
 		// Color
 		if inpututil.IsKeyJustPressed(ebiten.KeyC) {
 			r.implStateLock.Lock()
-			r.implState.blackAndWhite = !r.implState.blackAndWhite
+			r.implState.BlackAndWhite = !r.implState.BlackAndWhite
 			r.implStateLock.Unlock()
 			r.rerender()
 		}
@@ -119,10 +121,11 @@ func (r *Renderer) drawUI(screen *ebiten.Image) {
 	}
 
 	// Draw current state and controls
-	r.implStateLock.Lock()
-	defer r.implStateLock.Unlock()
+	r.implStateLock.RLock()
+	defer r.implStateLock.RUnlock()
 	msg := fmt.Sprintf("TPS: %0.2f/%d\nResolution: %.2f [+/-]\nBlack/White: %t [C]\nShow boxes: %t [B]\nReset transform [R]",
-		ebiten.CurrentTPS(), ebiten.MaxTPS(), 1/float64(r.implState.ResInv), r.implState.blackAndWhite, r.implState.DrawBbs)
+		ebiten.CurrentTPS(), ebiten.MaxTPS(), 1/float64(r.implState.ResInv),
+		r.implState.BlackAndWhite, r.implState.DrawBbs)
 	drawDefaultTextWithShadow(screen, msg, 5, r.screenSize[1]-5-16*strings.Count(msg, "\n"),
 		color.RGBA{R: 0, G: 200, B: 0, A: 255})
 }

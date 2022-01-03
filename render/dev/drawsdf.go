@@ -96,6 +96,7 @@ func (r *Renderer) rerender(callbacks ...func(err error)) {
 			r.cachedRenderCpu = image.NewRGBA(image.Rect(0, 0, renderSize[0], renderSize[1]))
 		}
 		r.implStateLock.RUnlock()
+		r.implLock.RLock()
 		err = r.impl.Render(renderCtx, r.implState, r.implStateLock, r.cachedRenderLock, nil, r.cachedRenderCpu)
 		if err != nil {
 			if err != context.Canceled {
@@ -103,6 +104,7 @@ func (r *Renderer) rerender(callbacks ...func(err error)) {
 			}
 			return
 		}
+		r.implLock.RUnlock()
 		renderGPUStartTime := time.Now()
 		renderGpuImg, err := ebiten.NewImageFromImage(r.cachedRenderCpu, ebiten.FilterDefault)
 		if err != nil {
@@ -110,6 +112,7 @@ func (r *Renderer) rerender(callbacks ...func(err error)) {
 			return
 		}
 		log.Println("[DevRenderer] CPU Render took:", renderGPUStartTime.Sub(renderStartTime), "- Sending to GPU took:", time.Since(renderGPUStartTime))
+		r.implLock.RLock()
 		r.implStateLock.RLock() // WARNING: Locking order (to avoid deadlocks)
 		if r.impl.Dimensions() == 2 {
 			r.cachedRenderBb2 = r.implState.Bb
@@ -117,6 +120,7 @@ func (r *Renderer) rerender(callbacks ...func(err error)) {
 			r.cachedRenderBb2 = sdf.Box2{}
 		}
 		r.implStateLock.RUnlock()
+		r.implLock.RUnlock()
 		r.cachedRenderLock.Lock()
 		// Reuse the previous render for the parts that did not change
 		if !sameSize {
