@@ -37,6 +37,10 @@ func NewMtRenderer3(impl Render3, overlappingCells float64) *MTRenderer3 {
 
 // AutoSplitsMinimum auto-partitions the space to have at least `routines` partitions.
 //
+// It is recommended to use the number of logical CPUs of the system or more. More partitions may result in better
+// performance (as long as synchronization overhead is not too much and meshCells is big enough),
+// as chunks are shared among goroutine workers and there is less wait for the last chunk to finish.
+//
 // Example: `MTRenderer3.AutoSplitsMinimum(runtime.NumCPU())`
 func (m *MTRenderer3) AutoSplitsMinimum(minPartitions int) {
 	// Try to share splits in all dimensions, forcing last dimension to get more splits if needed (may overshoot `minPartitions`)
