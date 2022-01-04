@@ -115,7 +115,7 @@ func (r *Renderer) rendererSwapChild(runCmd *exec.Cmd, runCmdF func() *exec.Cmd)
 	// 1. Gracefully close the previous command
 	if runCmd != nil {
 		log.Println("[DevRenderer] Closing previous child process")
-		if rend, ok := r.impl.(*RendererClient); ok {
+		if rend, ok := r.impl.(*rendererClient); ok {
 			err := rend.Shutdown(5 * time.Second)
 			if err != nil {
 				log.Println("[DevRenderer] Closing previous child process ERROR:", err, "(the child will probably keep running in background)")

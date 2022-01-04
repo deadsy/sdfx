@@ -19,7 +19,7 @@ import (
 // make the visualization clearer.
 func Opt2EvalRange(min, max float64) Option {
 	return func(r *Renderer) {
-		if r2, ok := r.impl.(*Renderer2); ok {
+		if r2, ok := r.impl.(*renderer2); ok {
 			r2.evalMin = min
 			r2.evalMax = max
 		}
@@ -29,7 +29,7 @@ func Opt2EvalRange(min, max float64) Option {
 // Opt2EvalScanCells configures the initial scan of the SDF2 to find minimum and maximum values (defaults to 128x128 cells).
 func Opt2EvalScanCells(cells sdf.V2i) Option {
 	return func(r *Renderer) {
-		if r2, ok := r.impl.(*Renderer2); ok {
+		if r2, ok := r.impl.(*renderer2); ok {
 			r2.evalScanCells = cells
 		}
 	}
@@ -39,15 +39,16 @@ func Opt2EvalScanCells(cells sdf.V2i) Option {
 // This parameter speeds up render cancellation (when low), but may slow down rendering due to synchronization
 func Opt2PixelsPerBlock(pix sdf.V2i) Option {
 	return func(r *Renderer) {
-		if r2, ok := r.impl.(*Renderer2); ok {
+		if r2, ok := r.impl.(*renderer2); ok {
 			r2.pixelsPerBlock = pix
 		}
 	}
 }
 
 // RENDERER
+// TODO: Create a Voxel2 cache equivalent, for faster camera movement
 
-type Renderer2 struct {
+type renderer2 struct {
 	s                sdf.SDF2 // The SDF to render
 	evalMin, evalMax float64  // The pre-computed minimum and maximum of the whole surface (for stable colors and speed)
 	evalScanCells    sdf.V2i
@@ -55,7 +56,7 @@ type Renderer2 struct {
 }
 
 func newDevRenderer2(s sdf.SDF2) devRendererImpl {
-	r := &Renderer2{
+	r := &renderer2{
 		s:              s,
 		evalScanCells:  sdf.V2i{128, 128},
 		pixelsPerBlock: sdf.V2i{128, 128},
@@ -63,16 +64,16 @@ func newDevRenderer2(s sdf.SDF2) devRendererImpl {
 	return r
 }
 
-func (r *Renderer2) Dimensions() int {
+func (r *renderer2) Dimensions() int {
 	return 2
 }
 
-func (r *Renderer2) BoundingBox() sdf.Box3 {
+func (r *renderer2) BoundingBox() sdf.Box3 {
 	bb := r.s.BoundingBox()
 	return sdf.Box3{Min: bb.Min.ToV3(0), Max: bb.Max.ToV3(0)}
 }
 
-func (r *Renderer2) Render(ctx context.Context, state *RendererState, stateLock,
+func (r *renderer2) Render(ctx context.Context, state *RendererState, stateLock,
 	cachedRenderLock *sync.RWMutex, partialImages chan<- *image.RGBA, fullRender *image.RGBA) error {
 	if r.evalMin == 0 && r.evalMax == 0 { // First render (ignoring external cache)
 		// Compute minimum and maximum evaluate values for a shared color scale for all blocks
@@ -95,7 +96,7 @@ func (r *Renderer2) Render(ctx context.Context, state *RendererState, stateLock,
 	}
 	stateLock.Unlock()
 
-	// Create the new full CPU image (downscaled by resolution)
+	// The full CPU image (downscaled by resolution)
 	fullImgSize := sdf.V2i{fullRenderSize.X, fullRenderSize.Y} // screenSize.ToV2().DivScalar(float64(resolution)).ToV2i()
 	fullImg := fullRender                                      //image.NewRGBA(image.Rect(0, 0, fullImgSize[0], fullImgSize[1]))
 	for i := 3; i < len(fullImg.Pix); i += 4 {
@@ -195,7 +196,7 @@ func (r *Renderer2) Render(ctx context.Context, state *RendererState, stateLock,
 	return nil
 }
 
-func (r *Renderer2) renderBlock(fullImg *image.RGBA, blockIndex sdf.V2i, state *RendererState,
+func (r *renderer2) renderBlock(fullImg *image.RGBA, blockIndex sdf.V2i, state *RendererState,
 	cachedRenderLock *sync.RWMutex, numBlocks, fullImgSize sdf.V2i, partialImages chan<- *image.RGBA) {
 	// Compute positions and sizes
 	blockStartPixel := blockIndex.ToV2().Mul(r.pixelsPerBlock.ToV2()).ToV2i()

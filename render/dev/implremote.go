@@ -13,17 +13,17 @@ import (
 	"time"
 )
 
-// RendererClient implements devRendererImpl by calling a remote implementation (using Go's net/rpc)
-type RendererClient struct {
+// rendererClient implements devRendererImpl by calling a remote implementation (using Go's net/rpc)
+type rendererClient struct {
 	cl *rpc.Client
 }
 
-// newDevRendererClient see RendererClient
+// newDevRendererClient see rendererClient
 func newDevRendererClient(client *rpc.Client) devRendererImpl {
-	return &RendererClient{cl: client}
+	return &rendererClient{cl: client}
 }
 
-func (d *RendererClient) Dimensions() int {
+func (d *rendererClient) Dimensions() int {
 	var out int
 	err := d.cl.Call("RendererService.Dimensions", &out, &out)
 	if err != nil {
@@ -32,7 +32,7 @@ func (d *RendererClient) Dimensions() int {
 	return out
 }
 
-func (d *RendererClient) BoundingBox() sdf.Box3 {
+func (d *rendererClient) BoundingBox() sdf.Box3 {
 	var out sdf.Box3
 	err := d.cl.Call("RendererService.BoundingBox", &out, &out)
 	if err != nil {
@@ -41,7 +41,7 @@ func (d *RendererClient) BoundingBox() sdf.Box3 {
 	return out
 }
 
-func (d *RendererClient) Render(ctx context.Context, state *RendererState, stateLock, cachedRenderLock *sync.RWMutex, partialRender chan<- *image.RGBA, fullRender *image.RGBA) error {
+func (d *rendererClient) Render(ctx context.Context, state *RendererState, stateLock, cachedRenderLock *sync.RWMutex, partialRender chan<- *image.RGBA, fullRender *image.RGBA) error {
 	fullRenderSize := fullRender.Bounds().Size()
 	stateLock.RLock() // Clone the state to avoid locking while the rendering is happening
 	argsOut := &RemoteRenderArgsAndResults{
@@ -69,14 +69,13 @@ func (d *RendererClient) Render(ctx context.Context, state *RendererState, state
 	}
 }
 
-func (d *RendererClient) Shutdown(timeout time.Duration) error {
+func (d *rendererClient) Shutdown(timeout time.Duration) error {
 	var out int
 	return d.cl.Call("RendererService.Shutdown", &timeout, &out)
 }
 
-// RendererService is the server counter-part to RendererClient.
+// RendererService is the server counter-part to rendererClient.
 // It provides remote access to a devRendererImpl.
-// It will block until
 type RendererService struct {
 	impl                 devRendererImpl
 	prevRenderCancel     func()

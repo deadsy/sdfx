@@ -35,7 +35,9 @@ func (r *Renderer) drawSDF(screen *ebiten.Image) {
 	if err != nil {
 		panic(err) // Can this happen?
 	}
-	drawOpts.GeoM.Translate(-tr.X, -tr.Y) // Reverse dragging operation (as this is the new cached render)
+	drawOpts.GeoM.Reset()
+	cachedPartialRenderWidth, cachedPartialRenderHeight := r.cachedPartialRender.Size()
+	drawOpts.GeoM.Scale(float64(r.screenSize[0])/float64(cachedPartialRenderWidth), float64(r.screenSize[1])/float64(cachedPartialRenderHeight))
 	err = screen.DrawImage(r.cachedPartialRender, drawOpts)
 	if err != nil {
 		panic(err) // Can this happen?

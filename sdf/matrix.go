@@ -172,6 +172,19 @@ func RotateZ(a float64) M44 {
 	return Rotate3d(V3{0, 0, 1}, a)
 }
 
+// LookAt returns a 4x4 matrix that places a point at `eye`, looking at `at`, given a normalized `up` vector.
+func LookAt(eye, at, up V3) M44 {
+	zaxis := at.Sub(eye).Normalize()
+	xaxis := zaxis.Cross(up).Normalize()
+	yaxis := xaxis.Cross(zaxis)
+	zaxis = zaxis.Neg()
+	return M44{
+		xaxis.X, xaxis.Y, xaxis.Z, -xaxis.Dot(eye),
+		yaxis.X, yaxis.Y, yaxis.Z, -yaxis.Dot(eye),
+		zaxis.X, zaxis.Y, zaxis.Z, -zaxis.Dot(eye),
+		0, 0, 0, 1}
+}
+
 // MirrorXY returns a 4x4 matrix with mirroring across the XY plane.
 func MirrorXY() M44 {
 	return M44{

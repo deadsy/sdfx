@@ -77,7 +77,8 @@ func NewDevRenderer(anySDF interface{}, opts ...Option) *Renderer {
 	case sdf.SDF2:
 		r.impl = newDevRenderer2(s)
 		r.cachedRenderBb2 = s.BoundingBox()
-	//case sdf.SDF3:
+	case sdf.SDF3:
+		r.impl = newDevRenderer3(s)
 	default:
 		panic("anySDF must be either a SDF2 or a SDF3")
 	}

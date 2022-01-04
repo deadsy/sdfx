@@ -30,8 +30,8 @@ type RendererState struct {
 	// SDF2
 	Bb sdf.Box2 // Controls the scale and displacement
 	// SDF3
-	CamCenter                     sdf.V3  // Arc-Ball camera center
-	CamThetaX, CamThetaY, CamDist float64 // Arc-Ball camera angles and distance
+	CamCenter                 sdf.V3  // Arc-Ball camera center (the point we are looking at)
+	CamYaw, CamPitch, CamDist float64 // Arc-Ball rotation angles (around CamCenter) and distance from CamCenter
 }
 
 func (r *Renderer) newRendererState() *RendererState {
@@ -39,7 +39,10 @@ func (r *Renderer) newRendererState() *RendererState {
 	defer r.implLock.RUnlock()
 	return &RendererState{
 		// TODO: Guess a ResInv based on rendering performance
-		ResInv: 1,
-		Bb:     toBox2(r.impl.BoundingBox()), // 100% zoom (will fix aspect ratio later)
+		ResInv: 8,
+
+		Bb: toBox2(r.impl.BoundingBox()), // 100% zoom (will fix aspect ratio later)
+
+		CamDist: r.impl.BoundingBox().Size().Length() / 2, // Look from corner at the start
 	}
 }

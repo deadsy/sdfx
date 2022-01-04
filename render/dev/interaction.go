@@ -106,7 +106,8 @@ func (r *Renderer) onUpdateInputs() {
 			r.implStateLock.Unlock()
 			r.rerender()
 		}
-	//case 3: TODO
+	case 3:
+		// TODO
 	default:
 		panic("RendererState.onUpdateInputs not implemented for " + strconv.Itoa(r.implDimCache) + " dimensions")
 	}
@@ -120,7 +121,7 @@ func (r *Renderer) drawUI(screen *ebiten.Image) {
 	if r.renderingLock.RTryLock(ctx) {
 		r.renderingLock.RUnlock()
 	} else {
-		drawDefaultTextWithShadow(screen, "Rendering...", 5, 5+12, color.RGBA{R: 255, G: 0, B: 0, A: 255})
+		drawDefaultTextWithShadow(screen, "Rendering...", 5, 5+12, color.RGBA{R: 255, A: 255})
 	}
 
 	// Draw current state and controls
@@ -132,9 +133,9 @@ func (r *Renderer) drawUI(screen *ebiten.Image) {
 	case 2:
 		msgFmt = "SDF2 Renderer\n=============\n" + msgFmt + "\nTranslate cam [MiddleMouse]\nZoom cam [MouseWheel]"
 	case 3:
-		msgFmt = "SDF3 Renderer\n=============\n" + msgFmt + "\nTranslate cam [MiddleMouse]\nRotate cam [Shift+MiddleMouse]\nZoom cam [MouseWheel]"
+		msgFmt = "SDF3 Renderer\n=============\n" + msgFmt + "\nRotate cam [MiddleMouse]\nTranslate cam [Shift+MiddleMouse]\nZoom cam [MouseWheel]"
 	}
 	msg := fmt.Sprintf(msgFmt, msgValues...)
 	boundString := text.BoundString(defaultFont, msg)
-	drawDefaultTextWithShadow(screen, msg, 5, r.screenSize[1]-boundString.Size().Y+10, color.RGBA{R: 0, G: 255, B: 0, A: 255})
+	drawDefaultTextWithShadow(screen, msg, 5, r.screenSize[1]-boundString.Size().Y+10, color.RGBA{G: 255, A: 255})
 }

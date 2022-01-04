@@ -14,6 +14,7 @@ import (
 	"github.com/deadsy/sdfx/sdf"
 	"github.com/hajimehoshi/ebiten"
 	"log"
+	"math"
 	"os"
 )
 
@@ -51,7 +52,7 @@ func spiralSdf() (s interface{}, err error) {
 	//}
 	//s = sdf.Difference2D(s.(sdf.SDF2), t)
 
-	//s = sdf.Extrude3D(s.(sdf.SDF2), 2)
+	s = sdf.Extrude3D(s.(sdf.SDF2), 2)
 
 	return s, err
 }
@@ -85,7 +86,7 @@ func main() {
 		//defer profile.Start(profile.TraceProfile, profile.ProfilePath(".")).Stop()
 
 		// Actual rendering loop
-		err = dev.NewDevRenderer(s).Run()
+		err = dev.NewDevRenderer(s, dev.Opt3Cam(sdf.V3{}, math.Pi/4, math.Pi/2, 100)).Run()
 		if err != nil {
 			panic(err)
 		}
