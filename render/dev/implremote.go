@@ -2,12 +2,15 @@ package dev
 
 import (
 	"context"
+	"errors"
 	"github.com/barkimedes/go-deepcopy"
 	"github.com/deadsy/sdfx/sdf"
 	"image"
 	"log"
 	"net/rpc"
+	"os"
 	"sync"
+	"time"
 )
 
 // RendererClient implements devRendererImpl by calling a remote implementation (using Go's net/rpc)
@@ -40,10 +43,12 @@ func (d *RendererClient) BoundingBox() sdf.Box3 {
 
 func (d *RendererClient) Render(ctx context.Context, state *RendererState, stateLock, cachedRenderLock *sync.RWMutex, partialRender chan<- *image.RGBA, fullRender *image.RGBA) error {
 	fullRenderSize := fullRender.Bounds().Size()
+	stateLock.RLock() // Clone the state to avoid locking while the rendering is happening
 	argsOut := &RemoteRenderArgsAndResults{
 		RenderSize: sdf.V2i{fullRenderSize.X, fullRenderSize.Y},
 		State:      deepcopy.MustAnything(state).(*RendererState),
 	}
+	stateLock.RUnlock()
 
 	call := d.cl.Go("RendererService.Render", argsOut, &argsOut, nil)
 	select {
@@ -54,7 +59,7 @@ func (d *RendererClient) Render(ctx context.Context, state *RendererState, state
 			log.Println("Error on remote call:", call.Error)
 			return nil
 		}
-		stateLock.Lock()
+		stateLock.Lock() // Clone back the new state to avoid locking while the rendering is happening
 		*state = *argsOut.State
 		stateLock.Unlock()
 		cachedRenderLock.Lock()
@@ -64,6 +69,11 @@ func (d *RendererClient) Render(ctx context.Context, state *RendererState, state
 	}
 }
 
+func (d *RendererClient) Shutdown(timeout time.Duration) error {
+	var out int
+	return d.cl.Call("RendererService.Shutdown", &timeout, &out)
+}
+
 // RendererService is the server counter-part to RendererClient.
 // It provides remote access to a devRendererImpl.
 // It will block until
@@ -71,12 +81,13 @@ type RendererService struct {
 	impl                 devRendererImpl
 	prevRenderCancel     func()
 	prevRenderCancelLock *sync.Mutex
+	done                 chan os.Signal
 }
 
 // newDevRendererService see RendererService
-func newDevRendererService(impl devRendererImpl) *rpc.Server {
+func newDevRendererService(impl devRendererImpl, done chan os.Signal) *rpc.Server {
 	server := rpc.NewServer()
-	err := server.Register(&RendererService{impl: impl, prevRenderCancel: func() {}, prevRenderCancelLock: &sync.Mutex{}})
+	err := server.Register(&RendererService{impl: impl, prevRenderCancel: func() {}, prevRenderCancelLock: &sync.Mutex{}, done: done})
 	if err != nil {
 		panic(err) // Shouldn't happen (only on bad implementation)
 	}
@@ -116,4 +127,13 @@ func (d *RendererService) Render(args RemoteRenderArgsAndResults, out *RemoteRen
 	out.State = args.State
 	out.RenderedImg = img // The output image
 	return nil
+}
+
+func (d *RendererService) Shutdown(t time.Duration, out *int) error {
+	select {
+	case d.done <- os.Kill:
+		return nil
+	case <-time.After(t):
+		return errors.New("shutdown timeout")
+	}
 }

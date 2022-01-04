@@ -6,10 +6,10 @@ import (
 	"github.com/deadsy/sdfx/sdf"
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/inpututil"
+	"github.com/hajimehoshi/ebiten/text"
 	"image/color"
 	"math"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -43,7 +43,10 @@ func (r *Renderer) onUpdateInputs() {
 		r.rerender()
 	}
 	// SDF2/SDF3-SPECIFIC CONTROLS
-	switch r.impl.Dimensions() {
+	r.implStateLock.RLock()
+	implDimCache := r.implDimCache
+	r.implStateLock.RUnlock()
+	switch implDimCache {
 	case 2:
 		// Zooming
 		_, wheelUpDown := ebiten.Wheel()
@@ -56,7 +59,7 @@ func (r *Renderer) onUpdateInputs() {
 			r.rerender()
 		}
 		// Translation
-		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonMiddle) {
 			// Save the cursor's position for previsualization and applying the final translation
 			cx, cy := ebiten.CursorPosition()
 			r.implStateLock.Lock()
@@ -65,7 +68,7 @@ func (r *Renderer) onUpdateInputs() {
 			}
 			r.implStateLock.Unlock()
 		}
-		if inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft) {
+		if inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonMiddle) {
 			// Actually apply the translation and force a rerender
 			cx, cy := ebiten.CursorPosition()
 			r.implStateLock.Lock()
@@ -89,7 +92,7 @@ func (r *Renderer) onUpdateInputs() {
 				})
 			}
 		}
-		// Reset transform (100% of surface)
+		// Reset camera transform (100% of surface)
 		if inpututil.IsKeyJustPressed(ebiten.KeyR) {
 			r.implStateLock.Lock()
 			r.implState.Bb = toBox2(r.impl.BoundingBox()) // 100% zoom (impl2 will fix aspect ratio)
@@ -99,13 +102,13 @@ func (r *Renderer) onUpdateInputs() {
 		// Color
 		if inpututil.IsKeyJustPressed(ebiten.KeyC) {
 			r.implStateLock.Lock()
-			r.implState.BlackAndWhite = !r.implState.BlackAndWhite
+			r.implState.ColorMode = !r.implState.ColorMode
 			r.implStateLock.Unlock()
 			r.rerender()
 		}
 	//case 3: TODO
 	default:
-		panic("RendererState.onUpdateInputs not implemented for " + strconv.Itoa(r.impl.Dimensions()) + " dimensions")
+		panic("RendererState.onUpdateInputs not implemented for " + strconv.Itoa(r.implDimCache) + " dimensions")
 	}
 }
 
@@ -123,9 +126,15 @@ func (r *Renderer) drawUI(screen *ebiten.Image) {
 	// Draw current state and controls
 	r.implStateLock.RLock()
 	defer r.implStateLock.RUnlock()
-	msg := fmt.Sprintf("TPS: %0.2f/%d\nResolution: %.2f [+/-]\nBlack/White: %t [C]\nShow boxes: %t [B]\nReset transform [R]",
-		ebiten.CurrentTPS(), ebiten.MaxTPS(), 1/float64(r.implState.ResInv),
-		r.implState.BlackAndWhite, r.implState.DrawBbs)
-	drawDefaultTextWithShadow(screen, msg, 5, r.screenSize[1]-5-16*strings.Count(msg, "\n"),
-		color.RGBA{R: 0, G: 200, B: 0, A: 255})
+	msgFmt := "TPS: %0.2f/%d\nResolution: %.2f [+/-]\nColor: %t [C]\nShow boxes: %t [B]\nReset camera [R]"
+	msgValues := []interface{}{ebiten.CurrentTPS(), ebiten.MaxTPS(), 1 / float64(r.implState.ResInv), r.implState.ColorMode, r.implState.DrawBbs}
+	switch r.implDimCache {
+	case 2:
+		msgFmt = "SDF2 Renderer\n=============\n" + msgFmt + "\nTranslate cam [MiddleMouse]\nZoom cam [MouseWheel]"
+	case 3:
+		msgFmt = "SDF3 Renderer\n=============\n" + msgFmt + "\nTranslate cam [MiddleMouse]\nRotate cam [Shift+MiddleMouse]\nZoom cam [MouseWheel]"
+	}
+	msg := fmt.Sprintf(msgFmt, msgValues...)
+	boundString := text.BoundString(defaultFont, msg)
+	drawDefaultTextWithShadow(screen, msg, 5, r.screenSize[1]-boundString.Size().Y+10, color.RGBA{R: 0, G: 255, B: 0, A: 255})
 }

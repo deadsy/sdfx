@@ -12,7 +12,6 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
-	"path/filepath"
 	"strconv"
 	"syscall"
 	"time"
@@ -20,53 +19,51 @@ import (
 
 const changeEventThrottle = 100 * time.Millisecond
 
-func (r *Renderer) runRenderer(runCmdF func() *exec.Cmd, watchGlobs []string) error {
-	watcher, err := fsnotify.NewWatcher()
-	if err != nil {
-		return err
-	}
-	defer func(watcher *fsnotify.Watcher) {
-		err := watcher.Close()
+func (r *Renderer) runRenderer(runCmdF func() *exec.Cmd, watchFiles []string) error {
+	if len(watchFiles) > 0 {
+		watcher, err := fsnotify.NewWatcher()
 		if err != nil {
-			log.Println("[DevRenderer] File watcher close error:", err)
-		}
-	}(watcher)
-
-	go func() {
-		var runCmd *exec.Cmd
-		lastEvent := time.Now()
-		for {
-			select {
-			case event, ok := <-watcher.Events:
-				if !ok {
-					return
-				}
-				if time.Since(lastEvent) < changeEventThrottle {
-					log.Println("[DevRenderer] Change detected (but throttled)!", event)
-					continue // Events tend to be generated in bulk if using an IDE, skip them if too close together
-				}
-				log.Println("[DevRenderer] Change detected!", event)
-				lastEvent = time.Now()
-				runCmd = r.rendererSwapChild(runCmd, runCmdF)
-				lastEvent = time.Now()
-			case err, ok := <-watcher.Errors:
-				if !ok {
-					return
-				}
-				log.Println("[DevRenderer] File watcher error:", err)
-			}
-		}
-	}()
-
-	for _, watchGlob := range watchGlobs {
-		glob, err := filepath.Glob(watchGlob)
-		if err != nil {
+			log.Println("Error watching files (won't update on changes):", err)
 			return err
-		}
-		for _, matchedFile := range glob {
-			err = watcher.Add(matchedFile)
-			if err != nil {
-				return err
+		} else {
+			defer func(watcher *fsnotify.Watcher) {
+				err := watcher.Close()
+				if err != nil {
+					log.Println("[DevRenderer] File watcher close error:", err)
+				}
+			}(watcher)
+
+			go func() {
+				var runCmd *exec.Cmd
+				lastEvent := time.Now()
+				for {
+					select {
+					case event, ok := <-watcher.Events:
+						if !ok {
+							return
+						}
+						if time.Since(lastEvent) < changeEventThrottle {
+							log.Println("[DevRenderer] Change detected (but throttled)!", event)
+							continue // Events tend to be generated in bulk if using an IDE, skip them if too close together
+						}
+						log.Println("[DevRenderer] Change detected!", event)
+						lastEvent = time.Now()
+						runCmd = r.rendererSwapChild(runCmd, runCmdF)
+						lastEvent = time.Now()
+					case err, ok := <-watcher.Errors:
+						if !ok {
+							return
+						}
+						log.Println("[DevRenderer] File watcher error:", err)
+					}
+				}
+			}()
+
+			for _, matchedFile := range watchFiles {
+				err = watcher.Add(matchedFile)
+				if err != nil {
+					log.Println("Error watching file", matchedFile, "-", err)
+				}
 			}
 		}
 	}
@@ -75,8 +72,13 @@ func (r *Renderer) runRenderer(runCmdF func() *exec.Cmd, watchGlobs []string) er
 }
 
 func (r *Renderer) runChild(requestedAddress string) error {
+	// Listen for signals
+	done := make(chan os.Signal, 1)
+	signal.Notify(done, signals()...)
 	// Set up a remote service that the parent renderer will connect to view the new SDF
-	newDevRendererService(r.impl).HandleHTTP(rpc.DefaultRPCPath, "/debug")
+	service := newDevRendererService(r.impl, done)
+	service.HandleHTTP(rpc.DefaultRPCPath, rpc.DefaultDebugPath)
+	// TODO: Use service.ServeConn() on a pipe to the parent, avoiding using ports (must be as cross-platform as possible)
 	listener, err := net.Listen("tcp", requestedAddress)
 	if err != nil {
 		return err
@@ -94,17 +96,16 @@ func (r *Renderer) runChild(requestedAddress string) error {
 			log.Println("[DevRenderer] srv.Close error:", err)
 		}
 	}(srv)
-	done := make(chan os.Signal, 1)
-	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
 		err := srv.Serve(listener)
 		if err != nil {
 			log.Println("[DevRenderer] srv.Serve error:", err)
 		}
-		done <- syscall.SIGILL
+		done <- syscall.SIGKILL
 	}()
+	log.Println("[DevRenderer] Child service ready...")
 	<-done // Will block until interrupt is received or the server crashes
-	log.Println("[DevRenderer] Closing child service...")
+	log.Println("[DevRenderer] Child service finished successfully...")
 	return nil
 }
 
@@ -114,10 +115,11 @@ func (r *Renderer) rendererSwapChild(runCmd *exec.Cmd, runCmdF func() *exec.Cmd)
 	// 1. Gracefully close the previous command
 	if runCmd != nil {
 		log.Println("[DevRenderer] Closing previous child process")
-		err := pidTermWaitKill(runCmd.Process, 12*time.Second)
-		if err != nil {
-			log.Println("[DevRenderer] pidTermWaitKill error:", err)
-			return nil
+		if rend, ok := r.impl.(*RendererClient); ok {
+			err := rend.Shutdown(5 * time.Second)
+			if err != nil {
+				log.Println("[DevRenderer] Closing previous child process ERROR:", err, "(the child will probably keep running in background)")
+			}
 		}
 	}
 	log.Println("[DevRenderer] Compiling and running new code")
@@ -143,20 +145,30 @@ func (r *Renderer) rendererSwapChild(runCmd *exec.Cmd, runCmdF func() *exec.Cmd)
 		log.Println("[DevRenderer] runCmd.Start error:", err)
 		return nil
 	}
+	// Note that in case of "go run ...", a new process is forked after successful compilation and the runCmd PID will die.
+	startupFinished := make(chan *os.ProcessState) // true if success
+	go func() {
+		ps, err2 := runCmd.Process.Wait()
+		if err2 != nil {
+			log.Println("[DevRenderer] runCmd error:", err2)
+		}
+		startupFinished <- ps
+		close(startupFinished)
+	}()
 	// 4. Connect to it as fast as possible, with exponential backoff to relax on errors.
 	log.Println("[DevRenderer] Trying to connect to new code with exponential backoff...")
-	backOff := backoff.NewExponentialBackOff()
-	startedAt := time.Now()
-	backOff.InitialInterval = 100 * time.Millisecond
+	r.backOff.Reset()
 	err = backoff.RetryNotify(func() error {
 		dialHTTP, err := rpc.DialHTTP("tcp", requestedFreeAddr)
 		if err != nil {
-			if time.Since(startedAt) > time.Second { // Make sure the process fully started
-				exists, err2 := pidExists(int32(runCmd.Process.Pid))
-				if !exists || err2 != nil { // unix
-					err2 = backoff.Permanent(fmt.Errorf("new code crashed (pid " + strconv.Itoa(runCmd.Process.Pid) + "), fix errors"))
+			select {
+			case ps, ok := <-startupFinished:
+				if ok && !ps.Success() {
+					err2 := backoff.Permanent(fmt.Errorf("new code crashed (pid " + strconv.Itoa(runCmd.Process.Pid) +
+						"), fix errors: " + ps.String()))
 					return err2
 				}
+			default: // Do not block checking if process success
 			}
 			return err
 		}
@@ -165,7 +177,7 @@ func (r *Renderer) rendererSwapChild(runCmd *exec.Cmd, runCmdF func() *exec.Cmd)
 		r.impl = remoteRenderer
 		r.rerender() // Render the new SDF!!!
 		return nil
-	}, backOff, func(err error, duration time.Duration) {
+	}, r.backOff, func(err error, duration time.Duration) {
 		log.Println("[DevRenderer] connection error:", err, "- retrying in:", duration)
 	})
 	if err != nil {

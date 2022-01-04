@@ -101,38 +101,19 @@ func pidExists(pid int32) (bool, error) {
 }
 
 func pidTermWaitKill(proc *os.Process, gracePeriod time.Duration) error {
-	if runtime.GOOS == "linux" { // Fix/hack for my system on which this seems broken (go 1.17.5)
-		cmd := exec.Command("kill", strconv.FormatInt(int64(proc.Pid), 10)) // SIGINT
-		err := cmd.Run()
-		if err != nil {
-			return err
-		}
-		for i := 0; i < 10; i++ {
-			exists, err := pidExists(int32(proc.Pid))
-			if err != nil {
-				return err
-			} else if !exists {
-				return nil
-			}
-			time.Sleep(gracePeriod / 10)
-		}
-		cmd = exec.Command("kill", "-9", strconv.FormatInt(int64(proc.Pid), 10)) // FORCE KILL
-		return cmd.Run()
-	} else {
-		err := proc.Signal(os.Interrupt)
-		if err != nil {
-			return err
-		}
-		afterFunc := time.AfterFunc(gracePeriod, func() {
-			err = proc.Kill()
-			if err != nil {
-				log.Println("[DevRenderer] pidTermWaitKill proc.Kill error:", err)
-			}
-		})
-		defer afterFunc.Stop()
-		_, err = proc.Wait()
+	err := proc.Signal(os.Interrupt)
+	if err != nil {
 		return err
 	}
+	afterFunc := time.AfterFunc(gracePeriod, func() {
+		err = proc.Kill()
+		if err != nil {
+			log.Println("[DevRenderer] pidTermWaitKill proc.Kill error:", err)
+		}
+	})
+	defer afterFunc.Stop()
+	_, err = proc.Wait()
+	return err
 }
 
 //type boundedSDF3 struct {

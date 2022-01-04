@@ -15,7 +15,6 @@ import (
 	"github.com/hajimehoshi/ebiten"
 	"log"
 	"os"
-	"os/exec"
 )
 
 //-----------------------------------------------------------------------------
@@ -50,7 +49,7 @@ func spiralSdf() (s interface{}, err error) {
 	//if err != nil {
 	//	return nil, err
 	//}
-	//s = sdf.Union2D(s.(sdf.SDF2), t)
+	//s = sdf.Difference2D(s.(sdf.SDF2), t)
 
 	//s = sdf.Extrude3D(s.(sdf.SDF2), 2)
 
@@ -64,6 +63,12 @@ func main() {
 	}
 
 	if os.Getenv("SDFX_TEST_DEV_RENDERER_2D") != "" {
+		// Rendering configuration boilerplate
+		ebiten.SetWindowTitle("SDFX spiral dev renderer demo")
+		ebiten.SetRunnableOnUnfocused(true)
+		ebiten.SetWindowResizable(true)
+		//ebiten.SetWindowSize(1920, 1040)
+
 		//// Profiling boilerplate
 		//defer func() {
 		//	//cmd := exec.Command("go", "tool", "pprof", "cpu.pprof")
@@ -80,11 +85,7 @@ func main() {
 		//defer profile.Start(profile.TraceProfile, profile.ProfilePath(".")).Stop()
 
 		// Actual rendering loop
-		ebiten.SetWindowTitle("SDFX spiral 2D demo")
-		ebiten.SetRunnableOnUnfocused(true)
-		ebiten.SetWindowResizable(true)
-		//ebiten.SetWindowSize(1920, 1040)
-		err = dev.NewDevRenderer(s).Run(func() *exec.Cmd { return exec.Command("go", "run", "-v", ".") }, ".")
+		err = dev.NewDevRenderer(s).Run()
 		if err != nil {
 			panic(err)
 		}

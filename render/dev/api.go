@@ -24,11 +24,11 @@ type devRendererImpl interface {
 // RendererState is an internal structure, exported for (de)serialization reasons
 type RendererState struct {
 	// SHARED
-	ResInv  int  // How detailed is the image: number screen pixels for each pixel rendered (SDF2: use a power of two)
-	DrawBbs bool // Whether to show all bounding boxes (useful for debugging subtraction of SDFs) TODO
+	ResInv    int  // How detailed is the image: number screen pixels for each pixel rendered (SDF2: use a power of two)
+	DrawBbs   bool // Whether to show all bounding boxes (useful for debugging subtraction of SDFs) TODO
+	ColorMode bool // SDF2: force black and white to see the surface better; SDF3: Simple light simulation / Show normals
 	// SDF2
-	Bb            sdf.Box2 // Controls the scale and displacement
-	BlackAndWhite bool     // Force black and white to see the surface better
+	Bb sdf.Box2 // Controls the scale and displacement
 	// SDF3
 	CamCenter                     sdf.V3  // Arc-Ball camera center
 	CamThetaX, CamThetaY, CamDist float64 // Arc-Ball camera angles and distance

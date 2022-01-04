@@ -1,6 +1,7 @@
 package dev
 
 import (
+	"github.com/cenkalti/backoff/v4"
 	"github.com/deadsy/sdfx/sdf"
 	"github.com/hajimehoshi/ebiten"
 	"github.com/subchen/go-trylock/v2"
@@ -9,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"sync"
+	"time"
 )
 
 // Renderer is a SDF2/SDF3 renderer intended for fast development iterations that renders directly to a window.
@@ -32,12 +34,13 @@ import (
 // be used to showcase a surface (without automatic updates) using a standalone desktop, web or mobile.
 type Renderer struct {
 	impl                devRendererImpl // the implementation to use SDF2/SDF3/remote process.
+	implDimCache        int             // The number of dimensions of impl (cached to avoid remote calls every frame)
 	implLock            *sync.RWMutex   // the implementation lock
 	implState           *RendererState  // the renderer's state, so impl can be swapped while keeping the state.
 	implStateLock       *sync.RWMutex   // the renderer's state lock
 	cachedRender        *ebiten.Image   // the latest cached render (to avoid rendering every frame, or frame parts even if nothing changed)
 	cachedRenderCpu     *image.RGBA     // the latest cached render (to avoid rendering every frame, or frame parts even if nothing changed)
-	cachedRenderBb2     sdf.Box2        // what part of the SDF2 the latest cached render represents (no optimization available for SDF3s)
+	cachedRenderBb2     sdf.Box2        // what part of the SDF2 the latest cached render represents (not implemented, and no equivalent optimization available for SDF3s)
 	cachedPartialRender *ebiten.Image   // the latest partial render (to display render progress visually)
 	cachedRenderLock    *sync.RWMutex
 	screenSize          sdf.V2i           // the screen ResInv
@@ -45,10 +48,15 @@ type Renderer struct {
 	renderingLock       trylock.TryLocker // locked when we are rendering, use renderingCtx to cancel the previous render
 	translateFrom       sdf.V2i
 	translateFromStop   sdf.V2i
+	// Configuration
+	runCmd     func() *exec.Cmd
+	watchFiles []string
+	avoidStdin bool
+	backOff    backoff.BackOff
 }
 
 // NewDevRenderer see DevRenderer
-func NewDevRenderer(anySDF interface{}) *Renderer {
+func NewDevRenderer(anySDF interface{}, opts ...Option) *Renderer {
 	r := &Renderer{
 		implLock:          &sync.RWMutex{},
 		implStateLock:     &sync.RWMutex{},
@@ -56,7 +64,15 @@ func NewDevRenderer(anySDF interface{}) *Renderer {
 		renderingLock:     trylock.New(),
 		translateFrom:     sdf.V2i{math.MaxInt, math.MaxInt},
 		translateFromStop: sdf.V2i{math.MaxInt, math.MaxInt},
+		// Configuration
+		runCmd: func() *exec.Cmd {
+			return exec.Command("go", "run", "-v", ".")
+		},
+		watchFiles: []string{"."},
+		avoidStdin: false,
+		backOff:    backoff.NewExponentialBackOff(),
 	}
+	r.backOff.(*backoff.ExponentialBackOff).InitialInterval = 10 * time.Millisecond
 	switch s := anySDF.(type) {
 	case sdf.SDF2:
 		r.impl = newDevRenderer2(s)
@@ -65,17 +81,22 @@ func NewDevRenderer(anySDF interface{}) *Renderer {
 	default:
 		panic("anySDF must be either a SDF2 or a SDF3")
 	}
+	r.implDimCache = r.impl.Dimensions()
 	r.implState = r.newRendererState()
+	// Apply all configuration options
+	for _, opt := range opts {
+		opt(r)
+	}
 	return r
 }
 
 const RequestedAddressEnvKey = "SDFX_DEV_RENDERER_CHILD"
 
-func (r *Renderer) Run(runCmd func() *exec.Cmd, watchGlobs ...string) error {
+func (r *Renderer) Run() error {
 	requestedAddress := os.Getenv(RequestedAddressEnvKey)
 	if requestedAddress != "" { // Found a parent renderer (environment variable)
 		return r.runChild(requestedAddress)
 	} else { // Otherwise, listen for code changes to spawn a child renderer and create the local renderer
-		return r.runRenderer(runCmd, watchGlobs)
+		return r.runRenderer(r.runCmd, r.watchFiles)
 	}
 }

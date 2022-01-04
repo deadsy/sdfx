@@ -124,13 +124,14 @@ func (r *Renderer) rerender(callbacks ...func(err error)) {
 		}
 		log.Println("[DevRenderer] CPU Render took:", renderGPUStartTime.Sub(renderStartTime), "- Sending to GPU took:", time.Since(renderGPUStartTime))
 		r.implLock.RLock()
-		r.implStateLock.RLock() // WARNING: Locking order (to avoid deadlocks)
-		if r.impl.Dimensions() == 2 {
+		r.implStateLock.Lock()               // WARNING: Locking order (to avoid deadlocks)
+		r.implDimCache = r.impl.Dimensions() // Only updated here
+		if r.implDimCache == 2 {
 			r.cachedRenderBb2 = r.implState.Bb
 		} else {
 			r.cachedRenderBb2 = sdf.Box2{}
 		}
-		r.implStateLock.RUnlock()
+		r.implStateLock.Unlock()
 		r.implLock.RUnlock()
 		r.cachedRenderLock.Lock()
 		// Reuse the previous render for the parts that did not change

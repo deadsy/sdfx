@@ -13,14 +13,52 @@ import (
 	"sync/atomic"
 )
 
+// CONFIGURATION
+
+// Opt2EvalRange skips the initial scan of the SDF2 to find the minimum and maximum value, and can also be used to
+// make the visualization clearer.
+func Opt2EvalRange(min, max float64) Option {
+	return func(r *Renderer) {
+		if r2, ok := r.impl.(*Renderer2); ok {
+			r2.evalMin = min
+			r2.evalMax = max
+		}
+	}
+}
+
+// Opt2EvalScanCells configures the initial scan of the SDF2 to find minimum and maximum values (defaults to 128x128 cells).
+func Opt2EvalScanCells(cells sdf.V2i) Option {
+	return func(r *Renderer) {
+		if r2, ok := r.impl.(*Renderer2); ok {
+			r2.evalScanCells = cells
+		}
+	}
+}
+
+// Opt2PixelsPerBlock configures the number of pixels per render block (defaults to 128x128).
+// This parameter speeds up render cancellation (when low), but may slow down rendering due to synchronization
+func Opt2PixelsPerBlock(pix sdf.V2i) Option {
+	return func(r *Renderer) {
+		if r2, ok := r.impl.(*Renderer2); ok {
+			r2.pixelsPerBlock = pix
+		}
+	}
+}
+
+// RENDERER
+
 type Renderer2 struct {
 	s                sdf.SDF2 // The SDF to render
 	evalMin, evalMax float64  // The pre-computed minimum and maximum of the whole surface (for stable colors and speed)
+	evalScanCells    sdf.V2i
+	pixelsPerBlock   sdf.V2i
 }
 
 func newDevRenderer2(s sdf.SDF2) devRendererImpl {
 	r := &Renderer2{
-		s: s,
+		s:              s,
+		evalScanCells:  sdf.V2i{128, 128},
+		pixelsPerBlock: sdf.V2i{128, 128},
 	}
 	return r
 }
@@ -38,7 +76,7 @@ func (r *Renderer2) Render(ctx context.Context, state *RendererState, stateLock,
 	cachedRenderLock *sync.RWMutex, partialImages chan<- *image.RGBA, fullRender *image.RGBA) error {
 	if r.evalMin == 0 && r.evalMax == 0 { // First render (ignoring external cache)
 		// Compute minimum and maximum evaluate values for a shared color scale for all blocks
-		r.evalMin, r.evalMax = utilSdf2MinMax(r.s, r.s.BoundingBox(), sdf.V2i{128, 128} /* TODO: Configurable? */)
+		r.evalMin, r.evalMax = utilSdf2MinMax(r.s, r.s.BoundingBox(), r.evalScanCells)
 		//log.Println("MIN:", r.evalMin, "MAX:", r.evalMax)
 	}
 
@@ -65,8 +103,7 @@ func (r *Renderer2) Render(ctx context.Context, state *RendererState, stateLock,
 	}
 
 	// Render each blockIndex of the image individually to allow cancelling the render
-	pixelsPerBlock := sdf.V2i{128, 128} /* TODO: Configurable? */
-	numBlocks := fullImgSize.ToV2().Div(pixelsPerBlock.ToV2()).Ceil().ToV2i()
+	numBlocks := fullImgSize.ToV2().Div(r.pixelsPerBlock.ToV2()).Ceil().ToV2i()
 
 	// Parallelize: spawn workers
 	jobCount := numBlocks[0] * numBlocks[1]
@@ -81,7 +118,13 @@ func (r *Renderer2) Render(ctx context.Context, state *RendererState, stateLock,
 					break
 				}
 				stateLock.RLock()
-				errors <- r.renderBlock(ctx, fullImg, blockIndexTask, pixelsPerBlock, state, stateLock, cachedRenderLock, numBlocks, fullImgSize, partialImages)
+				select {
+				case <-ctx.Done(): // Render cancelled
+					errors <- ctx.Err()
+				default: // Render not cancelled
+					r.renderBlock(fullImg, blockIndexTask, state, cachedRenderLock, numBlocks, fullImgSize, partialImages)
+					errors <- nil
+				}
 				stateLock.RUnlock()
 				if atomic.AddUint32(&errCount, 1) == uint32(jobCount) {
 					close(errors)
@@ -152,18 +195,11 @@ func (r *Renderer2) Render(ctx context.Context, state *RendererState, stateLock,
 	return nil
 }
 
-func (r *Renderer2) renderBlock(ctx context.Context, fullImg *image.RGBA, blockIndex sdf.V2i,
-	pixelsPerBlock sdf.V2i, state *RendererState, stateLock, cachedRenderLock *sync.RWMutex, numBlocks sdf.V2i, fullImgSize sdf.V2i,
-	partialImages chan<- *image.RGBA) (err error) {
-	select {
-	case <-ctx.Done(): // Render cancelled
-		return ctx.Err()
-	default: // Render not cancelled
-	}
-
+func (r *Renderer2) renderBlock(fullImg *image.RGBA, blockIndex sdf.V2i, state *RendererState,
+	cachedRenderLock *sync.RWMutex, numBlocks, fullImgSize sdf.V2i, partialImages chan<- *image.RGBA) {
 	// Compute positions and sizes
-	blockStartPixel := blockIndex.ToV2().Mul(pixelsPerBlock.ToV2()).ToV2i()
-	blockSizePixels := pixelsPerBlock.AddScalar(1) // nextPowerOf2(state.ResInv)
+	blockStartPixel := blockIndex.ToV2().Mul(r.pixelsPerBlock.ToV2()).ToV2i()
+	blockSizePixels := r.pixelsPerBlock.AddScalar(1) // nextPowerOf2(state.ResInv)
 	if blockIndex[0] == numBlocks[0]-1 {
 		blockSizePixels[0] = fullImgSize[0] - blockStartPixel[0] + 1 //+ nextPowerOf2(state.ResInv)
 	}
@@ -172,7 +208,7 @@ func (r *Renderer2) renderBlock(ctx context.Context, fullImg *image.RGBA, blockI
 	}
 	//blockSizePixels = blockSizePixels.ToV2().DivScalar(float64(state.ResInv)).ToV2i()
 	if blockSizePixels[0] == 0 || blockSizePixels[1] == 0 {
-		return nil // Empty block ignored
+		return // Empty block ignored
 	}
 	blockBb := sdf.Box2{
 		Min: state.Bb.Min.Add(state.Bb.Size().Mul(blockStartPixel.ToV2().Div(fullImgSize.ToV2()))),
@@ -181,7 +217,7 @@ func (r *Renderer2) renderBlock(ctx context.Context, fullImg *image.RGBA, blockI
 	}
 	if blockBb.Size().Length2() <= 1e-12 || blockSizePixels.ToV2().Length2() < 1e-12 { // SANITY CHECK that skips the block
 		log.Println("SANITY CHECK FAILED: PIXELS: start:", blockStartPixel, "size:", blockSizePixels, "| BOUNDING BOX:", blockBb)
-		return nil
+		return
 	}
 	//if sdfSkip.Contains(blockBb.Min) && sdfSkip.Contains(blockBb.Max) {
 	//	return nil // Block is fully contained in the skipped section of the screen, ignore
@@ -191,10 +227,10 @@ func (r *Renderer2) renderBlock(ctx context.Context, fullImg *image.RGBA, blockI
 	// Render the current block to a CPU image
 	png, err := render.NewPNG("unused", blockBb, blockSizePixels)
 	if err != nil {
-		return err
+		panic(err) // Shouldn't happen (implementation error)
 	}
 	evalMin, evalMax := r.evalMin, r.evalMax
-	if state.BlackAndWhite {
+	if state.ColorMode { // Force black and white to see the surface better
 		evalMin, evalMax = -1e-12, 1e-12
 	}
 	png.RenderSDF2MinMax(r.s, evalMin, evalMax)
@@ -209,11 +245,8 @@ func (r *Renderer2) renderBlock(ctx context.Context, fullImg *image.RGBA, blockI
 	cachedRenderLock.Unlock()
 
 	// Notify of partial image progress
-	if err != nil {
-		return err
-	}
 	if partialImages != nil {
 		partialImages <- fullImg
 	}
-	return nil
+	return
 }
