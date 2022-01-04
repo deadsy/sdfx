@@ -5,6 +5,7 @@ import (
 	"github.com/deadsy/sdfx/sdf"
 	"github.com/hajimehoshi/ebiten"
 	"image"
+	"image/color"
 	"log"
 	"math"
 	"runtime/debug"
@@ -34,6 +35,7 @@ func (r *Renderer) drawSDF(screen *ebiten.Image) {
 	if err != nil {
 		panic(err) // Can this happen?
 	}
+	drawOpts.GeoM.Translate(-tr.X, -tr.Y) // Reverse dragging operation (as this is the new cached render)
 	err = screen.DrawImage(r.cachedPartialRender, drawOpts)
 	if err != nil {
 		panic(err) // Can this happen?
@@ -66,38 +68,47 @@ func (r *Renderer) rerender(callbacks ...func(err error)) {
 		var renderCtx context.Context
 		r.implStateLock.Lock()
 		renderCtx, r.renderingCtxCancel = context.WithCancel(context.Background())
+		renderSize := r.screenSize.ToV2().DivScalar(float64(r.implState.ResInv)).ToV2i()
 		r.implStateLock.Unlock()
-		//partialRenders := make(chan *image.RGBA)
-		//go func() {
-		//	//imageBufCopy := make([]uint8, r.screenSize[0]*r.screenSize[1]*4) // RGBA
-		//	for _ /*partialRender :*/ = range partialRenders {
-		//		//r.cachedRenderLock.RLock()
-		//		//copy(imageBufCopy, partialRender.Pix) // Is this locking rendering TPS?
-		//		//r.cachedRenderLock.RUnlock()
-		//		//gpuImg, err := ebiten.NewImageFromImage(&image.RGBA{ // Very slow! Keep outside locks!
-		//		//	Pix:    imageBufCopy,
-		//		//	Stride: r.screenSize[0] * 4,
-		//		//	Rect:   image.Rect(0, 0, r.screenSize[0], r.screenSize[1]),
-		//		//}, ebiten.FilterDefault)
-		//		//if err != nil {
-		//		//	log.Println("Error sending image to GPU:", err)
-		//		//	continue
-		//		//}
-		//		//r.cachedRenderLock.Lock()
-		//		//r.cachedPartialRender = gpuImg
-		//		//r.cachedRenderLock.Unlock()
-		//	}
-		//}()
+		partialRenders := make(chan *image.RGBA)
+		go func(renderSize sdf.V2i) {
+			const partialRenderEvery = 1 * time.Second
+			partialRenderCopy := image.NewRGBA(image.Rect(0, 0, renderSize[0], renderSize[1]))
+			lastPartialRender := time.Now()
+			for partialRender := range partialRenders {
+				if time.Since(lastPartialRender) < partialRenderEvery {
+					continue // Skip this partial render (throttled) as it slows down significantly the full render
+				}
+				lastPartialRender = time.Now()
+				r.cachedRenderLock.RLock()
+				copy(partialRenderCopy.Pix, partialRender.Pix)
+				r.cachedRenderLock.RUnlock()
+				// WARNING: This blocks the main rendering thread: call sparingly
+				gpuImg, err := ebiten.NewImageFromImage(partialRenderCopy, ebiten.FilterDefault)
+				if err != nil {
+					log.Println("Error sending image to GPU:", err)
+					continue
+				}
+				r.cachedRenderLock.Lock()
+				r.cachedPartialRender = gpuImg
+				r.cachedRenderLock.Unlock()
+			}
+			r.cachedRenderLock.Lock() // Use the cached render as the partial one (to make sure it is complete)
+			err := r.cachedPartialRender.Fill(color.Transparent)
+			if err != nil {
+				log.Println("cachedPartialRender.Fill(color.Transparent) error:", err)
+			}
+			r.cachedRenderLock.Unlock()
+		}(renderSize)
 		renderStartTime := time.Now()
 		r.implStateLock.RLock()
-		renderSize := r.screenSize.ToV2().DivScalar(float64(r.implState.ResInv)).ToV2i()
 		sameSize := r.cachedRenderCpu != nil && (sdf.V2i{r.cachedRenderCpu.Rect.Max.X, r.cachedRenderCpu.Rect.Max.Y} == renderSize)
 		if !sameSize {
 			r.cachedRenderCpu = image.NewRGBA(image.Rect(0, 0, renderSize[0], renderSize[1]))
 		}
 		r.implStateLock.RUnlock()
 		r.implLock.RLock()
-		err = r.impl.Render(renderCtx, r.implState, r.implStateLock, r.cachedRenderLock, nil, r.cachedRenderCpu)
+		err = r.impl.Render(renderCtx, r.implState, r.implStateLock, r.cachedRenderLock, partialRenders, r.cachedRenderCpu)
 		if err != nil {
 			if err != context.Canceled {
 				log.Println("[DevRenderer] Error rendering:", err)

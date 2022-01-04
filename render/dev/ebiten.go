@@ -9,6 +9,7 @@ var _ ebiten.Game = &Renderer{}
 
 func (r *Renderer) Update(_ *ebiten.Image) error {
 	var err error
+	// FIXME: Debug TPS reduction when rendering (probably locking + forced queued main thread loading of images)
 	r.cachedRenderLock.RLock()
 	firstFrame := r.cachedRender == nil
 	if firstFrame { // This always runs before the first frame

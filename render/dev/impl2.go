@@ -80,7 +80,9 @@ func (r *Renderer2) Render(ctx context.Context, state *RendererState, stateLock,
 				if !ok {
 					break
 				}
+				stateLock.RLock()
 				errors <- r.renderBlock(ctx, fullImg, blockIndexTask, pixelsPerBlock, state, stateLock, cachedRenderLock, numBlocks, fullImgSize, partialImages)
+				stateLock.RUnlock()
 				if atomic.AddUint32(&errCount, 1) == uint32(jobCount) {
 					close(errors)
 				}
@@ -104,9 +106,12 @@ func (r *Renderer2) Render(ctx context.Context, state *RendererState, stateLock,
 					if err != nil {
 						// The first block that renders with an error closes the partial image channel
 						close(blockIndexJobs)
+						stateLock.Lock()
 						if partialImages != nil {
 							close(partialImages)
+							partialImages = nil
 						}
+						stateLock.Unlock()
 						return err // Quick exit on error
 					}
 				default:
@@ -125,15 +130,23 @@ func (r *Renderer2) Render(ctx context.Context, state *RendererState, stateLock,
 		err = <-errors
 		if err != nil {
 			// The first block that renders with an error closes the partial image channel
+			stateLock.Lock()
 			if partialImages != nil {
 				close(partialImages)
+				partialImages = nil
 			}
+			stateLock.Unlock()
 			return err // Quick exit on error
 		}
 	}
 	// If no block threw an error, close partialImages now
 	if partialImages != nil {
-		close(partialImages)
+		stateLock.Lock()
+		if partialImages != nil {
+			close(partialImages)
+			partialImages = nil
+		}
+		stateLock.Unlock()
 	}
 	// TODO: Draw bounding boxes over the image
 	return nil
@@ -147,9 +160,6 @@ func (r *Renderer2) renderBlock(ctx context.Context, fullImg *image.RGBA, blockI
 		return ctx.Err()
 	default: // Render not cancelled
 	}
-
-	stateLock.RLock()
-	defer stateLock.RUnlock()
 
 	// Compute positions and sizes
 	blockStartPixel := blockIndex.ToV2().Mul(pixelsPerBlock.ToV2()).ToV2i()
