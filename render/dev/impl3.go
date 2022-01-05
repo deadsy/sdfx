@@ -152,6 +152,7 @@ pixelLoop:
 		cachedRenderLock.Unlock()
 	}
 	close(partialRender)
+	// TODO: Draw bounding boxes over the image
 	return err
 }
 
@@ -196,5 +197,3 @@ func (r *renderer3) samplePixel(job *pixelRender) color.RGBA {
 		}
 	}
 }
-
-// TODO: Use (resolution-dynamic) Voxel cache for faster camera movement

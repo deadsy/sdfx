@@ -46,7 +46,6 @@ func Opt2PixelsPerBlock(pix sdf.V2i) Option {
 }
 
 // RENDERER
-// TODO: Create a Voxel2 cache equivalent, for faster camera movement
 
 type renderer2 struct {
 	s                sdf.SDF2 // The SDF to render
@@ -80,6 +79,8 @@ func (r *renderer2) Render(ctx context.Context, state *RendererState, stateLock,
 		r.evalMin, r.evalMax = utilSdf2MinMax(r.s, r.s.BoundingBox(), r.evalScanCells)
 		//log.Println("MIN:", r.evalMin, "MAX:", r.evalMax)
 	}
+
+	// TODO: Reimplement using the same structure as impl3
 
 	fullRenderSize := fullRender.Bounds().Size()
 	bbAspectRatio := state.Bb.Size().X / state.Bb.Size().Y
