@@ -11,6 +11,7 @@ package render
 import (
 	"github.com/barkimedes/go-deepcopy"
 	"github.com/deadsy/sdfx/sdf"
+	"gonum.org/v1/gonum/spatial/kdtree"
 	"math"
 	"sync"
 )
@@ -26,13 +27,17 @@ type MTRenderer3 struct {
 	// OverlappingCells provides overlapping boundaries so that N cells are shared between contiguous renderers.
 	// Set to 0 for Marching Cubes renderer and to 1 for Dual Contouring (places vertices instead of faces per voxel)
 	OverlappingCells float64
+	// MergeVerticesEpsilon is the minimum distance between vertices to merge them. This is needed because vertices in
+	// the chunk seams can be slightly different (due to running independent algorithms and operation order might change),
+	// causing software to think they are different vertices when they shouldn't be.
+	MergeVerticesEpsilon float64
 }
 
 var _ Render3 = &MTRenderer3{}
 
 // NewMtRenderer3 see MTRenderer3
 func NewMtRenderer3(impl Render3, overlappingCells float64) *MTRenderer3 {
-	return &MTRenderer3{impl: impl, OverlappingCells: overlappingCells, NumSplits: sdf.V3i{0, 0, 0}}
+	return &MTRenderer3{impl: impl, OverlappingCells: overlappingCells, NumSplits: sdf.V3i{0, 0, 0}, MergeVerticesEpsilon: 1e-8}
 }
 
 // AutoSplitsMinimum auto-partitions the space to have at least `routines` partitions.
@@ -71,8 +76,16 @@ func (m *MTRenderer3) Render(sdf3 sdf.SDF3, meshCells int, output chan<- *Triang
 	partitionSize := cellSize.Mul(cellsPerPartitionBase.AddScalar(m.OverlappingCells))
 	subMeshCells := int( /*math.Ceil*/ partitionSize.MaxComponent() / originalResolution)
 
-	cellIndex := sdf.V3i{0, 0, 0}
+	// Intercept output to merge vertices generated on seams
 	wg := &sync.WaitGroup{}
+	var wgRet *sync.WaitGroup
+	if m.MergeVerticesEpsilon > 0 {
+		output, wgRet = m.mergeGeneratedVertices(output, m.MergeVerticesEpsilon*cellSize.MaxComponent(),
+			fullBb.Min.AddScalar(-m.OverlappingCells/2), partitionSizeBase, cellSize)
+	}
+
+	// Generate each partition in a goroutine
+	cellIndex := sdf.V3i{0, 0, 0}
 	for cellIndex[0] = 0; cellIndex[0] <= m.NumSplits[0]; cellIndex[0]++ {
 		for cellIndex[1] = 0; cellIndex[1] <= m.NumSplits[1]; cellIndex[1]++ {
 			for cellIndex[2] = 0; cellIndex[2] <= m.NumSplits[2]; cellIndex[2]++ {
@@ -98,7 +111,13 @@ func (m *MTRenderer3) Render(sdf3 sdf.SDF3, meshCells int, output chan<- *Triang
 		}
 	}
 	wg.Wait() // Wait for all spawned goroutines (space partition renderers) to finish
+	if m.MergeVerticesEpsilon > 0 {
+		close(output) // Actually the input for internal goroutine
+		wgRet.Wait()  // Wait for post-processing to complete
+	}
 }
+
+//-----------------------------------------------------------------------------
 
 var _ sdf.SDF3 = &customBbSdf{}
 
@@ -113,4 +132,165 @@ func (m *customBbSdf) Evaluate(p sdf.V3) float64 {
 
 func (m *customBbSdf) BoundingBox() sdf.Box3 {
 	return m.bb
+}
+
+//-----------------------------------------------------------------------------
+
+func mtToKdPoint(v3 sdf.V3) kdtree.Point {
+	return kdtree.Point{v3.X, v3.Y, v3.Z}
+}
+
+func mtFromKdPoint(v3 kdtree.Point) sdf.V3 {
+	return sdf.V3{X: v3[0], Y: v3[1], Z: v3[2]}
+}
+
+func (m *MTRenderer3) mergeGeneratedVertices(output chan<- *Triangle3, mergeVerticesEpsilon float64, sdfStart sdf.V3, partitionSize sdf.V3, cellSize sdf.V3) (chan *Triangle3, *sync.WaitGroup) {
+	input := make(chan *Triangle3)
+	mergeVerticesEpsilonSq := mergeVerticesEpsilon * mergeVerticesEpsilon // Squared euclidean distance used in k-d tree
+	mmod := func(a, b float64) float64 {
+		r := math.Mod(a, b)
+		if r > b/2 {
+			r = b - r
+		}
+		return r
+	}
+	isVertCloseToSeam := func(v sdf.V3) bool { // Filter to speed-up postprocessing
+		offset := v.Sub(sdfStart)
+		return mmod(offset.X, partitionSize.X) < mergeVerticesEpsilon+cellSize.X ||
+			mmod(offset.Y, partitionSize.Y) < mergeVerticesEpsilon+cellSize.Y ||
+			mmod(offset.Z, partitionSize.Z) < mergeVerticesEpsilon+cellSize.Z
+	}
+
+	vertToPassOriginalTris := map[sdf.V3][]*Triangle3{}
+
+	wg := &sync.WaitGroup{}
+	wgRet := &sync.WaitGroup{}
+	wg.Add(1)
+	go func() { // Collect all initial vertices in k-d tree
+		for tri := range input {
+			if bypassVertTris(isVertCloseToSeam, nil, []*Triangle3{tri}) {
+				output <- tri
+			} else {
+				for _, vert := range tri.V {
+					// Do not modify the vertices with math operations, as floating point operations might make the map fail
+					prevTris, _ := vertToPassOriginalTris[vert]
+					prevTris = append(prevTris, tri)
+					vertToPassOriginalTris[vert] = prevTris
+				}
+			}
+		}
+		wg.Done()
+	}()
+
+	wgRet.Add(1)
+	go func() { // Merge all close together vertices (modifying generated triangles)
+		wg.Wait()
+		// Only the subset of triangles that are close to the seams (others already published)
+		trianglesToPublish := map[Triangle3]*Triangle3{}
+		// Build K-D tree for this pass
+		allVertices := make(kdtree.Points, 0, len(vertToPassOriginalTris))
+		for vert, _ := range vertToPassOriginalTris {
+			allVertices = append(allVertices, mtToKdPoint(vert))
+		}
+		tree := kdtree.New(allVertices, false)
+		//log.Println("Post-processing vertex count", len(vertToPassOriginalTris))
+		movedVertices := make([]sdf.V3Set, 0) // {from, to}
+		for vert, originalTriangles := range vertToPassOriginalTris {
+			//log.Println("vertToPassOriginalTris", vert)
+			closest := kdtree.NewNKeeper(3) // The first is always a perfect match with the current vertex
+			tree.NearestSet(closest, mtToKdPoint(vert))
+			for _, comparableDist := range closest.Heap[1:] {
+				nthPos := mtFromKdPoint(comparableDist.Comparable.(kdtree.Point))
+				nthDist := comparableDist.Dist
+				modifiedTriangles := make([]*Triangle3, 0)
+				for _, originalTriangle := range originalTriangles {
+					modifiedTriangle, ok := trianglesToPublish[*originalTriangle]
+					if !ok {
+						modifiedTriangle = &*originalTriangle // Clone
+					}
+					modifiedTriangles = append(modifiedTriangles, modifiedTriangle)
+				}
+				if nthDist > mergeVerticesEpsilonSq {
+					for i, originalTriangle := range originalTriangles {
+						trianglesToPublish[*originalTriangle] = modifiedTriangles[i]
+					}
+					break
+				} else if nthDist > 0 {
+					//log.Println("Nth closest #", i, "tris", len(originalTriangles), "dist", nthDist, "from", vert, "to", nthPos)
+					if nthPos.X > vert.X || nthPos.X == vert.X && (nthPos.Y > vert.Y || nthPos.Y == vert.Y && (nthPos.Z > vert.Z)) {
+						continue // Only merge in a specific direction to avoid too many merges
+					}
+					// Get the modified triangle (we might have already changed another vertex)
+					// Move vert to the found closest triangle
+					for i, originalTriangle := range originalTriangles {
+						modifiedTriangle := modifiedTriangles[i]
+						if modifiedTriangle == nil {
+							continue // Deleted triangle
+						}
+						for i, v := range modifiedTriangle.V {
+							if v == vert {
+								modifiedTriangle.V[i] = nthPos
+								movedVertices = append(movedVertices, sdf.V3Set{vert, nthPos})
+								break
+							}
+						}
+						if modifiedTriangle.Degenerate(0) { // We created a degenerate triangle by merging vertices
+							trianglesToPublish[*originalTriangle] = nil
+						} else {
+							trianglesToPublish[*originalTriangle] = modifiedTriangle
+						}
+					}
+					break
+				}
+			}
+		}
+		for _, vertMoved := range movedVertices {
+			prevTris := vertToPassOriginalTris[vertMoved[1]]
+			addedTris := vertToPassOriginalTris[vertMoved[0]]
+			prevTris = append(prevTris, addedTris...)
+			vertToPassOriginalTris[vertMoved[1]] = mtRemoveDuplicatesAndNils(prevTris)
+			delete(vertToPassOriginalTris, vertMoved[0])
+		}
+		for _, modifiedTriangle := range trianglesToPublish {
+			if modifiedTriangle == nil {
+				continue // Deleted
+			}
+			output <- modifiedTriangle
+		}
+		// DO NOT CLOSE: will be closed by parent: close(output)
+		wgRet.Done()
+	}()
+
+	return input, wgRet
+}
+
+func bypassVertTris(isVertCloseToSeam func(v sdf.V3) bool, v *sdf.V3, tris []*Triangle3) bool {
+	bypass := v == nil || !isVertCloseToSeam(*v)
+	if bypass {
+		for _, tri := range tris {
+			bypass = bypass && !isVertCloseToSeam(tri.V[0]) && !isVertCloseToSeam(tri.V[1]) && !isVertCloseToSeam(tri.V[2])
+			if !bypass {
+				break
+			}
+		}
+	}
+	return bypass
+}
+
+func mtRemoveDuplicatesAndNils(strList []*Triangle3) []*Triangle3 {
+	var list []*Triangle3
+	for _, item := range strList {
+		if item != nil && mtContains(list, item) == false {
+			list = append(list, item)
+		}
+	}
+	return list
+}
+func mtContains(s []*Triangle3, e *Triangle3) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
 }

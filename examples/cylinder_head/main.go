@@ -411,10 +411,6 @@ func main() {
 	render.ToSTL(s, 400, "head_tmp.stl", mcuMtRenderer)
 	td2 := time.Since(t2)
 	td1 := t2.Sub(t1)
-	// MarchingCubesUniform{1} + MTRenderer is slightly faster than the parallel evaluation version (left as default)
-	// MarchingCubesUniform{0} + MTRenderer is slightly faster than MarchingCubesUniform{1} + MTRenderer
-	// (due to too many goroutines, using NumCPU() * 2 when splitting the MarchingCubesUniform{1} + MTRenderer
-	// gives the same improvement --- chunks are shared better between goroutines and there is less wait for the last one)
 	log.Println("MarchingCubesUniform + NumCPU goroutines:", td1, "- MarchingCubesUniform + MTRenderer:", td2)
 	t3 := time.Now()
 	render.ToSTL(s, 128, "head2.stl", dc.NewDualContouringV1(-1, 0, false))
@@ -425,6 +421,7 @@ func main() {
 	log.Println("DualContouringV1 delta time:", td3, "- DualContouringDefault delta time:", td4)
 	mtRenderer2 := render.NewMtRenderer3(dc.NewDualContouringDefault(), 1)
 	mtRenderer2.AutoSplitsMinimum(runtime.NumCPU())
+	mtRenderer2.MergeVerticesEpsilon = 1e-2
 	t5 := time.Now()
 	render.ToSTL(s, 128, "head2.stl", mtRenderer2)
 	td5 := time.Since(t5)
