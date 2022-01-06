@@ -35,27 +35,27 @@ import (
 // It uses [ebiten](https://github.com/hajimehoshi/ebiten) for rendering, which is cross-platform, so it also could
 // be used to showcase a surface (without automatic updates) using a standalone desktop, web or mobile.
 type Renderer struct {
-	impl                devRendererImpl // the implementation to use SDF2/SDF3/remote process.
-	implDimCache        int             // The number of dimensions of impl (cached to avoid remote calls every frame)
-	implLock            *sync.RWMutex   // the implementation lock
-	implState           *RendererState  // the renderer's state, so impl can be swapped while keeping the state.
-	implStateLock       *sync.RWMutex   // the renderer's state lock
-	cachedRender        *ebiten.Image   // the latest cached render (to avoid rendering every frame, or frame parts even if nothing changed)
-	cachedRenderCpu     *image.RGBA     // the latest cached render (to avoid rendering every frame, or frame parts even if nothing changed)
-	cachedRenderBb2     sdf.Box2        // what part of the SDF2 the latest cached render represents (not implemented, and no equivalent optimization available for SDF3s)
-	cachedPartialRender *ebiten.Image   // the latest partial render (to display render progress visually)
-	cachedRenderLock    *sync.RWMutex
+	impl                devRendererImpl   // the implementation to use SDF2/SDF3/remote process.
+	implDimCache        int               // the number of dimensions of impl (cached to avoid remote calls every frame)
+	implLock            *sync.RWMutex     // the implementation lock
+	implState           *RendererState    // the renderer's state, so impl can be swapped while keeping the state.
+	implStateLock       *sync.RWMutex     // the renderer's state lock
+	cachedRender        *ebiten.Image     // the latest cached render (to avoid rendering every frame, or frame parts even if nothing changed)
+	cachedRenderCpu     *image.RGBA       // the latest cached render (to avoid rendering every frame, or frame parts even if nothing changed)
+	cachedRenderBb2     sdf.Box2          // what part of the SDF2 the latest cached render represents (not implemented, and no equivalent optimization available for SDF3s)
+	cachedPartialRender *ebiten.Image     // the latest partial render (to display render progress visually)
+	cachedRenderLock    *sync.RWMutex     // the lock over tha partial render
 	screenSize          sdf.V2i           // the screen ResInv
 	renderingCtxCancel  func()            // non-nil if we are currently rendering
 	renderingLock       trylock.TryLocker // locked when we are rendering, use renderingCtx to cancel the previous render
-	translateFrom       sdf.V2i
-	translateFromStop   sdf.V2i
-	// Configuration
-	runCmd             func() *exec.Cmd
-	watchFiles         []string
-	avoidStdin         bool
-	backOff            backoff.BackOff
-	partialRenderEvery time.Duration
+	translateFrom       sdf.V2i           // Translate/rotate (for 3D) screen space start
+	translateFromStop   sdf.V2i           // Translate/rotate (for 3D) screen space end (recorded while processing the new frame)
+	// Static configuration
+	runCmd             func() *exec.Cmd // generates a new command to compile and run the code for the new SDF
+	watchFiles         []string         // the files to watch for recompilation of new code
+	backOff            backoff.BackOff  // the backoff to connect to the new process after recompilation
+	partialRenderEvery time.Duration    // how much time to wait between partial render updates to screen
+	zoomFactor         float64          // how much to scale the SDF2/SDF3 on each zoom operation (> 1)
 }
 
 // NewDevRenderer see DevRenderer
@@ -71,9 +71,10 @@ func NewDevRenderer(anySDF interface{}, opts ...Option) *Renderer {
 		runCmd: func() *exec.Cmd {
 			return exec.Command("go", "run", "-v", ".")
 		},
-		watchFiles: []string{"."},
-		avoidStdin: false,
-		backOff:    backoff.NewExponentialBackOff(),
+		watchFiles:         []string{"."},
+		backOff:            backoff.NewExponentialBackOff(),
+		partialRenderEvery: time.Second,
+		zoomFactor:         1.25,
 	}
 	r.backOff.(*backoff.ExponentialBackOff).InitialInterval = 10 * time.Millisecond
 	switch s := anySDF.(type) {

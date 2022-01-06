@@ -43,3 +43,11 @@ func OptMPartialRenderEvery(duration time.Duration) Option {
 		r.partialRenderEvery = duration
 	}
 }
+
+// OptMZoom changes the default scaling factor (> 1)
+// WARNING: Need to run again the main renderer to apply a change of this option.
+func OptMZoom(zoom float64) Option {
+	return func(r *Renderer) {
+		r.zoomFactor = zoom
+	}
+}

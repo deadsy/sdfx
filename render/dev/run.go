@@ -3,8 +3,8 @@ package dev
 import (
 	"fmt"
 	"github.com/cenkalti/backoff/v4"
-	"github.com/fsnotify/fsnotify"
 	"github.com/hajimehoshi/ebiten"
+	"io"
 	"log"
 	"net"
 	"net/http"
@@ -21,12 +21,11 @@ const changeEventThrottle = 100 * time.Millisecond
 
 func (r *Renderer) runRenderer(runCmdF func() *exec.Cmd, watchFiles []string) error {
 	if len(watchFiles) > 0 {
-		watcher, err := fsnotify.NewWatcher()
+		watcher, err := NewFsWatcher()
 		if err != nil {
 			log.Println("Error watching files (won't update on changes):", err)
-			return err
 		} else {
-			defer func(watcher *fsnotify.Watcher) {
+			defer func(watcher io.Closer) {
 				err := watcher.Close()
 				if err != nil {
 					log.Println("[DevRenderer] File watcher close error:", err)

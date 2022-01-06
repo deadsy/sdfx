@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/deadsy/sdfx/sdf"
 	"image"
+	"math"
 	"sync"
 )
 
@@ -43,6 +44,9 @@ func (r *Renderer) newRendererState() *RendererState {
 
 		Bb: toBox2(r.impl.BoundingBox()), // 100% zoom (will fix aspect ratio later)
 
-		CamDist: r.impl.BoundingBox().Size().Length() / 2, // Look from corner at the start
+		CamCenter: r.impl.BoundingBox().Center(),
+		CamDist:   r.impl.BoundingBox().Size().Length() / 2,
+		CamPitch:  -math.Pi / 4, // Look from 45º up
+		CamYaw:    -math.Pi / 4, // Look from 45º right
 	}
 }
