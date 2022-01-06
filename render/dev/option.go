@@ -3,6 +3,7 @@ package dev
 import (
 	"github.com/cenkalti/backoff/v4"
 	"os/exec"
+	"time"
 )
 
 // Option configures a Renderer to statically change its default behaviour.
@@ -31,5 +32,14 @@ func OptMWatchFiles(filePaths []string) Option {
 func OptMBackoff(backOff backoff.BackOff) Option {
 	return func(r *Renderer) {
 		r.backOff = backOff
+	}
+}
+
+// OptMPartialRenderEvery changes the default duration between partial renders (loading a partial render takes a little
+// time and slows down the full render if too frequent).
+// WARNING: Need to run again the main renderer to apply a change of this option.
+func OptMPartialRenderEvery(duration time.Duration) Option {
+	return func(r *Renderer) {
+		r.partialRenderEvery = duration
 	}
 }

@@ -74,11 +74,10 @@ func (r *Renderer) rerender(callbacks ...func(err error)) {
 		r.implStateLock.Unlock()
 		partialRenders := make(chan *image.RGBA)
 		go func(renderSize sdf.V2i) {
-			const partialRenderEvery = 1 * time.Second
 			partialRenderCopy := image.NewRGBA(image.Rect(0, 0, renderSize[0], renderSize[1]))
 			lastPartialRender := time.Now()
 			for partialRender := range partialRenders {
-				if time.Since(lastPartialRender) < partialRenderEvery {
+				if time.Since(lastPartialRender) < r.partialRenderEvery {
 					continue // Skip this partial render (throttled) as it slows down significantly the full render
 				}
 				lastPartialRender = time.Now()

@@ -51,10 +51,11 @@ type Renderer struct {
 	translateFrom       sdf.V2i
 	translateFromStop   sdf.V2i
 	// Configuration
-	runCmd     func() *exec.Cmd
-	watchFiles []string
-	avoidStdin bool
-	backOff    backoff.BackOff
+	runCmd             func() *exec.Cmd
+	watchFiles         []string
+	avoidStdin         bool
+	backOff            backoff.BackOff
+	partialRenderEvery time.Duration
 }
 
 // NewDevRenderer see DevRenderer
