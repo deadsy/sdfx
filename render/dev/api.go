@@ -33,6 +33,7 @@ type RendererState struct {
 	// SDF3
 	CamCenter                 sdf.V3  // Arc-Ball camera center (the point we are looking at)
 	CamYaw, CamPitch, CamDist float64 // Arc-Ball rotation angles (around CamCenter) and distance from CamCenter
+	CamFOV                    float64 // The Field Of View (X axis) for the camera
 }
 
 func (r *Renderer) newRendererState() *RendererState {
@@ -46,7 +47,12 @@ func (r *Renderer) newRendererState() *RendererState {
 
 		CamCenter: r.impl.BoundingBox().Center(),
 		CamDist:   r.impl.BoundingBox().Size().Length() / 2,
-		CamPitch:  -math.Pi / 4, // Look from 45º up
-		CamYaw:    -math.Pi / 4, // Look from 45º right
+		CamPitch:  0,           /*-math.Pi / 4,*/ // Look from 45º up
+		CamYaw:    0,           /*-math.Pi / 4,*/ // Look from 45º right
+		CamFOV:    math.Pi / 2, // 90º FOV-X
 	}
+}
+
+func (s *RendererState) Cam3MatrixNoTranslation() sdf.M44 {
+	return sdf.RotateZ(-s.CamYaw).Mul(sdf.RotateX(-s.CamPitch))
 }

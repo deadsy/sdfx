@@ -5,7 +5,6 @@ import (
 	"github.com/deadsy/sdfx/sdf"
 	"image"
 	"image/color"
-	"log"
 	"math"
 	"math/rand"
 	"runtime"
@@ -21,6 +20,13 @@ func Opt3Cam(camCenter sdf.V3, pitch, yaw, dist float64) Option {
 		r.implState.CamPitch = pitch
 		r.implState.CamYaw = yaw
 		r.implState.CamDist = dist
+	}
+}
+
+// Opt3CamFov sets the default Field Of View for the camera (default 90º, in radians).
+func Opt3CamFov(fov float64) Option {
+	return func(r *Renderer) {
+		r.implState.CamFOV = fov
 	}
 }
 
@@ -89,14 +95,12 @@ func (r *renderer3) Render(ctx context.Context, state *RendererState, stateLock,
 
 	// Compute camera position and main direction
 	aspectRatio := float64(boundsSize[0]) / float64(boundsSize[1])
-	camViewMatrix := sdf.RotateZ(-state.CamYaw).Mul(sdf.RotateX(-state.CamPitch))
-	camViewMatrixInv := camViewMatrix
-	camViewMatrixMove := camViewMatrix.Mul(sdf.Translate3d(sdf.V3{Y: -state.CamDist}))
-	camPos := camViewMatrixMove.MulPosition(state.CamCenter)
+	camViewMatrix := state.Cam3MatrixNoTranslation()
+	camPos := state.CamCenter.Add(camViewMatrix.MulPosition(sdf.V3{Y: -state.CamDist}))
 	camDir := state.CamCenter.Sub(camPos).Normalize()
-	const camFovX = math.Pi / 2 // 90º
+	camFovX := state.CamFOV
 	camFovY := 2 * math.Atan(math.Tan(camFovX/2)*aspectRatio)
-	log.Println("cam:", camPos, "->", camDir)
+	//log.Println("cam:", camPos, "->", camDir)
 
 	// Spawn the work generator
 	go func() { // TODO: Races by reusing variables (like i in for loop)?
@@ -110,7 +114,7 @@ func (r *renderer3) Render(ctx context.Context, state *RendererState, stateLock,
 				bounds:        boundsSize,
 				camPos:        camPos,
 				camDir:        camDir,
-				camViewMatrix: camViewMatrixInv,
+				camViewMatrix: camViewMatrix,
 				camFov:        sdf.V2{X: camFovX, Y: camFovY},
 				rendered:      color.RGBA{},
 			}
@@ -170,15 +174,13 @@ type pixelRender struct {
 func (r *renderer3) samplePixel(job *pixelRender) color.RGBA {
 	// Generate the ray for this pixel using the given camera parameters
 	rayFrom := job.camPos
-	rayDirXYBase := job.pixel.ToV2(). /*.AddScalar(0.5)*/ Div(job.bounds.ToV2()).MulScalar(2).SubScalar(1)
-	//rayDirXYBase.X *= float64(job.bounds[1]) / float64(job.bounds[0]) // Aspect ratio already applied!
-	//rayDirXYBase.Y = 1 - rayDirXYBase.Y // Invert Y
-	rayDirXYBase = rayDirXYBase.Mul(sdf.V2{X: math.Tan(job.camFov.DivScalar(2).X), Y: math.Tan(job.camFov.DivScalar(2).Y)})
-	rayDir := sdf.V3{X: rayDirXYBase.X, Y: 1, Z: rayDirXYBase.Y}
+	// Get pixel inside of ([-1, 1], [-1, 1])
+	rayDirXZBase := job.pixel.ToV2().Div(job.bounds.ToV2()).MulScalar(2).SubScalar(1)
+	// Convert to the projection over a displacement of 1
+	rayDirXZBase = rayDirXZBase.Mul(sdf.V2{X: math.Tan(job.camFov.DivScalar(2).X), Y: math.Tan(job.camFov.DivScalar(2).Y)})
+	rayDir := sdf.V3{X: rayDirXZBase.X, Y: 1, Z: rayDirXZBase.Y}
+	// Apply the camera matrix to the default ray
 	rayDir = job.camViewMatrix.MulPosition(rayDir).Normalize()
-	if job.pixel[0] == job.bounds[0]/2 {
-		//log.Println("rayDir:", rayDir)
-	}
 	// TODO: Orthogonal camera
 
 	// Query the surface with the given ray

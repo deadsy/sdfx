@@ -8,7 +8,6 @@ import (
 	"github.com/hajimehoshi/ebiten/inpututil"
 	"github.com/hajimehoshi/ebiten/text"
 	"image/color"
-	"log"
 	"math"
 	"strconv"
 	"time"
@@ -118,7 +117,7 @@ func (r *Renderer) onUpdateInputs() {
 			r.implStateLock.Unlock()
 			r.rerender()
 		}
-		// Rotation
+		// Rotation + Translation
 		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonMiddle) {
 			// Save the cursor's position for previsualization and applying the final translation
 			cx, cy := ebiten.CursorPosition()
@@ -134,15 +133,32 @@ func (r *Renderer) onUpdateInputs() {
 			r.implStateLock.Lock()
 			changed := false
 			if r.translateFrom[0] < math.MaxInt { // Only if already moving...
-				r.implState.CamYaw += float64(cx-r.translateFrom[0]) / 100 // TODO: Proper delta computation
-				if r.implState.CamYaw < -math.Pi {
-					r.implState.CamYaw += 2 * math.Pi // Limits (wrap around)
-				} else if r.implState.CamYaw > math.Pi {
-					r.implState.CamYaw -= 2 * math.Pi // Limits (wrap around)
+				delta := sdf.V2i{cx, cy}.ToV2().Sub(r.translateFrom.ToV2())
+				if ebiten.IsKeyPressed(ebiten.KeyShift) { // Translation
+					// Move on the plane perpendicular to the camera's direction
+					camViewMatrix := r.implState.Cam3MatrixNoTranslation()
+					camPos := r.implState.CamCenter.Add(camViewMatrix.MulPosition(sdf.V3{Y: -r.implState.CamDist}))
+					camDir := r.implState.CamCenter.Sub(camPos).Normalize()
+					camRevDir := camDir.Neg()
+					planeZero := r.implState.CamCenter
+					planeRight := camRevDir.Cross(sdf.V3{Z: 1}).Normalize()
+					planeUp := camRevDir.Cross(planeRight).Normalize()
+					newPos := planeZero. // TODO: Proper projection on plane delta computation
+								Add(planeRight.MulScalar(delta.X * r.implState.CamDist / 200)).
+								Add(planeUp.MulScalar(delta.Y * r.implState.CamDist / 200))
+					r.implState.CamCenter = newPos
+					//log.Println("New camera pivot (center", r.implState.CamCenter, ")")
+				} else { // Rotation
+					r.implState.CamYaw += delta.X / 100 // TODO: Proper delta computation
+					if r.implState.CamYaw < -math.Pi {
+						r.implState.CamYaw += 2 * math.Pi // Limits (wrap around)
+					} else if r.implState.CamYaw > math.Pi {
+						r.implState.CamYaw -= 2 * math.Pi // Limits (wrap around)
+					}
+					r.implState.CamPitch += -delta.Y / 100
+					r.implState.CamPitch = math.Max(-(math.Pi/2 - 1e-5), math.Min(math.Pi/2-1e-5, r.implState.CamPitch))
+					//log.Println("New camera rotation (pitch", r.implState.CamPitch, "yaw", r.implState.CamYaw, ")")
 				}
-				r.implState.CamPitch += -float64(cy-r.translateFrom[1]) / 100
-				r.implState.CamPitch = math.Max(-math.Pi/2, math.Min(math.Pi/2, r.implState.CamPitch))
-				log.Println("New camera rotation (pitch", r.implState.CamPitch, "yaw", r.implState.CamYaw, ")")
 				// Keep displacement until rerender is complete (avoid jump) using callback below + extra variable set here
 				r.translateFromStop = sdf.V2i{cx, cy}
 				changed = true
@@ -157,7 +173,6 @@ func (r *Renderer) onUpdateInputs() {
 				})
 			}
 		}
-		// TODO
 	default:
 		panic("RendererState.onUpdateInputs not implemented for " + strconv.Itoa(r.implDimCache) + " dimensions")
 	}
