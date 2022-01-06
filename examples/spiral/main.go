@@ -28,12 +28,12 @@ func spiralSdf() (s interface{}, err error) {
 
 	// TODO: Leave commented
 
-	//c, err := sdf.Circle2D(22.)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//s = sdf.Union2D(s.(sdf.SDF2), c)
-	//
+	c, err := sdf.Circle2D(22.)
+	if err != nil {
+		return nil, err
+	}
+	s = sdf.Union2D(s.(sdf.SDF2), c)
+
 	//c2, err := sdf.Circle2D(20.)
 	//if err != nil {
 	//	return nil, err
@@ -52,7 +52,9 @@ func spiralSdf() (s interface{}, err error) {
 	//}
 	//s = sdf.Difference2D(s.(sdf.SDF2), t)
 
-	s = sdf.Extrude3D(s.(sdf.SDF2), 2)
+	//s = sdf.Extrude3D(s.(sdf.SDF2), 4)
+	s, _ = sdf.ExtrudeRounded3D(s.(sdf.SDF2), 4, 0.25)
+	//s, _ = sdf.RevolveTheta3D(s.(sdf.SDF2), math.Pi/2)
 
 	return s, err
 }

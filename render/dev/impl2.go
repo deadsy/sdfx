@@ -72,6 +72,12 @@ func (r *renderer2) BoundingBox() sdf.Box3 {
 	return sdf.Box3{Min: bb.Min.ToV3(0), Max: bb.Max.ToV3(0)}
 }
 
+func (r *renderer2) ColorModes() int {
+	// 0: Gradient (useful for debugging sides)
+	// 1: Black/white (clearer surface boundary)
+	return 2
+}
+
 func (r *renderer2) Render(ctx context.Context, state *RendererState, stateLock,
 	cachedRenderLock *sync.RWMutex, partialImages chan<- *image.RGBA, fullRender *image.RGBA) error {
 	if r.evalMin == 0 && r.evalMax == 0 { // First render (ignoring external cache)
@@ -232,7 +238,7 @@ func (r *renderer2) renderBlock(fullImg *image.RGBA, blockIndex sdf.V2i, state *
 		panic(err) // Shouldn't happen (implementation error)
 	}
 	evalMin, evalMax := r.evalMin, r.evalMax
-	if state.ColorMode { // Force black and white to see the surface better
+	if state.ColorMode == 1 { // Force black and white to see the surface better
 		evalMin, evalMax = -1e-12, 1e-12
 	}
 	png.RenderSDF2MinMax(r.s, evalMin, evalMax)

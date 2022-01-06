@@ -15,6 +15,8 @@ type devRendererImpl interface {
 	Dimensions() int
 	// BoundingBox returns the full bounding box of the surface (Z is ignored for SDF2)
 	BoundingBox() sdf.Box3
+	// ColorModes returns the number of color modes supported
+	ColorModes() int
 	// Render performs a full render, given the screen size (it may be cancelled using the given context).
 	// Returns partially rendered images as progress is made through partialImages (if non-nil, channel closed).
 	Render(ctx context.Context, state *RendererState, stateLock, cachedRenderLock *sync.RWMutex,
@@ -27,32 +29,35 @@ type RendererState struct {
 	// SHARED
 	ResInv    int  // How detailed is the image: number screen pixels for each pixel rendered (SDF2: use a power of two)
 	DrawBbs   bool // Whether to show all bounding boxes (useful for debugging subtraction of SDFs) TODO
-	ColorMode bool // SDF2: force black and white to see the surface better; SDF3: Simple light simulation / Show normals
+	ColorMode int  // The color mode (each render may support multiple modes)
 	// SDF2
 	Bb sdf.Box2 // Controls the scale and displacement
 	// SDF3
 	CamCenter                 sdf.V3  // Arc-Ball camera center (the point we are looking at)
 	CamYaw, CamPitch, CamDist float64 // Arc-Ball rotation angles (around CamCenter) and distance from CamCenter
-	CamFOV                    float64 // The Field Of View (X axis) for the camera
 }
 
 func (r *Renderer) newRendererState() *RendererState {
 	r.implLock.RLock()
 	defer r.implLock.RUnlock()
-	return &RendererState{
+	s := &RendererState{
 		// TODO: Guess a ResInv based on rendering performance
 		ResInv: 8,
 
 		Bb: toBox2(r.impl.BoundingBox()), // 100% zoom (will fix aspect ratio later)
 
-		CamCenter: r.impl.BoundingBox().Center(),
-		CamDist:   r.impl.BoundingBox().Size().Length() / 2,
-		CamPitch:  0,           /*-math.Pi / 4,*/ // Look from 45º up
-		CamYaw:    0,           /*-math.Pi / 4,*/ // Look from 45º right
-		CamFOV:    math.Pi / 2, // 90º FOV-X
 	}
+	s.ResetCam3(r)
+	return s
 }
 
 func (s *RendererState) Cam3MatrixNoTranslation() sdf.M44 {
 	return sdf.RotateZ(-s.CamYaw).Mul(sdf.RotateX(-s.CamPitch))
+}
+
+func (s *RendererState) ResetCam3(r *Renderer) {
+	s.CamCenter = r.impl.BoundingBox().Center()
+	s.CamDist = r.impl.BoundingBox().Size().Length() / 2
+	s.CamPitch = -math.Pi / 4 // Look from 45º up
+	s.CamYaw = -math.Pi / 4   // Look from 45º right
 }

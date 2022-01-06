@@ -41,6 +41,15 @@ func (d *rendererClient) BoundingBox() sdf.Box3 {
 	return out
 }
 
+func (d *rendererClient) ColorModes() int {
+	var out int
+	err := d.cl.Call("RendererService.ColorModes", &out, &out)
+	if err != nil {
+		log.Println("Error on remote call:", err)
+	}
+	return out
+}
+
 func (d *rendererClient) Render(ctx context.Context, state *RendererState, stateLock, cachedRenderLock *sync.RWMutex, partialRender chan<- *image.RGBA, fullRender *image.RGBA) error {
 	fullRenderSize := fullRender.Bounds().Size()
 	stateLock.RLock() // Clone the state to avoid locking while the rendering is happening
@@ -100,6 +109,11 @@ func (d *RendererService) Dimensions(_ int, out *int) error {
 
 func (d *RendererService) BoundingBox(_ sdf.Box3, out *sdf.Box3) error {
 	*out = d.impl.BoundingBox()
+	return nil
+}
+
+func (d *RendererService) ColorModes(_ int, out *int) error {
+	*out = d.impl.ColorModes()
 	return nil
 }
 

@@ -42,6 +42,13 @@ func (r *Renderer) onUpdateInputs() {
 		r.implStateLock.Unlock()
 		r.rerender()
 	}
+	// Color
+	if inpututil.IsKeyJustPressed(ebiten.KeyC) {
+		r.implStateLock.Lock()
+		r.implState.ColorMode = (r.implState.ColorMode + 1) % r.impl.ColorModes()
+		r.implStateLock.Unlock()
+		r.rerender()
+	}
 	// SDF2/SDF3-SPECIFIC CONTROLS
 	r.implStateLock.RLock()
 	implDimCache := r.implDimCache
@@ -96,13 +103,6 @@ func (r *Renderer) onUpdateInputs() {
 		if inpututil.IsKeyJustPressed(ebiten.KeyR) {
 			r.implStateLock.Lock()
 			r.implState.Bb = toBox2(r.impl.BoundingBox()) // 100% zoom (impl2 will fix aspect ratio)
-			r.implStateLock.Unlock()
-			r.rerender()
-		}
-		// Color
-		if inpututil.IsKeyJustPressed(ebiten.KeyC) {
-			r.implStateLock.Lock()
-			r.implState.ColorMode = !r.implState.ColorMode
 			r.implStateLock.Unlock()
 			r.rerender()
 		}
@@ -173,6 +173,13 @@ func (r *Renderer) onUpdateInputs() {
 				})
 			}
 		}
+		// Reset camera transform
+		if inpututil.IsKeyJustPressed(ebiten.KeyR) {
+			r.implStateLock.Lock()
+			r.implState.ResetCam3(r)
+			r.implStateLock.Unlock()
+			r.rerender()
+		}
 	default:
 		panic("RendererState.onUpdateInputs not implemented for " + strconv.Itoa(r.implDimCache) + " dimensions")
 	}
@@ -192,7 +199,7 @@ func (r *Renderer) drawUI(screen *ebiten.Image) {
 	// Draw current state and controls
 	r.implStateLock.RLock()
 	defer r.implStateLock.RUnlock()
-	msgFmt := "TPS: %0.2f/%d\nResolution: %.2f [+/-]\nColor: %t [C]\nShow boxes: %t [B]\nReset camera [R]"
+	msgFmt := "TPS: %0.2f/%d\nResolution: %.2f [+/-]\nColor: %d [C]\nShow boxes: %t [B]\nReset camera [R]"
 	msgValues := []interface{}{ebiten.CurrentTPS(), ebiten.MaxTPS(), 1 / float64(r.implState.ResInv), r.implState.ColorMode, r.implState.DrawBbs}
 	switch r.implDimCache {
 	case 2:
