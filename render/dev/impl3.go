@@ -58,6 +58,15 @@ func Opt3Colors(surface, background, error color.RGBA) Option {
 	}
 }
 
+// Opt3NormalEps sets the distance between samples used to compute the normals.
+func Opt3NormalEps(normalEps float64) Option {
+	return func(r *Renderer) {
+		if r3, ok := r.impl.(*renderer3); ok {
+			r3.normalEps = normalEps / 2
+		}
+	}
+}
+
 // Opt3LightDir sets the light direction for basic lighting simulation (set when Color: true).
 // Actually, two lights are simulated (the given one and the opposite one), as part of the surface would be hard to see otherwise
 func Opt3LightDir(lightDir sdf.V3) Option {
@@ -75,6 +84,7 @@ type renderer3 struct {
 	pixelsRand                                []int    // Cached set of pixels in random order to avoid shuffling (reset on recompilation and resolution changes)
 	camFOV                                    float64  // The Field Of View (X axis) for the camera
 	surfaceColor, backgroundColor, errorColor color.RGBA
+	normalEps                                 float64
 	lightDir                                  sdf.V3 // The light's direction for ColorMode: true (simple simulation based on normals)
 	// Raycast configuration
 	rayScaleAndSigmoid, rayStepScale, rayEpsilon float64
@@ -88,6 +98,7 @@ func newDevRenderer3(s sdf.SDF3) devRendererImpl {
 		surfaceColor:       color.RGBA{R: 255 - 20, G: 255 - 40, B: 255 - 80, A: 255},
 		backgroundColor:    color.RGBA{B: 50, A: 255},
 		errorColor:         color.RGBA{R: 255, B: 255, A: 255},
+		normalEps:          0.1,
 		lightDir:           sdf.V3{X: 1, Y: 1, Z: -1}.Normalize(), // Same as default camera
 		rayScaleAndSigmoid: 0,
 		rayStepScale:       1,
@@ -217,7 +228,9 @@ pixelLoop:
 	if err == nil {
 		cachedRenderLock.Unlock()
 	}
-	close(partialRender)
+	if partialRender != nil {
+		close(partialRender)
+	}
 	// TODO: Draw bounding boxes over the image
 	return err
 }
@@ -256,7 +269,7 @@ func (r *renderer3) samplePixel(job *pixelRender) color.RGBA {
 
 	// Convert the possible hit to a color
 	if t >= 0 { // Hit the surface
-		normal := sdf.Normal3(r.s, hit, 1e-3)
+		normal := sdf.Normal3(r.s, hit, r.normalEps)
 		if job.color == 0 { // Basic lighting + constant color
 			lightIntensity := math.Abs(normal.Dot(r.lightDir)) // Actually also simulating the opposite light
 			// If this was a performant ray-tracer, we could bounce the light
@@ -267,7 +280,12 @@ func (r *renderer3) samplePixel(job *pixelRender) color.RGBA {
 				A: r.surfaceColor.A,
 			}
 		} else { // Color == normal
-			return color.RGBA{R: uint8(normal.X * 255), G: uint8(normal.Y * 255), B: uint8(normal.Z * 255), A: 255}
+			return color.RGBA{
+				R: uint8(math.Abs(normal.X) * 255),
+				G: uint8(math.Abs(normal.Y) * 255),
+				B: uint8(math.Abs(normal.Z) * 255),
+				A: 255,
+			}
 		}
 	} else {
 		if steps == r.rayMaxSteps {

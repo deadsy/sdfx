@@ -28,7 +28,7 @@ type devRendererImpl interface {
 type RendererState struct {
 	// SHARED
 	ResInv    int  // How detailed is the image: number screen pixels for each pixel rendered (SDF2: use a power of two)
-	DrawBbs   bool // Whether to show all bounding boxes (useful for debugging subtraction of SDFs) TODO
+	DrawBbs   bool // Whether to show all bounding boxes (useful for debugging subtraction/intersection of SDFs) TODO
 	ColorMode int  // The color mode (each render may support multiple modes)
 	// SDF2
 	Bb sdf.Box2 // Controls the scale and displacement

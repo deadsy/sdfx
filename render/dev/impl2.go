@@ -15,6 +15,14 @@ import (
 
 // CONFIGURATION
 
+// Opt2Cam sets the default camera for SDF2 (may grow to follow the aspect ratio of the screen).
+// WARNING: Need to run again the main renderer to apply a change of this option.
+func Opt2Cam(bb sdf.Box2) Option {
+	return func(r *Renderer) {
+		r.implState.Bb = bb
+	}
+}
+
 // Opt2EvalRange skips the initial scan of the SDF2 to find the minimum and maximum value, and can also be used to
 // make the visualization clearer.
 func Opt2EvalRange(min, max float64) Option {

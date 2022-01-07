@@ -51,3 +51,19 @@ func OptMZoom(zoom float64) Option {
 		r.zoomFactor = zoom
 	}
 }
+
+// OptMResInv changes the default image pixels per rendererd pixel
+// WARNING: Need to run again the main renderer to apply a change of this option.
+func OptMResInv(resInv int) Option {
+	return func(r *Renderer) {
+		r.implState.ResInv = resInv
+	}
+}
+
+// OptMColorMode changes the default color mode of the renderer
+// WARNING: Need to run again the main renderer to apply a change of this option.
+func OptMColorMode(colorMode int) Option {
+	return func(r *Renderer) {
+		r.implState.ColorMode = colorMode % r.impl.ColorModes()
+	}
+}
