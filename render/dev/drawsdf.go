@@ -117,7 +117,7 @@ func (r *Renderer) rerender(callbacks ...func(err error)) {
 			state:            r.implState,
 			stateLock:        r.implStateLock,
 			cachedRenderLock: r.cachedRenderLock,
-			partialRender:    partialRenders,
+			partialRenders:   partialRenders,
 			fullRender:       r.cachedRenderCpu,
 		})
 		if err != nil {

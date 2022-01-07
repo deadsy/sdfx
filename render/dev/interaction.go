@@ -89,8 +89,8 @@ func (r *Renderer) onUpdateInputs() {
 			if r.translateFrom[0] < math.MaxInt { // Only if already moving...
 				clone := r.implState.Bb
 				r.implState.Bb = r.implState.Bb.Translate(
-					r.translateFrom.ToV2().Sub(sdf.V2i{cx, cy}.ToV2()).
-						Div(r.screenSize.ToV2()).Mul(r.implState.Bb.Size()))
+					r.translateFrom.ToV2().Sub(sdf.V2i{cx, cy}.ToV2()).Mul(sdf.V2{X: 1, Y: -1}). // Invert Y
+															Div(r.screenSize.ToV2()).Mul(r.implState.Bb.Size()))
 				// Keep displacement until rerender is complete (avoid jump) using callback below + extra variable set here
 				r.translateFromStop = sdf.V2i{cx, cy}
 				changed = clone != r.implState.Bb

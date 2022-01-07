@@ -97,7 +97,7 @@ func newDevRenderer3(s sdf.SDF3) devRendererImpl {
 		surfaceColor:       color.RGBA{R: 255 - 20, G: 255 - 40, B: 255 - 80, A: 255},
 		backgroundColor:    color.RGBA{B: 50, A: 255},
 		errorColor:         color.RGBA{R: 255, B: 255, A: 255},
-		normalEps:          0.1,
+		normalEps:          1e-4,
 		lightDir:           sdf.V3{X: -1, Y: 1, Z: -1}.Normalize(), // Same as default camera TODO: Follow camera mode?
 		rayScaleAndSigmoid: 0,
 		rayStepScale:       1,
@@ -122,7 +122,9 @@ func (r *renderer3) ColorModes() int {
 }
 
 func (r *renderer3) Render(args *renderArgs) error {
-	// Compute camera position and main direction (once per render)
+	// Compute camera matrix and more (once per render)
+	args.stateLock.RLock()
+	colorModeCopy := args.state.ColorMode
 	bounds := args.fullRender.Bounds()
 	boundsSize := sdf.V2i{bounds.Size().X, bounds.Size().Y}
 	aspectRatio := float64(boundsSize[0]) / float64(boundsSize[1])
@@ -148,6 +150,7 @@ func (r *renderer3) Render(args *renderArgs) error {
 		maxRay += bbMaxLength
 	}
 	maxRay *= 1.1 // Rays thrown from the camera at different angles may need a little more maxRay
+	args.stateLock.RUnlock()
 
 	// Perform the actual render
 	return implCommonRender(func(pixel sdf.V2i, pixel01 sdf.V2) interface{} {
@@ -159,7 +162,7 @@ func (r *renderer3) Render(args *renderArgs) error {
 			camViewMatrix: camViewMatrix,
 			camFov:        sdf.V2{X: camFovX, Y: camFovY},
 			maxRay:        maxRay,
-			color:         args.state.ColorMode,
+			color:         colorModeCopy,
 			rendered:      color.RGBA{},
 		}
 	}, func(pixel sdf.V2i, pixel01 sdf.V2, job interface{}) *jobResult {

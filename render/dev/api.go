@@ -18,7 +18,7 @@ type devRendererImpl interface {
 	// ColorModes returns the number of color modes supported
 	ColorModes() int
 	// Render performs a full render, given the screen size (it may be cancelled using the given context).
-	// Returns partially rendered images as progress is made through partialImages (if non-nil, channel closed).
+	// Returns partially rendered images as progress is made through partialRenders (if non-nil, channel closed).
 	Render(args *renderArgs) error
 	// TODO: Map clicks to source code? (using reflection on the SDF and profiling/code generation?)
 }
@@ -27,7 +27,7 @@ type renderArgs struct {
 	ctx                         context.Context
 	state                       *RendererState
 	stateLock, cachedRenderLock *sync.RWMutex
-	partialRender               chan<- *image.RGBA
+	partialRenders              chan<- *image.RGBA
 	fullRender                  *image.RGBA
 }
 
@@ -35,7 +35,7 @@ type renderArgs struct {
 type RendererState struct {
 	// SHARED
 	ResInv    int  // How detailed is the image: number screen pixels for each pixel rendered (SDF2: use a power of two)
-	DrawBbs   bool // Whether to show all bounding boxes (useful for debugging subtraction/intersection of SDFs) TODO
+	DrawBbs   bool // Whether to show all bounding boxes (useful for debugging subtraction/intersection of SDFs)
 	ColorMode int  // The color mode (each render may support multiple modes)
 	// SDF2
 	Bb sdf.Box2 // Controls the scale and displacement
@@ -48,11 +48,8 @@ func (r *Renderer) newRendererState() *RendererState {
 	r.implLock.RLock()
 	defer r.implLock.RUnlock()
 	s := &RendererState{
-		// TODO: Guess a ResInv based on rendering performance
-		ResInv: 8,
-
-		Bb: toBox2(r.impl.BoundingBox()), // 100% zoom (will fix aspect ratio later)
-
+		ResInv: 4,
+		Bb:     toBox2(r.impl.BoundingBox()), // 100% zoom (will fix aspect ratio later)
 	}
 	s.ResetCam3(r)
 	return s

@@ -101,9 +101,9 @@ pixelLoop:
 				break pixelLoop
 			default:
 			}
-			if args.partialRender != nil { // Send the partial render update
-				// TODO: Use a shader to fill transparent pixel with nearest neighbors to make it look better while rendering (losing previous background render)
-				args.partialRender <- args.fullRender
+			if args.partialRenders != nil { // Send the partial render update
+				// Use a shader to fill transparent pixel with nearest neighbors to make it look better while rendering (losing previous background render)?
+				args.partialRenders <- args.fullRender
 			}
 			args.cachedRenderLock.Lock()
 		}
@@ -111,8 +111,8 @@ pixelLoop:
 	if err == nil {
 		args.cachedRenderLock.Unlock()
 	}
-	if args.partialRender != nil {
-		close(args.partialRender)
+	if args.partialRenders != nil {
+		close(args.partialRenders)
 	}
 	return err
 }

@@ -105,7 +105,10 @@ func (r *renderer2) Render(args *renderArgs) error {
 	// Perform the actual render
 	return implCommonRender(func(pixel sdf.V2i, pixel01 sdf.V2) interface{} { return nil },
 		func(pixel sdf.V2i, pixel01 sdf.V2, job interface{}) *jobResult {
+			pixel01.Y = 1 - pixel01.Y // Inverted Y
+			args.stateLock.RLock()
 			pos := args.state.Bb.Min.Add(pixel01.Mul(args.state.Bb.Size()))
+			args.stateLock.RUnlock()
 			grayVal := render.ImageColor2(r.s.Evaluate(pos), evalMin, evalMax)
 			return &jobResult{
 				pixel: pixel,
