@@ -51,7 +51,7 @@ func spiralSdf() (s interface{}, err error) {
 	//s = sdf.Difference2D(s.(sdf.SDF2), t)
 
 	//s = sdf.Extrude3D(s.(sdf.SDF2), 4)
-	s, _ = sdf.ExtrudeRounded3D(s.(sdf.SDF2), 4, 0.25)
+	//s, _ = sdf.ExtrudeRounded3D(s.(sdf.SDF2), 4, 0.25)
 	//s, _ = sdf.RevolveTheta3D(s.(sdf.SDF2), math.Pi/2)
 
 	return s, err
