@@ -39,7 +39,7 @@ func spiralSdf() (s interface{}, err error) {
 	//c2 = sdf.Transform2D(c2, sdf.Translate2d(sdf.V2{X: 0}))
 	//s = sdf.Difference2D(s.(sdf.SDF2), c2)
 
-	//WARNING: Text is slow to render (specially with -race flag)
+	//WARNING: Text is slow to render (especially with -race flag)
 	//f, err := sdf.LoadFont("../text/cmr10.ttf")
 	//if err != nil {
 	//	log.Fatalf("can't read font file %s\n", err)
@@ -51,7 +51,7 @@ func spiralSdf() (s interface{}, err error) {
 	//s = sdf.Difference2D(s.(sdf.SDF2), t)
 
 	//s = sdf.Extrude3D(s.(sdf.SDF2), 4)
-	//s, _ = sdf.ExtrudeRounded3D(s.(sdf.SDF2), 4, 0.25)
+	s, _ = sdf.ExtrudeRounded3D(s.(sdf.SDF2), 4, 0.25)
 	//s, _ = sdf.RevolveTheta3D(s.(sdf.SDF2), math.Pi/2)
 
 	return s, err
@@ -70,6 +70,7 @@ func main() {
 		ebiten.SetWindowTitle("SDFX spiral dev renderer demo")
 		ebiten.SetRunnableOnUnfocused(true)
 		ebiten.SetWindowResizable(true)
+		ebiten.SetWindowPosition(3000, 0)
 		//ebiten.SetWindowSize(1920, 1040)
 
 		//// Profiling boilerplate
