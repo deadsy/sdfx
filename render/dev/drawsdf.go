@@ -109,7 +109,14 @@ func (r *Renderer) rerender(callbacks ...func(err error)) {
 		}
 		r.implStateLock.RUnlock()
 		r.implLock.RLock()
-		err = r.impl.Render(renderCtx, r.implState, r.implStateLock, r.cachedRenderLock, partialRenders, r.cachedRenderCpu)
+		err = r.impl.Render(&renderArgs{
+			ctx:              renderCtx,
+			state:            r.implState,
+			stateLock:        r.implStateLock,
+			cachedRenderLock: r.cachedRenderLock,
+			partialRender:    partialRenders,
+			fullRender:       r.cachedRenderCpu,
+		})
 		if err != nil {
 			if err != context.Canceled {
 				log.Println("[DevRenderer] Error rendering:", err)
@@ -135,18 +142,9 @@ func (r *Renderer) rerender(callbacks ...func(err error)) {
 		r.implStateLock.Unlock()
 		r.implLock.RUnlock()
 		r.cachedRenderLock.Lock()
-		// Reuse the previous render for the parts that did not change
-		if !sameSize {
-			// Need to resize the rendering result: overwrite
-			r.cachedRender = renderGpuImg
-		} else {
-			// No need to resize render result: draw over it in case we implement skipping unneeded parts of the image in the future
-			err = r.cachedRender.DrawImage(renderGpuImg, &ebiten.DrawImageOptions{})
-			if err != nil {
-				log.Println("Error sending image to GPU:", err)
-				return
-			}
-		}
+		// Need to resize the rendering result: overwrite
+		r.cachedRender = renderGpuImg
+		// TODO: reuse the previous render for the parts that did not change (SDF2 only)
 		r.cachedRenderLock.Unlock()
 	}(callbacks...)
 }

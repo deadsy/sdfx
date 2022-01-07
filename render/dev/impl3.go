@@ -1,17 +1,14 @@
 package dev
 
 import (
-	"context"
 	"github.com/deadsy/sdfx/sdf"
-	"image"
 	"image/color"
 	"math"
-	"math/rand"
-	"runtime"
-	"sync"
 )
 
+//-----------------------------------------------------------------------------
 // CONFIGURATION
+//-----------------------------------------------------------------------------
 
 // Opt3Cam sets the default transform for the camera (pivot center, angles and distance).
 // WARNING: Need to run again the main renderer to apply a change of this option.
@@ -77,7 +74,9 @@ func Opt3LightDir(lightDir sdf.V3) Option {
 	}
 }
 
-// RENDERER: Z is UP
+//-----------------------------------------------------------------------------
+// RENDERER
+//-----------------------------------------------------------------------------
 
 type renderer3 struct {
 	s                                         sdf.SDF3 // The SDF to render
@@ -99,7 +98,7 @@ func newDevRenderer3(s sdf.SDF3) devRendererImpl {
 		backgroundColor:    color.RGBA{B: 50, A: 255},
 		errorColor:         color.RGBA{R: 255, B: 255, A: 255},
 		normalEps:          0.1,
-		lightDir:           sdf.V3{X: 1, Y: 1, Z: -1}.Normalize(), // Same as default camera
+		lightDir:           sdf.V3{X: -1, Y: 1, Z: -1}.Normalize(), // Same as default camera TODO: Follow camera mode?
 		rayScaleAndSigmoid: 0,
 		rayStepScale:       1,
 		rayEpsilon:         0.1,
@@ -117,122 +116,60 @@ func (r *renderer3) BoundingBox() sdf.Box3 {
 }
 
 func (r *renderer3) ColorModes() int {
-	// 0: Constant color with basic shading (2 lights and no shadows)
+	// 0: Constant color with basic shading (2 lights and no projected shadows)
 	// 1: Normal XYZ as RGB
 	return 2
 }
 
-func (r *renderer3) Render(ctx context.Context, state *RendererState, stateLock, cachedRenderLock *sync.RWMutex, partialRender chan<- *image.RGBA, fullRender *image.RGBA) error {
-	// Set all pixels to transparent initially (for partial renderings to work)
-	for i := 3; i < len(fullRender.Pix); i += 4 {
-		fullRender.Pix[i] = 255
-	}
-
-	// TODO: Fix blocked Render after reload
-
-	// Update random pixels if needed
-	bounds := fullRender.Bounds()
+func (r *renderer3) Render(args *renderArgs) error {
+	// Compute camera position and main direction (once per render)
+	bounds := args.fullRender.Bounds()
 	boundsSize := sdf.V2i{bounds.Size().X, bounds.Size().Y}
-	pixelCount := boundsSize[0] * boundsSize[1]
-	if pixelCount != len(r.pixelsRand) {
-		r.pixelsRand = make([]int, pixelCount)
-		for i := 0; i < pixelCount; i++ {
-			r.pixelsRand[i] = i
-		}
-		rand.Shuffle(len(r.pixelsRand), func(i, j int) {
-			r.pixelsRand[i], r.pixelsRand[j] = r.pixelsRand[j], r.pixelsRand[i]
-		})
-	}
-
-	// Spawn the workers that will render 1 pixel at a time
-	jobs := make(chan *pixelRender)
-	jobResults := make(chan *pixelRender)
-	workerWg := &sync.WaitGroup{}
-	for i := 0; i < runtime.NumCPU(); i++ {
-		workerWg.Add(1)
-		go func() {
-			for job := range jobs {
-				job.rendered = r.samplePixel(job)
-				jobResults <- job
-			}
-			workerWg.Done()
-		}()
-	}
-	go func() {
-		workerWg.Wait()
-		close(jobResults)
-	}()
-
-	// Compute camera position and main direction
 	aspectRatio := float64(boundsSize[0]) / float64(boundsSize[1])
-	camViewMatrix := state.Cam3MatrixNoTranslation()
-	camPos := state.CamCenter.Add(camViewMatrix.MulPosition(sdf.V3{Y: -state.CamDist}))
-	camDir := state.CamCenter.Sub(camPos).Normalize()
+	camViewMatrix := args.state.Cam3MatrixNoTranslation()
+	camPos := args.state.CamCenter.Add(camViewMatrix.MulPosition(sdf.V3{Y: -args.state.CamDist}))
+	camDir := args.state.CamCenter.Sub(camPos).Normalize()
 	camFovX := r.camFOV
 	camFovY := 2 * math.Atan(math.Tan(camFovX/2)*aspectRatio)
-	//log.Println("cam:", camPos, "->", camDir)
+	// Approximate max ray
+	sBb := r.BoundingBox()
+	sBbSize := sBb.Size()
+	bbSdf, err := sdf.Box3D(sBbSize, 0)
+	if err != nil {
+		panic(err)
+	}
+	maxRaySdf := sdf.Transform3D(bbSdf, sdf.Translate3d(sBb.Center()))
+	bbMaxLength := sBbSize.Length()
+	_, maxRay, _ := sdf.Raycast3(maxRaySdf, camPos, camDir, 0, 1, 1e-2, bbMaxLength, 100)
+	if maxRay < 0 { // If we do not hit the box (in a straight line, set a default -- box size, as following condition will be true)
+		maxRay = 0
+	}
+	if !sBb.Contains(camPos) { // If we hit from the outside of the box, add the whole size of the box
+		maxRay += bbMaxLength
+	}
+	maxRay *= 1.1 // Rays thrown from the camera at different angles may need a little more maxRay
 
-	// Spawn the work generator
-	go func() { // TODO: Races by reusing variables (like i in for loop)?
-		// Sample each pixel on the image separately (and in random order to see the image faster)
-		for _, randPixelIndex := range r.pixelsRand {
-			// Sample a random pixel in the image
-			sampledPixel := sdf.V2i{randPixelIndex % boundsSize[0], randPixelIndex / boundsSize[0]}
-			// Queue the job for parallel processing
-			jobs <- &pixelRender{
-				pixel:         sampledPixel,
-				bounds:        boundsSize,
-				camPos:        camPos,
-				camDir:        camDir,
-				camViewMatrix: camViewMatrix,
-				camFov:        sdf.V2{X: camFovX, Y: camFovY},
-				color:         state.ColorMode,
-				rendered:      color.RGBA{},
-			}
+	// Perform the actual render
+	return implCommonRender(func(pixel sdf.V2i, pixel01 sdf.V2) interface{} {
+		return &pixelRender{
+			pixel:         pixel,
+			bounds:        boundsSize,
+			camPos:        camPos,
+			camDir:        camDir,
+			camViewMatrix: camViewMatrix,
+			camFov:        sdf.V2{X: camFovX, Y: camFovY},
+			maxRay:        maxRay,
+			color:         args.state.ColorMode,
+			rendered:      color.RGBA{},
 		}
-		close(jobs) // Close the jobs channel to mark the end
-	}()
+	}, func(pixel sdf.V2i, pixel01 sdf.V2, job interface{}) *jobResult {
+		return &jobResult{
+			pixel: pixel,
+			color: r.samplePixel(pixel01, job.(*pixelRender)),
+		}
+	}, args, &r.pixelsRand)
 
-	// Listen for all job results and update the image, freeing locks and sending a partial image update every batch of pixels
-	const pixelBatch = 100
-	pixelNum := 0
-	cachedRenderLock.Lock()
-	var err error
-pixelLoop:
-	for renderedPixel := range jobResults {
-		fullRender.SetRGBA(renderedPixel.pixel[0], renderedPixel.pixel[1], renderedPixel.rendered)
-		pixelNum++
-		if pixelNum%pixelBatch == 0 {
-			cachedRenderLock.Unlock()
-			runtime.Gosched() // Breathe (let renderer do something, best-effort)
-			// Check if this render is cancelled (could also check every pixel...)
-			select {
-			case <-ctx.Done():
-				err = ctx.Err()
-				break pixelLoop
-			default:
-			}
-			// Send the partial render update
-			//log.Println("Sending partial render with", pixelNum, "pixels")
-			//tempFile, _ := ioutil.TempFile("", "fullRender-"+strconv.Itoa(pixelNum)+"-*.png")
-			//_ = png.Encode(tempFile, fullRender)
-			//log.Println("Written PNG to", tempFile.Name())
-			if partialRender != nil {
-				// TODO: Use a shader to fill transparent pixel with nearest neighbors to make it look better while rendering
-				partialRender <- fullRender
-			}
-			//time.Sleep(time.Second)
-			cachedRenderLock.Lock()
-		}
-	}
-	if err == nil {
-		cachedRenderLock.Unlock()
-	}
-	if partialRender != nil {
-		close(partialRender)
-	}
 	// TODO: Draw bounding boxes over the image
-	return err
 }
 
 type pixelRender struct {
@@ -241,32 +178,28 @@ type pixelRender struct {
 	camPos, camDir sdf.V3  // Camera parameters
 	camViewMatrix  sdf.M44 // The world to camera matrix
 	camFov         sdf.V2  // Camera's field of view
+	maxRay         float64 // The maximum distance of a ray (camPos, camDir) before getting out of bounds
 	// MISC
 	color int
 	// OUTPUT
 	rendered color.RGBA
 }
 
-func (r *renderer3) samplePixel(job *pixelRender) color.RGBA {
+func (r *renderer3) samplePixel(pixel01 sdf.V2, job *pixelRender) color.RGBA {
 	// Generate the ray for this pixel using the given camera parameters
 	rayFrom := job.camPos
 	// Get pixel inside of ([-1, 1], [-1, 1])
-	rayDirXZBase := job.pixel.ToV2().Div(job.bounds.ToV2()).MulScalar(2).SubScalar(1)
-	rayDirXZBase.X *= float64(job.bounds[0]) / float64(job.bounds[1]) // Apply aspect ratio again
+	rayDirXZBase := pixel01.MulScalar(2).SubScalar(1)
+	rayDirXZBase.X *= float64(job.bounds[0]) / float64(job.bounds[1]) // Apply aspect ratio (again)
 	// Convert to the projection over a displacement of 1
 	rayDirXZBase = rayDirXZBase.Mul(sdf.V2{X: math.Tan(job.camFov.DivScalar(2).X), Y: math.Tan(job.camFov.DivScalar(2).Y)})
-	rayDir := sdf.V3{X: rayDirXZBase.X, Y: 1, Z: rayDirXZBase.Y}
+	rayDir := sdf.V3{X: rayDirXZBase.X, Y: 1, Z: rayDirXZBase.Y} // Z is UP (and this default camera is X-right Y-up)
 	// Apply the camera matrix to the default ray
-	rayDir = job.camViewMatrix.MulPosition(rayDir).Normalize()
-	// TODO: Orthogonal camera
+	rayDir = job.camViewMatrix.MulPosition(rayDir) // .Normalize() (done in Raycast already)
+	// TODO: Orthogonal camera mode?
 
 	// Query the surface with the given ray
-	maxRay := 10000. // TODO: Compute the actual value
-	hit, t, steps := sdf.Raycast3(r.s, rayFrom, rayDir, r.rayScaleAndSigmoid, r.rayStepScale, r.rayEpsilon, maxRay, r.rayMaxSteps)
-	//if job.pixel[0] == job.bounds[0]/2 {
-	//	log.Println("ray dir:", rayDir, "T:", t, "HIT:", hit, "STEPS:", steps)
-	//}
-
+	hit, t, steps := sdf.Raycast3(r.s, rayFrom, rayDir, r.rayScaleAndSigmoid, r.rayStepScale, r.rayEpsilon, job.maxRay, r.rayMaxSteps)
 	// Convert the possible hit to a color
 	if t >= 0 { // Hit the surface
 		normal := sdf.Normal3(r.s, hit, r.normalEps)
@@ -279,7 +212,7 @@ func (r *renderer3) samplePixel(job *pixelRender) color.RGBA {
 				B: uint8(float64(r.surfaceColor.B) * lightIntensity),
 				A: r.surfaceColor.A,
 			}
-		} else { // Color == normal
+		} else { // Color == abs(normal)
 			return color.RGBA{
 				R: uint8(math.Abs(normal.X) * 255),
 				G: uint8(math.Abs(normal.Y) * 255),

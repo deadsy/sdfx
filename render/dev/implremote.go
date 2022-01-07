@@ -50,30 +50,30 @@ func (d *rendererClient) ColorModes() int {
 	return out
 }
 
-func (d *rendererClient) Render(ctx context.Context, state *RendererState, stateLock, cachedRenderLock *sync.RWMutex, partialRender chan<- *image.RGBA, fullRender *image.RGBA) error {
-	fullRenderSize := fullRender.Bounds().Size()
-	stateLock.RLock() // Clone the state to avoid locking while the rendering is happening
+func (d *rendererClient) Render(args *renderArgs) error {
+	fullRenderSize := args.fullRender.Bounds().Size()
+	args.stateLock.RLock() // Clone the state to avoid locking while the rendering is happening
 	argsOut := &RemoteRenderArgsAndResults{
 		RenderSize: sdf.V2i{fullRenderSize.X, fullRenderSize.Y},
-		State:      deepcopy.MustAnything(state).(*RendererState),
+		State:      deepcopy.MustAnything(args.state).(*RendererState),
 	}
-	stateLock.RUnlock()
+	args.stateLock.RUnlock()
 
 	call := d.cl.Go("RendererService.Render", argsOut, &argsOut, nil)
 	select {
-	case <-ctx.Done(): // Cancelled (call still running on service unless we call render again, which will cancel it)
-		return ctx.Err()
+	case <-args.ctx.Done(): // Cancelled (call still running on service unless we call render again, which will cancel it)
+		return args.ctx.Err()
 	case call := <-call.Done:
 		if call.Error != nil {
 			log.Println("Error on remote call:", call.Error)
 			return nil
 		}
-		stateLock.Lock() // Clone back the new state to avoid locking while the rendering is happening
-		*state = *argsOut.State
-		stateLock.Unlock()
-		cachedRenderLock.Lock()
-		*fullRender = *(*call.Reply.(**RemoteRenderArgsAndResults)).RenderedImg
-		cachedRenderLock.Unlock()
+		args.stateLock.Lock() // Clone back the new state to avoid locking while the rendering is happening
+		*args.state = *argsOut.State
+		args.stateLock.Unlock()
+		args.cachedRenderLock.Lock()
+		*args.fullRender = *(*call.Reply.(**RemoteRenderArgsAndResults)).RenderedImg
+		args.cachedRenderLock.Unlock()
 		return nil
 	}
 }
@@ -132,7 +132,14 @@ func (d *RendererService) Render(args RemoteRenderArgsAndResults, out *RemoteRen
 	d.prevRenderCancel() // Cancel previous render
 	ctx, d.prevRenderCancel = context.WithCancel(context.Background())
 	d.prevRenderCancelLock.Unlock()
-	err := d.impl.Render(ctx, args.State, &sync.RWMutex{}, &sync.RWMutex{}, make(chan *image.RGBA, 512), img)
+	err := d.impl.Render(&renderArgs{
+		ctx:              ctx,
+		state:            args.State,
+		stateLock:        &sync.RWMutex{},
+		cachedRenderLock: &sync.RWMutex{},
+		partialRender:    nil,
+		fullRender:       img,
+	})
 	if err != nil {
 		return err
 	}

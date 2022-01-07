@@ -19,9 +19,16 @@ type devRendererImpl interface {
 	ColorModes() int
 	// Render performs a full render, given the screen size (it may be cancelled using the given context).
 	// Returns partially rendered images as progress is made through partialImages (if non-nil, channel closed).
-	Render(ctx context.Context, state *RendererState, stateLock, cachedRenderLock *sync.RWMutex,
-		partialRender chan<- *image.RGBA, fullRender *image.RGBA) error
+	Render(args *renderArgs) error
 	// TODO: Map clicks to source code? (using reflection on the SDF and profiling/code generation?)
+}
+
+type renderArgs struct {
+	ctx                         context.Context
+	state                       *RendererState
+	stateLock, cachedRenderLock *sync.RWMutex
+	partialRender               chan<- *image.RGBA
+	fullRender                  *image.RGBA
 }
 
 // RendererState is an internal structure, exported for (de)serialization reasons

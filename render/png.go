@@ -54,37 +54,37 @@ func (d *PNG) RenderSDF2MinMax(s sdf.SDF2, dmin, dmax float64) {
 	// sample the distance field
 	minMaxSet := dmin != 0 && dmax != 0
 	if !minMaxSet {
-		//distance := make([]float64, d.pixels[0]*d.pixels[1]) // Less allocations: faster (70ms -> 60ms)
-		//xofs := 0
+		//distance := make([]float64, d.pixels[0]*d.pixels[1]) // Less allocations: faster (70ms -> 60ms), use cache in SDF if needed
 		for x := 0; x < d.pixels[0]; x++ {
 			for y := 0; y < d.pixels[1]; y++ {
 				d := s.Evaluate(d.m.ToV2(sdf.V2i{x, y}))
 				dmax = math.Max(dmax, d)
 				dmin = math.Min(dmin, d)
-				//distance[xofs+y] = d
 			}
-			//xofs += d.pixels[1]
 		}
 	}
 	// scale and set the pixel values
-	//xofs = 0
 	for x := 0; x < d.pixels[0]; x++ {
 		for y := 0; y < d.pixels[1]; y++ {
-			//dist := distance[xofs+y]
 			dist := s.Evaluate(d.m.ToV2(sdf.V2i{x, y}))
-			// Clamp due to possibly forced min and max
-			var val float64
-			// NOTE: This condition forces the surface to be close to 255/2 gray value, otherwise dmax >>> dmin or viceversa
-			// could cause the surface to be visually displaced
-			if dist >= 0 {
-				val = math.Min(255, math.Max(255/2, 255/2+255*((dist)/(dmax))))
-			} else { // Force lower scale for inside surface
-				val = math.Min(255/2, math.Max(0, 255/2*((dist-dmin)/(-dmin))))
-			}
-			d.img.Set(x, y, color.Gray{Y: uint8(val)})
+			d.img.Set(x, y, color.Gray{Y: uint8(255 * ImageColor2(dist, dmin, dmax))})
 		}
-		//xofs += d.pixels[1]
 	}
+}
+
+// ImageColor2 returns the grayscale color for the returned SDF2.Evaluate value, given the reference minimum and maximum
+// SDF2.Evaluate values. The returned value is in the range [0, 1].
+func ImageColor2(dist, dmin, dmax float64) float64 {
+	// Clamp due to possibly forced min and max
+	var val float64
+	// NOTE: This condition forces the surface to be close to 255/2 gray value, otherwise dmax >>> dmin or viceversa
+	// could cause the surface to be visually displaced
+	if dist >= 0 {
+		val = math.Max(0.5, math.Min(1, 0.5+0.5*((dist)/(dmax))))
+	} else { // Force lower scale for inside surface
+		val = math.Max(0, math.Min(0.5, 0.5*((dist-dmin)/(-dmin))))
+	}
+	return val
 }
 
 // Line adds a line to a png object.

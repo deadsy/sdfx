@@ -33,13 +33,13 @@ func spiralSdf() (s interface{}, err error) {
 		return nil, err
 	}
 	s = sdf.Union2D(s.(sdf.SDF2), c)
-
-	c2, err := sdf.Circle2D(20.)
-	if err != nil {
-		return nil, err
-	}
-	c2 = sdf.Transform2D(c2, sdf.Translate2d(sdf.V2{X: 0}))
-	s = sdf.Difference2D(s.(sdf.SDF2), c2)
+	//
+	//c2, err := sdf.Circle2D(20.)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//c2 = sdf.Transform2D(c2, sdf.Translate2d(sdf.V2{X: 0}))
+	//s = sdf.Difference2D(s.(sdf.SDF2), c2)
 
 	//WARNING: Text is very slow to render (specially with -race flag)
 	//f, err := sdf.LoadFont("../text/cmr10.ttf")

@@ -22,7 +22,7 @@ func BenchmarkDevRenderer3_Render(b *testing.B) {
 	lock2 := &sync.RWMutex{}
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		err := impl.Render(context.Background(), &state, lock1, lock2, nil, fullRender)
+		err := impl.Render(&renderArgs{ctx: context.Background(), state: &state, stateLock: lock1, cachedRenderLock: lock2, fullRender: fullRender})
 		if err != nil {
 			b.Fatal(err)
 		}
