@@ -28,11 +28,11 @@ func spiralSdf() (s interface{}, err error) {
 
 	// TODO: Leave commented
 
-	c, err := sdf.Circle2D(22.)
-	if err != nil {
-		return nil, err
-	}
-	s = sdf.Union2D(s.(sdf.SDF2), c)
+	//c, err := sdf.Circle2D(22.)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//s = sdf.Union2D(s.(sdf.SDF2), c)
 	//
 	//c2, err := sdf.Circle2D(20.)
 	//if err != nil {
@@ -65,7 +65,9 @@ func main() {
 		log.Fatalf("error: %s\n", err)
 	}
 
-	if os.Getenv("SDFX_TEST_DEV_RENDERER_2D") != "" || runtime.GOOS == "js" {
+	if os.Getenv("SDFX_TEST_DEV_RENDERER_2D") != "" ||
+		runtime.GOOS == "js" || // $(go env GOPATH)/bin/wasmserve .
+		runtime.GOOS == "android" { // $(go env GOPATH)/bin/gomobile build -v -target=android .
 		// Rendering configuration boilerplate
 		ebiten.SetWindowTitle("SDFX spiral dev renderer demo")
 		ebiten.SetRunnableOnUnfocused(true)

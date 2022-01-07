@@ -66,18 +66,24 @@ func (r *Renderer) onUpdateInputs() {
 			r.rerender()
 		}
 		// Translation
-		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonMiddle) {
+		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonMiddle) || len(inpututil.JustPressedTouchIDs()) > 0 {
 			// Save the cursor's position for previsualization and applying the final translation
 			cx, cy := ebiten.CursorPosition()
+			if tX, tY := ebiten.TouchPosition(0); tX != 0 && tY != 0 { // Override cursor with touch if available
+				cx, cy = tX, tY
+			}
 			r.implStateLock.Lock()
 			if r.translateFrom[0] == math.MaxInt { // Only if not already moving...
 				r.translateFrom = sdf.V2i{cx, cy}
 			}
 			r.implStateLock.Unlock()
 		}
-		if inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonMiddle) {
+		if inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonMiddle) || inpututil.IsTouchJustReleased(0) {
 			// Actually apply the translation and force a rerender
 			cx, cy := ebiten.CursorPosition()
+			if tX, tY := ebiten.TouchPosition(0); tX != 0 && tY != 0 { // Override cursor with touch if available
+				cx, cy = tX, tY // FIXME: Probably 0 does not exist anymore
+			}
 			r.implStateLock.Lock()
 			changed := false
 			if r.translateFrom[0] < math.MaxInt { // Only if already moving...
@@ -118,18 +124,24 @@ func (r *Renderer) onUpdateInputs() {
 			r.rerender()
 		}
 		// Rotation + Translation
-		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonMiddle) {
+		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonMiddle) || len(inpututil.JustPressedTouchIDs()) > 0 {
 			// Save the cursor's position for previsualization and applying the final translation
 			cx, cy := ebiten.CursorPosition()
+			if tX, tY := ebiten.TouchPosition(0); tX != 0 && tY != 0 { // Override cursor with touch if available
+				cx, cy = tX, tY // FIXME: Probably 0 does not exist anymore
+			}
 			r.implStateLock.Lock()
 			if r.translateFrom[0] == math.MaxInt { // Only if not already moving...
 				r.translateFrom = sdf.V2i{cx, cy}
 			}
 			r.implStateLock.Unlock()
 		}
-		if inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonMiddle) {
+		if inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonMiddle) || inpututil.IsTouchJustReleased(0) {
 			// Actually apply the translation and force a rerender
 			cx, cy := ebiten.CursorPosition()
+			if tX, tY := ebiten.TouchPosition(0); tX != 0 && tY != 0 { // Override cursor with touch if available
+				cx, cy = tX, tY
+			}
 			r.implStateLock.Lock()
 			changed := false
 			if r.translateFrom[0] < math.MaxInt { // Only if already moving...

@@ -22,6 +22,9 @@ func (r *Renderer) drawSDF(screen *ebiten.Image) {
 	var tr sdf.V2
 	if r.translateFrom[0] < math.MaxInt { // SDF2 special case: preview translations without rendering (until mouse release)
 		cx, cy := ebiten.CursorPosition()
+		if tX, tY := ebiten.TouchPosition(0); tX != 0 && tY != 0 { // Override cursor with touch if available
+			cx, cy = tX, tY
+		}
 		if r.translateFromStop[0] < math.MaxInt {
 			cx, cy = r.translateFromStop[0], r.translateFromStop[1]
 		}

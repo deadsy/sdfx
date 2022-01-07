@@ -24,9 +24,11 @@ func implCommonRender(genJob func(pixel sdf.V2i, pixel01 sdf.V2) interface{},
 	args *renderArgs, pixelsRand *[]int) error {
 
 	// Set all pixels to transparent initially (for partial renderings to work)
+	args.cachedRenderLock.Lock()
 	for i := 3; i < len(args.fullRender.Pix); i += 4 {
 		args.fullRender.Pix[i] = 255
 	}
+	args.cachedRenderLock.Unlock()
 
 	// Update random pixels if needed
 	bounds := args.fullRender.Bounds()
@@ -44,10 +46,15 @@ func implCommonRender(genJob func(pixel sdf.V2i, pixel01 sdf.V2) interface{},
 	for i := 0; i < runtime.NumCPU(); i++ {
 		workerWg.Add(1)
 		go func() {
-			for job := range jobs {
+			defer workerWg.Done()
+		loop:
+			for {
+				job, ok := <-jobs
+				if !ok { // Cancelled or finished render (stopped generating jobs)
+					break loop
+				}
 				jobResults <- processJob(job.pixel, job.pixel01, job.data)
 			}
-			workerWg.Done()
 		}()
 	}
 	go func() { // Make sure job results are closed after all jobs are processed
@@ -56,24 +63,28 @@ func implCommonRender(genJob func(pixel sdf.V2i, pixel01 sdf.V2) interface{},
 	}()
 
 	// Spawn the work generator
-	go func() { // TODO: Races by reusing variables (like i in for loop)?
-		// Sample each pixel on the image separately (and in random order to see the image faster)
+	go func() {
+	loop: // Sample each pixel on the image separately (and in random order to see the image faster)
 		for _, randPixelIndex := range *pixelsRand {
 			// Sample a random pixel in the image
 			sampledPixel := sdf.V2i{randPixelIndex % boundsSize[0], randPixelIndex / boundsSize[0]}
 			sampledPixel01 := sampledPixel.ToV2().Div(boundsSize.ToV2())
 			// Queue the job for parallel processing
-			jobs <- &jobInternal{
+			select {
+			case <-args.ctx.Done():
+				break loop
+			case jobs <- &jobInternal{
 				pixel:   sampledPixel,
 				pixel01: sampledPixel01,
 				data:    genJob(sampledPixel, sampledPixel01),
+			}:
 			}
 		}
 		close(jobs) // Close the jobs channel to mark the end
 	}()
 
 	// Listen for all job results and update the image, freeing locks and sending a partial image update every batch of pixels
-	const pixelBatch = 100
+	const pixelBatch = 1000 // Configurable? Shouldn't matter much as you can already configure time between partial renders.
 	pixelNum := 0
 	args.cachedRenderLock.Lock()
 	var err error
@@ -84,23 +95,16 @@ pixelLoop:
 		if pixelNum%pixelBatch == 0 {
 			args.cachedRenderLock.Unlock()
 			runtime.Gosched() // Breathe (let renderer do something, best-effort)
-			// Check if this render is cancelled (could also check every pixel...)
-			select {
+			select {          // Check if this render is cancelled (could also check every pixel...)
 			case <-args.ctx.Done():
 				err = args.ctx.Err()
 				break pixelLoop
 			default:
 			}
-			// Send the partial render update
-			//log.Println("Sending partial render with", pixelNum, "pixels")
-			//tempFile, _ := ioutil.TempFile("", "fullRender-"+strconv.Itoa(pixelNum)+"-*.png")
-			//_ = png.Encode(tempFile, fullRender)
-			//log.Println("Written PNG to", tempFile.Name())
-			if args.partialRender != nil {
-				// TODO: Use a shader to fill transparent pixel with nearest neighbors to make it look better while rendering
+			if args.partialRender != nil { // Send the partial render update
+				// TODO: Use a shader to fill transparent pixel with nearest neighbors to make it look better while rendering (losing previous background render)
 				args.partialRender <- args.fullRender
 			}
-			//time.Sleep(time.Second)
 			args.cachedRenderLock.Lock()
 		}
 	}
