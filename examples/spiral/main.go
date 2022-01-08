@@ -54,6 +54,10 @@ func spiralSdf() (s interface{}, err error) {
 	//s, _ = sdf.ExtrudeRounded3D(s.(sdf.SDF2), 4, 0.25)
 	//s, _ = sdf.RevolveTheta3D(s.(sdf.SDF2), math.Pi/2)
 
+	//box3, _ := sdf.Box3D(sdf.V3{X: 20, Y: 10, Z: 5}, 0.2)
+	//box3 = sdf.Transform3D(box3, sdf.Translate3d(sdf.V3{Z: 15}))
+	//s = sdf.Union3D(s.(sdf.SDF3), box3)
+
 	return s, err
 }
 
@@ -70,7 +74,7 @@ func main() {
 		ebiten.SetWindowTitle("SDFX spiral dev renderer demo")
 		ebiten.SetRunnableOnUnfocused(true)
 		ebiten.SetWindowResizable(true)
-		ebiten.SetWindowPosition(3000, 0)
+		//ebiten.SetWindowPosition(3000, 0)
 		//ebiten.SetWindowSize(1920, 1040)
 
 		//// Profiling boilerplate

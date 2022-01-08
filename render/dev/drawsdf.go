@@ -120,13 +120,13 @@ func (r *Renderer) rerender(callbacks ...func(err error)) {
 			partialRenders:   partialRenders,
 			fullRender:       r.cachedRenderCpu,
 		})
+		r.implLock.RUnlock()
 		if err != nil {
 			if err != context.Canceled {
 				log.Println("[DevRenderer] Error rendering:", err)
 			}
 			return
 		}
-		r.implLock.RUnlock()
 		renderGPUStartTime := time.Now()
 		renderGpuImg, err := ebiten.NewImageFromImage(r.cachedRenderCpu, ebiten.FilterDefault)
 		if err != nil {

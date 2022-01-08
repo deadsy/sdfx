@@ -46,7 +46,6 @@ func (r *Renderer) runRenderer(runCmdF func() *exec.Cmd, watchFiles []string) er
 							continue // Events tend to be generated in bulk if using an IDE, skip them if too close together
 						}
 						log.Println("[DevRenderer] Change detected!", event)
-						lastEvent = time.Now()
 						runCmd = r.rendererSwapChild(runCmd, runCmdF)
 						lastEvent = time.Now()
 					case err, ok := <-watcher.Errors:
@@ -78,16 +77,10 @@ func (r *Renderer) runChild(requestedAddress string) error {
 	service := newDevRendererService(r.impl, done)
 	service.HandleHTTP(rpc.DefaultRPCPath, rpc.DefaultDebugPath)
 	// TODO: Use service.ServeConn() on a pipe to the parent, avoiding using ports (must be as cross-platform as possible)
-	listener, err := net.Listen("tcp", requestedAddress)
+	listener, err := net.Listen("tcp", requestedAddress) // Close() called on srv.Close()
 	if err != nil {
 		return err
 	}
-	defer func(listener net.Listener) {
-		err := listener.Close()
-		if err != nil {
-			log.Println("[DevRenderer] listener.Close error:", err)
-		}
-	}(listener)
 	srv := &http.Server{Addr: listener.Addr().String(), Handler: http.DefaultServeMux}
 	defer func(srv *http.Server) {
 		err := srv.Close()
@@ -111,6 +104,7 @@ func (r *Renderer) runChild(requestedAddress string) error {
 func (r *Renderer) rendererSwapChild(runCmd *exec.Cmd, runCmdF func() *exec.Cmd) *exec.Cmd {
 	r.implLock.Lock() // No more renders until we swapped the implementation
 	defer r.implLock.Unlock()
+	log.Println("[DevRenderer] r.implLock acquired!")
 	// 1. Gracefully close the previous command
 	if runCmd != nil {
 		log.Println("[DevRenderer] Closing previous child process")
@@ -151,7 +145,10 @@ func (r *Renderer) rendererSwapChild(runCmd *exec.Cmd, runCmdF func() *exec.Cmd)
 		if err2 != nil {
 			log.Println("[DevRenderer] runCmd error:", err2)
 		}
-		startupFinished <- ps
+		select {
+		case startupFinished <- ps:
+		case <-time.After(time.Minute): // Some timeout for detecting failed build/run to let this goroutine die
+		}
 		close(startupFinished)
 	}()
 	// 4. Connect to it as fast as possible, with exponential backoff to relax on errors.

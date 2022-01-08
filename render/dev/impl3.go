@@ -92,7 +92,7 @@ type renderer3 struct {
 
 func newDevRenderer3(s sdf.SDF3) devRendererImpl {
 	r := &renderer3{
-		s:                  s,
+		s:                  &invertZ{s}, // TODO: fix rendering to use Z+ (instead of Z-) as UP instead of this hack.
 		camFOV:             math.Pi / 2, // 90º FOV-X
 		surfaceColor:       color.RGBA{R: 255 - 20, G: 255 - 40, B: 255 - 80, A: 255},
 		backgroundColor:    color.RGBA{B: 50, A: 255},
@@ -133,23 +133,14 @@ func (r *renderer3) Render(args *renderArgs) error {
 	camDir := args.state.CamCenter.Sub(camPos).Normalize()
 	camFovX := r.camFOV
 	camFovY := 2 * math.Atan(math.Tan(camFovX/2)*aspectRatio)
-	// Approximate max ray
+	// Approximate max ray length for the whole camera (it could be improved... or maybe a fixed value is better)
 	sBb := r.BoundingBox()
-	sBbSize := sBb.Size()
-	bbSdf, err := sdf.Box3D(sBbSize, 0)
-	if err != nil {
-		panic(err)
-	}
-	maxRaySdf := sdf.Transform3D(bbSdf, sdf.Translate3d(sBb.Center()))
-	bbMaxLength := sBbSize.Length()
-	_, maxRay, _ := sdf.Raycast3(maxRaySdf, camPos, camDir, 0, 1, 1e-2, bbMaxLength, 100)
-	if maxRay < 0 { // If we do not hit the box (in a straight line, set a default -- box size, as following condition will be true)
-		maxRay = 0
-	}
+	maxRay := math.Abs(collideRayBb(camPos, camDir, sBb))
+	// If we do not hit the box (in a straight line, set a default -- box size, as following condition will be true)
 	if !sBb.Contains(camPos) { // If we hit from the outside of the box, add the whole size of the box
-		maxRay += bbMaxLength
+		maxRay += sBb.Size().Length()
 	}
-	maxRay *= 1.1 // Rays thrown from the camera at different angles may need a little more maxRay
+	maxRay *= 4 // Rays thrown from the camera at different angles may need a little more maxRay
 	args.stateLock.RUnlock()
 
 	// Perform the actual render
@@ -194,6 +185,7 @@ func (r *renderer3) samplePixel(pixel01 sdf.V2, job *pixelRender) color.RGBA {
 	// Get pixel inside of ([-1, 1], [-1, 1])
 	rayDirXZBase := pixel01.MulScalar(2).SubScalar(1)
 	rayDirXZBase.X *= float64(job.bounds[0]) / float64(job.bounds[1]) // Apply aspect ratio (again)
+	//rayDirXZBase.Y = -rayDirXZBase.Y
 	// Convert to the projection over a displacement of 1
 	rayDirXZBase = rayDirXZBase.Mul(sdf.V2{X: math.Tan(job.camFov.DivScalar(2).X), Y: math.Tan(job.camFov.DivScalar(2).Y)})
 	rayDir := sdf.V3{X: rayDirXZBase.X, Y: 1, Z: rayDirXZBase.Y} // Z is UP (and this default camera is X-right Y-up)
@@ -231,4 +223,45 @@ func (r *renderer3) samplePixel(pixel01 sdf.V2, job *pixelRender) color.RGBA {
 		// The void
 		return r.backgroundColor
 	}
+}
+
+type invertZ struct {
+	impl sdf.SDF3
+}
+
+func (i *invertZ) Evaluate(p sdf.V3) float64 {
+	return i.impl.Evaluate(p.Mul(sdf.V3{X: 1, Y: 1, Z: -1}))
+}
+
+func (i *invertZ) BoundingBox() sdf.Box3 {
+	box := i.impl.BoundingBox()
+	box.Min.Z = -box.Min.Z
+	box.Max.Z = -box.Max.Z
+	if box.Max.Z < box.Min.Z {
+		box.Max.Z, box.Min.Z = box.Min.Z, box.Max.Z
+	}
+	return box
+}
+
+var inf = math.Inf(1)
+
+// collideRayBb https://gamedev.stackexchange.com/a/18459.
+// Returns the length traversed through the array to reach the box, which may be negative (hit backwards).
+// In case of no hit it returns a guess of where it would hit
+func collideRayBb(origin sdf.V3, dir sdf.V3, bb sdf.Box3) float64 {
+	dirFrac := sdf.V3{X: 1 / dir.X, Y: 1 / dir.Y, Z: 1 / dir.Z} // Assumes normalized dir
+	t135 := bb.Min.Sub(origin).Mul(dirFrac)
+	t246 := bb.Max.Sub(origin).Mul(dirFrac)
+	tmin := math.Max(math.Max(math.Min(t135.X, t246.X), math.Min(t135.Y, t246.Y)), math.Min(t135.Z, t246.Z))
+	tmax := math.Min(math.Min(math.Max(t135.X, t246.X), math.Max(t135.Y, t246.Y)), math.Max(t135.Z, t246.Z))
+	//if tmin > tmax { // if tmin > tmax, ray doesn't intersect AABB
+	//	return inf
+	//}
+	if tmax < 0 { // if tmax < 0, ray (line) is intersecting AABB, but the whole AABB is behind us
+		return tmax
+	}
+	if bb.Contains(origin) { // This is triggered if inside
+		return tmax
+	}
+	return tmin
 }

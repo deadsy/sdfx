@@ -254,7 +254,6 @@ func (d *RendererService) RenderGet(_ int, out *RemoteRenderResults) error {
 		d.stateLock.RUnlock()
 		return nil
 	case <-d.renderCtx.Done():
-		log.Println("[DevRenderer] RenderGet cancelled")
 		return errNoRenderRunning // It was cancelled after get was called
 	}
 }
