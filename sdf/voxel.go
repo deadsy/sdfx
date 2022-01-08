@@ -1,14 +1,14 @@
 //-----------------------------------------------------------------------------
 /*
 
-Voxel-based cache to remove deep SDF3 hierarchies at setup and speed up evaluation
+Voxel-based cache/smoothing to remove deep SDF2/SDF3 hierarchies and speed up evaluation
 
 */
 //-----------------------------------------------------------------------------
 
 package sdf
 
-// VoxelSdf is the SDF that represents a pre-computed voxel-based SDF3.
+// VoxelSdf3 is the SDF that represents a pre-computed voxel-based SDF3.
 //It can be used as a cache, or for smoothing.
 //
 // CACHE:
@@ -18,7 +18,7 @@ package sdf
 // It performs trilinear mapping for inner values and may be used as a cache for any other SDF, losing some accuracy.
 //
 // WARNING: It may lose sharp features, even if meshCells is high.
-type VoxelSdf struct {
+type VoxelSdf3 struct {
 	// voxelCorners are the values of this SDF in each voxel corner
 	voxelCorners map[V3i]float64 // TODO: Octree + k-d tree to simplify/reduce memory consumption + speed-up access?
 	// bb is the bounding box.
@@ -27,8 +27,8 @@ type VoxelSdf struct {
 	numVoxels V3i
 }
 
-// NewVoxelSDF see VoxelSdf. This populates the whole cache from the given SDF. The progress listener may be nil.
-func NewVoxelSDF(s SDF3, meshCells int, progress chan float64) SDF3 {
+// NewVoxelSDF3 see VoxelSdf3. This populates the whole cache from the given SDF. The progress listener may be nil.
+func NewVoxelSDF3(s SDF3, meshCells int, progress chan float64) SDF3 {
 	bb := s.BoundingBox() // TODO: Use default code to avoid duplication
 	bbSize := bb.Size()
 	resolution := bbSize.MaxComponent() / float64(meshCells)
@@ -48,14 +48,14 @@ func NewVoxelSDF(s SDF3, meshCells int, progress chan float64) SDF3 {
 		}
 	}
 
-	return &VoxelSdf{
+	return &VoxelSdf3{
 		voxelCorners: voxelCorners,
 		bb:           bb,
 		numVoxels:    cells,
 	}
 }
 
-func (m *VoxelSdf) Evaluate(p V3) float64 {
+func (m *VoxelSdf3) Evaluate(p V3) float64 {
 	// Find the voxel's {0,0,0} corner quickly and compute p's displacement
 	voxelSize := m.bb.Size().Div(m.numVoxels.ToV3())
 	voxelStartIndex := p.Sub(m.bb.Min).Div(voxelSize).ToV3i()
@@ -84,6 +84,6 @@ func (m *VoxelSdf) Evaluate(p V3) float64 {
 	return c
 }
 
-func (m *VoxelSdf) BoundingBox() Box3 {
+func (m *VoxelSdf3) BoundingBox() Box3 {
 	return m.bb
 }

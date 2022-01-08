@@ -28,11 +28,10 @@ func monkeyWithHat() sdf.SDF3 {
 		}
 	}
 	// - Create the SDF from the mesh (a modified Suzanne from Blender with 366 faces)
-	monkeyImported, err := obj.ImportSTL(file)
+	monkeyImported, err := obj.ImportSTL(file, 20, 3, 5)
 	if err != nil {
 		panic(err)
 	}
-	//monkeyImported = sdf.NewVoxelSDF(monkeyImported, 64)
 
 	// HAT
 	hatHeight := 0.5
@@ -55,7 +54,7 @@ func monkeyWithHat() sdf.SDF3 {
 	//   It also smooths the mesh a little using trilinear interpolation.
 	//   It is actually slower for this mesh (unless meshCells <<< renderer's meshCells), but should be faster for
 	//   more complex meshes (with more triangles) or SDF3 hierarchies that take longer to evaluate.
-	monkeyHat = sdf.NewVoxelSDF(monkeyHat, 64, nil) // Use 32 for harder smoothing demo
+	monkeyHat = sdf.NewVoxelSDF3(monkeyHat, 64, nil) // Use 32 for harder smoothing demo
 
 	return monkeyHat
 }

@@ -11,6 +11,7 @@ package obj
 import (
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
+	"github.com/dhconnelly/rtreego"
 	"github.com/hschendel/stl"
 	"io"
 	"math"
@@ -19,22 +20,21 @@ import (
 //-----------------------------------------------------------------------------
 
 type triMeshSdf struct {
-	tris []*render.Triangle3
-	bb   sdf.Box3
+	rtree        *rtreego.Rtree
+	numNeighbors int
+	bb           sdf.Box3
 }
 
-const stlEpsilon = 1e-12
+const stlEpsilon = 1e-1
 
 func (t *triMeshSdf) Evaluate(p sdf.V3) float64 {
-	if !t.bb.Contains(p) { // Fast exit
-		// Length to surface is at least distance to bounding box
-		return t.bb.Include(p).Size().Sub(t.bb.Size()).Length()
-	}
 	// Check all triangle distances
 	signedDistanceResult := 1.
 	closestTriangle := math.MaxFloat64
-	for _, triangle := range t.tris {
-		// TODO: Find a way to quickly skip this triangle (or a way to iterate a subset of triangles)
+	// Quickly skip checking most triangles by only checking the N closest neighbours (AABB based)
+	neighbors := t.rtree.NearestNeighbors(t.numNeighbors, stlToPoint(p))
+	for _, neighbor := range neighbors {
+		triangle := neighbor.(*stlTriangle).Triangle3
 		testPointToTriangle := p.Sub(triangle.V[0])
 		triNormal := triangle.Normal()
 		signedDistanceToTriPlane := triNormal.Dot(testPointToTriangle)
@@ -52,15 +52,22 @@ func (t *triMeshSdf) BoundingBox() sdf.Box3 {
 	return t.bb
 }
 
-// ImportTriMesh converts a triangle-based mesh into a SDF3 surface.
+// ImportTriMesh converts a triangle-based mesh into a SDF3 surface. minChildren and maxChildren are parameters that can
+// affect the performance of the internal data structure (3 and 5 are a good default; maxChildren >= minChildren > 0).
 //
-// It is recommended to cache its values at setup time by using sdf.VoxelSdf.
+// WARNING: Setting a low numNeighbors will consider many fewer triangles for each evaluated point, greatly speeding up
+// the algorithm. However, if the count of triangles is too low artifacts will appear on the surface (triangle
+// continuations). Setting this value to MaxInt is extremely slow but will provide correct results, so choose a value
+// that works for your model.
+//
+// It is recommended to cache (and/or smooth) its values by using sdf.VoxelSdf3.
 //
 // WARNING: It will only work on non-intersecting closed-surface(s) meshes.
 // NOTE: Fix using blender for intersecting surfaces: Edit mode > P > By loose parts > Add boolean modifier to join them
-func ImportTriMesh(tris []*render.Triangle3) sdf.SDF3 {
+func ImportTriMesh(tris chan *render.Triangle3, numNeighbors, minChildren, maxChildren int) sdf.SDF3 {
 	m := &triMeshSdf{
-		tris: tris,
+		rtree:        nil,
+		numNeighbors: numNeighbors,
 		bb: sdf.Box3{
 			Min: sdf.V3{X: math.MaxFloat64, Y: math.MaxFloat64, Z: math.MaxFloat64},
 			Max: sdf.V3{X: -math.MaxFloat64, Y: -math.MaxFloat64, Z: -math.MaxFloat64},
@@ -68,7 +75,9 @@ func ImportTriMesh(tris []*render.Triangle3) sdf.SDF3 {
 	}
 
 	// Compute the bounding box
-	for _, triangle := range tris {
+	bulkLoad := make([]rtreego.Spatial, 0)
+	for triangle := range tris {
+		bulkLoad = append(bulkLoad, &stlTriangle{Triangle3: triangle})
 		for _, vertex := range triangle.V {
 			m.bb = m.bb.Include(vertex)
 		}
@@ -77,6 +86,7 @@ func ImportTriMesh(tris []*render.Triangle3) sdf.SDF3 {
 		m.bb = sdf.Box3{} // Empty box centered at {0,0,0}
 	}
 	//m.bb = m.bb.ScaleAboutCenter(1 + 1e-12) // Avoids missing faces due to inaccurate math operations.
+	m.rtree = rtreego.NewTree(3, minChildren, maxChildren, bulkLoad...)
 
 	return m
 }
@@ -158,19 +168,43 @@ func stlPlaneProject(anyPoint, normal, testPoint sdf.V3) sdf.V3 {
 
 //-----------------------------------------------------------------------------
 
+type stlTriangle struct {
+	*render.Triangle3
+}
+
+func (s *stlTriangle) Bounds() *rtreego.Rect {
+	bounds := sdf.Box3{Min: s.V[0], Max: s.V[0]}
+	bounds = bounds.Include(s.V[1])
+	bounds = bounds.Include(s.V[2])
+	points, err := rtreego.NewRectFromPoints(stlToPoint(bounds.Min), stlToPoint(bounds.Max))
+	if err != nil {
+		panic(err) // Implementation error
+	}
+	return points
+}
+
+func stlToPoint(v3 sdf.V3) rtreego.Point {
+	return rtreego.Point{v3.X, v3.Y, v3.Z}
+}
+
+//-----------------------------------------------------------------------------
+
 // ImportSTL converts an STL model into a SDF3 surface. See ImportTriMesh.
-func ImportSTL(reader io.ReadSeeker) (sdf.SDF3, error) {
+func ImportSTL(reader io.ReadSeeker, numNeighbors, minChildren, maxChildren int) (sdf.SDF3, error) {
 	mesh, err := stl.ReadAll(reader)
 	if err != nil {
 		return nil, err
 	}
-	tris := make([]*render.Triangle3, 0) // Buffer some triangles and send in batches if scheduler prefers it
-	for _, triangle := range mesh.Triangles {
-		tri := &render.Triangle3{}
-		for i, vertex := range triangle.Vertices {
-			tri.V[i] = sdf.V3{X: float64(vertex[0]), Y: float64(vertex[1]), Z: float64(vertex[2])}
+	tris := make(chan *render.Triangle3, 128) // Buffer some triangles and send in batches if scheduler prefers it
+	go func() {
+		for _, triangle := range mesh.Triangles {
+			tri := &render.Triangle3{}
+			for i, vertex := range triangle.Vertices {
+				tri.V[i] = sdf.V3{X: float64(vertex[0]), Y: float64(vertex[1]), Z: float64(vertex[2])}
+			}
+			tris <- tri
 		}
-		tris = append(tris, tri)
-	}
-	return ImportTriMesh(tris), nil
+		close(tris)
+	}()
+	return ImportTriMesh(tris, numNeighbors, minChildren, maxChildren), nil
 }
