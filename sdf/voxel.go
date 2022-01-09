@@ -8,7 +8,9 @@ Voxel-based cache/smoothing to remove deep SDF2/SDF3 hierarchies and speed up ev
 
 package sdf
 
-// VoxelSdf3 is the SDF that represents a pre-computed voxel-based SDF3.
+//-----------------------------------------------------------------------------
+
+// VoxelSDF3 is the SDF that represents a pre-computed voxel-based SDF3.
 //It can be used as a cache, or for smoothing.
 //
 // CACHE:
@@ -18,7 +20,7 @@ package sdf
 // It performs trilinear mapping for inner values and may be used as a cache for any other SDF, losing some accuracy.
 //
 // WARNING: It may lose sharp features, even if meshCells is high.
-type VoxelSdf3 struct {
+type VoxelSDF3 struct {
 	// voxelCorners are the values of this SDF in each voxel corner
 	voxelCorners map[V3i]float64 // TODO: Octree + k-d tree to simplify/reduce memory consumption + speed-up access?
 	// bb is the bounding box.
@@ -27,7 +29,9 @@ type VoxelSdf3 struct {
 	numVoxels V3i
 }
 
-// NewVoxelSDF3 see VoxelSdf3. This populates the whole cache from the given SDF. The progress listener may be nil.
+// NewVoxelSDF3 returns a VoxelSDF3.
+// This populates the whole cache from the given SDF.
+// The progress listener may be nil.
 func NewVoxelSDF3(s SDF3, meshCells int, progress chan float64) SDF3 {
 	bb := s.BoundingBox() // TODO: Use default code to avoid duplication
 	bbSize := bb.Size()
@@ -48,14 +52,15 @@ func NewVoxelSDF3(s SDF3, meshCells int, progress chan float64) SDF3 {
 		}
 	}
 
-	return &VoxelSdf3{
+	return &VoxelSDF3{
 		voxelCorners: voxelCorners,
 		bb:           bb,
 		numVoxels:    cells,
 	}
 }
 
-func (m *VoxelSdf3) Evaluate(p V3) float64 {
+// Evaluate returns the minimum distance to a VoxelSDF3.
+func (m *VoxelSDF3) Evaluate(p V3) float64 {
 	// Find the voxel's {0,0,0} corner quickly and compute p's displacement
 	voxelSize := m.bb.Size().Div(m.numVoxels.ToV3())
 	voxelStartIndex := p.Sub(m.bb.Min).Div(voxelSize).ToV3i()
@@ -84,6 +89,9 @@ func (m *VoxelSdf3) Evaluate(p V3) float64 {
 	return c
 }
 
-func (m *VoxelSdf3) BoundingBox() Box3 {
+// BoundingBox returns the bounding box for a VoxelSDF3.
+func (m *VoxelSDF3) BoundingBox() Box3 {
 	return m.bb
 }
+
+//-----------------------------------------------------------------------------
