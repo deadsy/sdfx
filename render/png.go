@@ -67,18 +67,18 @@ func (d *PNG) RenderSDF2MinMax(s sdf.SDF2, dmin, dmax float64) {
 	for x := 0; x < d.pixels[0]; x++ {
 		for y := 0; y < d.pixels[1]; y++ {
 			dist := s.Evaluate(d.m.ToV2(sdf.V2i{x, y}))
-			d.img.Set(x, y, color.Gray{Y: uint8(255 * ImageColor2(dist, dmin, dmax))})
+			d.img.Set(x, y, color.Gray{Y: uint8(255 * imageColor2(dist, dmin, dmax))})
 		}
 	}
 }
 
-// ImageColor2 returns the grayscale color for the returned SDF2.Evaluate value, given the reference minimum and maximum
+// imageColor2 returns the grayscale color for the returned SDF2.Evaluate value, given the reference minimum and maximum
 // SDF2.Evaluate values. The returned value is in the range [0, 1].
-func ImageColor2(dist, dmin, dmax float64) float64 {
+func imageColor2(dist, dmin, dmax float64) float64 {
 	// Clamp due to possibly forced min and max
 	var val float64
-	// NOTE: This condition forces the surface to be close to 255/2 gray value, otherwise dmax >>> dmin or viceversa
-	// could cause the surface to be visually displaced
+	// NOTE: This condition forces the surface to be close to 0.5 gray value, otherwise dmax >>> dmin or viceversa
+	// could cause the surface to be displaced visually
 	if dist >= 0 {
 		val = math.Max(0.5, math.Min(1, 0.5+0.5*((dist)/(dmax))))
 	} else { // Force lower scale for inside surface

@@ -14,16 +14,16 @@ A simple CAD package written in Go (https://golang.org/)
  1. See the examples.
  2. Write some Go code to define your own object.
  3. Build and run the Go code.
- 4. Preview the STL output in an STL viewer (E.g. http://www.meshlab.net/)
+ 4. Preview the STL output in an STL viewer (e.g. http://www.meshlab.net/)
  5. Print the STL file if you like it enough.
+
+[SDFX-UI](https://github.com/Yeicor/sdfx-ui) allows faster development iterations, replacing steps 3 and 4 until the final build.
 
 ## Why?
  * SDFs make CSG easy.
  * As a language Golang > OpenSCAD.
- * It's hard to do filleting and chamfering with OpenSCAD.
- * SDFs can easily do filleting and chamfering.
+ * SDFs can easily do filleting and chamfering (hard to do with OpenSCAD).
  * SDFs are hackable to try out oddball ideas.
- * Who needs an interactive GUI?
 
 ## Development
  * [Roadmap](docs/ROADMAP.md)
