@@ -3,6 +3,7 @@ tools/parser.out
 tools/parsetab.py
 *.pyc
 examples/*/*.stl
+!examples/monkey_hat/monkey.stl
 examples/*/*.dxf
 examples/*/*.png
 examples/*/*.svg
