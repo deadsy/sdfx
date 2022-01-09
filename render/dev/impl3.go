@@ -10,6 +10,15 @@ import (
 // CONFIGURATION
 //-----------------------------------------------------------------------------
 
+// Opt3YUp sets the UP direction to Y+ instead of Z+.
+func Opt3YUp(yUp bool) Option {
+	return func(r *Renderer) {
+		if r3, ok := r.impl.(*renderer3); ok {
+			r3.s = &invertZ{&swapYZ{r3.s}}
+		}
+	}
+}
+
 // Opt3Cam sets the default transform for the camera (pivot center, angles and distance).
 // WARNING: Need to run again the main renderer to apply a change of this option.
 func Opt3Cam(camCenter sdf.V3, pitch, yaw, dist float64) Option {
@@ -243,8 +252,6 @@ func (i *invertZ) BoundingBox() sdf.Box3 {
 	return box
 }
 
-var inf = math.Inf(1)
-
 // collideRayBb https://gamedev.stackexchange.com/a/18459.
 // Returns the length traversed through the array to reach the box, which may be negative (hit backwards).
 // In case of no hit it returns a guess of where it would hit
@@ -264,4 +271,19 @@ func collideRayBb(origin sdf.V3, dir sdf.V3, bb sdf.Box3) float64 {
 		return tmax
 	}
 	return tmin
+}
+
+type swapYZ struct {
+	impl sdf.SDF3
+}
+
+func (s *swapYZ) Evaluate(p sdf.V3) float64 {
+	return s.impl.Evaluate(sdf.V3{X: p.X, Y: p.Z, Z: p.Y})
+}
+
+func (s *swapYZ) BoundingBox() sdf.Box3 {
+	box := s.impl.BoundingBox()
+	box.Min.Z, box.Min.Y = box.Min.Y, box.Min.Z
+	box.Max.Z, box.Max.Y = box.Max.Y, box.Max.Z
+	return box
 }
