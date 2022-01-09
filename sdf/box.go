@@ -51,14 +51,24 @@ func (a Box2) Equals(b Box2, tolerance float64) bool {
 
 //-----------------------------------------------------------------------------
 
-// Extend returns a box that encloses two 3d boxes.
+// Extend returns a box enclosing two 3d boxes.
 func (a Box3) Extend(b Box3) Box3 {
 	return Box3{a.Min.Min(b.Min), a.Max.Max(b.Max)}
 }
 
-// Extend returns a box that encloses two 2d boxes.
+// Extend returns a box enclosing two 2d boxes.
 func (a Box2) Extend(b Box2) Box2 {
 	return Box2{a.Min.Min(b.Min), a.Max.Max(b.Max)}
+}
+
+// Include enlarges a 3d box to include a point.
+func (a Box3) Include(v V3) Box3 {
+	return Box3{a.Min.Min(v), a.Max.Max(v)}
+}
+
+// Include enlarges a 2d box to include a point.
+func (a Box2) Include(v V2) Box2 {
+	return Box2{a.Min.Min(v), a.Max.Max(v)}
 }
 
 //-----------------------------------------------------------------------------

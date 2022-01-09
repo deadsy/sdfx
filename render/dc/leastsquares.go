@@ -1,9 +1,10 @@
 package dc
 
 import (
-	"github.com/deadsy/sdfx/sdf"
 	"log"
 	"math"
+
+	"github.com/deadsy/sdfx/sdf"
 )
 
 func (dc *DualContouringV2) determinant(a, b, c, d, e, f, g, h, i float64) float64 {

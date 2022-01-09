@@ -11,13 +11,14 @@ No draft version for 3d printing and lost-PLA investment casting.
 package main
 
 import (
-	"github.com/deadsy/sdfx/render"
-	"github.com/deadsy/sdfx/render/dc"
-	. "github.com/deadsy/sdfx/sdf"
 	"log"
 	"math"
 	"runtime"
 	"time"
+
+	"github.com/deadsy/sdfx/render"
+	"github.com/deadsy/sdfx/render/dc"
+	. "github.com/deadsy/sdfx/sdf"
 )
 
 //-----------------------------------------------------------------------------
