@@ -9,12 +9,13 @@ Closed-surface triangle meshes (and STL files)
 package obj
 
 import (
+	"io"
+	"math"
+
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
 	"github.com/dhconnelly/rtreego"
 	"github.com/hschendel/stl"
-	"io"
-	"math"
 )
 
 //-----------------------------------------------------------------------------

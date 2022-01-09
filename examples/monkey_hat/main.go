@@ -9,12 +9,13 @@ Imported monkey model, with modifications
 package main
 
 import (
-	"github.com/deadsy/sdfx/obj"
-	"github.com/deadsy/sdfx/render"
-	"github.com/deadsy/sdfx/sdf"
 	"log"
 	"os"
 	"time"
+
+	"github.com/deadsy/sdfx/obj"
+	"github.com/deadsy/sdfx/render"
+	"github.com/deadsy/sdfx/sdf"
 )
 
 func monkeyWithHat() sdf.SDF3 {

@@ -9,10 +9,11 @@ Pool Model
 package main
 
 import (
+	"log"
+
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/render/dc"
 	"github.com/deadsy/sdfx/sdf"
-	"log"
 )
 
 //-----------------------------------------------------------------------------
