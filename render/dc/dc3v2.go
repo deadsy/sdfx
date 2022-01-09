@@ -14,10 +14,11 @@ package dc
 
 import (
 	"fmt"
-	"github.com/deadsy/sdfx/render"
-	"github.com/deadsy/sdfx/sdf"
 	"log"
 	"math"
+
+	"github.com/deadsy/sdfx/render"
+	"github.com/deadsy/sdfx/sdf"
 )
 
 //-----------------------------------------------------------------------------

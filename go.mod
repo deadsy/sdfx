@@ -7,7 +7,9 @@ require (
 	github.com/barkimedes/go-deepcopy v0.0.0-20200817023428-a044a1957ca4
 	github.com/cenkalti/backoff/v4 v4.1.2
 	github.com/fsnotify/fsnotify v1.5.1
+	github.com/dhconnelly/rtreego v1.1.0
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
+	github.com/hschendel/stl v1.0.4
 	github.com/hajimehoshi/ebiten v1.12.12
 	github.com/llgcode/draw2d v0.0.0-20200930101115-bfaf5d914d1e
 	github.com/stretchr/testify v1.7.0

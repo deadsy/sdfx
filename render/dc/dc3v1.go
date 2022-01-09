@@ -15,11 +15,12 @@ package dc
 
 import (
 	"fmt"
+	"math"
+	"sort"
+
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
 	"gonum.org/v1/gonum/mat"
-	"math"
-	"sort"
 )
 
 //-----------------------------------------------------------------------------
