@@ -93,7 +93,7 @@ func main() {
 		//defer profile.Start(profile.TraceProfile, profile.ProfilePath(".")).Stop()
 
 		// Actual rendering loop
-		err = dev.NewDevRenderer(s,
+		err = dev.NewRenderer(s,
 			dev.OptMWatchFiles([]string{"main.go"}), // Default of "." also works, but it triggers too often if generating a profile
 		).Run()
 		if err != nil {
