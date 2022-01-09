@@ -59,8 +59,8 @@ type Renderer struct {
 	zoomFactor         float64          // how much to scale the SDF2/SDF3 on each zoom operation (> 1)
 }
 
-// NewDevRenderer see DevRenderer
-func NewDevRenderer(anySDF interface{}, opts ...Option) *Renderer {
+// NewRenderer see Renderer
+func NewRenderer(anySDF interface{}, opts ...Option) *Renderer {
 	r := &Renderer{
 		implLock:          &sync.RWMutex{},
 		implStateLock:     &sync.RWMutex{},
