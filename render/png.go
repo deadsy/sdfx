@@ -50,6 +50,7 @@ func (d *PNG) RenderSDF2(s sdf.SDF2) {
 	d.RenderSDF2MinMax(s, 0, 0)
 }
 
+// RenderSDF2MinMax renders a 2d signed distance field as gray scale (with defined min/max levels).
 func (d *PNG) RenderSDF2MinMax(s sdf.SDF2, dmin, dmax float64) {
 	// sample the distance field
 	minMaxSet := dmin != 0 && dmax != 0
