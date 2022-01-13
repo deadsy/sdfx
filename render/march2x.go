@@ -12,6 +12,7 @@ Uses quadtree space subdivision.
 package render
 
 import (
+	"fmt"
 	"math"
 	"sync"
 
@@ -118,6 +119,30 @@ func (dc *dcache2) processSquare(c *square, output chan<- *Line) {
 			dc.processSquare(&square{c.v.Add(sdf.V2i{0, s}), n}, output)
 		}
 	}
+}
+
+//-----------------------------------------------------------------------------
+
+// MarchingSquaresQuadtree renders using marching squares with quadtree space sampling.
+type MarchingSquaresQuadtree struct {
+}
+
+// Info returns a string describing the rendered shape.
+func (m *MarchingSquaresQuadtree) Info(s sdf.SDF2, meshCells int) string {
+	// work out the sampling resolution to use
+	bbSize := s.BoundingBox().Size()
+	resolution := bbSize.MaxComponent() / float64(meshCells)
+	cells := bbSize.DivScalar(resolution).ToV2i()
+
+	return fmt.Sprintf("%dx%d, resolution %.2f", cells[0], cells[1], resolution)
+}
+
+// Render produces a 2D line mesh over the bounding volume of an sdf2.
+func (m *MarchingSquaresQuadtree) Render(s sdf.SDF2, meshCells int, output chan<- *Line) {
+	// work out the sampling resolution to use
+	bbSize := s.BoundingBox().Size()
+	resolution := bbSize.MaxComponent() / float64(meshCells)
+	marchingSquaresQuadtree(s, resolution, output)
 }
 
 //-----------------------------------------------------------------------------

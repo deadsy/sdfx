@@ -11,6 +11,7 @@ Convert an SDF2 boundary to a set of line segments.
 package render
 
 import (
+	"fmt"
 	"math"
 
 	"github.com/deadsy/sdfx/sdf"
@@ -66,6 +67,40 @@ func (l *lineCache) get(x, y int) float64 {
 		return l.val0[y]
 	}
 	return l.val1[y]
+}
+
+//-----------------------------------------------------------------------------
+
+// MarchingSquaresUniform renders using marching squares with uniform space sampling.
+type MarchingSquaresUniform struct {
+}
+
+// Info returns a string describing the rendered shape.
+func (m *MarchingSquaresUniform) Info(s sdf.SDF2, meshCells int) string {
+	// work out the region we will sample
+	bb0 := s.BoundingBox()
+	bb0Size := bb0.Size()
+	meshInc := bb0Size.MaxComponent() / float64(meshCells)
+	bb1Size := bb0Size.DivScalar(meshInc)
+	bb1Size = bb1Size.Ceil().AddScalar(1)
+	cells := bb1Size.ToV2i()
+	bb1Size = bb1Size.MulScalar(meshInc)
+	return fmt.Sprintf("%dx%d", cells[0], cells[1])
+}
+
+// Render produces a 2D line mesh over the bounding volume of an sdf2.
+func (m *MarchingSquaresUniform) Render(s sdf.SDF2, meshCells int, output chan<- *Line) {
+	// work out the region we will sample
+	bb0 := s.BoundingBox()
+	bb0Size := bb0.Size()
+	meshInc := bb0Size.MaxComponent() / float64(meshCells)
+	bb1Size := bb0Size.DivScalar(meshInc)
+	bb1Size = bb1Size.Ceil().AddScalar(1)
+	bb1Size = bb1Size.MulScalar(meshInc)
+	bb := sdf.NewBox2(bb0.Center(), bb1Size)
+	for _, tri := range marchingSquares(s, bb, meshInc) {
+		output <- tri
+	}
 }
 
 //-----------------------------------------------------------------------------

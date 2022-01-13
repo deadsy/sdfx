@@ -49,7 +49,7 @@ func ToSTL(
 //-----------------------------------------------------------------------------
 // Legacy API (Use ToSTL for new designs) ...
 
-// RenderSTL renders an SDF3 as an STL file (uses octree sampling).
+// Deprecated: RenderSTL renders an SDF3 as an STL file (uses octree sampling).
 func RenderSTL(
 	s sdf.SDF3, //sdf3 to render
 	meshCells int, //number of cells on the longest axis. e.g 200
@@ -58,7 +58,7 @@ func RenderSTL(
 	ToSTL(s, meshCells, path, &MarchingCubesOctree{})
 }
 
-// RenderSTLSlow renders an SDF3 as an STL file (uses uniform grid sampling).
+// Deprecated: RenderSTLSlow renders an SDF3 as an STL file (uses uniform grid sampling).
 func RenderSTLSlow(
 	s sdf.SDF3, //sdf3 to render
 	meshCells int, //number of cells on the longest axis. e.g 200

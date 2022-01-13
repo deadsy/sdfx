@@ -36,7 +36,7 @@ func main() {
 	}
 
 	render.RenderDXF(s2d, 600, "shape.dxf")
-	render.RenderSVG(s2d, 600, "shape.svg", "fill:none;stroke:black;stroke-width:0.1")
+	render.ToSVG(s2d, 600, "shape.svg", "fill:none;stroke:black;stroke-width:0.1", &render.MarchingSquaresQuadtree{})
 
 	s3d, err := sdf.ExtrudeRounded3D(s2d, 1.0, 0.2)
 	if err != nil {
