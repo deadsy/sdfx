@@ -9,6 +9,9 @@ This is a tool for removing them.
 This design is for the Mazda 2006 RX-8 (Series1)
 Other ring nuts are similar, so feel free to modify.
 
+Notes:
+Mazda Tool: SST# 49-F042-001
+
 */
 //-----------------------------------------------------------------------------
 
@@ -24,13 +27,13 @@ import (
 //-----------------------------------------------------------------------------
 
 const innerDiameter = 132.0
-const ringWidth = 20.0
+const ringWidth = 19.0
 const outerDiameter = innerDiameter + (2.0 * ringWidth)
 const ringHeight = 20.0
 
-const numTabs = 20
-const tabDepth = 3.0
-const tabWidth = 3.0
+const numTabs = 18
+const tabDepth = 3.5
+const tabWidth = 3.5
 
 const sideThickness = 2.5 * tabDepth
 const topThickness = 2.0 * tabDepth
