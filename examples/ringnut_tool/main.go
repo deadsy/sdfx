@@ -26,6 +26,12 @@ import (
 
 //-----------------------------------------------------------------------------
 
+// material shrinkage
+const shrink = 1.0 / 0.999 // PLA ~0.1%
+//const shrink = 1.0/0.995; // ABS ~0.5%
+
+//-----------------------------------------------------------------------------
+
 const innerDiameter = 132.0
 const ringWidth = 19.0
 const outerDiameter = innerDiameter + (2.0 * ringWidth)
@@ -133,6 +139,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
+	s = sdf.ScaleUniform3D(s, shrink)
 	render.ToSTL(s, 300, "tool.stl", &render.MarchingCubesOctree{})
 }
 
