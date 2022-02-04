@@ -20,6 +20,7 @@ package main
 import (
 	"log"
 
+	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
 )
@@ -35,17 +36,19 @@ const shrink = 1.0 / 0.999 // PLA ~0.1%
 const innerDiameter = 132.0
 const ringWidth = 19.0
 const outerDiameter = innerDiameter + (2.0 * ringWidth)
-const ringHeight = 20.0
+const ringHeight = 16.0
+const topGap = 80.0
+const screwDiameter = 25.4 * 0.25
+const screwX = (topGap * 0.5) + (screwDiameter * 1.5)
+const screwY = innerDiameter * 0.22
 
 const numTabs = 18
 const tabDepth = 3.5
 const tabWidth = 3.5
+const extraTab = true // The rx-8 puts an additional tab on the ring
 
 const sideThickness = 2.5 * tabDepth
 const topThickness = 2.0 * tabDepth
-
-// The rx-8 puts an additional tab on the ring
-const extraTab = true
 
 //-----------------------------------------------------------------------------
 
@@ -71,6 +74,10 @@ func innerCavity() (sdf.SDF3, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	s1 = sdf.Cut3D(s1, sdf.V3{topGap * 0.5, 0, 0}, sdf.V3{-1, 0, 0})
+	s1 = sdf.Cut3D(s1, sdf.V3{-topGap * 0.5, 0, 0}, sdf.V3{1, 0, 0})
+
 	return sdf.Union3D(s0, s1), nil
 }
 
@@ -97,38 +104,75 @@ func tabs() (sdf.SDF3, error) {
 
 	theta := sdf.Tau / numTabs
 	s := sdf.RotateUnion3D(t, numTabs, sdf.Rotate3d(sdf.V3{0, 0, 1}, theta))
+	s = sdf.Transform3D(s, sdf.Rotate3d(sdf.V3{0, 0, 1}, theta*0.5))
 
 	if extraTab {
-		et := sdf.Transform3D(t, sdf.Rotate3d(sdf.V3{0, 0, 1}, theta*0.5))
-		s = sdf.Union3D(s, et)
+		s = sdf.Union3D(s, t)
 	}
 
 	return s, nil
 }
 
+func screwHole() (sdf.SDF3, error) {
+
+	l := ringHeight + topThickness
+	r := screwDiameter * 0.5
+
+	s, err := obj.CounterSunkHole3D(l, r)
+	if err != nil {
+		return nil, err
+	}
+
+	zofs := (l * 0.5) + ringHeight
+	s = sdf.Transform3D(s, sdf.Translate3d(sdf.V3{0, 0, -zofs}))
+
+	return s, nil
+}
+
+func screwHoles() (sdf.SDF3, error) {
+	s, err := screwHole()
+	if err != nil {
+		return nil, err
+	}
+	s0 := sdf.Transform3D(s, sdf.Translate3d(sdf.V3{screwX, screwY, 0}))
+	s1 := sdf.Transform3D(s, sdf.Translate3d(sdf.V3{-screwX, screwY, 0}))
+	s2 := sdf.Transform3D(s, sdf.Translate3d(sdf.V3{screwX, -screwY, 0}))
+	s3 := sdf.Transform3D(s, sdf.Translate3d(sdf.V3{-screwX, -screwY, 0}))
+	s4 := sdf.Transform3D(s, sdf.Translate3d(sdf.V3{screwX, 0, 0}))
+	s5 := sdf.Transform3D(s, sdf.Translate3d(sdf.V3{-screwX, 0, 0}))
+	return sdf.Union3D(s0, s1, s2, s3, s4, s5), nil
+}
+
 func tool() (sdf.SDF3, error) {
 
+	// make the body
 	body, err := outerBody()
 	if err != nil {
 		return nil, err
 	}
 
+	// make the cavity
 	cavity, err := innerCavity()
 	if err != nil {
 		return nil, err
 	}
 
-	// add the tabs
-	t, err := tabs()
+	// make the tabs
+	tabs, err := tabs()
 	if err != nil {
 		return nil, err
 	}
-	cavity = sdf.Union3D(cavity, t)
 
-	s := sdf.Difference3D(body, cavity)
+	// make the screw holes
+	screws, err := screwHoles()
+	if err != nil {
+		return nil, err
+	}
+
+	s := sdf.Difference3D(body, sdf.Union3D(cavity, tabs, screws))
 
 	// cut it on the xy plane
-	s = sdf.Cut3D(s, sdf.V3{0, 0, 0}, sdf.V3{0, 0, 1})
+	s = sdf.Cut3D(s, sdf.V3{0, 0, 0}, sdf.V3{0, 0, -1})
 	return s, nil
 }
 
