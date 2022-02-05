@@ -37,8 +37,8 @@ const innerDiameter = 132.0
 const ringWidth = 19.0
 const outerDiameter = innerDiameter + (2.0 * ringWidth)
 const ringHeight = 16.0
-const topGap = 80.0
-const screwDiameter = 25.4 * 0.25
+const topGap = 90.0
+const screwDiameter = 25.4 * (3.0/16.0)
 const screwX = (topGap * 0.5) + (screwDiameter * 1.5)
 const screwY = innerDiameter * 0.22
 
