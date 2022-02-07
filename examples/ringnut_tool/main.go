@@ -9,6 +9,8 @@ This is a tool for removing them.
 This design is for the Mazda 2006 RX-8 (Series1)
 Other ring nuts are similar, so feel free to modify.
 
+https://github.com/deadsy/sdfx/blob/master/examples/ringnut_tool/main.go
+
 Notes:
 Mazda Tool: SST# 49-F042-001
 
@@ -38,7 +40,7 @@ const ringWidth = 19.0
 const outerDiameter = innerDiameter + (2.0 * ringWidth)
 const ringHeight = 16.0
 const topGap = 90.0
-const screwDiameter = 25.4 * (3.0/16.0)
+const screwDiameter = 25.4 * (3.0 / 16.0)
 const screwX = (topGap * 0.5) + (screwDiameter * 1.5)
 const screwY = innerDiameter * 0.22
 
