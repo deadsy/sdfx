@@ -12,7 +12,13 @@ Other ring nuts are similar, so feel free to modify.
 https://github.com/deadsy/sdfx/blob/master/examples/ringnut_tool/main.go
 
 Notes:
+
 Mazda Tool: SST# 49-F042-001
+
+The Mazda RX-8 Series 1 ring nut has 18 + 1 tabs. The extra tab goes equally
+spaced between 2 other tabs. For this tool we have 36 tabs so the tool can
+be positioned at 10 degree intervals. This allows the tool to be re-positioned
+in use so it does not intefere with the indexing of the fuel pump.
 
 */
 //-----------------------------------------------------------------------------
@@ -44,10 +50,9 @@ const screwDiameter = 25.4 * (3.0 / 16.0)
 const screwX = (topGap * 0.5) + (screwDiameter * 1.5)
 const screwY = innerDiameter * 0.22
 
-const numTabs = 18
+const numTabs = 36
 const tabDepth = 3.5
 const tabWidth = 3.5
-const extraTab = true // The rx-8 puts an additional tab on the ring
 
 const sideThickness = 2.5 * tabDepth
 const topThickness = 2.0 * tabDepth
@@ -105,14 +110,7 @@ func tabs() (sdf.SDF3, error) {
 	}
 
 	theta := sdf.Tau / numTabs
-	s := sdf.RotateUnion3D(t, numTabs, sdf.Rotate3d(sdf.V3{0, 0, 1}, theta))
-	s = sdf.Transform3D(s, sdf.Rotate3d(sdf.V3{0, 0, 1}, theta*0.5))
-
-	if extraTab {
-		s = sdf.Union3D(s, t)
-	}
-
-	return s, nil
+	return sdf.RotateUnion3D(t, numTabs, sdf.Rotate3d(sdf.V3{0, 0, 1}, theta)), nil
 }
 
 func screwHole() (sdf.SDF3, error) {
