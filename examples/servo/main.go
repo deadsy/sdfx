@@ -19,7 +19,7 @@ import (
 
 func main() {
 
-	k, err := obj.ServoLookup("annimos_20kg")
+	k, err := obj.ServoLookup("standard")
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
