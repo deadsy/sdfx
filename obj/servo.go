@@ -237,3 +237,49 @@ func Servo2D(k *ServoParms, holeRadius float64) (sdf.SDF2, error) {
 }
 
 //-----------------------------------------------------------------------------
+
+// ServoHornParms stores the parameters that define a servo horn.
+type ServoHornParms struct {
+	CenterRadius float64 // radius of center hole
+	NumHoles     int     // numer of mount holes
+	CircleRadius float64 // radius of bolt circle
+	HoleRadius   float64 // radius of mount hole
+}
+
+// ServoHorn returns a 2D cutout model for a servo horn nount.
+func ServoHorn(k *ServoHornParms) (sdf.SDF2, error) {
+	if k.CenterRadius < 0 {
+		return nil, sdf.ErrMsg("CenterRadius < 0")
+	}
+	if k.NumHoles < 0 {
+		return nil, sdf.ErrMsg("NumHoles < 0")
+	}
+	if k.CircleRadius < 0 {
+		return nil, sdf.ErrMsg("CircleRadius < 0")
+	}
+	if k.HoleRadius < 0 {
+		return nil, sdf.ErrMsg("HoleRadius < 0")
+	}
+
+	var s sdf.SDF2
+
+	if k.CenterRadius > 0 {
+		h, err := sdf.Circle2D(k.CenterRadius)
+		if err != nil {
+			return nil, err
+		}
+		s = sdf.Union2D(s, h)
+	}
+
+	if k.NumHoles > 0 && k.CircleRadius > 0 && k.HoleRadius > 0 {
+		h, err := BoltCircle2D(k.HoleRadius, k.CircleRadius, k.NumHoles)
+		if err != nil {
+			return nil, err
+		}
+		s = sdf.Union2D(s, h)
+	}
+
+	return s, nil
+}
+
+//-----------------------------------------------------------------------------

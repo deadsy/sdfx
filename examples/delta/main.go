@@ -24,19 +24,15 @@ const shrink = 1.0 / 0.999 // PLA ~0.1%
 
 //-----------------------------------------------------------------------------
 
-const upperArmRadius0 = 10.0
-const upperArmRadius1 = 5.0
-const upperArmRadius2 = 2.5
-const upperArmLength = 100.0
-const upperArmThickness = 5.0
-const upperArmWidth = 50.0
-
-const servoCenterHoleRadius = 2.0
-const servoMountHoleRadius = 1.0
-const servoMountRadius = 6.0
-const servoMountHoles = 8
-
 func upperArm() (sdf.SDF3, error) {
+
+	const upperArmRadius0 = 16.0
+	const upperArmRadius1 = 5.0
+	const upperArmRadius2 = 2.5
+	const upperArmLength = 120.0
+	const upperArmThickness = 5.0
+	const upperArmWidth = 50.0
+	const gussetThickness = 0.7
 
 	// body
 	b, err := sdf.FlatFlankCam2D(upperArmLength, upperArmRadius0, upperArmRadius1)
@@ -60,8 +56,8 @@ func upperArm() (sdf.SDF3, error) {
 	c1 = sdf.Transform3D(c1, sdf.Translate3d(sdf.V3{0, upperArmLength, 0}))
 
 	// gusset
-	dx := upperArmWidth * 0.4
-	dy := upperArmLength * 0.6
+	const dx = upperArmWidth * 0.4
+	const dy = upperArmLength * 0.6
 	g := sdf.NewPolygon()
 	g.Add(-dx, dy)
 	g.Add(dx, dy)
@@ -70,28 +66,31 @@ func upperArm() (sdf.SDF3, error) {
 	if err != nil {
 		return nil, err
 	}
-	gusset := sdf.Extrude3D(g2d, upperArmThickness*0.5)
+	gusset := sdf.Extrude3D(g2d, upperArmThickness*gussetThickness)
 	gusset = sdf.Transform3D(gusset, sdf.RotateY(sdf.DtoR(90)))
 	yOfs := upperArmLength - dy
 	gusset = sdf.Transform3D(gusset, sdf.Translate3d(sdf.V3{0, yOfs, 0}))
 
 	// servo mounting
-	h0, err := obj.BoltCircle3D(upperArmThickness, servoMountHoleRadius, servoMountRadius, servoMountHoles)
+	k := obj.ServoHornParms{
+		CenterRadius: 4,
+		NumHoles:     6,
+		CircleRadius: 10,
+		HoleRadius:   1,
+	}
+	h0, err := obj.ServoHorn(&k)
 	if err != nil {
 		return nil, err
 	}
-	h1, err := sdf.Cylinder3D(upperArmWidth, servoCenterHoleRadius, 0)
-	if err != nil {
-		return nil, err
-	}
+	horn := sdf.Extrude3D(h0, upperArmThickness)
 
 	// body + cylinder
 	s := sdf.Union3D(body, c0)
 	// add the gusset with fillets
 	s = sdf.Union3D(s, gusset)
-	s.(*sdf.UnionSDF3).SetMin(sdf.PolyMin(upperArmThickness * 0.5))
+	s.(*sdf.UnionSDF3).SetMin(sdf.PolyMin(upperArmThickness * gussetThickness))
 	// remove the holes
-	s = sdf.Difference3D(s, sdf.Union3D(c1, h0, h1))
+	s = sdf.Difference3D(s, sdf.Union3D(c1, horn))
 
 	return s, nil
 }
@@ -106,7 +105,7 @@ func main() {
 	}
 
 	s = sdf.ScaleUniform3D(s, shrink)
-	render.ToSTL(s, 300, "arm.stl", &render.MarchingCubesOctree{})
+	render.ToSTL(s, 500, "arm.stl", &render.MarchingCubesOctree{})
 }
 
 //-----------------------------------------------------------------------------
