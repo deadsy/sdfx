@@ -5,6 +5,10 @@ Servo Models
 
 See: https://www.servocity.com/servos/
 
+Note: Servos fall into several well known size categories. In general you could
+design for this nominal size but you need to check the final fit against the specific
+servo being used. There is dimensional variance within and across manufacturers.
+
 */
 //-----------------------------------------------------------------------------
 
@@ -49,7 +53,7 @@ func initServoLookup() servoDatabase {
 		MountOffset: 12,
 		ShaftOffset: 6.4,
 		ShaftLength: 2.8,
-		ShaftRadius: 2,
+		ShaftRadius: 1.4,
 		HoleRadius:  1,
 	}
 	m.Add("hitec_hs_40", &k)
@@ -62,19 +66,37 @@ func initServoLookup() servoDatabase {
 		MountOffset: 16.6,
 		ShaftOffset: 9,
 		ShaftLength: 2.5,
-		ShaftRadius: 2,
-		HoleRadius:  1,
+		ShaftRadius: 1.25,
+		HoleRadius:  0.95,
 	}
 	m.Add("hitec_hs_55", &k)
 	m.Add("submicro", &k)
 
-	//k = ServoParms{}
-	//m.Add("hitec_hs_81", &k)
-	//m.Add("micro", &k)
+	k = ServoParms{
+		Body:        sdf.V3{29.1, 13, 30.4},
+		Mount:       sdf.V3{40, 12, 2},
+		Hole:        sdf.V2{35.6, 0},
+		MountOffset: 19,
+		ShaftOffset: 9.8,
+		ShaftLength: 3.8,
+		ShaftRadius: 1.9,
+		HoleRadius:  2.25,
+	}
+	m.Add("hitec_hs_85bb", &k)
+	m.Add("micro", &k)
 
-	//k = ServoParms{}
-	//m.Add("hitec_hs_225bb", &k)
-	//m.Add("mini", &k)
+	k = ServoParms{
+		Body:        sdf.V3{32.3, 16.8, 33},
+		Mount:       sdf.V3{44.3, 16, 2.2},
+		Hole:        sdf.V2{39.6, 7.9},
+		MountOffset: 23.5,
+		ShaftOffset: 12.2,
+		ShaftLength: 3.3,
+		ShaftRadius: 1.65,
+		HoleRadius:  2.25,
+	}
+	m.Add("hitec_hs_225bb", &k)
+	m.Add("mini", &k)
 
 	k = ServoParms{
 		Body:        sdf.V3{40.2, 20.2, 38.3},
@@ -83,18 +105,18 @@ func initServoLookup() servoDatabase {
 		MountOffset: 26.5,
 		ShaftOffset: 13.85,
 		ShaftLength: 3.5,
-		ShaftRadius: 2,
+		ShaftRadius: 1.75,
 		HoleRadius:  2.15,
 	}
-	m.Add("standard", &k)
 	m.Add("hitec_hs_311", &k)
+	m.Add("standard", &k)
 
 	k = ServoParms{
 		Body:        sdf.V3{40, 20, 41.5},
-		Mount:       sdf.V3{54.38, 20, 1},
+		Mount:       sdf.V3{54.38, 20, 2.6},
 		Hole:        sdf.V2{49.5, 10},
 		MountOffset: 27.76,
-		ShaftOffset: 30,
+		ShaftOffset: 14.75,
 		ShaftLength: 4,
 		ShaftRadius: 2,
 		HoleRadius:  2,
@@ -108,15 +130,24 @@ func initServoLookup() servoDatabase {
 		MountOffset: 42,
 		ShaftOffset: 18.9,
 		ShaftLength: 5.4,
-		ShaftRadius: 2,
+		ShaftRadius: 2.7,
 		HoleRadius:  2.8,
 	}
 	m.Add("hitec_hs_805bb", &k)
 	m.Add("large", &k)
 
-	//k = ServoParms{}
-	//m.Add("hitec_hs_1005sgt", &k)
-	//m.Add("giant", &k)
+	k = ServoParms{
+		Body:        sdf.V3{64, 33, 73.3},
+		Mount:       sdf.V3{88, 33, 4},
+		Hole:        sdf.V2{76, 21},
+		MountOffset: 53.3,
+		ShaftOffset: 20.6,
+		ShaftLength: 7.6,
+		ShaftRadius: 3.8,
+		HoleRadius:  3,
+	}
+	m.Add("hitec_hs_1005sgt", &k)
+	m.Add("giant", &k)
 
 	return m
 }
@@ -171,6 +202,36 @@ func Servo3D(k *ServoParms) (sdf.SDF3, error) {
 	xOfs = 0.5*k.Hole.X - k.ShaftOffset
 	zOfs = 0.5 * k.Body.Z
 	s = sdf.Transform3D(s, sdf.Translate3d(sdf.V3{xOfs, 0, zOfs}))
+
+	return s, nil
+}
+
+//-----------------------------------------------------------------------------
+
+// Servo2D returns a 2D cutout model for servo mounting.
+func Servo2D(k *ServoParms, holeRadius float64) (sdf.SDF2, error) {
+
+	if holeRadius < 0 {
+		holeRadius = k.HoleRadius
+	}
+
+	// servo body
+	body := sdf.Box2D(sdf.V2{k.Body.X, k.Body.Y}, 0)
+
+	// holes
+	hole, err := sdf.Circle2D(holeRadius)
+	if err != nil {
+		return nil, err
+	}
+	xOfs := 0.5 * k.Hole.X
+	yOfs := 0.5 * k.Hole.Y
+	holes := sdf.Multi2D(hole, []sdf.V2{{xOfs, yOfs}, {-xOfs, yOfs}, {xOfs, -yOfs}, {-xOfs, -yOfs}})
+
+	s := sdf.Union2D(body, holes)
+
+	// position the shaft at the origin
+	xOfs = 0.5*k.Hole.X - k.ShaftOffset
+	s = sdf.Transform2D(s, sdf.Translate2d(sdf.V2{xOfs, 0}))
 
 	return s, nil
 }
