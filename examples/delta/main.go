@@ -99,12 +99,12 @@ func upperArm() (sdf.SDF3, error) {
 
 func servoMount() (sdf.SDF3, error) {
 
-	const uprightLength = 65.0
+	const uprightLength = 66.0
 	const baseLength = 35.0
 	const thickness = 3.5
 	const width = 35.0
 	const servoOffset = uprightLength - 20.0
-	const mountHoleRadius = 1.0
+	const mountHoleRadius = 2.4
 
 	m := sdf.NewPolygon()
 	m.Add(0, 0)
@@ -133,7 +133,7 @@ func servoMount() (sdf.SDF3, error) {
 	hole, err := sdf.Cylinder3D(thickness, mountHoleRadius, 0)
 	hole = sdf.Transform3D(hole, sdf.Translate3d(sdf.V3{(baseLength + thickness) * 0.5, 0, thickness * 0.5}))
 	dx := (baseLength * 0.5) - thickness - 4.0
-	dy := (width * 0.5) - thickness - 4.0
+	dy := (width * 0.5) - thickness - 6.0
 	holes := sdf.Multi3D(hole, []sdf.V3{{dx, dy, 0}, {-dx, dy, 0}, {dx, -dy, 0}, {-dx, -dy, 0}})
 
 	mount = sdf.Difference3D(mount, holes)
@@ -143,7 +143,7 @@ func servoMount() (sdf.SDF3, error) {
 	if err != nil {
 		return nil, err
 	}
-	servo2d, err := obj.Servo2D(k, -1)
+	servo2d, err := obj.Servo2D(k, 2.1)
 	if err != nil {
 		return nil, err
 	}
@@ -172,7 +172,7 @@ func main() {
 		log.Fatalf("error: %s", err)
 	}
 	s = sdf.ScaleUniform3D(s, shrink)
-	render.ToSTL(s, 500, "servomount.stl", &render.MarchingCubesOctree{})
+	render.ToSTL(s, 300, "servomount.stl", &render.MarchingCubesOctree{})
 
 }
 
