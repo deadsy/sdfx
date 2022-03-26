@@ -97,15 +97,83 @@ func upperArm() (sdf.SDF3, error) {
 
 //-----------------------------------------------------------------------------
 
+func servoMount() (sdf.SDF3, error) {
+
+	const uprightLength = 65.0
+	const baseLength = 35.0
+	const thickness = 3.5
+	const width = 35.0
+	const servoOffset = uprightLength - 20.0
+	const mountHoleRadius = 1.0
+
+	m := sdf.NewPolygon()
+	m.Add(0, 0)
+	m.Add(baseLength, 0)
+	m.Add(baseLength, thickness)
+	m.Add(thickness, uprightLength)
+	m.Add(0, uprightLength)
+	m2d, err := sdf.Polygon2D(m.Vertices())
+	if err != nil {
+		return nil, err
+	}
+	mount := sdf.Extrude3D(m2d, width)
+
+	// cavity
+	c := sdf.NewPolygon()
+	c.Add(thickness, thickness)
+	c.Add(baseLength, thickness)
+	c.Add(thickness, uprightLength)
+	c2d, err := sdf.Polygon2D(c.Vertices())
+	cavity := sdf.Extrude3D(c2d, width-2*thickness)
+
+	mount = sdf.Difference3D(mount, cavity)
+	mount = sdf.Transform3D(mount, sdf.RotateX(sdf.DtoR(90)))
+
+	// base holes
+	hole, err := sdf.Cylinder3D(thickness, mountHoleRadius, 0)
+	hole = sdf.Transform3D(hole, sdf.Translate3d(sdf.V3{(baseLength + thickness) * 0.5, 0, thickness * 0.5}))
+	dx := (baseLength * 0.5) - thickness - 4.0
+	dy := (width * 0.5) - thickness - 4.0
+	holes := sdf.Multi3D(hole, []sdf.V3{{dx, dy, 0}, {-dx, dy, 0}, {dx, -dy, 0}, {-dx, -dy, 0}})
+
+	mount = sdf.Difference3D(mount, holes)
+
+	// servo
+	k, err := obj.ServoLookup("annimos_ds3218")
+	if err != nil {
+		return nil, err
+	}
+	servo2d, err := obj.Servo2D(k, -1)
+	if err != nil {
+		return nil, err
+	}
+	servo := sdf.Extrude3D(servo2d, thickness)
+	servo = sdf.Transform3D(servo, sdf.RotateY(sdf.DtoR(90)))
+	servo = sdf.Transform3D(servo, sdf.Translate3d(sdf.V3{thickness * 0.5, 0, servoOffset}))
+
+	s := sdf.Difference3D(mount, servo)
+
+	return s, nil
+}
+
+//-----------------------------------------------------------------------------
+
 func main() {
 
 	s, err := upperArm()
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-
 	s = sdf.ScaleUniform3D(s, shrink)
 	render.ToSTL(s, 500, "arm.stl", &render.MarchingCubesOctree{})
+
+	s, err = servoMount()
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	s = sdf.ScaleUniform3D(s, shrink)
+	render.ToSTL(s, 500, "servomount.stl", &render.MarchingCubesOctree{})
+
 }
 
 //-----------------------------------------------------------------------------

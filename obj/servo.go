@@ -113,15 +113,15 @@ func initServoLookup() servoDatabase {
 
 	k = ServoParms{
 		Body:        sdf.V3{40, 20, 41.5},
-		Mount:       sdf.V3{54.38, 20, 2.6},
+		Mount:       sdf.V3{54.2, 18.5, 3},
 		Hole:        sdf.V2{49.5, 10},
-		MountOffset: 27.76,
+		MountOffset: 28,
 		ShaftOffset: 14.75,
-		ShaftLength: 4,
-		ShaftRadius: 2,
-		HoleRadius:  2,
+		ShaftLength: 4.2,
+		ShaftRadius: 2.1,
+		HoleRadius:  2.15,
 	}
-	m.Add("annimos_20kg", &k)
+	m.Add("annimos_ds3218", &k)
 
 	k = ServoParms{
 		Body:        sdf.V3{65.9, 29.9, 59.3},
@@ -215,8 +215,10 @@ func Servo2D(k *ServoParms, holeRadius float64) (sdf.SDF2, error) {
 		holeRadius = k.HoleRadius
 	}
 
+	const clearance = 1.0 // mounting hole clearance
+
 	// servo body
-	body := sdf.Box2D(sdf.V2{k.Body.X, k.Body.Y}, 0)
+	body := sdf.Box2D(sdf.V2{k.Body.X + clearance, k.Body.Y + clearance}, 0)
 
 	// holes
 	hole, err := sdf.Circle2D(holeRadius)
