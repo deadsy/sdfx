@@ -10,6 +10,7 @@ package main
 
 import (
 	"log"
+	"math"
 
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
@@ -26,13 +27,13 @@ const shrink = 1.0 / 0.999 // PLA ~0.1%
 
 func upperArm() (sdf.SDF3, error) {
 
-	const upperArmRadius0 = 16.0
+	const upperArmRadius0 = 15.0
 	const upperArmRadius1 = 5.0
 	const upperArmRadius2 = 2.5
 	const upperArmLength = 120.0
-	const upperArmThickness = 5.0
-	const upperArmWidth = 50.0
-	const gussetThickness = 0.7
+	const upperArmThickness = 5.0 * 2.0
+	const upperArmWidth = 30.0 * 2.0
+	const gussetThickness = 0.5
 
 	// body
 	b, err := sdf.FlatFlankCam2D(upperArmLength, upperArmRadius0, upperArmRadius1)
@@ -73,10 +74,10 @@ func upperArm() (sdf.SDF3, error) {
 
 	// servo mounting
 	k := obj.ServoHornParms{
-		CenterRadius: 4,
-		NumHoles:     6,
-		CircleRadius: 10,
-		HoleRadius:   1,
+		CenterRadius: 3,
+		NumHoles:     4,
+		CircleRadius: 14 / math.Sqrt(2),
+		HoleRadius:   2,
 	}
 	h0, err := obj.ServoHorn(&k)
 	if err != nil {
@@ -91,6 +92,9 @@ func upperArm() (sdf.SDF3, error) {
 	s.(*sdf.UnionSDF3).SetMin(sdf.PolyMin(upperArmThickness * gussetThickness))
 	// remove the holes
 	s = sdf.Difference3D(s, sdf.Union3D(c1, horn))
+
+	// cut in half
+	s = sdf.Cut3D(s, sdf.V3{}, sdf.V3{0, 0, 1})
 
 	return s, nil
 }
