@@ -10,7 +10,6 @@ package main
 
 import (
 	"log"
-	"math"
 
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
@@ -76,8 +75,8 @@ func upperArm() (sdf.SDF3, error) {
 	k := obj.ServoHornParms{
 		CenterRadius: 3,
 		NumHoles:     4,
-		CircleRadius: 14 / math.Sqrt(2),
-		HoleRadius:   2,
+		CircleRadius: 14 * 0.5,
+		HoleRadius:   1.9,
 	}
 	h0, err := obj.ServoHorn(&k)
 	if err != nil {
@@ -85,13 +84,22 @@ func upperArm() (sdf.SDF3, error) {
 	}
 	horn := sdf.Extrude3D(h0, upperArmThickness)
 
+	const hornRadius = 10
+	const hornThickness = 2.3
+	hornBody, err := sdf.Cylinder3D(hornThickness, hornRadius, 0)
+	if err != nil {
+		return nil, err
+	}
+	zOfs := (upperArmThickness - hornThickness) * 0.5
+	hornBody = sdf.Transform3D(hornBody, sdf.Translate3d(sdf.V3{0, 0, zOfs}))
+
 	// body + cylinder
 	s := sdf.Union3D(body, c0)
 	// add the gusset with fillets
 	s = sdf.Union3D(s, gusset)
 	s.(*sdf.UnionSDF3).SetMin(sdf.PolyMin(upperArmThickness * gussetThickness))
 	// remove the holes
-	s = sdf.Difference3D(s, sdf.Union3D(c1, horn))
+	s = sdf.Difference3D(s, sdf.Union3D(c1, horn, hornBody))
 
 	// cut in half
 	s = sdf.Cut3D(s, sdf.V3{}, sdf.V3{0, 0, 1})
