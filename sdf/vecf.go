@@ -413,6 +413,11 @@ func (a V2) ToV3(z float64) V3 {
 	return V3{a.X, a.Y, z}
 }
 
+// ToV2 converts a V3 to a V2 (removing z).
+func (a V3) ToV2() V2 {
+	return V2{a.X, a.Y}
+}
+
 //-----------------------------------------------------------------------------
 
 // Overlap returns true if 1D line segments a and b overlap.
