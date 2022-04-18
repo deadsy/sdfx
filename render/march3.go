@@ -227,6 +227,44 @@ func mcToTriangles(p [8]sdf.V3, v [8]float64, x float64) []*Triangle3 {
 	return result
 }
 
+func mcToTrianglesSlice(p [8]sdf.V3, v [8]float64, x float64) []Triangle3 {
+	// which of the 0..255 patterns do we have?
+	index := 0
+	for i := 0; i < 8; i++ {
+		if v[i] < x {
+			index |= 1 << uint(i)
+		}
+	}
+	// do we have any triangles to create?
+	if mcEdgeTable[index] == 0 {
+		return nil
+	}
+	// work out the interpolated points on the edges
+	var points [12]sdf.V3
+	for i := 0; i < 12; i++ {
+		bit := 1 << uint(i)
+		if mcEdgeTable[index]&bit != 0 {
+			a := mcPairTable[i][0]
+			b := mcPairTable[i][1]
+			points[i] = mcInterpolate(p[a], p[b], v[a], v[b], x)
+		}
+	}
+	// create the triangles
+	table := mcTriangleTable[index]
+	count := len(table) / 3
+	result := make([]Triangle3, 0, count)
+	for i := 0; i < count; i++ {
+		t := Triangle3{}
+		t.V[2] = points[table[i*3+0]]
+		t.V[1] = points[table[i*3+1]]
+		t.V[0] = points[table[i*3+2]]
+		if !t.Degenerate(0) {
+			result = append(result, t)
+		}
+	}
+	return result
+}
+
 //-----------------------------------------------------------------------------
 
 func mcInterpolate(p1, p2 sdf.V3, v1, v2, x float64) sdf.V3 {

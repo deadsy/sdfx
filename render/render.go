@@ -33,7 +33,7 @@ func ToSTL(
 	fmt.Printf("rendering %s (%s)\n", path, r.Info(s, meshCells))
 	// write the triangles to an STL file
 	var wg sync.WaitGroup
-	output, err := WriteSTL(&wg, path)
+	output, err := StreamSTL(&wg, path)
 	if err != nil {
 		fmt.Printf("%s", err)
 		return
