@@ -161,3 +161,20 @@ func Axes3D(p0, p1 sdf.V3) (sdf.SDF3, error) {
 }
 
 //-----------------------------------------------------------------------------
+
+// DirectedArrow3D returns an arrow between points head/tail.
+func DirectedArrow3D(k *ArrowParms, head, tail sdf.V3) (sdf.SDF3, error) {
+	v := head.Sub(tail)
+	l := v.Length()
+	k.Axis[0] = l
+	arrow, err := Arrow3D(k)
+	if err != nil {
+		return nil, err
+	}
+	// position the arrow
+	ofs := head.Add(tail).MulScalar(0.5)
+	m := sdf.Translate3d(ofs).Mul(sdf.V3{0, 0, 1}.RotateToVector(v))
+	return sdf.Transform3D(arrow, m), nil
+}
+
+//-----------------------------------------------------------------------------
