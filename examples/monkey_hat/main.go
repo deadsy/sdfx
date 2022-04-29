@@ -53,7 +53,8 @@ func monkeyWithHat() (sdf.SDF3, error) {
 	// It also smooths the mesh a little using trilinear interpolation.
 	// It is actually slower for this mesh (unless meshCells <<< renderer's meshCells), but should be faster for
 	// more complex meshes (with more triangles) or SDF3 hierarchies that take longer to evaluate.
-	monkeyHat = sdf.NewVoxelSDF3(monkeyHat, 64, nil)
+	monkeyHat = sdf.NewVoxelSDF3(monkeyHat, 64, true)
+	monkeyHat.(*sdf.VoxelSDF3).Populate(nil)
 
 	return monkeyHat, nil
 }

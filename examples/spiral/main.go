@@ -22,6 +22,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("error: %s\n", err)
 	}
+	s = sdf.NewVoxelSDF2(s, 400, false)
+	//s.(*sdf.VoxelSDF2).Populate(nil)
 	render.RenderDXF(s, 400, "spiral.dxf")
 }
 
