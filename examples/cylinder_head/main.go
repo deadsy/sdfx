@@ -13,6 +13,7 @@ package main
 import (
 	"log"
 	"math"
+	"runtime"
 	"time"
 
 	"github.com/deadsy/sdfx/render"
@@ -401,14 +402,31 @@ func subtractive() SDF3 {
 
 func main() {
 	s := Difference3D(additive(), subtractive())
-	render.RenderSTL(s, 400, "head.stl")
+
 	t1 := time.Now()
-	render.ToSTL(s, 128, "head2.stl", dc.NewDualContouringV1(-1, 0, false))
+	mcuDefRenderer := &render.MarchingCubesUniform{}
+	render.ToSTL(s, 400, "head.stl", mcuDefRenderer)
 	t2 := time.Now()
-	render.ToSTL(s, 128, "head2.stl", dc.NewDualContouringDefault())
+	mcuMtRenderer := render.NewMtRenderer3(&render.MarchingCubesUniform{EvaluateGoroutines: 1}, 0)
+	mcuMtRenderer.AutoSplitsMinimum(runtime.NumCPU())
+	render.ToSTL(s, 400, "head_tmp.stl", mcuMtRenderer)
 	td2 := time.Since(t2)
 	td1 := t2.Sub(t1)
-	log.Println("DualContouringV1 delta time:", td1, "- DualContouringDefault delta time:", td2)
+	log.Println("MarchingCubesUniform + NumCPU goroutines:", td1, "- MarchingCubesUniform + MTRenderer:", td2)
+	t3 := time.Now()
+	render.ToSTL(s, 128, "head2.stl", dc.NewDualContouringV1(-1, 0, false))
+	t4 := time.Now()
+	render.ToSTL(s, 128, "head2.stl", dc.NewDualContouringDefault())
+	td4 := time.Since(t4)
+	td3 := t4.Sub(t3)
+	log.Println("DualContouringV1 delta time:", td3, "- DualContouringDefault delta time:", td4)
+	mtRenderer2 := render.NewMtRenderer3(dc.NewDualContouringDefault(), 1)
+	mtRenderer2.AutoSplitsMinimum(runtime.NumCPU())
+	mtRenderer2.MergeVerticesEpsilon = 1e-2
+	t5 := time.Now()
+	render.ToSTL(s, 128, "head2.stl", mtRenderer2)
+	td5 := time.Since(t5)
+	log.Println("DualContouringDefault delta time:", td4, "- DualContouringDefault MT delta time:", td5)
 }
 
 //-----------------------------------------------------------------------------

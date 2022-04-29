@@ -67,24 +67,22 @@ func NewDualContouringV2(farAway float64, centerPush float64, raycastScaleAndSig
 
 // Info returns a string describing the rendered volume.
 func (dc *DualContouringV2) Info(s sdf.SDF3, meshCells int) string {
-	resolution, cells := dc.getCells(s, meshCells)
+	resolution, cells := dc.Cells(s, meshCells)
 	return fmt.Sprintf("%dx%dx%d, resolution %.2f", cells[0], cells[1], cells[2], resolution)
 }
 
 // Render produces a 3d triangle mesh over the bounding volume of an sdf3.
 func (dc *DualContouringV2) Render(s sdf.SDF3, meshCells int, output chan<- *render.Triangle3) {
 	// Place one vertex for each cellIndex
-	_, cells := dc.getCells(s, meshCells)
+	_, cells := dc.Cells(s, meshCells)
 	s2 := &dcSdf{s, map[sdf.V3]float64{}}
 	vertexBuffer, vertexVoxelInfo, vertexVoxelInfoIndexed := dc.placeVertices(s2, cells)
 	// Stitch vertices together generating triangles
 	dc.generateTriangles(s2, vertexBuffer, vertexVoxelInfo, vertexVoxelInfoIndexed, output)
 }
 
-func (dc *DualContouringV2) getCells(s sdf.SDF3, meshCells int) (float64, sdf.V3i) {
-	bbSize := s.BoundingBox().Size()
-	resolution := bbSize.MaxComponent() / float64(meshCells)
-	return resolution, bbSize.DivScalar(resolution).ToV3i()
+func (dc *DualContouringV2) Cells(s sdf.SDF3, meshCells int) (float64, sdf.V3i) {
+	return render.DefaultRender3Cells(s, meshCells)
 }
 
 //-----------------------------------------------------------------------------
@@ -216,7 +214,7 @@ func (dc *DualContouringV2) placeVertex(s *dcSdf, cellStart, cellCenter, cellSiz
 			dc.RaycastEpsilon, dirLength*2, dc.RaycastMaxSteps)
 		if t < 0 || t > dirLength {
 			if !dc.raycastFailedWarned {
-				log.Println("[DualContouringV1] WARNING: raycast failed (steps:", steps, "- try modifying options), using fallback low accuracy implementation")
+				log.Println("[DualContouring] WARNING: raycast failed (steps:", steps, "- try modifying options), using fallback low accuracy implementation")
 				dc.raycastFailedWarned = true
 			}
 			edgeSurfPos = dcApproximateZeroCrossingPosition(s, cornerPos1, cornerPos2)
@@ -248,7 +246,7 @@ func (dc *DualContouringV2) placeVertex(s *dcSdf, cellStart, cellCenter, cellSiz
 	// Check if vertex positioning failed
 	if math.IsInf(vertexPos.X, 0) {
 		if !dc.qefFailedWarned {
-			log.Println("[DualContouringV1] WARNING: vertex positioning failed, centering vertex position!")
+			log.Println("[DualContouring] WARNING: vertex positioning failed, centering vertex position!")
 			dc.qefFailedWarned = true
 		}
 		vertexPos = cellCenter
@@ -259,7 +257,7 @@ func (dc *DualContouringV2) placeVertex(s *dcSdf, cellStart, cellCenter, cellSiz
 		math.Abs(vertexPos.Y-cellCenter.Y) > dc.FarAway*cellSize.Y ||
 		math.Abs(vertexPos.Z-cellCenter.Z) > dc.FarAway*cellSize.Z {
 		if !dc.farAwayWarned {
-			log.Print("[DualContouringV1] WARNING: generated a vertex two far away from voxel (by ",
+			log.Print("[DualContouring] WARNING: generated a vertex two far away from voxel (by ",
 				vertexPos.Sub(cellCenter), ", from ", cellCenter, " to ", vertexPos, "), clamping vertex position!\n")
 			dc.farAwayWarned = true
 		}
@@ -313,7 +311,8 @@ func (dc *DualContouringV2) generateTriangles(s *dcSdf, vertices []sdf.V3, info 
 
 			if v1 == nil || v2 == nil || v3 == nil { // Shouldn't ever happen
 				if !dc.faceVertexNotFoundWarned {
-					log.Println("[DualContouringV1] WARNING: no vertex found for completing face, there will be holes")
+					log.Println("[DualContouring] WARNING: no vertex found for completing face, there will be holes " +
+						"(this happens if the surface crosses the bounding box)")
 					dc.faceVertexNotFoundWarned = true
 				}
 				continue
@@ -362,7 +361,7 @@ func (dc *DualContouringV2) computeVertexPos(normals []sdf.V3, planeDs []float64
 	//err := res.Solve(A, b)
 	//if err != nil {
 	//	if !dc.qefFailedImplWarned {
-	//		log.Println("[DualContouringV1] WARNING: QEF solver failed: ", err.Error())
+	//		log.Println("[DualContouring] WARNING: QEF solver failed: ", err.Error())
 	//		dc.qefFailedImplWarned = true
 	//	}
 	//	return sdf.V3{X: math.Inf(1)}

@@ -12,7 +12,6 @@ Uses octree space subdivision.
 package render
 
 import (
-	"fmt"
 	"math"
 	"sync"
 
@@ -159,12 +158,8 @@ func marchingCubesOctree(s sdf.SDF3, resolution float64, output chan<- *Triangle
 type MarchingCubesOctree struct {
 }
 
-// Info returns a string describing the rendered volume.
-func (m *MarchingCubesOctree) Info(s sdf.SDF3, meshCells int) string {
-	bbSize := s.BoundingBox().Size()
-	resolution := bbSize.MaxComponent() / float64(meshCells)
-	cells := bbSize.DivScalar(resolution).ToV3i()
-	return fmt.Sprintf("%dx%dx%d, resolution %.2f", cells[0], cells[1], cells[2], resolution)
+func (m *MarchingCubesOctree) Cells(s sdf.SDF3, meshCells int) (float64, sdf.V3i) {
+	return DefaultRender3Cells(s, meshCells)
 }
 
 // Render produces a 3d triangle mesh over the bounding volume of an sdf3.

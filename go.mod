@@ -4,6 +4,7 @@ go 1.13
 
 require (
 	github.com/ajstarks/svgo v0.0.0-20200725142600-7a3c8b57fecb
+	github.com/barkimedes/go-deepcopy v0.0.0-20200817023428-a044a1957ca4
 	github.com/dhconnelly/rtreego v1.1.0
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/hschendel/stl v1.0.4

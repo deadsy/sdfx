@@ -11,7 +11,6 @@ Convert an SDF3 to a triangle mesh.
 package render
 
 import (
-	"fmt"
 	"math"
 	"runtime"
 	"sync"
@@ -22,15 +21,16 @@ import (
 //-----------------------------------------------------------------------------
 
 type layerYZ struct {
-	base  sdf.V3    // base coordinate of layer
-	inc   sdf.V3    // dx, dy, dz for each step
-	steps sdf.V3i   // number of x,y,z steps
-	val0  []float64 // SDF values for x layer
-	val1  []float64 // SDF values for x + dx layer
+	base          sdf.V3       // base coordinate of layer
+	inc           sdf.V3       // dx, dy, dz for each step
+	steps         sdf.V3i      // number of x,y,z steps
+	evalProcessCh chan evalReq // the evaluation channel for parallelization
+	val0          []float64    // SDF values for x layer
+	val1          []float64    // SDF values for x + dx layer
 }
 
-func newLayerYZ(base, inc sdf.V3, steps sdf.V3i) *layerYZ {
-	return &layerYZ{base, inc, steps, nil, nil}
+func newLayerYZ(base, inc sdf.V3, steps sdf.V3i, evalProcessCh chan evalReq) *layerYZ {
+	return &layerYZ{base, inc, steps, evalProcessCh, nil, nil}
 }
 
 // evalReq is used for processing evaluations in parallel.
@@ -42,23 +42,6 @@ type evalReq struct {
 	p   []sdf.V3
 	fn  func(sdf.V3) float64
 	wg  *sync.WaitGroup
-}
-
-var evalProcessCh = make(chan evalReq, 100)
-
-func init() {
-	for i := 0; i < runtime.NumCPU(); i++ {
-		go func() {
-			var i int
-			var p sdf.V3
-			for r := range evalProcessCh {
-				for i, p = range r.p {
-					r.out[i] = r.fn(p)
-				}
-				r.wg.Done()
-			}
-		}()
-	}
 }
 
 // Evaluate the SDF for a given XY layer
@@ -81,10 +64,13 @@ func (l *layerYZ) Evaluate(s sdf.SDF3, x int) {
 	p.X = l.base.X + float64(x)*dx
 
 	// define the base struct for requesting evaluation
-	eReq := evalReq{
-		wg:  new(sync.WaitGroup),
-		fn:  s.Evaluate,
-		out: l.val1,
+	var eReq evalReq
+	if l.evalProcessCh != nil {
+		eReq = evalReq{
+			wg:  new(sync.WaitGroup),
+			fn:  s.Evaluate,
+			out: l.val1,
+		}
 	}
 
 	// evaluate the layer
@@ -93,16 +79,22 @@ func (l *layerYZ) Evaluate(s sdf.SDF3, x int) {
 	// Performance doesn't seem to improve past 100.
 	const batchSize = 100
 
-	eReq.p = make([]sdf.V3, 0, batchSize)
+	if l.evalProcessCh != nil {
+		eReq.p = make([]sdf.V3, 0, batchSize)
+	}
 	for y := 0; y < ny+1; y++ {
 		p.Z = l.base.Z
 		for z := 0; z < nz+1; z++ {
-			eReq.p = append(eReq.p, p)
-			if len(eReq.p) == batchSize {
-				eReq.wg.Add(1)
-				evalProcessCh <- eReq
-				eReq.out = eReq.out[batchSize:]       // shift the output slice for processing
-				eReq.p = make([]sdf.V3, 0, batchSize) // create a new slice for the next batch
+			if l.evalProcessCh == nil { // Singlethread mode (just cache the evaluation)
+				l.val1[idx] = s.Evaluate(p)
+			} else { // Multithread mode: prepare and send slice for parallel processing using the evaluation goroutines
+				eReq.p = append(eReq.p, p)
+				if len(eReq.p) == batchSize {
+					eReq.wg.Add(1)
+					l.evalProcessCh <- eReq
+					eReq.out = eReq.out[batchSize:]       // shift the output slice for processing
+					eReq.p = make([]sdf.V3, 0, batchSize) // create a new slice for the next batch
+				}
 			}
 			idx++
 			p.Z += dz
@@ -110,14 +102,16 @@ func (l *layerYZ) Evaluate(s sdf.SDF3, x int) {
 		p.Y += dy
 	}
 
-	// send any remaining points for processing
-	if len(eReq.p) > 0 {
-		eReq.wg.Add(1)
-		evalProcessCh <- eReq
-	}
+	if l.evalProcessCh != nil {
+		// send any remaining points for processing
+		if len(eReq.p) > 0 {
+			eReq.wg.Add(1)
+			l.evalProcessCh <- eReq
+		}
 
-	// Wait for all processing to complete before returning
-	eReq.wg.Wait()
+		// Wait for all processing to complete before returning
+		eReq.wg.Wait()
+	}
 }
 
 func (l *layerYZ) Get(x, y, z int) float64 {
@@ -130,16 +124,31 @@ func (l *layerYZ) Get(x, y, z int) float64 {
 
 //-----------------------------------------------------------------------------
 
-func marchingCubes(s sdf.SDF3, box sdf.Box3, step float64) []*Triangle3 {
+func marchingCubes(s sdf.SDF3, box sdf.Box3, step float64, out chan<- *Triangle3, goroutines int) {
+	var evalProcessCh chan evalReq
+	if goroutines > 1 {
+		evalProcessCh = make(chan evalReq, 100)
+		for i := 0; i < goroutines; i++ {
+			go func() {
+				var i int
+				var p sdf.V3
+				for r := range evalProcessCh {
+					for i, p = range r.p {
+						r.out[i] = r.fn(p)
+					}
+					r.wg.Done()
+				}
+			}()
+		}
+	}
 
-	var triangles []*Triangle3
 	size := box.Size()
 	base := box.Min
 	steps := size.DivScalar(step).Ceil().ToV3i()
 	inc := size.Div(steps.ToV3())
 
 	// create the SDF layer cache
-	l := newLayerYZ(base, inc, steps)
+	l := newLayerYZ(base, inc, steps, evalProcessCh)
 	// evaluate the SDF for x = 0
 	l.Evaluate(s, 0)
 
@@ -176,15 +185,16 @@ func marchingCubes(s sdf.SDF3, box sdf.Box3, step float64) []*Triangle3 {
 					l.Get(1, y, z+1),
 					l.Get(1, y+1, z+1),
 					l.Get(0, y+1, z+1)}
-				triangles = append(triangles, mcToTriangles(corners, values, 0)...)
+				//triangles = append(triangles, mcToTriangles(corners, values, 0)...)
+				for _, tri := range mcToTriangles(corners, values, 0) {
+					out <- tri
+				}
 				p.Z += dz
 			}
 			p.Y += dy
 		}
 		p.X += dx
 	}
-
-	return triangles
 }
 
 //-----------------------------------------------------------------------------
@@ -262,32 +272,29 @@ func mcInterpolate(p1, p2 sdf.V3, v1, v2, x float64) sdf.V3 {
 
 // MarchingCubesUniform renders using marching cubes with uniform space sampling.
 type MarchingCubesUniform struct {
+	// How many goroutines to spawn for parallel evaluation of the SDF3 (0 is runtime.NumCPU())
+	// Set to 1 to avoid generating goroutines, useful for using the parallel renderer as a wrapper
+	EvaluateGoroutines int
 }
 
-// Info returns a string describing the rendered volume.
-func (m *MarchingCubesUniform) Info(s sdf.SDF3, meshCells int) string {
-	bb0 := s.BoundingBox()
-	bb0Size := bb0.Size()
-	meshInc := bb0Size.MaxComponent() / float64(meshCells)
-	bb1Size := bb0Size.DivScalar(meshInc)
-	bb1Size = bb1Size.Ceil().AddScalar(1)
-	cells := bb1Size.ToV3i()
-	return fmt.Sprintf("%dx%dx%d", cells[0], cells[1], cells[2])
+func (m *MarchingCubesUniform) Cells(s sdf.SDF3, meshCells int) (float64, sdf.V3i) {
+	return DefaultRender3Cells(s, meshCells)
 }
 
 // Render produces a 3d triangle mesh over the bounding volume of an sdf3.
 func (m *MarchingCubesUniform) Render(s sdf.SDF3, meshCells int, output chan<- *Triangle3) {
+	if m.EvaluateGoroutines == 0 {
+		m.EvaluateGoroutines = runtime.NumCPU() // Keep legacy behavior
+	}
 	// work out the region we will sample
 	bb0 := s.BoundingBox()
 	bb0Size := bb0.Size()
 	meshInc := bb0Size.MaxComponent() / float64(meshCells)
 	bb1Size := bb0Size.DivScalar(meshInc)
-	bb1Size = bb1Size.Ceil().AddScalar(1)
+	bb1Size = bb1Size /*.Ceil().AddScalar(1) - Changed to work with multithread renderer: same behaviour as other renderers*/
 	bb1Size = bb1Size.MulScalar(meshInc)
 	bb := sdf.NewBox3(bb0.Center(), bb1Size)
-	for _, tri := range marchingCubes(s, bb, meshInc) {
-		output <- tri
-	}
+	marchingCubes(s, bb, meshInc, output, m.EvaluateGoroutines)
 }
 
 //-----------------------------------------------------------------------------

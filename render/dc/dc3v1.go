@@ -14,7 +14,6 @@ Based on: https://github.com/nickgildea/DualContouringSample
 package dc
 
 import (
-	"fmt"
 	"math"
 	"sort"
 
@@ -44,12 +43,8 @@ func NewDualContouringV1(simplify float64, RCond float64, lockVertices bool) *Du
 	return &DualContouringV1{Simplify: simplify, RCond: RCond, LockVertices: lockVertices}
 }
 
-// Info returns a string describing the rendered volume.
-func (m *DualContouringV1) Info(s sdf.SDF3, meshCells int) string {
-	bbSize := s.BoundingBox().Size()
-	resolution := bbSize.MaxComponent() / float64(meshCells)
-	cells := bbSize.DivScalar(resolution).ToV3i()
-	return fmt.Sprintf("%dx%dx%d, resolution %.2f", cells[0], cells[1], cells[2], resolution)
+func (m *DualContouringV1) Cells(s sdf.SDF3, meshCells int) (float64, sdf.V3i) {
+	return render.DefaultRender3Cells(s, meshCells)
 }
 
 // Render produces a 3d triangle mesh over the bounding volume of an sdf3.
