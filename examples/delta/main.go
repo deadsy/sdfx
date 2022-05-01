@@ -10,6 +10,7 @@ package main
 
 import (
 	"log"
+	"math"
 
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
@@ -24,14 +25,15 @@ const shrink = 1.0 / 0.999 // PLA ~0.1%
 
 //-----------------------------------------------------------------------------
 
+const upperArmWidth = 30.0
+const upperArmRadius0 = 15.0
+const upperArmRadius1 = 5.0
+const upperArmRadius2 = 2.5
+const upperArmLength = 120.0
+
 func upperArm() (sdf.SDF3, error) {
 
-	const upperArmRadius0 = 15.0
-	const upperArmRadius1 = 5.0
-	const upperArmRadius2 = 2.5
-	const upperArmLength = 120.0
 	const upperArmThickness = 5.0 * 2.0
-	const upperArmWidth = 30.0 * 2.0
 	const gussetThickness = 0.5
 
 	// body
@@ -42,21 +44,21 @@ func upperArm() (sdf.SDF3, error) {
 	body := sdf.Extrude3D(b, upperArmThickness)
 
 	// end cylinder
-	c0, err := sdf.Cylinder3D(upperArmWidth, upperArmRadius1, 0)
+	c0, err := sdf.Cylinder3D(upperArmWidth*2.0, upperArmRadius1, 0)
 	if err != nil {
 		return nil, err
 	}
 	c0 = sdf.Transform3D(c0, sdf.Translate3d(sdf.V3{0, upperArmLength, 0}))
 
 	// end cylinder hole
-	c1, err := sdf.Cylinder3D(upperArmWidth, upperArmRadius2, 0)
+	c1, err := sdf.Cylinder3D(upperArmWidth*2.0, upperArmRadius2, 0)
 	if err != nil {
 		return nil, err
 	}
 	c1 = sdf.Transform3D(c1, sdf.Translate3d(sdf.V3{0, upperArmLength, 0}))
 
 	// gusset
-	const dx = upperArmWidth * 0.4
+	const dx = upperArmWidth * 2.0 * 0.4
 	const dy = upperArmLength * 0.6
 	g := sdf.NewPolygon()
 	g.Add(-dx, dy)
@@ -109,45 +111,58 @@ func upperArm() (sdf.SDF3, error) {
 
 //-----------------------------------------------------------------------------
 
+const servoMountUprightLength = 66.0
+const servoMountBaseLength = 35.0
+const servoMountThickness = 3.5
+const servoMountWidth = 35.0
+const servoMountHoleRadius = 2.4
+
+func servoMountHoles(h float64) (sdf.SDF3, error) {
+	// base holes
+	hole, err := sdf.Cylinder3D(h, servoMountHoleRadius, 0)
+	if err != nil {
+		return nil, err
+	}
+	hole = sdf.Transform3D(hole, sdf.Translate3d(sdf.V3{(servoMountBaseLength + servoMountThickness) * 0.5, 0, 0}))
+	dx := (servoMountBaseLength * 0.5) - servoMountThickness - 4.0
+	dy := (servoMountWidth * 0.5) - servoMountThickness - 6.0
+	holes := sdf.Multi3D(hole, []sdf.V3{{dx, dy, 0}, {-dx, dy, 0}, {dx, -dy, 0}, {-dx, -dy, 0}})
+	return holes, nil
+}
+
 func servoMount() (sdf.SDF3, error) {
 
-	const uprightLength = 66.0
-	const baseLength = 35.0
-	const thickness = 3.5
-	const width = 35.0
-	const servoOffset = uprightLength - 20.0
-	const mountHoleRadius = 2.4
+	const servoOffset = servoMountUprightLength - 20.0
 
 	m := sdf.NewPolygon()
 	m.Add(0, 0)
-	m.Add(baseLength, 0)
-	m.Add(baseLength, thickness)
-	m.Add(thickness, uprightLength)
-	m.Add(0, uprightLength)
+	m.Add(servoMountBaseLength, 0)
+	m.Add(servoMountBaseLength, servoMountThickness)
+	m.Add(servoMountThickness, servoMountUprightLength)
+	m.Add(0, servoMountUprightLength)
 	m2d, err := sdf.Polygon2D(m.Vertices())
 	if err != nil {
 		return nil, err
 	}
-	mount := sdf.Extrude3D(m2d, width)
+	mount := sdf.Extrude3D(m2d, servoMountWidth)
 
 	// cavity
 	c := sdf.NewPolygon()
-	c.Add(thickness, thickness)
-	c.Add(baseLength, thickness)
-	c.Add(thickness, uprightLength)
+	c.Add(servoMountThickness, servoMountThickness)
+	c.Add(servoMountBaseLength, servoMountThickness)
+	c.Add(servoMountThickness, servoMountUprightLength)
 	c2d, err := sdf.Polygon2D(c.Vertices())
-	cavity := sdf.Extrude3D(c2d, width-2*thickness)
+	cavity := sdf.Extrude3D(c2d, servoMountWidth-2*servoMountThickness)
 
 	mount = sdf.Difference3D(mount, cavity)
 	mount = sdf.Transform3D(mount, sdf.RotateX(sdf.DtoR(90)))
 
 	// base holes
-	hole, err := sdf.Cylinder3D(thickness, mountHoleRadius, 0)
-	hole = sdf.Transform3D(hole, sdf.Translate3d(sdf.V3{(baseLength + thickness) * 0.5, 0, thickness * 0.5}))
-	dx := (baseLength * 0.5) - thickness - 4.0
-	dy := (width * 0.5) - thickness - 6.0
-	holes := sdf.Multi3D(hole, []sdf.V3{{dx, dy, 0}, {-dx, dy, 0}, {dx, -dy, 0}, {-dx, -dy, 0}})
-
+	holes, err := servoMountHoles(servoMountThickness)
+	if err != nil {
+		return nil, err
+	}
+	holes = sdf.Transform3D(holes, sdf.Translate3d(sdf.V3{0, 0, servoMountThickness * 0.5}))
 	mount = sdf.Difference3D(mount, holes)
 
 	// servo
@@ -159,13 +174,91 @@ func servoMount() (sdf.SDF3, error) {
 	if err != nil {
 		return nil, err
 	}
-	servo := sdf.Extrude3D(servo2d, thickness)
+	servo := sdf.Extrude3D(servo2d, servoMountThickness)
 	servo = sdf.Transform3D(servo, sdf.RotateY(sdf.DtoR(90)))
-	servo = sdf.Transform3D(servo, sdf.Translate3d(sdf.V3{thickness * 0.5, 0, servoOffset}))
+	servo = sdf.Transform3D(servo, sdf.Translate3d(sdf.V3{servoMountThickness * 0.5, 0, servoOffset}))
 
 	s := sdf.Difference3D(mount, servo)
 
 	return s, nil
+}
+
+//-----------------------------------------------------------------------------
+
+const baseSide = 150
+const baseThickness = 7
+const basePillarHeight = 20
+const baseHoleRadius = 7
+
+var servoY = -baseSide * math.Tan(sdf.DtoR(30)) * 0.5
+var servoX = 25.0 - upperArmWidth*0.5
+
+func deltaBase() (sdf.SDF3, error) {
+
+	// servo holes
+	holes, err := servoMountHoles(baseThickness)
+	if err != nil {
+		return nil, err
+	}
+	holes = sdf.Transform3D(holes, sdf.Translate3d(sdf.V3{servoX, servoY, -baseThickness * 0.5}))
+	holes = sdf.RotateUnion3D(holes, 3, sdf.RotateZ(sdf.DtoR(120)))
+
+	// base
+	base, err := sdf.Cylinder3D(baseThickness, baseSide*0.5*1.05, 0)
+	if err != nil {
+		return nil, err
+	}
+	base = sdf.Transform3D(base, sdf.Translate3d(sdf.V3{0, 0, -baseThickness * 0.5}))
+
+	// pillars
+	k := obj.StandoffParms{
+		PillarHeight:   basePillarHeight,
+		PillarDiameter: 15,
+		HoleDepth:      15,
+		HoleDiameter:   3,
+	}
+	pillars, err := obj.Standoff3D(&k)
+	if err != nil {
+		return nil, err
+	}
+	pillars = sdf.Transform3D(pillars, sdf.RotateX(sdf.DtoR(180)))
+	pillars = sdf.Transform3D(pillars, sdf.Translate3d(sdf.V3{0, -baseSide * 0.4, -(0.5*basePillarHeight + baseThickness)}))
+	pillars = sdf.RotateUnion3D(pillars, 3, sdf.RotateZ(sdf.DtoR(120)))
+
+	// hole for servo wires
+	baseHole, err := sdf.Cylinder3D(baseThickness, baseHoleRadius, 0)
+	if err != nil {
+		return nil, err
+	}
+	baseHole = sdf.Transform3D(baseHole, sdf.Translate3d(sdf.V3{0, 0, -baseThickness * 0.5}))
+	holes = sdf.Union3D(holes, baseHole)
+
+	// base/pillar fillet
+	base = sdf.Union3D(base, pillars)
+	base.(*sdf.UnionSDF3).SetMin(sdf.PolyMin(baseThickness))
+
+	return sdf.Difference3D(base, holes), nil
+}
+
+//-----------------------------------------------------------------------------
+
+func baseWithServos() (sdf.SDF3, error) {
+
+	// servos
+	servos, err := servoMount()
+	if err != nil {
+		return nil, err
+	}
+	servos = sdf.Transform3D(servos, sdf.Translate3d(sdf.V3{servoX, servoY, 0}))
+	servos = sdf.RotateUnion3D(servos, 3, sdf.RotateZ(sdf.DtoR(120)))
+
+	// base
+	base, err := deltaBase()
+	if err != nil {
+		return nil, err
+	}
+
+	return sdf.Union3D(base, servos), nil
 }
 
 //-----------------------------------------------------------------------------
@@ -186,6 +279,12 @@ func main() {
 	s = sdf.ScaleUniform3D(s, shrink)
 	render.ToSTL(s, 300, "servomount.stl", &render.MarchingCubesOctree{})
 
+	s, err = deltaBase()
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	s = sdf.ScaleUniform3D(s, shrink)
+	render.ToSTL(s, 300, "base.stl", &render.MarchingCubesOctree{})
 }
 
 //-----------------------------------------------------------------------------
