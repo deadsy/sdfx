@@ -64,47 +64,13 @@ func TestMatrixOps(t *testing.T) {
 	assert.Equal(t, 3.0*13.0-5.0*11.0, a.Cross(b), "axb works")
 }
 
-func TestColinearity(t *testing.T) {
-	a := Vec{37.4, 88.8}
-	m := Vec{3.0, 5.0}
-	b := a.Add(m.MulScalar(16.0))
-	c := a.Sub(m.MulScalar(7.0))
-	d := Vec{55.5, 66.6}
-
-	assert.True(t, colinearFast(a, b, c, 0.0001), "ABC are colinear fast")
-	assert.True(t, colinearFast(a, c, b, 0.0001), "ACB are colienar fast")
-	assert.True(t, colinearFast(b, a, c, 0.0001), "BAC are colinear fast")
-	assert.True(t, colinearFast(b, c, a, 0.0001), "BCA are colienar fast")
-	assert.True(t, colinearFast(c, a, b, 0.0001), "CAB are colinear fast")
-	assert.True(t, colinearFast(c, b, a, 0.0001), "CBA are colinear fast")
-
-	assert.False(t, colinearFast(a, b, d, 0.0001), "ABD are not colinear fast")
-	assert.False(t, colinearFast(a, c, d, 0.0001), "ACD are not colienar fast")
-	assert.False(t, colinearFast(b, a, d, 0.0001), "BAD are not colinear fast")
-	assert.False(t, colinearFast(b, c, d, 0.0001), "BCD are not colienar fast")
-	assert.False(t, colinearFast(c, a, d, 0.0001), "CAD are not colinear fast")
-	assert.False(t, colinearFast(c, b, d, 0.0001), "CBD are not colinear fast")
-
-	assert.True(t, colinearSlow(a, b, c, 0.0001), "ABC are colinear slow")
-	assert.True(t, colinearSlow(a, c, b, 0.0001), "ACB are colienar slow")
-	assert.True(t, colinearSlow(b, a, c, 0.0001), "BAC are colinear slow")
-	assert.True(t, colinearSlow(b, c, a, 0.0001), "BCA are colienar slow")
-	assert.True(t, colinearSlow(c, a, b, 0.0001), "CAB are colinear slow")
-	assert.True(t, colinearSlow(c, b, a, 0.0001), "CBA are colinear slow")
-
-	assert.False(t, colinearSlow(a, b, d, 0.0001), "ABD are not colinear slow")
-	assert.False(t, colinearSlow(a, c, d, 0.0001), "ACD are not colienar slow")
-	assert.False(t, colinearSlow(b, a, d, 0.0001), "BAD are not colinear slow")
-	assert.False(t, colinearSlow(b, c, d, 0.0001), "BCD are not colienar slow")
-	assert.False(t, colinearSlow(c, a, d, 0.0001), "CAD are not colinear slow")
-	assert.False(t, colinearSlow(c, b, d, 0.0001), "CBD are not colinear slow")
-}
-
-func TestScalarOps(t *testing.T) {
+func TestV2ScalarOps(t *testing.T) {
 	a := 42.0
 	v := Vec{0.0, 1.0}
 	assert.Equal(t, Vec{0.0 + a, 1.0 + a}, v.AddScalar(a), "v+a works")
+	assert.Equal(t, Vec{0.0 - a, 1.0 - a}, v.SubScalar(a), "v-a works")
 	assert.Equal(t, Vec{0.0 * a, 1.0 * a}, v.MulScalar(a), "v*a works")
+	assert.Equal(t, Vec{0.0 / a, 1.0 / a}, v.DivScalar(a), "v/a works")
 }
 
 func TestAbs(t *testing.T) {

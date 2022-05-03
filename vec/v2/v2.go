@@ -65,9 +65,19 @@ func (a Vec) AddScalar(b float64) Vec {
 	return Vec{a.X + b, a.Y + b}
 }
 
+// SubScalar subtracts a scalar from each vector component.
+func (a Vec) SubScalar(b float64) Vec {
+	return Vec{a.X - b, a.Y - b}
+}
+
 // MulScalar multiplies each vector component by a scalar.
 func (a Vec) MulScalar(b float64) Vec {
 	return Vec{a.X * b, a.Y * b}
+}
+
+// DivScalar divides each vector component by a scalar.
+func (a Vec) DivScalar(b float64) Vec {
+	return a.MulScalar(1 / b)
 }
 
 // Abs takes the absolute value of each vector component.
@@ -152,24 +162,6 @@ func (a Vec) Overlap(b Vec) bool {
 
 //-----------------------------------------------------------------------------
 
-// colinearSlow return true if 3 points are colinear (slow test).
-func colinearSlow(a, b, c Vec, tolerance float64) bool {
-	// use the cross product as a measure of colinearity
-	pa := a.Sub(c).Normalize()
-	pb := b.Sub(c).Normalize()
-	return math.Abs(pa.Cross(pb)) < tolerance
-}
-
-// colinearFast return true if 3 points are colinear (fast test).
-func colinearFast(a, b, c Vec, tolerance float64) bool {
-	// use the cross product as a measure of colinearity
-	ac := a.Sub(b)
-	bc := b.Sub(c)
-	return math.Abs(ac.Cross(bc)) < tolerance
-}
-
-//-----------------------------------------------------------------------------
-
 // VecSet is a set of 2D float64 vectors.
 type VecSet []Vec
 
@@ -191,7 +183,7 @@ func (a VecSet) Max() Vec {
 	return vmax
 }
 
-// Sort By X for a VecSet
+// VecSetByX sorts the VecSet by X value
 type VecSetByX VecSet
 
 func (a VecSetByX) Len() int           { return len(a) }

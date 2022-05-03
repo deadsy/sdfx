@@ -69,9 +69,19 @@ func (a Vec) AddScalar(b float64) Vec {
 	return Vec{a.X + b, a.Y + b, a.Z + b}
 }
 
+// SubScalar subtracts a scalar from each vector component.
+func (a Vec) SubScalar(b float64) Vec {
+	return Vec{a.X - b, a.Y - b, a.Z - b}
+}
+
 // MulScalar multiplies each vector component by a scalar.
 func (a Vec) MulScalar(b float64) Vec {
 	return Vec{a.X * b, a.Y * b, a.Z * b}
+}
+
+// DivScalar divides each vector component by a scalar.
+func (a Vec) DivScalar(b float64) Vec {
+	return a.MulScalar(1 / b)
 }
 
 // Abs takes the absolute value of each vector component.
@@ -147,6 +157,16 @@ func (a Vec) MinComponent() float64 {
 // MaxComponent returns the maximum component of the vector.
 func (a Vec) MaxComponent() float64 {
 	return math.Max(math.Max(a.X, a.Y), a.Z)
+}
+
+// Sin takes the sine of each vector component.
+func (a Vec) Sin() Vec {
+	return Vec{math.Sin(a.X), math.Sin(a.Y), math.Sin(a.Z)}
+}
+
+// Cos takes the cosine of each vector component.
+func (a Vec) Cos() Vec {
+	return Vec{math.Cos(a.X), math.Cos(a.Y), math.Cos(a.Z)}
 }
 
 //-----------------------------------------------------------------------------

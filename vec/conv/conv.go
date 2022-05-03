@@ -11,7 +11,6 @@ package conv
 import (
 	"math"
 
-	"github.com/deadsy/sdfx/sdf"
 	"github.com/deadsy/sdfx/vec/p2"
 	v2 "github.com/deadsy/sdfx/vec/v2"
 	"github.com/deadsy/sdfx/vec/v2i"
@@ -48,12 +47,17 @@ func V2ToV3(a v2.Vec, z float64) v3.Vec {
 	return v3.Vec{a.X, a.Y, z}
 }
 
+// V2ToV2i converts a 2D float vector to a 2D integer vector.
+func V2ToV2i(a v2.Vec) v2i.Vec {
+	return v2i.Vec{int(a.X), int(a.Y)}
+}
+
 //-----------------------------------------------------------------------------
 // V3 to X
 
-// V3ToSDF converts a 3D vector to the legacy sdf type.
-func V3ToSDF(a v3.Vec) sdf.V3 {
-	return sdf.V3{a.X, a.Y, a.Z}
+// V3ToV3i converts a 3D float vector to a 3D integer vector.
+func V3ToV3i(a v3.Vec) v3i.Vec {
+	return v3i.Vec{int(a.X), int(a.Y), int(a.Z)}
 }
 
 //-----------------------------------------------------------------------------
