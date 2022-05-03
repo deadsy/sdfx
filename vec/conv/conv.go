@@ -11,6 +11,7 @@ package conv
 import (
 	"math"
 
+	"github.com/deadsy/sdfx/sdf"
 	"github.com/deadsy/sdfx/vec/p2"
 	v2 "github.com/deadsy/sdfx/vec/v2"
 	"github.com/deadsy/sdfx/vec/v2i"
@@ -45,6 +46,14 @@ func V2ToP2(a v2.Vec) p2.Vec {
 // V2ToV3 converts a 2D vector to a 3D vector with a specified Z value.
 func V2ToV3(a v2.Vec, z float64) v3.Vec {
 	return v3.Vec{a.X, a.Y, z}
+}
+
+//-----------------------------------------------------------------------------
+// V3 to X
+
+// V3ToSDF converts a 3D vector to the legacy sdf type.
+func V3ToSDF(a v3.Vec) sdf.V3 {
+	return sdf.V3{a.X, a.Y, a.Z}
 }
 
 //-----------------------------------------------------------------------------
