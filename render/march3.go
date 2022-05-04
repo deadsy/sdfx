@@ -17,6 +17,7 @@ import (
 	"sync"
 
 	"github.com/deadsy/sdfx/sdf"
+	"github.com/deadsy/sdfx/vec/conv"
 )
 
 //-----------------------------------------------------------------------------
@@ -67,7 +68,7 @@ func (l *layerYZ) Evaluate(s sdf.SDF3, x int) {
 	// Swap the layers
 	l.val0, l.val1 = l.val1, l.val0
 
-	ny, nz := l.steps[1], l.steps[2]
+	ny, nz := l.steps.Y, l.steps.Z
 	dx, dy, dz := l.inc.X, l.inc.Y, l.inc.Z
 
 	// allocate storage
@@ -121,7 +122,7 @@ func (l *layerYZ) Evaluate(s sdf.SDF3, x int) {
 }
 
 func (l *layerYZ) Get(x, y, z int) float64 {
-	idx := y*(l.steps[2]+1) + z
+	idx := y*(l.steps.Z+1) + z
 	if x == 0 {
 		return l.val0[idx]
 	}
@@ -135,15 +136,15 @@ func marchingCubes(s sdf.SDF3, box sdf.Box3, step float64) []*Triangle3 {
 	var triangles []*Triangle3
 	size := box.Size()
 	base := box.Min
-	steps := size.DivScalar(step).Ceil().ToV3i()
-	inc := size.Div(steps.ToV3())
+	steps := conv.V3ToV3i(size.DivScalar(step).Ceil())
+	inc := size.Div(conv.V3iToV3(steps))
 
 	// create the SDF layer cache
 	l := newLayerYZ(base, inc, steps)
 	// evaluate the SDF for x = 0
 	l.Evaluate(s, 0)
 
-	nx, ny, nz := steps[0], steps[1], steps[2]
+	nx, ny, nz := steps.X, steps.Y, steps.Z
 	dx, dy, dz := inc.X, inc.Y, inc.Z
 
 	var p sdf.V3
@@ -271,8 +272,8 @@ func (m *MarchingCubesUniform) Info(s sdf.SDF3, meshCells int) string {
 	meshInc := bb0Size.MaxComponent() / float64(meshCells)
 	bb1Size := bb0Size.DivScalar(meshInc)
 	bb1Size = bb1Size.Ceil().AddScalar(1)
-	cells := bb1Size.ToV3i()
-	return fmt.Sprintf("%dx%dx%d", cells[0], cells[1], cells[2])
+	cells := conv.V3ToV3i(bb1Size)
+	return fmt.Sprintf("%dx%dx%d", cells.X, cells.Y, cells.Z)
 }
 
 // Render produces a 3d triangle mesh over the bounding volume of an sdf3.

@@ -8,6 +8,8 @@ Voxel-based cache/smoothing to remove deep SDF2/SDF3 hierarchies and speed up ev
 
 package sdf
 
+import "github.com/deadsy/sdfx/vec/conv"
+
 //-----------------------------------------------------------------------------
 
 // VoxelSDF3 is the SDF that represents a pre-computed voxel-based SDF3.
@@ -36,19 +38,19 @@ func NewVoxelSDF3(s SDF3, meshCells int, progress chan float64) SDF3 {
 	bb := s.BoundingBox() // TODO: Use default code to avoid duplication
 	bbSize := bb.Size()
 	resolution := bbSize.MaxComponent() / float64(meshCells)
-	cells := bbSize.DivScalar(resolution).ToV3i()
+	cells := conv.V3ToV3i(bbSize.DivScalar(resolution))
 
 	voxelCorners := map[V3i]float64{}
 	voxelCornerIndex := V3i{}
-	for voxelCornerIndex[0] = 0; voxelCornerIndex[0] <= cells[0]; voxelCornerIndex[0]++ {
-		for voxelCornerIndex[1] = 0; voxelCornerIndex[1] <= cells[1]; voxelCornerIndex[1]++ {
-			for voxelCornerIndex[2] = 0; voxelCornerIndex[2] <= cells[2]; voxelCornerIndex[2]++ {
-				voxelCorner := bb.Min.Add(bbSize.Mul(voxelCornerIndex.ToV3()).Div(cells.ToV3()))
+	for voxelCornerIndex.X = 0; voxelCornerIndex.X <= cells.X; voxelCornerIndex.X++ {
+		for voxelCornerIndex.Y = 0; voxelCornerIndex.Y <= cells.Y; voxelCornerIndex.Y++ {
+			for voxelCornerIndex.Z = 0; voxelCornerIndex.Z <= cells.Z; voxelCornerIndex.Z++ {
+				voxelCorner := bb.Min.Add(bbSize.Mul(conv.V3iToV3(voxelCornerIndex)).Div(conv.V3iToV3(cells)))
 				voxelCorners[voxelCornerIndex] = s.Evaluate(voxelCorner)
 			}
 		}
 		if progress != nil {
-			progress <- float64(voxelCornerIndex[0]) / float64(cells[0])
+			progress <- float64(voxelCornerIndex.X) / float64(cells.X)
 		}
 	}
 
@@ -62,9 +64,9 @@ func NewVoxelSDF3(s SDF3, meshCells int, progress chan float64) SDF3 {
 // Evaluate returns the minimum distance to a VoxelSDF3.
 func (m *VoxelSDF3) Evaluate(p V3) float64 {
 	// Find the voxel's {0,0,0} corner quickly and compute p's displacement
-	voxelSize := m.bb.Size().Div(m.numVoxels.ToV3())
-	voxelStartIndex := p.Sub(m.bb.Min).Div(voxelSize).ToV3i()
-	voxelStart := m.bb.Min.Add(voxelSize.Mul(voxelStartIndex.ToV3()))
+	voxelSize := m.bb.Size().Div(conv.V3iToV3(m.numVoxels))
+	voxelStartIndex := conv.V3ToV3i(p.Sub(m.bb.Min).Div(voxelSize))
+	voxelStart := m.bb.Min.Add(voxelSize.Mul(conv.V3iToV3(voxelStartIndex)))
 	d := p.Sub(voxelStart).Div(voxelSize) // [0, 1) for each dimension
 	// Get the values at the voxel's corners
 	c000 := m.voxelCorners[voxelStartIndex]

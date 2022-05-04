@@ -14,6 +14,7 @@ import (
 	"math"
 
 	"github.com/deadsy/sdfx/sdf"
+	"github.com/deadsy/sdfx/vec/conv"
 )
 
 //-----------------------------------------------------------------------------
@@ -38,7 +39,7 @@ func (l *lineCache) evaluate(s sdf.SDF2, x int) {
 	// Swap the layers
 	l.val0, l.val1 = l.val1, l.val0
 
-	ny := l.steps[1]
+	ny := l.steps.Y
 	dx, dy := l.inc.X, l.inc.Y
 
 	// allocate storage
@@ -75,15 +76,15 @@ func marchingSquares(s sdf.SDF2, box sdf.Box2, step float64) []*Line {
 	var lines []*Line
 	size := box.Size()
 	base := box.Min
-	steps := size.DivScalar(step).Ceil().ToV2i()
-	inc := size.Div(steps.ToV2())
+	steps := conv.V2ToV2i(size.MulScalar(1 / step).Ceil())
+	inc := size.Div(conv.V2iToV2(steps))
 
 	// create the line cache
 	l := newLineCache(base, inc, steps)
 	// evaluate the SDF for x = 0
 	l.evaluate(s, 0)
 
-	nx, ny := steps[0], steps[1]
+	nx, ny := steps.X, steps.Y
 	dx, dy := inc.X, inc.Y
 
 	var p sdf.V2

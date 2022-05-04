@@ -14,7 +14,29 @@ import (
 	"log"
 	"math"
 	"math/rand"
+
+	"github.com/deadsy/sdfx/vec/conv"
+	"github.com/deadsy/sdfx/vec/p2"
+	v2 "github.com/deadsy/sdfx/vec/v2"
 )
+
+//-----------------------------------------------------------------------------
+
+// colinearSlow return true if 3 points are colinear (slow test).
+func colinearSlow(a, b, c v2.Vec, tolerance float64) bool {
+	// use the cross product as a measure of colinearity
+	pa := a.Sub(c).Normalize()
+	pb := b.Sub(c).Normalize()
+	return math.Abs(pa.Cross(pb)) < tolerance
+}
+
+// colinearFast return true if 3 points are colinear (fast test).
+func colinearFast(a, b, c v2.Vec, tolerance float64) bool {
+	// use the cross product as a measure of colinearity
+	ac := a.Sub(b)
+	bc := b.Sub(c)
+	return math.Abs(ac.Cross(bc)) < tolerance
+}
 
 //-----------------------------------------------------------------------------
 
@@ -258,7 +280,7 @@ func (b *Bezier) handles() {
 		if rev.X != 0 {
 			cp := BezierVertex{}
 			cp.vtype = midpoint
-			cp.vertex = PolarToXY(rev.X, rev.Y).Add(v.vertex)
+			cp.vertex = conv.P2ToV2(p2.Vec{rev.X, rev.Y}).Add(v.vertex)
 			vlist = append(vlist, cp)
 		}
 		// add the original curve end point.
@@ -267,7 +289,7 @@ func (b *Bezier) handles() {
 		if fwd.X != 0 {
 			cp := BezierVertex{}
 			cp.vtype = midpoint
-			cp.vertex = PolarToXY(fwd.X, fwd.Y).Add(v.vertex)
+			cp.vertex = conv.P2ToV2(p2.Vec{fwd.X, fwd.Y}).Add(v.vertex)
 			vlist = append(vlist, cp)
 		}
 	}

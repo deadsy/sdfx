@@ -11,6 +11,9 @@ package sdf
 import (
 	"errors"
 	"math"
+
+	"github.com/deadsy/sdfx/vec/conv"
+	"github.com/deadsy/sdfx/vec/p2"
 )
 
 //-----------------------------------------------------------------------------
@@ -356,7 +359,7 @@ type ArraySDF2 struct {
 // Array2D returns an XY grid array of an existing SDF2.
 func Array2D(sdf SDF2, num V2i, step V2) SDF2 {
 	// check the number of steps
-	if num[0] <= 0 || num[1] <= 0 {
+	if num.X <= 0 || num.Y <= 0 {
 		return nil
 	}
 	s := ArraySDF2{}
@@ -366,7 +369,7 @@ func Array2D(sdf SDF2, num V2i, step V2) SDF2 {
 	s.min = math.Min
 	// work out the bounding box
 	bb0 := sdf.BoundingBox()
-	bb1 := bb0.Translate(step.Mul(num.SubScalar(1).ToV2()))
+	bb1 := bb0.Translate(step.Mul(conv.V2iToV2(num.SubScalar(1))))
 	s.bb = bb0.Extend(bb1)
 	return &s
 }
@@ -379,8 +382,8 @@ func (s *ArraySDF2) SetMin(min MinFunc) {
 // Evaluate returns the minimum distance to a grid array of SDF2s.
 func (s *ArraySDF2) Evaluate(p V2) float64 {
 	d := math.MaxFloat64
-	for j := 0; j < s.num[0]; j++ {
-		for k := 0; k < s.num[1]; k++ {
+	for j := 0; j < s.num.X; j++ {
+		for k := 0; k < s.num.Y; k++ {
 			x := p.Sub(V2{float64(j) * s.step.X, float64(k) * s.step.Y})
 			d = s.min(d, s.sdf.Evaluate(x))
 		}
@@ -422,7 +425,7 @@ func RotateUnion2D(sdf SDF2, num int, step M33) SDF2 {
 	for i := 0; i < s.num; i++ {
 		bbMin = bbMin.Min(v.Min())
 		bbMax = bbMax.Max(v.Max())
-		v.MulVertices(step)
+		mulVertices2(v, step)
 	}
 	s.bb = Box2{bbMin, bbMax}
 	return &s
@@ -485,7 +488,7 @@ func RotateCopy2D(sdf SDF2, n int) SDF2 {
 // Evaluate returns the minimum distance to a rotate/copy SDF2.
 func (s *RotateCopySDF2) Evaluate(p V2) float64 {
 	// Map p to a point in the first copy sector.
-	pnew := PolarToXY(p.Length(), SawTooth(math.Atan2(p.Y, p.X), s.theta))
+	pnew := conv.P2ToV2(p2.Vec{p.Length(), SawTooth(math.Atan2(p.Y, p.X), s.theta)})
 	return s.sdf.Evaluate(pnew)
 }
 
@@ -742,11 +745,11 @@ func GenerateMesh2D(s SDF2, grid V2i) (V2Set, error) {
 	}
 
 	// create the vertex set storage
-	vset := make(V2Set, 0, grid[0]*grid[1])
+	vset := make(V2Set, 0, grid.X*grid.Y)
 
 	// iterate across the grid and add the vertices if they are inside the SDF2
-	for i := 0; i < grid[0]; i++ {
-		for j := 0; j < grid[1]; j++ {
+	for i := 0; i < grid.X; i++ {
+		for j := 0; j < grid.Y; j++ {
 			v := m.ToV2(V2i{i, j})
 			if s.Evaluate(v) <= 0 {
 				vset = append(vset, v)

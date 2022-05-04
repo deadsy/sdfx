@@ -16,6 +16,7 @@ import (
 	"sync"
 
 	"github.com/deadsy/sdfx/sdf"
+	"github.com/deadsy/sdfx/vec/conv"
 )
 
 //-----------------------------------------------------------------------------
@@ -70,7 +71,7 @@ func (dc *dcache2) write(vi sdf.V2i, dist float64) {
 }
 
 func (dc *dcache2) evaluate(vi sdf.V2i) (sdf.V2, float64) {
-	v := dc.origin.Add(vi.ToV2().MulScalar(dc.resolution))
+	v := dc.origin.Add(conv.V2iToV2(vi).MulScalar(dc.resolution))
 	// do we have it in the cache?
 	dist, found := dc.read(vi)
 	if found {

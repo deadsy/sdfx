@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"math"
 	"runtime"
+
+	"github.com/deadsy/sdfx/vec/conv"
 )
 
 //-----------------------------------------------------------------------------
@@ -169,7 +171,7 @@ func TwistExtrude(height, twist float64) ExtrudeFunc {
 func ScaleExtrude(height float64, scale V2) ExtrudeFunc {
 	inv := V2{1 / scale.X, 1 / scale.Y}
 	m := inv.Sub(V2{1, 1}).DivScalar(height) // slope
-	b := inv.DivScalar(2).AddScalar(0.5)     // intercept
+	b := inv.MulScalar(0.5).AddScalar(0.5)   // intercept
 	return func(p V3) V2 {
 		return V2{p.X, p.Y}.Mul(m.MulScalar(p.Z).Add(b))
 	}
@@ -180,7 +182,7 @@ func ScaleTwistExtrude(height, twist float64, scale V2) ExtrudeFunc {
 	k := twist / height
 	inv := V2{1 / scale.X, 1 / scale.Y}
 	m := inv.Sub(V2{1, 1}).DivScalar(height) // slope
-	b := inv.DivScalar(2).AddScalar(0.5)     // intercept
+	b := inv.MulScalar(0.5).AddScalar(0.5)   // intercept
 	return func(p V3) V2 {
 		// Scale and then Twist
 		pnew := V2{p.X, p.Y}.Mul(m.MulScalar(p.Z).Add(b)) // Scale
@@ -194,7 +196,6 @@ func ScaleTwistExtrude(height, twist float64, scale V2) ExtrudeFunc {
 
 //-----------------------------------------------------------------------------
 // Raycasting
-//-----------------------------------------------------------------------------
 
 func sigmoidScaled(x float64) float64 {
 	return 2/(1+math.Exp(-x)) - 1
@@ -240,13 +241,12 @@ func Raycast3(s SDF3, from, dir V3, scaleAndSigmoid, stepScale, epsilon, maxDist
 
 // Raycast2 see Raycast3. NOTE: implementation using Raycast3 (inefficient?)
 func Raycast2(s SDF2, from, dir V2, scaleAndSigmoid, stepScale, epsilon, maxDist float64, maxSteps int) (V2, float64, int) {
-	collision, t, steps := Raycast3(Extrude3D(s, 1), from.ToV3(0), dir.ToV3(0), scaleAndSigmoid, stepScale, epsilon, maxDist, maxSteps)
+	collision, t, steps := Raycast3(Extrude3D(s, 1), conv.V2ToV3(from, 0), conv.V2ToV3(dir, 0), scaleAndSigmoid, stepScale, epsilon, maxDist, maxSteps)
 	return V2{collision.X, collision.Y}, t, steps
 }
 
 //-----------------------------------------------------------------------------
 // Normals
-//-----------------------------------------------------------------------------
 
 // Normal3 returns the normal of an SDF3 at a point (doesn't need to be on the surface).
 // Computed by sampling it several times inside a box of side 2*eps centered on p.

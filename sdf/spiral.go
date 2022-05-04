@@ -13,6 +13,8 @@ package sdf
 import (
 	"errors"
 	"math"
+
+	"github.com/deadsy/sdfx/vec/conv"
 )
 
 //-----------------------------------------------------------------------------
@@ -105,7 +107,7 @@ func ArcSpiral2D(
 
 // Evaluate returns the minimum distance to a 2d Archimedean spiral.
 func (s *ArcSpiralSDF2) Evaluate(p V2) float64 {
-	pp := p.CartesianToPolar()
+	pp := conv.V2ToP2(p)
 
 	// end points
 	d2 := math.Min(polarDist2(pp, s.start), polarDist2(pp, s.end))

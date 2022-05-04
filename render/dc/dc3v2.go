@@ -19,6 +19,7 @@ import (
 
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
+	"github.com/deadsy/sdfx/vec/conv"
 )
 
 //-----------------------------------------------------------------------------
@@ -68,7 +69,7 @@ func NewDualContouringV2(farAway float64, centerPush float64, raycastScaleAndSig
 // Info returns a string describing the rendered volume.
 func (dc *DualContouringV2) Info(s sdf.SDF3, meshCells int) string {
 	resolution, cells := dc.getCells(s, meshCells)
-	return fmt.Sprintf("%dx%dx%d, resolution %.2f", cells[0], cells[1], cells[2], resolution)
+	return fmt.Sprintf("%dx%dx%d, resolution %.2f", cells.X, cells.Y, cells.Z, resolution)
 }
 
 // Render produces a 3d triangle mesh over the bounding volume of an sdf3.
@@ -84,7 +85,7 @@ func (dc *DualContouringV2) Render(s sdf.SDF3, meshCells int, output chan<- *ren
 func (dc *DualContouringV2) getCells(s sdf.SDF3, meshCells int) (float64, sdf.V3i) {
 	bbSize := s.BoundingBox().Size()
 	resolution := bbSize.MaxComponent() / float64(meshCells)
-	return resolution, bbSize.DivScalar(resolution).ToV3i()
+	return resolution, conv.V3ToV3i(bbSize.DivScalar(resolution))
 }
 
 //-----------------------------------------------------------------------------
@@ -156,23 +157,23 @@ type dcVoxelInfo struct {
 
 func (dc *DualContouringV2) placeVertices(s *dcSdf, cells sdf.V3i) (buf []sdf.V3, bufMap []*dcVoxelInfo, bufMapIndexed map[sdf.V3i]*dcVoxelInfo) {
 	// Start with big enough buffers for performance avoiding allocations (but not too big, may expand later)
-	buf = make([]sdf.V3, 0, dcMaxI(32, cells[0]*cells[1]*cells[2]/100))
-	bufMap = make([]*dcVoxelInfo, 0, dcMaxI(32, cells[0]*cells[1]*cells[2]/100))
-	bufMapIndexed = make(map[sdf.V3i]*dcVoxelInfo, dcMaxI(32, cells[0]*cells[1]*cells[2]/100))
+	buf = make([]sdf.V3, 0, dcMaxI(32, cells.X*cells.Y*cells.Z/100))
+	bufMap = make([]*dcVoxelInfo, 0, dcMaxI(32, cells.X*cells.Y*cells.Z/100))
+	bufMapIndexed = make(map[sdf.V3i]*dcVoxelInfo, dcMaxI(32, cells.X*cells.Y*cells.Z/100))
 	// Other pre-allocated vertex placing buffers
 	normals := make([]sdf.V3, 0, 11)
 	planeDs := make([]float64, 0, 11)
 	// Some cached variables
 	bb := s.BoundingBox()
-	cellSize := bb.Size().Div(cells.ToV3())
+	cellSize := bb.Size().Div(conv.V3iToV3(cells))
 	cellSizeHalf := cellSize.DivScalar(2)
 	cellIndex := sdf.V3i{}
 	// Iterate over all cells (could be parallelized, synchronizing on each vertex positioned)
-	for cellIndex[0] = 0; cellIndex[0] < cells[0]; cellIndex[0]++ {
-		for cellIndex[1] = 0; cellIndex[1] < cells[1]; cellIndex[1]++ {
-			for cellIndex[2] = 0; cellIndex[2] < cells[2]; cellIndex[2]++ {
+	for cellIndex.X = 0; cellIndex.X < cells.X; cellIndex.X++ {
+		for cellIndex.Y = 0; cellIndex.Y < cells.Y; cellIndex.Y++ {
+			for cellIndex.Z = 0; cellIndex.Z < cells.Z; cellIndex.Z++ {
 				// Generate each vertex (if the surface crosses the voxel)
-				cellStart := bb.Min.Add(cellSize.Mul(cellIndex.ToV3()))
+				cellStart := bb.Min.Add(cellSize.Mul(conv.V3iToV3(cellIndex)))
 				cellCenter := cellStart.Add(cellSizeHalf)
 				vertexPos := dc.placeVertex(s, cellStart, cellCenter, cellSize, normals[:0], planeDs[:0])
 				if !math.IsInf(vertexPos.X, 0) {
@@ -203,12 +204,12 @@ func (dc *DualContouringV2) placeVertex(s *dcSdf, cellStart, cellCenter, cellSiz
 
 	//// Add candidate planes from all surface-crossing edges (using the surface point on the edge)
 	for _, edge := range dcEdges { // Use edges instead of corners to generate less positions and normals.
-		if ((inside >> edge[0]) & 1) == ((inside >> edge[1]) & 1) { // Not crossing edge
+		if ((inside >> edge.X) & 1) == ((inside >> edge.Y) & 1) { // Not crossing edge
 			continue
 		}
 		//crossingCorners = crossingCorners | (1 << edge[0]) | (1 << edge[1])
-		cornerPos1 := cellStart.Add(dcCorners[edge[0]].Mul(cellSize))
-		cornerPos2 := cellStart.Add(dcCorners[edge[1]].Mul(cellSize))
+		cornerPos1 := cellStart.Add(dcCorners[edge.X].Mul(cellSize))
+		cornerPos2 := cellStart.Add(dcCorners[edge.Y].Mul(cellSize))
 		//edgeSurfPos := dcApproximateZeroCrossingPosition(s, cornerPos1, cornerPos2)
 		dir := cornerPos2.Sub(cornerPos1)
 		dirLength := dir.Length()
@@ -291,7 +292,7 @@ func (dc *DualContouringV2) generateTriangles(s *dcSdf, vertices []sdf.V3, info 
 		// Connect to triangles in the 3 main axes (two triangles each, if crossing the surface)
 		for ai := 0; ai < 3; ai++ {
 			edge := dcFarEdges[ai]
-			if ((inside >> edge[0]) & 1) == ((inside >> edge[1]) & 1) {
+			if ((inside >> edge.X) & 1) == ((inside >> edge.Y) & 1) {
 				continue // Not a crossing
 			}
 
@@ -324,7 +325,7 @@ func (dc *DualContouringV2) generateTriangles(s *dcSdf, vertices []sdf.V3, info 
 			t1 := &render.Triangle3{V: [3]sdf.V3{vertices[v0], vertices[v3.bufIndex], vertices[v2.bufIndex]}}
 
 			// Get the normals right:
-			if ((inside >> edge[0]) & 1) != uint8(ai&1) { // xor
+			if ((inside >> edge.X) & 1) != uint8(ai&1) { // xor
 				t0 = dcFlip(t0)
 				t1 = dcFlip(t1)
 			}

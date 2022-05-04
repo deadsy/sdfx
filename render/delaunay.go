@@ -19,6 +19,8 @@ import (
 	"sort"
 
 	"github.com/deadsy/sdfx/sdf"
+	"github.com/deadsy/sdfx/vec/conv"
+	v2 "github.com/deadsy/sdfx/vec/v2"
 )
 
 //-----------------------------------------------------------------------------
@@ -243,7 +245,7 @@ func Delaunay2d(vs sdf.V2Set) (TriangleISet, error) {
 	n := len(vs)
 
 	// sort the vertices by x value
-	sort.Sort(sdf.V2SetByX(vs))
+	sort.Sort(v2.VecSetByX(vs))
 
 	// work out the super triangle
 	t, err := superTriangle(vs)
@@ -369,9 +371,9 @@ func Delaunay2dSlow(vs sdf.V2Set) (TriangleISet, error) {
 
 		t := TriangleI{c[0], c[1], c[2]}
 
-		p0 := vs[t[0]].ToV3(z[t[0]])
-		p1 := vs[t[1]].ToV3(z[t[1]])
-		p2 := vs[t[2]].ToV3(z[t[2]])
+		p0 := conv.V2ToV3(vs[t[0]], z[t[0]])
+		p1 := conv.V2ToV3(vs[t[1]], z[t[1]])
+		p2 := conv.V2ToV3(vs[t[2]], z[t[2]])
 
 		norm := p1.Sub(p0).Cross(p2.Sub(p1))
 
@@ -389,7 +391,7 @@ func Delaunay2dSlow(vs sdf.V2Set) (TriangleISet, error) {
 				// on the plane
 				continue
 			}
-			pi := v.ToV3(z[i])
+			pi := conv.V2ToV3(v, z[i])
 			if pi.Sub(p0).Dot(norm) > 0 {
 				// below the plane
 				hull = false

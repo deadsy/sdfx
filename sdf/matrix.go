@@ -244,6 +244,41 @@ func Rotate(a float64) M22 {
 	}
 }
 
+// RotateToVector returns the rotation matrix that transforms a onto the same direction as b.
+func RotateToVector(a, b V3) M44 {
+	// is either vector == 0?
+	if a.Equals(V3{}, epsilon) || b.Equals(V3{}, epsilon) {
+		return Identity3d()
+	}
+	// normalize both vectors
+	a = a.Normalize()
+	b = b.Normalize()
+	// are the vectors the same?
+	if a.Equals(b, epsilon) {
+		return Identity3d()
+	}
+	// are the vectors opposite (180 degrees apart)?
+	if a.Neg().Equals(b, epsilon) {
+		return M44{
+			-1, 0, 0, 0,
+			0, -1, 0, 0,
+			0, 0, -1, 0,
+			0, 0, 0, 1}
+	}
+	// general case
+	// See:	https://math.stackexchange.com/questions/180418/calculate-rotation-matrix-to-align-vector-a-to-vector-b-in-3d
+	v := a.Cross(b)
+	k := 1 / (1 + a.Dot(b))
+	vx := M33{0, -v.Z, v.Y, v.Z, 0, -v.X, -v.Y, v.X, 0}
+	r := Identity2d().Add(vx).Add(vx.Mul(vx).MulScalar(k))
+	return M44{
+		r.x00, r.x01, r.x02, 0,
+		r.x10, r.x11, r.x12, 0,
+		r.x20, r.x21, r.x22, 0,
+		0, 0, 0, 1,
+	}
+}
+
 //-----------------------------------------------------------------------------
 
 // Equals tests the equality of 4x4 matrices.
@@ -310,15 +345,15 @@ func (a M22) MulPosition(b V2) V2 {
 
 //-----------------------------------------------------------------------------
 
-// MulVertices multiples a set of V2 vertices by a rotate/translate matrix.
-func (v V2Set) MulVertices(a M33) {
+// mulVertices2 multiples a set of V2 vertices by a rotate/translate matrix.
+func mulVertices2(v V2Set, a M33) {
 	for i := range v {
 		v[i] = a.MulPosition(v[i])
 	}
 }
 
-// MulVertices multiples a set of V3 vertices by a rotate/translate matrix.
-func (v V3Set) MulVertices(a M44) {
+// mulVertices3 multiples a set of V3 vertices by a rotate/translate matrix.
+func mulVertices3(v V3Set, a M44) {
 	for i := range v {
 		v[i] = a.MulPosition(v[i])
 	}

@@ -11,6 +11,9 @@ package sdf
 import (
 	"fmt"
 	"math"
+
+	"github.com/deadsy/sdfx/vec/conv"
+	"github.com/deadsy/sdfx/vec/p2"
 )
 
 //-----------------------------------------------------------------------------
@@ -51,7 +54,7 @@ func (v *PolygonVertex) Rel() *PolygonVertex {
 
 // Polar treats the polygon vertex values as polar coordinates (r, theta).
 func (v *PolygonVertex) Polar() *PolygonVertex {
-	v.vertex = PolarToXY(v.vertex.X, v.vertex.Y)
+	v.vertex = conv.P2ToV2(p2.Vec{v.vertex.X, v.vertex.Y})
 	return v
 }
 

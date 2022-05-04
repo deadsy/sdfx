@@ -14,6 +14,7 @@ import (
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
+	"github.com/deadsy/sdfx/vec/conv"
 )
 
 //-----------------------------------------------------------------------------
@@ -217,8 +218,8 @@ func frontPanel() (sdf.SDF3, error) {
 	// Add buttons to the finger button
 	bHeight := 4.0
 	b, _ := sdf.Cylinder3D(bHeight, 1.4, 0)
-	b0 := sdf.Transform3D(b, sdf.Translate3d(pb0.ToV3(-0.5*bHeight)))
-	b1 := sdf.Transform3D(b, sdf.Translate3d(pb1.ToV3(-0.5*bHeight)))
+	b0 := sdf.Transform3D(b, sdf.Translate3d(conv.V2ToV3(pb0, -0.5*bHeight)))
+	b1 := sdf.Transform3D(b, sdf.Translate3d(conv.V2ToV3(pb1, -0.5*bHeight)))
 
 	return sdf.Union3D(fp, b0, b1), nil
 }

@@ -39,7 +39,7 @@ func main() {
 
 	// work out the region we will sample
 	bb := s0.BoundingBox().ScaleAboutCenter(k)
-	log.Printf("rendering %s (%dx%d)\n", path, pixels[0], pixels[1])
+	log.Printf("rendering %s (%dx%d)\n", path, pixels.X, pixels.Y)
 	d, err := render.NewPNG(path, bb, pixels)
 	if err != nil {
 		log.Fatalf("error: %s", err)

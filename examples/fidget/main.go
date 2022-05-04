@@ -14,6 +14,8 @@ import (
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
+	"github.com/deadsy/sdfx/vec/conv"
+	"github.com/deadsy/sdfx/vec/p2"
 )
 
 //-----------------------------------------------------------------------------
@@ -42,28 +44,28 @@ func flower(n int, r0, r1, r2 float64) (sdf.SDF2, error) {
 	theta := sdf.Tau / float64(n)
 	b := sdf.NewBezier()
 
-	p0 := sdf.V2{r1, 0}.Add(sdf.PolarToXY(r0, sdf.DtoR(-135)))
-	p1 := sdf.V2{r1, 0}.Add(sdf.PolarToXY(r0, sdf.DtoR(-45)))
-	p2 := sdf.V2{r1, 0}.Add(sdf.PolarToXY(r0, sdf.DtoR(45)))
-	p3 := sdf.V2{r1, 0}.Add(sdf.PolarToXY(r0, sdf.DtoR(135)))
-	p4 := sdf.PolarToXY(r2, theta/2)
+	k0 := sdf.V2{r1, 0}.Add(conv.P2ToV2(p2.Vec{r0, sdf.DtoR(-135)}))
+	k1 := sdf.V2{r1, 0}.Add(conv.P2ToV2(p2.Vec{r0, sdf.DtoR(-45)}))
+	k2 := sdf.V2{r1, 0}.Add(conv.P2ToV2(p2.Vec{r0, sdf.DtoR(45)}))
+	k3 := sdf.V2{r1, 0}.Add(conv.P2ToV2(p2.Vec{r0, sdf.DtoR(135)}))
+	k4 := conv.P2ToV2(p2.Vec{r2, theta / 2})
 
 	m := sdf.Rotate(theta)
 
 	for i := 0; i < n; i++ {
 		ofs := float64(i) * theta
 
-		b.AddV2(p0).Handle(ofs+sdf.DtoR(-45), r0/2, r0/2)
-		b.AddV2(p1).Handle(ofs+sdf.DtoR(45), r0/2, r0/2)
-		b.AddV2(p2).Handle(ofs+sdf.DtoR(135), r0/2, r0/2)
-		b.AddV2(p3).Handle(ofs+sdf.DtoR(225), r0/2, r0/2)
-		b.AddV2(p4).Handle(ofs+theta/2+sdf.DtoR(90), r2/1.5, r2/1.5)
+		b.AddV2(k0).Handle(ofs+sdf.DtoR(-45), r0/2, r0/2)
+		b.AddV2(k1).Handle(ofs+sdf.DtoR(45), r0/2, r0/2)
+		b.AddV2(k2).Handle(ofs+sdf.DtoR(135), r0/2, r0/2)
+		b.AddV2(k3).Handle(ofs+sdf.DtoR(225), r0/2, r0/2)
+		b.AddV2(k4).Handle(ofs+theta/2+sdf.DtoR(90), r2/1.5, r2/1.5)
 
-		p0 = m.MulPosition(p0)
-		p1 = m.MulPosition(p1)
-		p2 = m.MulPosition(p2)
-		p3 = m.MulPosition(p3)
-		p4 = m.MulPosition(p4)
+		k0 = m.MulPosition(k0)
+		k1 = m.MulPosition(k1)
+		k2 = m.MulPosition(k2)
+		k3 = m.MulPosition(k3)
+		k4 = m.MulPosition(k4)
 	}
 
 	b.Close()

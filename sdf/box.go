@@ -9,6 +9,9 @@ package sdf
 import (
 	"errors"
 	"math"
+	"math/rand"
+
+	"github.com/deadsy/sdfx/vec/conv"
 )
 
 //-----------------------------------------------------------------------------
@@ -199,20 +202,20 @@ func NewMap2(bb Box2, grid V2i, flipy bool) (*Map2, error) {
 		return nil, errors.New("bad bounding box")
 	}
 	// sanity check the integer dimensions
-	if grid[0] <= 0 || grid[1] <= 0 {
+	if grid.X <= 0 || grid.Y <= 0 {
 		return nil, errors.New("bad grid dimensions")
 	}
 	m := Map2{}
 	m.bb = bb
 	m.grid = grid
 	m.flipy = flipy
-	m.delta = bbSize.Div(grid.ToV2())
+	m.delta = bbSize.Div(conv.V2iToV2(grid))
 	return &m, nil
 }
 
 // ToV2 converts grid integer coordinates to 2d region float coordinates.
 func (m *Map2) ToV2(p V2i) V2 {
-	ofs := p.ToV2().AddScalar(0.5).Mul(m.delta)
+	ofs := conv.V2iToV2(p).AddScalar(0.5).Mul(m.delta)
 	var origin V2
 	if m.flipy {
 		origin = m.bb.TopLeft()
@@ -232,7 +235,7 @@ func (m *Map2) ToV2i(p V2) V2i {
 	} else {
 		v = p.Sub(m.bb.BottomLeft())
 	}
-	return v.Div(m.delta).ToV2i()
+	return conv.V2ToV2i(v.Div(m.delta))
 }
 
 //-----------------------------------------------------------------------------
@@ -324,6 +327,48 @@ func (a Box3) MinMaxDist2(p V3) V2 {
 	}
 
 	return V2{minDist2, maxDist2}
+}
+
+//-----------------------------------------------------------------------------
+
+// randomRange returns a random float64 [a,b)
+func randomRange(a, b float64) float64 {
+	return a + (b-a)*rand.Float64()
+}
+
+// Random returns a random point within a bounding box.
+func (b *Box2) Random() V2 {
+	return V2{
+		randomRange(b.Min.X, b.Max.X),
+		randomRange(b.Min.Y, b.Max.Y),
+	}
+}
+
+// Random returns a random point within a bounding box.
+func (b *Box3) Random() V3 {
+	return V3{
+		randomRange(b.Min.X, b.Max.X),
+		randomRange(b.Min.Y, b.Max.Y),
+		randomRange(b.Min.Z, b.Max.Z),
+	}
+}
+
+// RandomSet returns a set of random points from within a bounding box.
+func (b *Box2) RandomSet(n int) V2Set {
+	s := make([]V2, n)
+	for i := range s {
+		s[i] = b.Random()
+	}
+	return s
+}
+
+// RandomSet returns a set of random points from within a bounding box.
+func (b *Box3) RandomSet(n int) V3Set {
+	s := make([]V3, n)
+	for i := range s {
+		s[i] = b.Random()
+	}
+	return s
 }
 
 //-----------------------------------------------------------------------------

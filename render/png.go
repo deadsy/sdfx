@@ -41,7 +41,7 @@ func NewPNG(name string, bb sdf.Box2, pixels sdf.V2i) (*PNG, error) {
 		return nil, err
 	}
 	d.m = m
-	d.img = image.NewRGBA(image.Rect(0, 0, pixels[0]-1, pixels[1]-1))
+	d.img = image.NewRGBA(image.Rect(0, 0, pixels.X-1, pixels.Y-1))
 	return &d, nil
 }
 
@@ -56,8 +56,8 @@ func (d *PNG) RenderSDF2MinMax(s sdf.SDF2, dmin, dmax float64) {
 	minMaxSet := dmin != 0 && dmax != 0
 	if !minMaxSet {
 		//distance := make([]float64, d.pixels[0]*d.pixels[1]) // Less allocations: faster (70ms -> 60ms), use cache in SDF if needed
-		for x := 0; x < d.pixels[0]; x++ {
-			for y := 0; y < d.pixels[1]; y++ {
+		for x := 0; x < d.pixels.X; x++ {
+			for y := 0; y < d.pixels.Y; y++ {
 				d := s.Evaluate(d.m.ToV2(sdf.V2i{x, y}))
 				dmax = math.Max(dmax, d)
 				dmin = math.Min(dmin, d)
@@ -65,8 +65,8 @@ func (d *PNG) RenderSDF2MinMax(s sdf.SDF2, dmin, dmax float64) {
 		}
 	}
 	// scale and set the pixel values
-	for x := 0; x < d.pixels[0]; x++ {
-		for y := 0; y < d.pixels[1]; y++ {
+	for x := 0; x < d.pixels.X; x++ {
+		for y := 0; y < d.pixels.Y; y++ {
 			dist := s.Evaluate(d.m.ToV2(sdf.V2i{x, y}))
 			d.img.Set(x, y, color.Gray{Y: uint8(255 * imageColor2(dist, dmin, dmax))})
 		}
@@ -96,9 +96,9 @@ func (d *PNG) Line(p0, p1 sdf.V2) {
 	gc.SetLineWidth(1)
 
 	p := d.m.ToV2i(p0)
-	gc.MoveTo(float64(p[0]), float64(p[1]))
+	gc.MoveTo(float64(p.X), float64(p.Y))
 	p = d.m.ToV2i(p1)
-	gc.LineTo(float64(p[0]), float64(p[1]))
+	gc.LineTo(float64(p.X), float64(p.Y))
 	gc.Stroke()
 }
 
@@ -110,10 +110,10 @@ func (d *PNG) Lines(s sdf.V2Set) {
 	gc.SetLineWidth(1)
 
 	p := d.m.ToV2i(s[0])
-	gc.MoveTo(float64(p[0]), float64(p[1]))
+	gc.MoveTo(float64(p.X), float64(p.Y))
 	for i := 1; i < len(s); i++ {
 		p := d.m.ToV2i(s[i])
-		gc.LineTo(float64(p[0]), float64(p[1]))
+		gc.LineTo(float64(p.X), float64(p.Y))
 	}
 	gc.Stroke()
 }

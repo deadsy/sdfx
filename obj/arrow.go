@@ -173,7 +173,7 @@ func DirectedArrow3D(k *ArrowParms, head, tail sdf.V3) (sdf.SDF3, error) {
 	}
 	// position the arrow
 	ofs := head.Add(tail).MulScalar(0.5)
-	m := sdf.Translate3d(ofs).Mul(sdf.V3{0, 0, 1}.RotateToVector(v))
+	m := sdf.Translate3d(ofs).Mul(sdf.RotateToVector(sdf.V3{0, 0, 1}, v))
 	return sdf.Transform3D(arrow, m), nil
 }
 

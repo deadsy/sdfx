@@ -9,6 +9,9 @@ import (
 	"math"
 	"reflect"
 	"testing"
+
+	v2 "github.com/deadsy/sdfx/vec/v2"
+	"github.com/stretchr/testify/assert"
 )
 
 //-----------------------------------------------------------------------------
@@ -748,7 +751,7 @@ func Test_Rotate_To_Vector(t *testing.T) {
 		{V3{1, 0, 1}, V3{-1, 0, 1}, M44{0, 0, -1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1}},
 	}
 	for _, v := range tests {
-		x := v.a.RotateToVector(v.b)
+		x := RotateToVector(v.a, v.b)
 		if !x.Equals(v.result, tolerance) {
 			t.Logf("expected %v, actual %v\n", v.result, x)
 			t.Error("FAIL")
@@ -759,7 +762,7 @@ func Test_Rotate_To_Vector(t *testing.T) {
 	for i := 0; i < 1000; i++ {
 		a := box.Random()
 		b := box.Random()
-		ax := a.RotateToVector(b).MulPosition(a)
+		ax := RotateToVector(a, b).MulPosition(a)
 		// ax should have the same magnitude as a
 		if math.Abs(ax.Length()-a.Length()) > 1e-10 {
 			t.Error("FAIL")
@@ -772,6 +775,44 @@ func Test_Rotate_To_Vector(t *testing.T) {
 		}
 	}
 
+}
+
+//-----------------------------------------------------------------------------
+
+func TestColinearity(t *testing.T) {
+	a := v2.Vec{37.4, 88.8}
+	m := v2.Vec{3.0, 5.0}
+	b := a.Add(m.MulScalar(16.0))
+	c := a.Sub(m.MulScalar(7.0))
+	d := v2.Vec{55.5, 66.6}
+
+	assert.True(t, colinearFast(a, b, c, 0.0001), "ABC are colinear fast")
+	assert.True(t, colinearFast(a, c, b, 0.0001), "ACB are colienar fast")
+	assert.True(t, colinearFast(b, a, c, 0.0001), "BAC are colinear fast")
+	assert.True(t, colinearFast(b, c, a, 0.0001), "BCA are colienar fast")
+	assert.True(t, colinearFast(c, a, b, 0.0001), "CAB are colinear fast")
+	assert.True(t, colinearFast(c, b, a, 0.0001), "CBA are colinear fast")
+
+	assert.False(t, colinearFast(a, b, d, 0.0001), "ABD are not colinear fast")
+	assert.False(t, colinearFast(a, c, d, 0.0001), "ACD are not colienar fast")
+	assert.False(t, colinearFast(b, a, d, 0.0001), "BAD are not colinear fast")
+	assert.False(t, colinearFast(b, c, d, 0.0001), "BCD are not colienar fast")
+	assert.False(t, colinearFast(c, a, d, 0.0001), "CAD are not colinear fast")
+	assert.False(t, colinearFast(c, b, d, 0.0001), "CBD are not colinear fast")
+
+	assert.True(t, colinearSlow(a, b, c, 0.0001), "ABC are colinear slow")
+	assert.True(t, colinearSlow(a, c, b, 0.0001), "ACB are colienar slow")
+	assert.True(t, colinearSlow(b, a, c, 0.0001), "BAC are colinear slow")
+	assert.True(t, colinearSlow(b, c, a, 0.0001), "BCA are colienar slow")
+	assert.True(t, colinearSlow(c, a, b, 0.0001), "CAB are colinear slow")
+	assert.True(t, colinearSlow(c, b, a, 0.0001), "CBA are colinear slow")
+
+	assert.False(t, colinearSlow(a, b, d, 0.0001), "ABD are not colinear slow")
+	assert.False(t, colinearSlow(a, c, d, 0.0001), "ACD are not colienar slow")
+	assert.False(t, colinearSlow(b, a, d, 0.0001), "BAD are not colinear slow")
+	assert.False(t, colinearSlow(b, c, d, 0.0001), "BCD are not colienar slow")
+	assert.False(t, colinearSlow(c, a, d, 0.0001), "CAD are not colinear slow")
+	assert.False(t, colinearSlow(c, b, d, 0.0001), "CBD are not colinear slow")
 }
 
 //-----------------------------------------------------------------------------

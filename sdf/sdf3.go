@@ -11,6 +11,9 @@ package sdf
 import (
 	"errors"
 	"math"
+
+	"github.com/deadsy/sdfx/vec/conv"
+	"github.com/deadsy/sdfx/vec/p2"
 )
 
 //-----------------------------------------------------------------------------
@@ -860,7 +863,7 @@ type ArraySDF3 struct {
 // Array3D returns an XYZ array of a given SDF3
 func Array3D(sdf SDF3, num V3i, step V3) SDF3 {
 	// check the number of steps
-	if num[0] <= 0 || num[1] <= 0 || num[2] <= 0 {
+	if num.X <= 0 || num.Y <= 0 || num.Z <= 0 {
 		return nil
 	}
 	s := ArraySDF3{}
@@ -870,7 +873,7 @@ func Array3D(sdf SDF3, num V3i, step V3) SDF3 {
 	s.min = math.Min
 	// work out the bounding box
 	bb0 := sdf.BoundingBox()
-	bb1 := bb0.Translate(step.Mul(num.SubScalar(1).ToV3()))
+	bb1 := bb0.Translate(step.Mul(conv.V3iToV3(num.SubScalar(1))))
 	s.bb = bb0.Extend(bb1)
 	return &s
 }
@@ -883,9 +886,9 @@ func (s *ArraySDF3) SetMin(min MinFunc) {
 // Evaluate returns the minimum distance to an XYZ SDF3 array.
 func (s *ArraySDF3) Evaluate(p V3) float64 {
 	d := math.MaxFloat64
-	for j := 0; j < s.num[0]; j++ {
-		for k := 0; k < s.num[1]; k++ {
-			for l := 0; l < s.num[2]; l++ {
+	for j := 0; j < s.num.X; j++ {
+		for k := 0; k < s.num.Y; k++ {
+			for l := 0; l < s.num.Z; l++ {
 				x := p.Sub(V3{float64(j) * s.step.X, float64(k) * s.step.Y, float64(l) * s.step.Z})
 				d = s.min(d, s.sdf.Evaluate(x))
 			}
@@ -928,7 +931,7 @@ func RotateUnion3D(sdf SDF3, num int, step M44) SDF3 {
 	for i := 0; i < s.num; i++ {
 		bbMin = bbMin.Min(v.Min())
 		bbMax = bbMax.Max(v.Max())
-		v.MulVertices(step)
+		mulVertices3(v, step)
 	}
 	s.bb = Box3{bbMin, bbMax}
 	return &s
@@ -997,9 +1000,9 @@ func RotateCopy3D(
 // Evaluate returns the minimum distance to a rotate/copy SDF3.
 func (s *RotateCopySDF3) Evaluate(p V3) float64 {
 	// Map p to a point in the first copy sector.
-	p2 := V2{p.X, p.Y}
-	p2 = PolarToXY(p2.Length(), SawTooth(math.Atan2(p2.Y, p2.X), s.theta))
-	return s.sdf.Evaluate(V3{p2.X, p2.Y, p.Z})
+	p2d := V2{p.X, p.Y}
+	p2d = conv.P2ToV2(p2.Vec{p2d.Length(), SawTooth(math.Atan2(p2d.Y, p2d.X), s.theta)})
+	return s.sdf.Evaluate(V3{p2d.X, p2d.Y, p.Z})
 }
 
 // BoundingBox returns the bounding box of a rotate/copy SDF3.
@@ -1155,7 +1158,7 @@ func Orient3D(s SDF3, base V3, directions V3Set) SDF3 {
 	}
 	objects := make([]SDF3, len(directions))
 	for i, d := range directions {
-		objects[i] = Transform3D(s, base.RotateToVector(d))
+		objects[i] = Transform3D(s, RotateToVector(base, d))
 	}
 	return Union3D(objects...)
 }

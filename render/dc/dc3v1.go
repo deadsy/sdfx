@@ -20,6 +20,7 @@ import (
 
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
+	"github.com/deadsy/sdfx/vec/conv"
 	"gonum.org/v1/gonum/mat"
 )
 
@@ -48,8 +49,8 @@ func NewDualContouringV1(simplify float64, RCond float64, lockVertices bool) *Du
 func (m *DualContouringV1) Info(s sdf.SDF3, meshCells int) string {
 	bbSize := s.BoundingBox().Size()
 	resolution := bbSize.MaxComponent() / float64(meshCells)
-	cells := bbSize.DivScalar(resolution).ToV3i()
-	return fmt.Sprintf("%dx%dx%d, resolution %.2f", cells[0], cells[1], cells[2], resolution)
+	cells := conv.V3ToV3i(bbSize.DivScalar(resolution))
+	return fmt.Sprintf("%dx%dx%d, resolution %.2f", cells.X, cells.Y, cells.Z, resolution)
 }
 
 // Render produces a 3d triangle mesh over the bounding volume of an sdf3.
@@ -60,7 +61,7 @@ func (m *DualContouringV1) Render(s sdf.SDF3, meshCells int, output chan<- *rend
 	// work out the sampling resolution to use
 	bbSize := s.BoundingBox().Size()
 	resolution := bbSize.MaxComponent() / float64(meshCells)
-	cells := bbSize.DivScalar(resolution).ToV3i()
+	cells := conv.V3ToV3i(bbSize.DivScalar(resolution))
 	// Build the octree
 	dcOctreeRootNode := dcNewOctree(cells, m.RCond, m.LockVertices)
 	dcOctreeRootNode.Populate(s)
@@ -170,12 +171,12 @@ func nextPowerOfTwo(v int) int {
 // dcNewOctree builds the whole octree structure (without simplification) for the given size.
 func dcNewOctree(cellCounts sdf.V3i, rCond float64, lockVertices bool) *dcOctree {
 	cellCounts = sdf.V3i{ // Need powers of 2 for this algorithm (round-up for more precision)
-		nextPowerOfTwo(cellCounts[0]),
-		nextPowerOfTwo(cellCounts[1]),
-		nextPowerOfTwo(cellCounts[2]),
+		nextPowerOfTwo(cellCounts.X),
+		nextPowerOfTwo(cellCounts.Y),
+		nextPowerOfTwo(cellCounts.Z),
 	}
 	// Compute the complete octree with the largest component as the size and then ignoring cells outside of bounds
-	cubicSize := int(cellCounts.ToV3().MaxComponent())
+	cubicSize := int(conv.V3iToV3(cellCounts).MaxComponent())
 	rootNode := &dcOctree{
 		kind:         dcOctreeNodeTypeInternal,
 		minOffset:    sdf.V3i{0, 0, 0},
@@ -196,14 +197,14 @@ func (node *dcOctree) Populate(d sdf.SDF3) {
 	cellCounts := node.cellCounts
 	maxOffset := minOffset.AddScalar(meshSize)
 	// Avoid generating any octree node outside the bounding volume (may filter before reaching leaves)
-	if minOffset[0] > (meshSize+cellCounts[0])/2 || maxOffset[0] < (meshSize-cellCounts[0])/2 ||
-		minOffset[1] > (meshSize+cellCounts[1])/2 || maxOffset[1] < (meshSize-cellCounts[1])/2 ||
-		minOffset[2] > (meshSize+cellCounts[2])/2 || maxOffset[2] < (meshSize-cellCounts[2])/2 {
+	if minOffset.X > (meshSize+cellCounts.X)/2 || maxOffset.X < (meshSize-cellCounts.X)/2 ||
+		minOffset.Y > (meshSize+cellCounts.Y)/2 || maxOffset.Y < (meshSize-cellCounts.Y)/2 ||
+		minOffset.Z > (meshSize+cellCounts.Z)/2 || maxOffset.Z < (meshSize-cellCounts.Z)/2 {
 		return
 	}
 	childSize := node.size / 2
 	for i := 0; i < 8; i++ {
-		childMinOffset := minOffset.Add(dcChildMinOffsets[i].ToV3().MulScalar(float64(childSize)).ToV3i())
+		childMinOffset := minOffset.Add(conv.V3ToV3i(conv.V3iToV3(dcChildMinOffsets[i]).MulScalar(float64(childSize))))
 		node.children[i] = &dcOctree{
 			kind:         dcOctreeNodeTypeInternal,
 			minOffset:    childMinOffset,
@@ -226,8 +227,8 @@ func (node *dcOctree) Populate(d sdf.SDF3) {
 
 func (node *dcOctree) relToSDF(d sdf.SDF3, i sdf.V3i) sdf.V3 {
 	bb := d.BoundingBox()
-	return bb.Min.Add(bb.Size().Mul(i.ToV3().DivScalar(float64(node.meshSize)).
-		Div(node.cellCounts.ToV3().DivScalar(float64(node.meshSize)))))
+	return bb.Min.Add(bb.Size().Mul(conv.V3iToV3(i).DivScalar(float64(node.meshSize)).
+		Div(conv.V3iToV3(node.cellCounts).DivScalar(float64(node.meshSize)))))
 }
 
 // computeOctreeLeaf computes the required leaf information that later will be used for meshing

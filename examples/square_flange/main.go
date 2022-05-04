@@ -14,6 +14,7 @@ import (
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
+	"github.com/deadsy/sdfx/vec/conv"
 )
 
 //-----------------------------------------------------------------------------
@@ -55,11 +56,11 @@ func flange() (sdf.SDF3, error) {
 
 	// outer pipe
 	outerPipe, _ := sdf.Cylinder3D(2.0*pipeLength, pipeRadius+pipeWall, 0.0)
-	outerPipe = sdf.Transform3D(outerPipe, sdf.Translate3d(pipeOffset.ToV3(0)))
+	outerPipe = sdf.Transform3D(outerPipe, sdf.Translate3d(conv.V2ToV3(pipeOffset, 0)))
 
 	// inner pipe
 	innerPipe, _ := sdf.Cylinder3D(2.0*pipeLength, pipeRadius, 0.0)
-	innerPipe = sdf.Transform3D(innerPipe, sdf.Translate3d(pipeOffset.ToV3(0)))
+	innerPipe = sdf.Transform3D(innerPipe, sdf.Translate3d(conv.V2ToV3(pipeOffset, 0)))
 
 	// combine the outer pipe and base (with a fillet)
 	s0 := sdf.Union3D(base, outerPipe)

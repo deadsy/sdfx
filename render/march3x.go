@@ -17,6 +17,7 @@ import (
 	"sync"
 
 	"github.com/deadsy/sdfx/sdf"
+	"github.com/deadsy/sdfx/vec/conv"
 )
 
 //-----------------------------------------------------------------------------
@@ -75,7 +76,7 @@ func (dc *dcache3) write(vi sdf.V3i, dist float64) {
 }
 
 func (dc *dcache3) evaluate(vi sdf.V3i) (sdf.V3, float64) {
-	v := dc.origin.Add(vi.ToV3().MulScalar(dc.resolution))
+	v := dc.origin.Add(conv.V3iToV3(vi).MulScalar(dc.resolution))
 	// do we have it in the cache?
 	dist, found := dc.read(vi)
 	if found {
@@ -163,8 +164,8 @@ type MarchingCubesOctree struct {
 func (m *MarchingCubesOctree) Info(s sdf.SDF3, meshCells int) string {
 	bbSize := s.BoundingBox().Size()
 	resolution := bbSize.MaxComponent() / float64(meshCells)
-	cells := bbSize.DivScalar(resolution).ToV3i()
-	return fmt.Sprintf("%dx%dx%d, resolution %.2f", cells[0], cells[1], cells[2], resolution)
+	cells := conv.V3ToV3i(bbSize.MulScalar(1 / resolution))
+	return fmt.Sprintf("%dx%dx%d, resolution %.2f", cells.X, cells.Y, cells.Z, resolution)
 }
 
 // Render produces a 3d triangle mesh over the bounding volume of an sdf3.

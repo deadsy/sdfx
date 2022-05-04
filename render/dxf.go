@@ -14,6 +14,7 @@ import (
 	"sync"
 
 	"github.com/deadsy/sdfx/sdf"
+	"github.com/deadsy/sdfx/vec/conv"
 	"github.com/yofu/dxf"
 	"github.com/yofu/dxf/color"
 	"github.com/yofu/dxf/drawing"
@@ -138,9 +139,9 @@ func RenderDXF(
 	// work out the sampling resolution to use
 	bbSize := s.BoundingBox().Size()
 	resolution := bbSize.MaxComponent() / float64(meshCells)
-	cells := bbSize.DivScalar(resolution).ToV2i()
+	cells := conv.V2ToV2i(bbSize.MulScalar(1 / resolution))
 
-	fmt.Printf("rendering %s (%dx%d, resolution %.2f)\n", path, cells[0], cells[1], resolution)
+	fmt.Printf("rendering %s (%dx%d, resolution %.2f)\n", path, cells.X, cells.Y, resolution)
 
 	// write the line segments to a DXF file
 	var wg sync.WaitGroup
@@ -169,13 +170,13 @@ func RenderDXFSlow(
 	bb0 := s.BoundingBox()
 	bb0Size := bb0.Size()
 	meshInc := bb0Size.MaxComponent() / float64(meshCells)
-	bb1Size := bb0Size.DivScalar(meshInc)
+	bb1Size := bb0Size.MulScalar(1 / meshInc)
 	bb1Size = bb1Size.Ceil().AddScalar(1)
-	cells := bb1Size.ToV2i()
+	cells := conv.V2ToV2i(bb1Size)
 	bb1Size = bb1Size.MulScalar(meshInc)
 	bb := sdf.NewBox2(bb0.Center(), bb1Size)
 
-	fmt.Printf("rendering %s (%dx%d)\n", path, cells[0], cells[1])
+	fmt.Printf("rendering %s (%dx%d)\n", path, cells.X, cells.Y)
 
 	// run marching squares to generate the line segments
 	m := marchingSquares(s, bb, meshInc)
