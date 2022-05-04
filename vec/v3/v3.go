@@ -81,7 +81,8 @@ func (a Vec) MulScalar(b float64) Vec {
 
 // DivScalar divides each vector component by a scalar.
 func (a Vec) DivScalar(b float64) Vec {
-	return a.MulScalar(1 / b)
+	return Vec{a.X / b, a.Y / b, a.Z / b}
+	//	return a.MulScalar(1 / b)
 }
 
 // Abs takes the absolute value of each vector component.
@@ -146,7 +147,9 @@ func (a Vec) Length2() float64 {
 
 // Normalize scales a vector to unit length.
 func (a Vec) Normalize() Vec {
-	return a.MulScalar(1 / a.Length())
+	d := a.Length()
+	return Vec{a.X / d, a.Y / d, a.Z / d}
+	//return a.MulScalar(1 / a.Length())
 }
 
 // MinComponent returns the minimum component of the vector.

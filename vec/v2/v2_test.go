@@ -64,7 +64,7 @@ func TestMatrixOps(t *testing.T) {
 	assert.Equal(t, 3.0*13.0-5.0*11.0, a.Cross(b), "axb works")
 }
 
-func TestV2ScalarOps(t *testing.T) {
+func TestScalarOps(t *testing.T) {
 	a := 42.0
 	v := Vec{0.0, 1.0}
 	assert.Equal(t, Vec{0.0 + a, 1.0 + a}, v.AddScalar(a), "v+a works")

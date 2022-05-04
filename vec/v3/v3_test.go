@@ -61,7 +61,7 @@ func TestClamp(t *testing.T) {
 	}
 }
 
-func TestV3ScalarOps(t *testing.T) {
+func TestScalarOps(t *testing.T) {
 	a := 42.0
 	v := Vec{0.0, 1.0, 2.0}
 	assert.Equal(t, Vec{0.0 + a, 1.0 + a, 2.0 + a}, v.AddScalar(a), "v+a works")
