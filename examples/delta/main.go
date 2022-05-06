@@ -29,8 +29,8 @@ const shrink = 1.0 / 0.999 // PLA ~0.1%
 const upperArmWidth = 30.0
 const upperArmRadius0 = 15.0
 const upperArmRadius1 = 5.0
-const upperArmRadius2 = 2.5
-const upperArmLength = 120.0
+const upperArmRadius2 = 4.0 * 0.5
+const upperArmLength = 100.0
 
 func upperArm() (sdf.SDF3, error) {
 
@@ -243,7 +243,7 @@ func deltaBase() (sdf.SDF3, error) {
 
 //-----------------------------------------------------------------------------
 
-const rodRadius = (6.0 + 0.2) * 0.5
+const rodRadius = (6.0 + 0.5) * 0.5
 const holderRadius = (11.7 + 0.2) * 0.5
 const holderHeight = 2.6
 
@@ -331,7 +331,7 @@ func main() {
 		log.Fatalf("error: %s", err)
 	}
 	s = sdf.ScaleUniform3D(s, shrink)
-	render.ToSTL(s, 300, "servomount.stl", &render.MarchingCubesOctree{})
+	render.ToSTL(s, 250, "servomount.stl", &render.MarchingCubesOctree{})
 
 	s, err = deltaBase()
 	if err != nil {
@@ -345,7 +345,7 @@ func main() {
 		log.Fatalf("error: %s", err)
 	}
 	s = sdf.ScaleUniform3D(s, shrink)
-	render.ToSTL(s, 300, "rodend.stl", &render.MarchingCubesOctree{})
+	render.ToSTL(s, 100, "rodend.stl", &render.MarchingCubesOctree{})
 
 }
 
