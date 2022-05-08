@@ -29,7 +29,7 @@ const shrink = 1.0 / 0.999 // PLA ~0.1%
 const upperArmWidth = 30.0
 const upperArmRadius0 = 15.0
 const upperArmRadius1 = 5.0
-const upperArmRadius2 = 4.0 * 0.5
+const upperArmRadius2 = 3.9 * 0.5
 const upperArmLength = 100.0
 
 func upperArm() (sdf.SDF3, error) {
@@ -296,6 +296,54 @@ func rodEnd() (sdf.SDF3, error) {
 
 //-----------------------------------------------------------------------------
 
+const platformSide = 50
+const platformThickness = 10.0
+
+func platform() (sdf.SDF3, error) {
+
+	pHalf := platformSide * 0.5
+	pShort := pHalf / math.Sqrt(3)
+	pLong := 2 * pShort
+
+	c0 := v3.Vec{0, -pLong, 0}
+	c1 := v3.Vec{pHalf, pShort, 0}
+	c2 := v3.Vec{-pHalf, pShort, 0}
+
+	// platform
+	pp := sdf.NewPolygon()
+	pp.Add(c0.X, c0.Y)
+	pp.Add(c1.X, c1.Y)
+	pp.Add(c2.X, c2.Y)
+	p2d, err := sdf.Polygon2D(pp.Vertices())
+	if err != nil {
+		return nil, err
+	}
+	platform := sdf.Extrude3D(p2d, platformThickness)
+
+	// connection arms
+
+	arm0, err := obj.Pipe3D(platformThickness*0.5, upperArmRadius2, upperArmWidth)
+	if err != nil {
+		return nil, err
+	}
+	arm0 = sdf.Transform3D(arm0, sdf.RotateY(sdf.DtoR(90)))
+	arm0 = sdf.Transform3D(arm0, sdf.Translate3d(c0))
+
+	arm1 := sdf.Transform3D(arm0, sdf.RotateZ(sdf.DtoR(120)))
+	arm2 := sdf.Transform3D(arm0, sdf.RotateZ(sdf.DtoR(-120)))
+
+	s := sdf.Union3D(platform, arm0, arm1, arm2)
+	s.(*sdf.UnionSDF3).SetMin(sdf.PolyMin(platformThickness * 0.7))
+
+	// bump removal
+	s = sdf.Cut3D(s, v3.Vec{0, 0, -platformThickness * 0.5}, v3.Vec{0, 0, 1})
+	s = sdf.Cut3D(s, v3.Vec{0, 0, platformThickness * 0.5}, v3.Vec{0, 0, -1})
+
+	return s, nil
+}
+
+//-----------------------------------------------------------------------------
+
 func baseWithServos() (sdf.SDF3, error) {
 
 	// servos
@@ -346,6 +394,13 @@ func main() {
 	}
 	s = sdf.ScaleUniform3D(s, shrink)
 	render.ToSTL(s, 100, "rodend.stl", &render.MarchingCubesOctree{})
+
+	s, err = platform()
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	s = sdf.ScaleUniform3D(s, shrink)
+	render.ToSTL(s, 300, "platform.stl", &render.MarchingCubesOctree{})
 
 }
 
