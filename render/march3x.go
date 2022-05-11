@@ -134,6 +134,41 @@ func (dc *dcache3) processCube(c *cube, output chan<- *Triangle3) {
 	}
 }
 
+// Process a cube. Generate triangles, or more cubes.
+func (dc *dcache3) processCubeSlice(c *cube) (output []Triangle3) {
+	if !dc.isEmpty(c) {
+		if c.n == 1 {
+			// this cube is at the required resolution
+			c0, d0 := dc.evaluate(c.v.Add(sdf.V3i{0, 0, 0}))
+			c1, d1 := dc.evaluate(c.v.Add(sdf.V3i{2, 0, 0}))
+			c2, d2 := dc.evaluate(c.v.Add(sdf.V3i{2, 2, 0}))
+			c3, d3 := dc.evaluate(c.v.Add(sdf.V3i{0, 2, 0}))
+			c4, d4 := dc.evaluate(c.v.Add(sdf.V3i{0, 0, 2}))
+			c5, d5 := dc.evaluate(c.v.Add(sdf.V3i{2, 0, 2}))
+			c6, d6 := dc.evaluate(c.v.Add(sdf.V3i{2, 2, 2}))
+			c7, d7 := dc.evaluate(c.v.Add(sdf.V3i{0, 2, 2}))
+			corners := [8]sdf.V3{c0, c1, c2, c3, c4, c5, c6, c7}
+			values := [8]float64{d0, d1, d2, d3, d4, d5, d6, d7}
+			// output the triangle(s) for this cube
+			output = append(output, mcToTrianglesSlice(corners, values, 0)...)
+		} else {
+			// process the sub cubes
+			n := c.n - 1
+			s := 1 << n
+			// TODO - turn these into throttled go-routines
+			output = append(output, dc.processCubeSlice(&cube{c.v.Add(sdf.V3i{0, 0, 0}), n})...)
+			output = append(output, dc.processCubeSlice(&cube{c.v.Add(sdf.V3i{s, 0, 0}), n})...)
+			output = append(output, dc.processCubeSlice(&cube{c.v.Add(sdf.V3i{s, s, 0}), n})...)
+			output = append(output, dc.processCubeSlice(&cube{c.v.Add(sdf.V3i{0, s, 0}), n})...)
+			output = append(output, dc.processCubeSlice(&cube{c.v.Add(sdf.V3i{0, 0, s}), n})...)
+			output = append(output, dc.processCubeSlice(&cube{c.v.Add(sdf.V3i{s, 0, s}), n})...)
+			output = append(output, dc.processCubeSlice(&cube{c.v.Add(sdf.V3i{s, s, s}), n})...)
+			output = append(output, dc.processCubeSlice(&cube{c.v.Add(sdf.V3i{0, s, s}), n})...)
+		}
+	}
+	return output
+}
+
 //-----------------------------------------------------------------------------
 
 // marchingCubesOctree generates a triangle mesh for an SDF3 using octree subdivision.
@@ -152,6 +187,23 @@ func marchingCubesOctree(s sdf.SDF3, resolution float64, output chan<- *Triangle
 	dc := newDcache3(s, bb.Min, resolution, levels)
 	// process the octree, start at the top level
 	dc.processCube(&cube{sdf.V3i{0, 0, 0}, levels - 1}, output)
+}
+
+func marchingCubesOctreeSlice(s sdf.SDF3, resolution float64) []Triangle3 {
+	// Scale the bounding box about the center to make sure the boundaries
+	// aren't on the object surface.
+	bb := s.BoundingBox()
+	bb = bb.ScaleAboutCenter(1.01)
+	longAxis := bb.Size().MaxComponent()
+	// We want to test the smallest cube (side == resolution) for emptiness
+	// so the level = 0 cube is at half resolution.
+	resolution = 0.5 * resolution
+	// how many cube levels for the octree?
+	levels := uint(math.Ceil(math.Log2(longAxis/resolution))) + 1
+	// create the distance cache
+	dc := newDcache3(s, bb.Min, resolution, levels)
+	// process the octree, start at the top level
+	return dc.processCubeSlice(&cube{sdf.V3i{0, 0, 0}, levels - 1})
 }
 
 //-----------------------------------------------------------------------------
@@ -174,6 +226,14 @@ func (m *MarchingCubesOctree) Render(s sdf.SDF3, meshCells int, output chan<- *T
 	bbSize := s.BoundingBox().Size()
 	resolution := bbSize.MaxComponent() / float64(meshCells)
 	marchingCubesOctree(s, resolution, output)
+}
+
+// Render produces a 3d triangle mesh over the bounding volume of an sdf3.
+func (m *MarchingCubesOctree) RenderSlice(s sdf.SDF3, meshCells int) []Triangle3 {
+	// work out the sampling resolution to use
+	bbSize := s.BoundingBox().Size()
+	resolution := bbSize.MaxComponent() / float64(meshCells)
+	return marchingCubesOctreeSlice(s, resolution)
 }
 
 //-----------------------------------------------------------------------------

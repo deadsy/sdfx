@@ -33,7 +33,7 @@ type STLTriangle struct {
 //-----------------------------------------------------------------------------
 
 // SaveSTL writes a triangle mesh to an STL file.
-func SaveSTL(path string, mesh []*Triangle3) error {
+func SaveSTL(path string, mesh []Triangle3) error {
 	file, err := os.Create(path)
 	if err != nil {
 		return err
@@ -72,8 +72,8 @@ func SaveSTL(path string, mesh []*Triangle3) error {
 
 //-----------------------------------------------------------------------------
 
-// WriteSTL writes a stream of triangles to an STL file.
-func WriteSTL(wg *sync.WaitGroup, path string) (chan<- *Triangle3, error) {
+// StreamSTL writes a stream of triangles to an STL file.
+func StreamSTL(wg *sync.WaitGroup, path string) (chan<- *Triangle3, error) {
 
 	f, err := os.Create(path)
 	if err != nil {
