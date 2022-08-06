@@ -17,7 +17,7 @@ A simple CAD package written in Go (https://golang.org/)
  4. Preview the STL output in an STL viewer (e.g. http://www.meshlab.net/)
  5. Print the STL file if you like it enough.
 
-[SDFX-UI](https://github.com/Yeicor/sdfx-ui) allows faster development iterations, replacing steps 3 and 4 until the final build.
+[SDF Viewer Go](https://github.com/Yeicor/sdf-viewer-go) or [SDFX-UI](https://github.com/Yeicor/sdfx-ui) allow faster development iterations, replacing steps 3 and 4 until the final build.
 
 ## Why?
  * SDFs make CSG easy.
