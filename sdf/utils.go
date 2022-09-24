@@ -10,6 +10,8 @@ import (
 	"runtime"
 
 	"github.com/deadsy/sdfx/vec/conv"
+	v2 "github.com/deadsy/sdfx/vec/v2"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
@@ -94,7 +96,7 @@ type MinFunc func(a, b float64) float64
 // RoundMin returns a minimum function that uses a quarter-circle to join the two objects smoothly.
 func RoundMin(k float64) MinFunc {
 	return func(a, b float64) float64 {
-		u := V2{k - a, k - b}.Max(V2{0, 0})
+		u := v2.Vec{k - a, k - b}.Max(v2.Vec{0, 0})
 		return math.Max(k, math.Min(a, b)) - u.Length()
 	}
 }
@@ -150,46 +152,46 @@ func PolyMax(k float64) MaxFunc {
 
 //-----------------------------------------------------------------------------
 
-// ExtrudeFunc maps V3 to V2 - the point used to evaluate the SDF2.
-type ExtrudeFunc func(p V3) V2
+// ExtrudeFunc maps v3.Vec to v2.Vec - the point used to evaluate the SDF2.
+type ExtrudeFunc func(p v3.Vec) v2.Vec
 
 // NormalExtrude returns an extrusion function.
-func NormalExtrude(p V3) V2 {
-	return V2{p.X, p.Y}
+func NormalExtrude(p v3.Vec) v2.Vec {
+	return v2.Vec{p.X, p.Y}
 }
 
 // TwistExtrude returns an extrusion function that twists with z.
 func TwistExtrude(height, twist float64) ExtrudeFunc {
 	k := twist / height
-	return func(p V3) V2 {
+	return func(p v3.Vec) v2.Vec {
 		m := Rotate(p.Z * k)
-		return m.MulPosition(V2{p.X, p.Y})
+		return m.MulPosition(v2.Vec{p.X, p.Y})
 	}
 }
 
 // ScaleExtrude returns an extrusion functions that scales with z.
-func ScaleExtrude(height float64, scale V2) ExtrudeFunc {
-	inv := V2{1 / scale.X, 1 / scale.Y}
-	m := inv.Sub(V2{1, 1}).DivScalar(height) // slope
-	b := inv.MulScalar(0.5).AddScalar(0.5)   // intercept
-	return func(p V3) V2 {
-		return V2{p.X, p.Y}.Mul(m.MulScalar(p.Z).Add(b))
+func ScaleExtrude(height float64, scale v2.Vec) ExtrudeFunc {
+	inv := v2.Vec{1 / scale.X, 1 / scale.Y}
+	m := inv.Sub(v2.Vec{1, 1}).DivScalar(height) // slope
+	b := inv.MulScalar(0.5).AddScalar(0.5)       // intercept
+	return func(p v3.Vec) v2.Vec {
+		return v2.Vec{p.X, p.Y}.Mul(m.MulScalar(p.Z).Add(b))
 	}
 }
 
 // ScaleTwistExtrude returns an extrusion function that scales and twists with z.
-func ScaleTwistExtrude(height, twist float64, scale V2) ExtrudeFunc {
+func ScaleTwistExtrude(height, twist float64, scale v2.Vec) ExtrudeFunc {
 	k := twist / height
-	inv := V2{1 / scale.X, 1 / scale.Y}
-	m := inv.Sub(V2{1, 1}).DivScalar(height) // slope
-	b := inv.MulScalar(0.5).AddScalar(0.5)   // intercept
-	return func(p V3) V2 {
+	inv := v2.Vec{1 / scale.X, 1 / scale.Y}
+	m := inv.Sub(v2.Vec{1, 1}).DivScalar(height) // slope
+	b := inv.MulScalar(0.5).AddScalar(0.5)       // intercept
+	return func(p v3.Vec) v2.Vec {
 		// Scale and then Twist
-		pnew := V2{p.X, p.Y}.Mul(m.MulScalar(p.Z).Add(b)) // Scale
-		return Rotate(p.Z * k).MulPosition(pnew)          // Twist
+		pnew := v2.Vec{p.X, p.Y}.Mul(m.MulScalar(p.Z).Add(b)) // Scale
+		return Rotate(p.Z * k).MulPosition(pnew)              // Twist
 
 		// Twist and then scale
-		//pnew := Rotate(p.Z * k).MulPosition(V2{p.X, p.Y})
+		//pnew := Rotate(p.Z * k).MulPosition(v2.Vec{p.X, p.Y})
 		//return pnew.Mul(m.MulScalar(p.Z).Add(b))
 	}
 }
@@ -208,7 +210,7 @@ func sigmoidScaled(x float64) float64 {
 // distance to the closest surface.
 // It returns the collision point, how many normalized distances to reach it (t), and the number of steps performed
 // If no surface is found (in maxDist and maxSteps), t is < 0
-func Raycast3(s SDF3, from, dir V3, scaleAndSigmoid, stepScale, epsilon, maxDist float64, maxSteps int) (collision V3, t float64, steps int) {
+func Raycast3(s SDF3, from, dir v3.Vec, scaleAndSigmoid, stepScale, epsilon, maxDist float64, maxSteps int) (collision v3.Vec, t float64, steps int) {
 	t = 0
 	dirN := dir.Normalize()
 	pos := from
@@ -240,9 +242,9 @@ func Raycast3(s SDF3, from, dir V3, scaleAndSigmoid, stepScale, epsilon, maxDist
 }
 
 // Raycast2 see Raycast3. NOTE: implementation using Raycast3 (inefficient?)
-func Raycast2(s SDF2, from, dir V2, scaleAndSigmoid, stepScale, epsilon, maxDist float64, maxSteps int) (V2, float64, int) {
+func Raycast2(s SDF2, from, dir v2.Vec, scaleAndSigmoid, stepScale, epsilon, maxDist float64, maxSteps int) (v2.Vec, float64, int) {
 	collision, t, steps := Raycast3(Extrude3D(s, 1), conv.V2ToV3(from, 0), conv.V2ToV3(dir, 0), scaleAndSigmoid, stepScale, epsilon, maxDist, maxSteps)
-	return V2{collision.X, collision.Y}, t, steps
+	return v2.Vec{collision.X, collision.Y}, t, steps
 }
 
 //-----------------------------------------------------------------------------
@@ -250,20 +252,20 @@ func Raycast2(s SDF2, from, dir V2, scaleAndSigmoid, stepScale, epsilon, maxDist
 
 // Normal3 returns the normal of an SDF3 at a point (doesn't need to be on the surface).
 // Computed by sampling it several times inside a box of side 2*eps centered on p.
-func Normal3(s SDF3, p V3, eps float64) V3 {
-	return V3{
-		X: s.Evaluate(p.Add(V3{X: eps})) - s.Evaluate(p.Add(V3{X: -eps})),
-		Y: s.Evaluate(p.Add(V3{Y: eps})) - s.Evaluate(p.Add(V3{Y: -eps})),
-		Z: s.Evaluate(p.Add(V3{Z: eps})) - s.Evaluate(p.Add(V3{Z: -eps})),
+func Normal3(s SDF3, p v3.Vec, eps float64) v3.Vec {
+	return v3.Vec{
+		X: s.Evaluate(p.Add(v3.Vec{X: eps})) - s.Evaluate(p.Add(v3.Vec{X: -eps})),
+		Y: s.Evaluate(p.Add(v3.Vec{Y: eps})) - s.Evaluate(p.Add(v3.Vec{Y: -eps})),
+		Z: s.Evaluate(p.Add(v3.Vec{Z: eps})) - s.Evaluate(p.Add(v3.Vec{Z: -eps})),
 	}.Normalize()
 }
 
 // Normal2 returns the normal of an SDF3 at a point (doesn't need to be on the surface).
 // Computed by sampling it several times inside a box of side 2*eps centered on p.
-func Normal2(s SDF2, p V2, eps float64) V2 {
-	return V2{
-		X: s.Evaluate(p.Add(V2{X: eps})) - s.Evaluate(p.Add(V2{X: -eps})),
-		Y: s.Evaluate(p.Add(V2{Y: eps})) - s.Evaluate(p.Add(V2{Y: -eps})),
+func Normal2(s SDF2, p v2.Vec, eps float64) v2.Vec {
+	return v2.Vec{
+		X: s.Evaluate(p.Add(v2.Vec{X: eps})) - s.Evaluate(p.Add(v2.Vec{X: -eps})),
+		Y: s.Evaluate(p.Add(v2.Vec{Y: eps})) - s.Evaluate(p.Add(v2.Vec{Y: -eps})),
 	}.Normalize()
 }
 

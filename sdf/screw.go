@@ -24,6 +24,9 @@ import (
 	"fmt"
 	"log"
 	"math"
+
+	v2 "github.com/deadsy/sdfx/vec/v2"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
@@ -376,14 +379,14 @@ func Screw3D(
 	r := bb.Max.Y
 	// add the taper increment
 	r += s.length * math.Tan(taper)
-	s.bb = Box3{V3{-r, -r, -s.length}, V3{r, r, s.length}}
+	s.bb = Box3{v3.Vec{-r, -r, -s.length}, v3.Vec{r, r, s.length}}
 	return &s, nil
 }
 
 // Evaluate returns the minimum distance to a 3d screw form.
-func (s *ScrewSDF3) Evaluate(p V3) float64 {
+func (s *ScrewSDF3) Evaluate(p v3.Vec) float64 {
 	// map the 3d point back to the xy space of the profile
-	p0 := V2{}
+	p0 := v2.Vec{}
 	// the distance from the 3d z-axis maps to the 2d y-axis
 	p0.Y = math.Sqrt(p.X*p.X + p.Y*p.Y)
 	if s.taper != 0 {

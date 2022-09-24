@@ -15,12 +15,14 @@ import (
 	"math"
 
 	"github.com/deadsy/sdfx/vec/conv"
+	"github.com/deadsy/sdfx/vec/p2"
+	v2 "github.com/deadsy/sdfx/vec/v2"
 )
 
 //-----------------------------------------------------------------------------
 
 // polarDist2 returns the distance squared between two polar points.
-func polarDist2(p0, p1 P2) float64 {
+func polarDist2(p0, p1 p2.Vec) float64 {
 	return (p0.R * p0.R) + (p1.R * p1.R) - 2.0*p0.R*p1.R*math.Cos(p0.Theta-p1.Theta)
 }
 
@@ -68,7 +70,7 @@ func (s *arcSpiral) theta(radius float64) ([]float64, error) {
 type ArcSpiralSDF2 struct {
 	spiral     arcSpiral
 	d          float64 // offset distance
-	start, end P2      // start/end positions
+	start, end p2.Vec  // start/end positions
 	bb         Box2
 }
 
@@ -96,17 +98,17 @@ func ArcSpiral2D(
 	if start > end {
 		start, end = end, start
 	}
-	s.start = P2{s.spiral.radius(start), start}
-	s.end = P2{s.spiral.radius(end), end}
+	s.start = p2.Vec{s.spiral.radius(start), start}
+	s.end = p2.Vec{s.spiral.radius(end), end}
 
 	// bounding box
 	rMax := math.Max(math.Abs(s.spiral.radius(start)), math.Abs(s.spiral.radius(end))) + d
-	s.bb = Box2{V2{-rMax, -rMax}, V2{rMax, rMax}}
+	s.bb = Box2{v2.Vec{-rMax, -rMax}, v2.Vec{rMax, rMax}}
 	return &s, nil
 }
 
 // Evaluate returns the minimum distance to a 2d Archimedean spiral.
-func (s *ArcSpiralSDF2) Evaluate(p V2) float64 {
+func (s *ArcSpiralSDF2) Evaluate(p v2.Vec) float64 {
 	pp := conv.V2ToP2(p)
 
 	// end points
@@ -119,7 +121,7 @@ func (s *ArcSpiralSDF2) Evaluate(p V2) float64 {
 			theta = pp.Theta - (Tau * n)
 
 			if theta >= s.start.Theta && theta <= s.end.Theta {
-				d2 = math.Min(d2, polarDist2(pp, P2{s.spiral.radius(theta), theta}))
+				d2 = math.Min(d2, polarDist2(pp, p2.Vec{s.spiral.radius(theta), theta}))
 			} else {
 
 				if theta < s.start.Theta {
@@ -127,7 +129,7 @@ func (s *ArcSpiralSDF2) Evaluate(p V2) float64 {
 						theta += Tau
 					}
 					if theta < s.end.Theta {
-						d2 = math.Min(d2, polarDist2(pp, P2{s.spiral.radius(theta), theta}))
+						d2 = math.Min(d2, polarDist2(pp, p2.Vec{s.spiral.radius(theta), theta}))
 					}
 				}
 
@@ -136,7 +138,7 @@ func (s *ArcSpiralSDF2) Evaluate(p V2) float64 {
 						theta -= Tau
 					}
 					if theta > s.start.Theta {
-						d2 = math.Min(d2, polarDist2(pp, P2{s.spiral.radius(theta), theta}))
+						d2 = math.Min(d2, polarDist2(pp, p2.Vec{s.spiral.radius(theta), theta}))
 					}
 				}
 

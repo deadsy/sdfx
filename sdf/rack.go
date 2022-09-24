@@ -8,7 +8,11 @@ Linear Gear Rack
 
 package sdf
 
-import "math"
+import (
+	"math"
+
+	v2 "github.com/deadsy/sdfx/vec/v2"
+)
 
 //-----------------------------------------------------------------------------
 // 2D Gear Rack
@@ -68,7 +72,7 @@ func GearRack2D(k *GearRackParms) (SDF2, error) {
 	bl := k.Backlash / 2.0
 
 	// create a half tooth profile centered on the y-axis
-	tooth := []V2{
+	tooth := []v2.Vec{
 		{pitch, 0},
 		{pitch, k.BaseHeight},
 		{dx + dxt - bl, k.BaseHeight},
@@ -84,14 +88,14 @@ func GearRack2D(k *GearRackParms) (SDF2, error) {
 	s.tooth = tp
 	s.pitch = pitch
 	s.length = pitch * float64(k.NumberTeeth) * 0.5
-	s.bb = Box2{V2{-s.length, 0}, V2{s.length, toothHeight}}
+	s.bb = Box2{v2.Vec{-s.length, 0}, v2.Vec{s.length, toothHeight}}
 	return &s, nil
 }
 
 // Evaluate returns the minimum distance to the gear rack.
-func (s *GearRackSDF2) Evaluate(p V2) float64 {
+func (s *GearRackSDF2) Evaluate(p v2.Vec) float64 {
 	// map p.X back to the [0,half_pitch) domain
-	p0 := V2{math.Abs(SawTooth(p.X, s.pitch)), p.Y}
+	p0 := v2.Vec{math.Abs(SawTooth(p.X, s.pitch)), p.Y}
 	// get the tooth profile distance
 	d0 := s.tooth.Evaluate(p0)
 	// create a region for the rack length

@@ -182,12 +182,12 @@ type BezierSpline struct {
 }
 
 // Return the function value for a given t value.
-func (s *BezierSpline) f0(t float64) V2 {
-	return V2{s.px.f0(t), s.py.f0(t)}
+func (s *BezierSpline) f0(t float64) v2.Vec {
+	return v2.Vec{s.px.f0(t), s.py.f0(t)}
 }
 
 // Sample generates polygon samples for a bezier spline.
-func (s *BezierSpline) Sample(p *Polygon, t0, t1 float64, p0, p1 V2, n int) {
+func (s *BezierSpline) Sample(p *Polygon, t0, t1 float64, p0, p1 v2.Vec, n int) {
 
 	// test the midpoint
 	tmid := (t0 + t1) / 2
@@ -224,7 +224,7 @@ func (s *BezierSpline) Sample(p *Polygon, t0, t1 float64, p0, p1 V2, n int) {
 }
 
 // NewBezierSpline returns a bezier spline from the provided control/end points.
-func NewBezierSpline(p []V2) *BezierSpline {
+func NewBezierSpline(p []v2.Vec) *BezierSpline {
 	//fmt.Printf("%v\n", p)
 	s := BezierSpline{}
 	// closer to 0, more polygon line segments
@@ -254,9 +254,9 @@ const (
 // BezierVertex specifies the vertex for a bezier curve.
 type BezierVertex struct {
 	vtype     bezierVertexType // type of bezier vertex
-	vertex    V2               // vertex coordinates
-	handleFwd V2               // polar coordinates of forward handle
-	handleRev V2               // polar coordinates of reverse handle
+	vertex    v2.Vec           // vertex coordinates
+	handleFwd v2.Vec           // polar coordinates of forward handle
+	handleRev v2.Vec           // polar coordinates of reverse handle
 }
 
 // Bezier curve specification..
@@ -274,8 +274,8 @@ func (b *Bezier) handles() {
 	for _, v := range b.vlist {
 		fwd := v.handleFwd
 		rev := v.handleRev
-		v.handleFwd = V2{}
-		v.handleRev = V2{}
+		v.handleFwd = v2.Vec{}
+		v.handleRev = v2.Vec{}
 		// add a control midpoint for the reverse handle
 		if rev.X != 0 {
 			cp := BezierVertex{}
@@ -381,7 +381,7 @@ func (b *Bezier) Close() {
 }
 
 // AddV2 adds a V2 vertex to a polygon.
-func (b *Bezier) AddV2(x V2) *BezierVertex {
+func (b *Bezier) AddV2(x v2.Vec) *BezierVertex {
 	v := BezierVertex{}
 	v.vertex = x
 	v.vtype = endpoint
@@ -391,7 +391,7 @@ func (b *Bezier) AddV2(x V2) *BezierVertex {
 
 // Add an x,y vertex to a polygon.
 func (b *Bezier) Add(x, y float64) *BezierVertex {
-	return b.AddV2(V2{x, y})
+	return b.AddV2(v2.Vec{x, y})
 }
 
 // Mid marks the vertex as a mid-curve control point.
@@ -405,7 +405,7 @@ func (v *BezierVertex) HandleFwd(theta, r float64) *BezierVertex {
 	if v.vtype == midpoint {
 		log.Panicf("can't place a handle on a curve midpoint")
 	}
-	v.handleFwd = V2{math.Abs(r), theta}
+	v.handleFwd = v2.Vec{math.Abs(r), theta}
 	return v
 }
 
@@ -414,7 +414,7 @@ func (v *BezierVertex) HandleRev(theta, r float64) *BezierVertex {
 	if v.vtype == midpoint {
 		log.Panicf("can't place a handle on a curve midpoint")
 	}
-	v.handleRev = V2{math.Abs(r), theta}
+	v.handleRev = v2.Vec{math.Abs(r), theta}
 	return v
 }
 
@@ -433,7 +433,7 @@ func (b *Bezier) Polygon() (*Polygon, error) {
 	}
 	// generate the splines from the vertices
 	var splines []*BezierSpline
-	var vertices []V2
+	var vertices []v2.Vec
 	n := len(b.vlist)
 	state := endpoint
 	i := 0
@@ -442,7 +442,7 @@ func (b *Bezier) Polygon() (*Polygon, error) {
 		if state == endpoint {
 			if v.vtype == endpoint {
 				// start of spline
-				vertices = []V2{v.vertex}
+				vertices = []v2.Vec{v.vertex}
 				// get the midpoints
 				i++
 				state = midpoint

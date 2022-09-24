@@ -10,7 +10,11 @@ Used for building 2D polygons SDFs.
 
 package sdf
 
-import "fmt"
+import (
+	"fmt"
+
+	v2 "github.com/deadsy/sdfx/vec/v2"
+)
 
 //-----------------------------------------------------------------------------
 // 2D Lines
@@ -19,13 +23,13 @@ import "fmt"
 type Line2 struct {
 	segment bool    // is this a line segment?
 	length  float64 // segment length
-	a       V2      // line start point
-	b       V2      // line end point point (if segment)
-	v       V2      // normalized line vector
+	a       v2.Vec  // line start point
+	b       v2.Vec  // line end point point (if segment)
+	v       v2.Vec  // normalized line vector
 }
 
 // NewLinePV returns a 2d line defined by a point and vector.
-func newLinePV(p, v V2) Line2 {
+func newLinePV(p, v v2.Vec) Line2 {
 	l := Line2{}
 	l.segment = false
 	l.length = 0.0
@@ -35,7 +39,7 @@ func newLinePV(p, v V2) Line2 {
 }
 
 // NewLinePP returns a 2d line segment defined by 2 points.
-func newLinePP(a, b V2) Line2 {
+func newLinePP(a, b v2.Vec) Line2 {
 	l := Line2{}
 	v := b.Sub(a)
 	l.segment = true
@@ -47,7 +51,7 @@ func newLinePP(a, b V2) Line2 {
 }
 
 // Position returns the position on the line given the t value.
-func (l Line2) Position(t float64) V2 {
+func (l Line2) Position(t float64) v2.Vec {
 	return l.a.Add(l.v.MulScalar(t))
 }
 
@@ -64,11 +68,11 @@ func (l Line2) Intersect(lx Line2) (float64, float64, error) {
 
 // Distance returns the distance to the line.
 // Greater than 0 implies to the right of the line vector.
-func (l Line2) Distance(p V2) float64 {
+func (l Line2) Distance(p v2.Vec) float64 {
 
-	n := V2{l.v.Y, -l.v.X} // normal to line
-	ap := p.Sub(l.a)       // line from a to p
-	dn := ap.Dot(n)        // normal distance to line
+	n := v2.Vec{l.v.Y, -l.v.X} // normal to line
+	ap := p.Sub(l.a)           // line from a to p
+	dn := ap.Dot(n)            // normal distance to line
 
 	var d float64
 	if l.segment {

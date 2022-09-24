@@ -8,7 +8,11 @@ Voxel-based cache/smoothing to remove deep SDF2/SDF3 hierarchies and speed up ev
 
 package sdf
 
-import "github.com/deadsy/sdfx/vec/conv"
+import (
+	"github.com/deadsy/sdfx/vec/conv"
+	v3 "github.com/deadsy/sdfx/vec/v3"
+	"github.com/deadsy/sdfx/vec/v3i"
+)
 
 //-----------------------------------------------------------------------------
 
@@ -24,11 +28,11 @@ import "github.com/deadsy/sdfx/vec/conv"
 // WARNING: It may lose sharp features, even if meshCells is high.
 type VoxelSDF3 struct {
 	// voxelCorners are the values of this SDF in each voxel corner
-	voxelCorners map[V3i]float64 // TODO: Octree + k-d tree to simplify/reduce memory consumption + speed-up access?
+	voxelCorners map[v3i.Vec]float64 // TODO: Octree + k-d tree to simplify/reduce memory consumption + speed-up access?
 	// bb is the bounding box.
 	bb Box3
 	// Number of voxelCorners to consider
-	numVoxels V3i
+	numVoxels v3i.Vec
 }
 
 // NewVoxelSDF3 returns a VoxelSDF3.
@@ -40,8 +44,8 @@ func NewVoxelSDF3(s SDF3, meshCells int, progress chan float64) SDF3 {
 	resolution := bbSize.MaxComponent() / float64(meshCells)
 	cells := conv.V3ToV3i(bbSize.DivScalar(resolution))
 
-	voxelCorners := map[V3i]float64{}
-	voxelCornerIndex := V3i{}
+	voxelCorners := map[v3i.Vec]float64{}
+	voxelCornerIndex := v3i.Vec{}
 	for voxelCornerIndex.X = 0; voxelCornerIndex.X <= cells.X; voxelCornerIndex.X++ {
 		for voxelCornerIndex.Y = 0; voxelCornerIndex.Y <= cells.Y; voxelCornerIndex.Y++ {
 			for voxelCornerIndex.Z = 0; voxelCornerIndex.Z <= cells.Z; voxelCornerIndex.Z++ {
@@ -62,7 +66,7 @@ func NewVoxelSDF3(s SDF3, meshCells int, progress chan float64) SDF3 {
 }
 
 // Evaluate returns the minimum distance to a VoxelSDF3.
-func (m *VoxelSDF3) Evaluate(p V3) float64 {
+func (m *VoxelSDF3) Evaluate(p v3.Vec) float64 {
 	// Find the voxel's {0,0,0} corner quickly and compute p's displacement
 	voxelSize := m.bb.Size().Div(conv.V3iToV3(m.numVoxels))
 	voxelStartIndex := conv.V3ToV3i(p.Sub(m.bb.Min).Div(voxelSize))
@@ -70,13 +74,13 @@ func (m *VoxelSDF3) Evaluate(p V3) float64 {
 	d := p.Sub(voxelStart).Div(voxelSize) // [0, 1) for each dimension
 	// Get the values at the voxel's corners
 	c000 := m.voxelCorners[voxelStartIndex]
-	c001 := m.voxelCorners[voxelStartIndex.Add(V3i{0, 0, 1})]
-	c010 := m.voxelCorners[voxelStartIndex.Add(V3i{0, 1, 0})]
-	c011 := m.voxelCorners[voxelStartIndex.Add(V3i{0, 1, 1})]
-	c100 := m.voxelCorners[voxelStartIndex.Add(V3i{1, 0, 0})]
-	c101 := m.voxelCorners[voxelStartIndex.Add(V3i{1, 0, 1})]
-	c110 := m.voxelCorners[voxelStartIndex.Add(V3i{1, 1, 0})]
-	c111 := m.voxelCorners[voxelStartIndex.Add(V3i{1, 1, 1})]
+	c001 := m.voxelCorners[voxelStartIndex.Add(v3i.Vec{0, 0, 1})]
+	c010 := m.voxelCorners[voxelStartIndex.Add(v3i.Vec{0, 1, 0})]
+	c011 := m.voxelCorners[voxelStartIndex.Add(v3i.Vec{0, 1, 1})]
+	c100 := m.voxelCorners[voxelStartIndex.Add(v3i.Vec{1, 0, 0})]
+	c101 := m.voxelCorners[voxelStartIndex.Add(v3i.Vec{1, 0, 1})]
+	c110 := m.voxelCorners[voxelStartIndex.Add(v3i.Vec{1, 1, 0})]
+	c111 := m.voxelCorners[voxelStartIndex.Add(v3i.Vec{1, 1, 1})]
 	// Perform trilinear interpolation over the voxel's corners
 	// - 4 linear interpolations
 	c00 := c000*(1-d.X) + c100*d.X

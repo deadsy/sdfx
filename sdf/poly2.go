@@ -10,20 +10,22 @@ package sdf
 
 import (
 	"math"
+
+	v2 "github.com/deadsy/sdfx/vec/v2"
 )
 
 //-----------------------------------------------------------------------------
 
 // PolySDF2 is an SDF2 made from a closed set of line segments.
 type PolySDF2 struct {
-	vertex []V2      // vertices
-	vector []V2      // unit line vectors
+	vertex []v2.Vec  // vertices
+	vector []v2.Vec  // unit line vectors
 	length []float64 // line lengths
 	bb     Box2      // bounding box
 }
 
 // Polygon2D returns an SDF2 made from a closed set of line segments.
-func Polygon2D(vertex []V2) (SDF2, error) {
+func Polygon2D(vertex []v2.Vec) (SDF2, error) {
 	s := PolySDF2{}
 
 	n := len(vertex)
@@ -39,7 +41,7 @@ func Polygon2D(vertex []V2) (SDF2, error) {
 
 	// allocate pre-calculated line segment info
 	nsegs := len(s.vertex) - 1
-	s.vector = make([]V2, nsegs)
+	s.vector = make([]v2.Vec, nsegs)
 	s.length = make([]float64, nsegs)
 
 	vmin := s.vertex[0]
@@ -58,7 +60,7 @@ func Polygon2D(vertex []V2) (SDF2, error) {
 }
 
 // Evaluate returns the minimum distance for a 2d polygon.
-func (s *PolySDF2) Evaluate(p V2) float64 {
+func (s *PolySDF2) Evaluate(p v2.Vec) float64 {
 	dd := math.MaxFloat64 // d^2 to polygon (>0)
 	wn := 0               // winding number (inside/outside)
 
@@ -73,8 +75,8 @@ func (s *PolySDF2) Evaluate(p V2) float64 {
 		pa := pb
 		pb = p.Sub(b)
 
-		t := pa.Dot(s.vector[i])                        // t-parameter of projection onto line
-		dn := pa.Dot(V2{s.vector[i].Y, -s.vector[i].X}) // normal distance from p to line
+		t := pa.Dot(s.vector[i])                            // t-parameter of projection onto line
+		dn := pa.Dot(v2.Vec{s.vector[i].Y, -s.vector[i].X}) // normal distance from p to line
 
 		// Distance to line segment
 		if t < 0 {

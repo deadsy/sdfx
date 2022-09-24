@@ -14,6 +14,7 @@ import (
 
 	"github.com/deadsy/sdfx/vec/conv"
 	"github.com/deadsy/sdfx/vec/p2"
+	v2 "github.com/deadsy/sdfx/vec/v2"
 )
 
 //-----------------------------------------------------------------------------
@@ -29,7 +30,7 @@ type Polygon struct {
 type PolygonVertex struct {
 	relative bool    // vertex position is relative to previous vertex
 	vtype    pvType  // type of polygon vertex
-	vertex   V2      // vertex coordinates
+	vertex   v2.Vec  // vertex coordinates
 	facets   int     // number of polygon facets to create when smoothing
 	radius   float64 // radius of smoothing (0 == none)
 }
@@ -140,7 +141,7 @@ func (p *Polygon) arcVertex(i int) bool {
 	b := v.vertex
 	// Normal to chord
 	ba := b.Sub(a).Normalize()
-	n := V2{ba.Y, -ba.X}.MulScalar(side)
+	n := v2.Vec{ba.Y, -ba.X}.MulScalar(side)
 	// midpoint
 	mid := a.Add(b).MulScalar(0.5)
 	// distance from a to midpoint
@@ -296,7 +297,7 @@ func NewPolygon() *Polygon {
 }
 
 // AddV2 adds a V2 vertex to a polygon.
-func (p *Polygon) AddV2(x V2) *PolygonVertex {
+func (p *Polygon) AddV2(x v2.Vec) *PolygonVertex {
 	v := PolygonVertex{}
 	v.vertex = x
 	v.vtype = pvNormal
@@ -305,7 +306,7 @@ func (p *Polygon) AddV2(x V2) *PolygonVertex {
 }
 
 // AddV2Set adds a set of V2 vertices to a polygon.
-func (p *Polygon) AddV2Set(x []V2) {
+func (p *Polygon) AddV2Set(x []v2.Vec) {
 	for _, v := range x {
 		p.AddV2(v)
 	}
@@ -313,7 +314,7 @@ func (p *Polygon) AddV2Set(x []V2) {
 
 // Add an x,y vertex to a polygon.
 func (p *Polygon) Add(x, y float64) *PolygonVertex {
-	return p.AddV2(V2{x, y})
+	return p.AddV2(v2.Vec{x, y})
 }
 
 // Drop the last vertex from the list.
@@ -322,13 +323,13 @@ func (p *Polygon) Drop() {
 }
 
 // Vertices returns the vertices of the polygon.
-func (p *Polygon) Vertices() []V2 {
+func (p *Polygon) Vertices() []v2.Vec {
 	if p.vlist == nil {
 		return nil
 	}
 	p.fixups()
 	n := len(p.vlist)
-	v := make([]V2, n)
+	v := make([]v2.Vec, n)
 	if p.reverse {
 		for i, pv := range p.vlist {
 			v[n-1-i] = pv.vertex
@@ -344,13 +345,13 @@ func (p *Polygon) Vertices() []V2 {
 //-----------------------------------------------------------------------------
 
 // Nagon return the vertices of a N sided regular polygon.
-func Nagon(n int, radius float64) V2Set {
+func Nagon(n int, radius float64) v2.VecSet {
 	if n < 3 {
 		return nil
 	}
 	m := Rotate(Tau / float64(n))
-	v := make(V2Set, n)
-	p := V2{radius, 0}
+	v := make(v2.VecSet, n)
+	p := v2.Vec{radius, 0}
 	for i := 0; i < n; i++ {
 		v[i] = p
 		p = m.MulPosition(p)

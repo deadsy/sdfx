@@ -10,6 +10,9 @@ package sdf
 
 import (
 	"math"
+
+	v2 "github.com/deadsy/sdfx/vec/v2"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
@@ -109,7 +112,7 @@ func Identity() M22 {
 }
 
 // Translate3d returns a 4x4 translation matrix.
-func Translate3d(v V3) M44 {
+func Translate3d(v v3.Vec) M44 {
 	return M44{
 		1, 0, 0, v.X,
 		0, 1, 0, v.Y,
@@ -118,7 +121,7 @@ func Translate3d(v V3) M44 {
 }
 
 // Translate2d returns a 3x3 translation matrix.
-func Translate2d(v V2) M33 {
+func Translate2d(v v2.Vec) M33 {
 	return M33{
 		1, 0, v.X,
 		0, 1, v.Y,
@@ -127,7 +130,7 @@ func Translate2d(v V2) M33 {
 
 // Scale3d returns a 4x4 scaling matrix.
 // Scaling does not preserve distance. See: ScaleUniform3D()
-func Scale3d(v V3) M44 {
+func Scale3d(v v3.Vec) M44 {
 	return M44{
 		v.X, 0, 0, 0,
 		0, v.Y, 0, 0,
@@ -137,7 +140,7 @@ func Scale3d(v V3) M44 {
 
 // Scale2d returns a 3x3 scaling matrix.
 // Scaling does not preserve distance. See: ScaleUniform2D().
-func Scale2d(v V2) M33 {
+func Scale2d(v v2.Vec) M33 {
 	return M33{
 		v.X, 0, 0,
 		0, v.Y, 0,
@@ -145,7 +148,7 @@ func Scale2d(v V2) M33 {
 }
 
 // Rotate3d returns an orthographic 4x4 rotation matrix (right hand rule).
-func Rotate3d(v V3, a float64) M44 {
+func Rotate3d(v v3.Vec, a float64) M44 {
 	v = v.Normalize()
 	s := math.Sin(a)
 	c := math.Cos(a)
@@ -159,17 +162,17 @@ func Rotate3d(v V3, a float64) M44 {
 
 // RotateX returns a 4x4 matrix with rotation about the X axis.
 func RotateX(a float64) M44 {
-	return Rotate3d(V3{1, 0, 0}, a)
+	return Rotate3d(v3.Vec{1, 0, 0}, a)
 }
 
 // RotateY returns a 4x4 matrix with rotation about the Y axis.
 func RotateY(a float64) M44 {
-	return Rotate3d(V3{0, 1, 0}, a)
+	return Rotate3d(v3.Vec{0, 1, 0}, a)
 }
 
 // RotateZ returns a 4x4 matrix with rotation about the Z axis.
 func RotateZ(a float64) M44 {
-	return Rotate3d(V3{0, 0, 1}, a)
+	return Rotate3d(v3.Vec{0, 0, 1}, a)
 }
 
 // MirrorXY returns a 4x4 matrix with mirroring across the XY plane.
@@ -245,9 +248,9 @@ func Rotate(a float64) M22 {
 }
 
 // RotateToVector returns the rotation matrix that transforms a onto the same direction as b.
-func RotateToVector(a, b V3) M44 {
+func RotateToVector(a, b v3.Vec) M44 {
 	// is either vector == 0?
-	if a.Equals(V3{}, epsilon) || b.Equals(V3{}, epsilon) {
+	if a.Equals(v3.Vec{}, epsilon) || b.Equals(v3.Vec{}, epsilon) {
 		return Identity3d()
 	}
 	// normalize both vectors
@@ -324,36 +327,36 @@ func (a M22) Equals(b M22, tolerance float64) bool {
 
 //-----------------------------------------------------------------------------
 
-// MulPosition multiplies a V3 position with a rotate/translate matrix.
-func (a M44) MulPosition(b V3) V3 {
-	return V3{a.x00*b.X + a.x01*b.Y + a.x02*b.Z + a.x03,
+// MulPosition multiplies a v3.Vec position with a rotate/translate matrix.
+func (a M44) MulPosition(b v3.Vec) v3.Vec {
+	return v3.Vec{a.x00*b.X + a.x01*b.Y + a.x02*b.Z + a.x03,
 		a.x10*b.X + a.x11*b.Y + a.x12*b.Z + a.x13,
 		a.x20*b.X + a.x21*b.Y + a.x22*b.Z + a.x23}
 }
 
-// MulPosition multiplies a V2 position with a rotate/translate matrix.
-func (a M33) MulPosition(b V2) V2 {
-	return V2{a.x00*b.X + a.x01*b.Y + a.x02,
+// MulPosition multiplies a v2.Vec position with a rotate/translate matrix.
+func (a M33) MulPosition(b v2.Vec) v2.Vec {
+	return v2.Vec{a.x00*b.X + a.x01*b.Y + a.x02,
 		a.x10*b.X + a.x11*b.Y + a.x12}
 }
 
-// MulPosition multiplies a V2 position with a rotate matrix.
-func (a M22) MulPosition(b V2) V2 {
-	return V2{a.x00*b.X + a.x01*b.Y,
+// MulPosition multiplies a v2.Vec position with a rotate matrix.
+func (a M22) MulPosition(b v2.Vec) v2.Vec {
+	return v2.Vec{a.x00*b.X + a.x01*b.Y,
 		a.x10*b.X + a.x11*b.Y}
 }
 
 //-----------------------------------------------------------------------------
 
-// mulVertices2 multiples a set of V2 vertices by a rotate/translate matrix.
-func mulVertices2(v V2Set, a M33) {
+// mulVertices2 multiples a set of v2.Vec vertices by a rotate/translate matrix.
+func mulVertices2(v v2.VecSet, a M33) {
 	for i := range v {
 		v[i] = a.MulPosition(v[i])
 	}
 }
 
-// mulVertices3 multiples a set of V3 vertices by a rotate/translate matrix.
-func mulVertices3(v V3Set, a M44) {
+// mulVertices3 multiples a set of v3.Vec vertices by a rotate/translate matrix.
+func mulVertices3(v v3.VecSet, a M44) {
 	for i := range v {
 		v[i] = a.MulPosition(v[i])
 	}
@@ -448,10 +451,10 @@ func (a M33) MulScalar(k float64) M33 {
 
 // MulBox rotates/translates a 3d bounding box and resizes for axis-alignment.
 func (a M44) MulBox(box Box3) Box3 {
-	r := V3{a.x00, a.x10, a.x20}
-	u := V3{a.x01, a.x11, a.x21}
-	b := V3{a.x02, a.x12, a.x22}
-	t := V3{a.x03, a.x13, a.x23}
+	r := v3.Vec{a.x00, a.x10, a.x20}
+	u := v3.Vec{a.x01, a.x11, a.x21}
+	b := v3.Vec{a.x02, a.x12, a.x22}
+	t := v3.Vec{a.x03, a.x13, a.x23}
 	xa := r.MulScalar(box.Min.X)
 	xb := r.MulScalar(box.Max.X)
 	ya := u.MulScalar(box.Min.Y)
@@ -468,9 +471,9 @@ func (a M44) MulBox(box Box3) Box3 {
 
 // MulBox rotates/translates a 2d bounding box and resizes for axis-alignment.
 func (a M33) MulBox(box Box2) Box2 {
-	r := V2{a.x00, a.x10}
-	u := V2{a.x01, a.x11}
-	t := V2{a.x02, a.x12}
+	r := v2.Vec{a.x00, a.x10}
+	u := v2.Vec{a.x01, a.x11}
+	t := v2.Vec{a.x02, a.x12}
 	xa := r.MulScalar(box.Min.X)
 	xb := r.MulScalar(box.Max.X)
 	ya := u.MulScalar(box.Min.Y)

@@ -11,6 +11,8 @@ package sdf
 import (
 	"errors"
 	"math"
+
+	v2 "github.com/deadsy/sdfx/vec/v2"
 )
 
 //-----------------------------------------------------------------------------
@@ -22,8 +24,8 @@ type FlatFlankCamSDF2 struct {
 	distance   float64 // center to center circle distance
 	baseRadius float64 // radius of base circle
 	noseRadius float64 // radius of nose circle
-	a          V2      // lower point on flank line
-	u          V2      // normalised line vector for flank
+	a          v2.Vec  // lower point on flank line
+	u          v2.Vec  // normalised line vector for flank
 	l          float64 // length of flank line
 	bb         Box2    // bounding box
 }
@@ -45,22 +47,22 @@ func FlatFlankCam2D(
 	sin := (baseRadius - noseRadius) / distance
 	cos := math.Sqrt(1 - sin*sin)
 	// first point on line
-	s.a = V2{cos, sin}.MulScalar(baseRadius)
+	s.a = v2.Vec{cos, sin}.MulScalar(baseRadius)
 	// second point on line
-	b := V2{cos, sin}.MulScalar(noseRadius).Add(V2{0, distance})
+	b := v2.Vec{cos, sin}.MulScalar(noseRadius).Add(v2.Vec{0, distance})
 	// line information
 	u := b.Sub(s.a)
 	s.u = u.Normalize()
 	s.l = u.Length()
 	// work out the bounding box
-	s.bb = Box2{V2{-baseRadius, -baseRadius}, V2{baseRadius, distance + noseRadius}}
+	s.bb = Box2{v2.Vec{-baseRadius, -baseRadius}, v2.Vec{baseRadius, distance + noseRadius}}
 	return &s, nil
 }
 
 // Evaluate returns the minimum distance to the cam.
-func (s *FlatFlankCamSDF2) Evaluate(p V2) float64 {
+func (s *FlatFlankCamSDF2) Evaluate(p v2.Vec) float64 {
 	// we have symmetry about the y-axis
-	p = V2{math.Abs(p.X), p.Y}
+	p = v2.Vec{math.Abs(p.X), p.Y}
 	// vector to first point of flank line
 	v := p.Sub(s.a)
 	// work out the t-parameter of the projection onto the flank line
@@ -71,10 +73,10 @@ func (s *FlatFlankCamSDF2) Evaluate(p V2) float64 {
 		d = p.Length() - s.baseRadius
 	} else if t <= s.l {
 		// the nearest point is on the flank line
-		d = v.Dot(V2{s.u.Y, -s.u.X})
+		d = v.Dot(v2.Vec{s.u.Y, -s.u.X})
 	} else {
 		// the nearest point is on the minor circle
-		d = p.Sub(V2{0, s.distance}).Length() - s.noseRadius
+		d = p.Sub(v2.Vec{0, s.distance}).Length() - s.noseRadius
 	}
 	return d
 }
@@ -126,7 +128,7 @@ type ThreeArcCamSDF2 struct {
 	baseRadius  float64 // radius of base circle
 	noseRadius  float64 // radius of nose circle
 	flankRadius float64 // radius of flank circle
-	flankCenter V2      // center of flank circle (+ve x-axis flank arc)
+	flankCenter v2.Vec  // center of flank circle (+ve x-axis flank arc)
 	thetaBase   float64 // base/flank intersection angle wrt flank center
 	thetaNose   float64 // nose/flank intersection angle wrt flank center
 	bb          Box2    // bounding box
@@ -159,23 +161,23 @@ func ThreeArcCam2D(
 	r1 := flankRadius - noseRadius
 	y := ((r0 * r0) - (r1 * r1) + (distance * distance)) / (2.0 * distance)
 	x := -math.Sqrt((r0 * r0) - (y * y)) // < 0 result, +ve x-axis flank arc
-	s.flankCenter = V2{x, y}
+	s.flankCenter = v2.Vec{x, y}
 	// work out theta for the intersection of flank arc and base radius
-	p := V2{0, 0}.Sub(s.flankCenter)
+	p := v2.Vec{0, 0}.Sub(s.flankCenter)
 	s.thetaBase = math.Atan2(p.Y, p.X)
 	// work out theta for the intersection of flank arc and nose radius
-	p = V2{0, distance}.Sub(s.flankCenter)
+	p = v2.Vec{0, distance}.Sub(s.flankCenter)
 	s.thetaNose = math.Atan2(p.Y, p.X)
 	// work out the bounding box
 	// TODO fix this - it's wrong if the flank radius is small
-	s.bb = Box2{V2{-baseRadius, -baseRadius}, V2{baseRadius, distance + noseRadius}}
+	s.bb = Box2{v2.Vec{-baseRadius, -baseRadius}, v2.Vec{baseRadius, distance + noseRadius}}
 	return &s, nil
 }
 
 // Evaluate returns the minimum distance to the cam.
-func (s *ThreeArcCamSDF2) Evaluate(p V2) float64 {
+func (s *ThreeArcCamSDF2) Evaluate(p v2.Vec) float64 {
 	// we have symmetry about the y-axis
-	p0 := V2{math.Abs(p.X), p.Y}
+	p0 := v2.Vec{math.Abs(p.X), p.Y}
 	// work out the theta angle wrt the flank center
 	v := p0.Sub(s.flankCenter)
 	t := math.Atan2(v.Y, v.X)
@@ -186,7 +188,7 @@ func (s *ThreeArcCamSDF2) Evaluate(p V2) float64 {
 		d = p0.Length() - s.baseRadius
 	} else if t > s.thetaNose {
 		// the closest point is on the nose radius
-		d = p0.Sub(V2{0, s.distance}).Length() - s.noseRadius
+		d = p0.Sub(v2.Vec{0, s.distance}).Length() - s.noseRadius
 	} else {
 		// the closest point is on the flank radius
 		d = v.Length() - s.flankRadius
@@ -227,17 +229,17 @@ func MakeThreeArcCam(
 
 	// Given the duration we know where the flank arc intersects the base circle.
 	theta := (Pi - duration) / 2.0
-	p0 := V2{math.Cos(theta), math.Sin(theta)}.MulScalar(baseRadius)
+	p0 := v2.Vec{math.Cos(theta), math.Sin(theta)}.MulScalar(baseRadius)
 	// This gives us a line back to the flank arc center
 	l0 := newLinePV(p0, p0.Neg())
 
 	//The flank arc intersects the y axis above the lift height.
-	p1 := V2{0, k * (baseRadius + lift)}
+	p1 := v2.Vec{0, k * (baseRadius + lift)}
 
 	// The perpendicular bisector of p0 and p1 passes through the flank arc center.
 	pMid := p1.Add(p0).MulScalar(0.5)
 	u := p1.Sub(p0)
-	l1 := newLinePV(pMid, V2{u.Y, -u.X})
+	l1 := newLinePV(pMid, v2.Vec{u.Y, -u.X})
 
 	// Intersect to find the flank arc center.
 	flankRadius, _, err := l0.Intersect(l1)

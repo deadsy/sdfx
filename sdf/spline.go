@@ -19,13 +19,16 @@ import (
 	"errors"
 	"fmt"
 	"math"
+
+	v2 "github.com/deadsy/sdfx/vec/v2"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
 
 // triDiagonal solves the tridiagonal matrix equation m.x = d, returns x.
 // See: https://en.wikipedia.org/wiki/Tridiagonal_matrix_algorithm
-func triDiagonal(m []V3, d []float64) ([]float64, error) {
+func triDiagonal(m []v3.Vec, d []float64) ([]float64, error) {
 	// Sanity checks
 	n := len(m)
 	if len(d) != n {
@@ -104,28 +107,28 @@ func (p *CubicPolynomial) f1Zeroes() []float64 {
 // CubicSpline is a 2d cubic spline.
 type CubicSpline struct {
 	idx    int             // index within spline set
-	p0, p1 V2              // end points of cubic spline
+	p0, p1 v2.Vec          // end points of cubic spline
 	px, py CubicPolynomial // cubic polynomial
 }
 
 // Return the function value for a given t value.
-func (s *CubicSpline) f0(t float64) V2 {
-	return V2{s.px.f0(t), s.py.f0(t)}
+func (s *CubicSpline) f0(t float64) v2.Vec {
+	return v2.Vec{s.px.f0(t), s.py.f0(t)}
 }
 
 // Return the first derivative for a given t value.
-func (s *CubicSpline) f1(t float64) V2 {
-	return V2{s.px.f1(t), s.py.f1(t)}
+func (s *CubicSpline) f1(t float64) v2.Vec {
+	return v2.Vec{s.px.f1(t), s.py.f1(t)}
 }
 
 // Return the second derivative for a given t value.
-func (s *CubicSpline) f2(t float64) V2 {
-	return V2{s.px.f2(t), s.py.f2(t)}
+func (s *CubicSpline) f2(t float64) v2.Vec {
+	return v2.Vec{s.px.f2(t), s.py.f2(t)}
 }
 
 // BoundingBox returns the bounding box for a cubic spline.
 func (s *CubicSpline) BoundingBox() Box2 {
-	p := V2Set{s.p0, s.p1}
+	p := v2.VecSet{s.p0, s.p1}
 	// x minima/maxima
 	for _, t := range s.px.f1Zeroes() {
 		p = append(p, s.f0(Clamp(t, 0, 1)))
@@ -141,7 +144,7 @@ const nrTolerance = 0.0001
 const nrMaxIters = 10
 
 // nrIterate is Newton-Raphson Iteration for minimum spline distance.
-func (s *CubicSpline) nrIterate(t float64, p V2) float64 {
+func (s *CubicSpline) nrIterate(t float64, p v2.Vec) float64 {
 	// We are minimising the distance squared function.
 	// We are looking for the zeroes of the first derivative of this function.
 	// dx = x0 - p.X
@@ -182,32 +185,32 @@ func (s *CubicSplineSDF2) find(t float64) (*CubicSpline, float64) {
 }
 
 // f0 returns the function value for a given t value.
-func (s *CubicSplineSDF2) f0(t float64) V2 {
+func (s *CubicSplineSDF2) f0(t float64) v2.Vec {
 	cs, t := s.find(t)
 	return cs.f0(t)
 }
 
 // f1 returns the first derivative for a given t value.
-func (s *CubicSplineSDF2) f1(t float64) V2 {
+func (s *CubicSplineSDF2) f1(t float64) v2.Vec {
 	cs, t := s.find(t)
 	return cs.f1(t)
 }
 
 // f2 returns the second derivative for a given t value.
-func (s *CubicSplineSDF2) f2(t float64) V2 {
+func (s *CubicSplineSDF2) f2(t float64) v2.Vec {
 	cs, t := s.find(t)
 	return cs.f2(t)
 }
 
 // d0 returns the distance squared between a point and a point on the splines curve.
-func (s *CubicSplineSDF2) d0(t float64, p V2) float64 {
+func (s *CubicSplineSDF2) d0(t float64, p v2.Vec) float64 {
 	f0 := s.f0(t)
 	dx := f0.X - p.X
 	dy := f0.Y - p.Y
 	return dx*dx + dy*dy
 }
 
-func (s *CubicSplineSDF2) d1(t float64, p V2) float64 {
+func (s *CubicSplineSDF2) d1(t float64, p v2.Vec) float64 {
 	f0 := s.f0(t)
 	f1 := s.f1(t)
 	dx := f0.X - p.X
@@ -215,7 +218,7 @@ func (s *CubicSplineSDF2) d1(t float64, p V2) float64 {
 	return 2 * (dx*f1.X + dy*f1.Y)
 }
 
-func (s *CubicSplineSDF2) d2(t float64, p V2) float64 {
+func (s *CubicSplineSDF2) d2(t float64, p v2.Vec) float64 {
 	f0 := s.f0(t)
 	f1 := s.f1(t)
 	f2 := s.f2(t)
@@ -225,7 +228,7 @@ func (s *CubicSplineSDF2) d2(t float64, p V2) float64 {
 }
 
 // CubicSpline2D returns an SDF2 made from a set of cubic splines.
-func CubicSpline2D(knot []V2) (SDF2, error) {
+func CubicSpline2D(knot []v2.Vec) (SDF2, error) {
 	if len(knot) < 2 {
 		return nil, errors.New("cubic splines need at least 2 knots")
 	}
@@ -234,20 +237,20 @@ func CubicSpline2D(knot []V2) (SDF2, error) {
 
 	// Build and solve the tridiagonal matrices
 	n := len(knot)
-	m := make([]V3, n)
+	m := make([]v3.Vec, n)
 	dx := make([]float64, n)
 	dy := make([]float64, n)
 	for i := 1; i < n-1; i++ {
-		m[i] = V3{1, 4, 1}
+		m[i] = v3.Vec{1, 4, 1}
 		dx[i] = 3 * (knot[i+1].X - knot[i-1].X)
 		dy[i] = 3 * (knot[i+1].Y - knot[i-1].Y)
 	}
 	// Special case the end splines.
 	// Assume the 2nd derivative at the end points is 0.
-	m[0] = V3{0, 2, 1}
+	m[0] = v3.Vec{0, 2, 1}
 	dx[0] = 3 * (knot[1].X - knot[0].X)
 	dy[0] = 3 * (knot[1].Y - knot[0].Y)
-	m[n-1] = V3{1, 2, 0}
+	m[n-1] = v3.Vec{1, 2, 0}
 	dx[n-1] = 3 * (knot[n-1].X - knot[n-2].X)
 	dy[n-1] = 3 * (knot[n-1].Y - knot[n-2].Y)
 	// solve to give the first derivatives at the knot points
@@ -283,7 +286,7 @@ func CubicSpline2D(knot []V2) (SDF2, error) {
 // Note: This uses Newton-Raphson minimisation and is unstable in some circumstances.
 // A simple (and slower) solution is to convert the cubic spline SDF2 to a polygon
 // SDF2 and use that for rendering.
-func (s *CubicSplineSDF2) Evaluate(p V2) float64 {
+func (s *CubicSplineSDF2) Evaluate(p v2.Vec) float64 {
 
 	// initial estimate
 	n := 9 // len(s.spline)
