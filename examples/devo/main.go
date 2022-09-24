@@ -115,7 +115,7 @@ func main() {
 		log.Fatalf("error: %s", err)
 	}
 
-	//s = sdf.Cut3D(s, V3{0, 0, 0}, sdf.V3{0, 1, 0})
+	//s = sdf.Cut3D(s, V3{0, 0, 0}, v3.Vec{0, 1, 0})
 	render.RenderSTL(s, 150, "energy_dome.stl")
 }
 

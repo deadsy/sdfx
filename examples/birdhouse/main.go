@@ -18,6 +18,7 @@ import (
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
@@ -51,7 +52,7 @@ func hook() (sdf.SDF3, error) {
 		return nil, err
 	}
 	m := sdf.RotateY(sdf.DtoR(90))
-	m = sdf.Translate3d(sdf.V3{0, 0, height + thickness}).Mul(m)
+	m = sdf.Translate3d(v3.Vec{0, 0, height + thickness}).Mul(m)
 	return sdf.Transform3D(s, m), nil
 }
 
@@ -79,7 +80,7 @@ func hole() (sdf.SDF3, error) {
 		return nil, err
 	}
 	m := sdf.RotateX(sdf.DtoR(90))
-	m = sdf.Translate3d(sdf.V3{0, 0, r}).Mul(m)
+	m = sdf.Translate3d(v3.Vec{0, 0, r}).Mul(m)
 	return sdf.Transform3D(s, m), nil
 }
 

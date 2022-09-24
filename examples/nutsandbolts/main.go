@@ -14,6 +14,7 @@ import (
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
@@ -47,7 +48,7 @@ func nutAndBolt(
 	}
 
 	zOffset := totalLength * 1.5
-	nut = sdf.Transform3D(nut, sdf.Translate3d(sdf.V3{0, 0, zOffset}))
+	nut = sdf.Transform3D(nut, sdf.Translate3d(v3.Vec{0, 0, zOffset}))
 
 	return sdf.Union3D(nut, bolt), nil
 }
@@ -62,19 +63,19 @@ func main() {
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	s0 = sdf.Transform3D(s0, sdf.Translate3d(sdf.V3{-0.6 * xOffset, 0, 0}))
+	s0 = sdf.Transform3D(s0, sdf.Translate3d(v3.Vec{-0.6 * xOffset, 0, 0}))
 
 	s1, err := nutAndBolt("unc_1/2", 2.0, 0.5)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	//s1 = sdf.Transform3D(s1, sdf.Translate3d(sdf.V3{0, 0, 0}))
+	//s1 = sdf.Transform3D(s1, sdf.Translate3d(v3.Vec{0, 0, 0}))
 
 	s2, err := nutAndBolt("unc_1", 2.0, 0.5)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	s2 = sdf.Transform3D(s2, sdf.Translate3d(sdf.V3{xOffset, 0, 0}))
+	s2 = sdf.Transform3D(s2, sdf.Translate3d(v3.Vec{xOffset, 0, 0}))
 
 	render.RenderSTLSlow(sdf.Union3D(s0, s1, s2), 400, "nutandbolt.stl")
 }

@@ -15,6 +15,7 @@ import (
 
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
@@ -48,7 +49,7 @@ func box() error {
 		return sdf.ErrMsg("sizeZ < outerOfs")
 	}
 
-	baseBox, err := sdf.Box3D(sdf.V3{sizeX - outerOfs, sizeY - outerOfs, sizeZ - outerOfs}, 0)
+	baseBox, err := sdf.Box3D(v3.Vec{sizeX - outerOfs, sizeY - outerOfs, sizeZ - outerOfs}, 0)
 	if err != nil {
 		return err
 	}
@@ -58,8 +59,8 @@ func box() error {
 	box := sdf.Difference3D(outerBox, innerBox)
 
 	lidZ := (lidPosition - 0.5) * sizeZ
-	base := sdf.Cut3D(box, sdf.V3{0, 0, lidZ}, sdf.V3{0, 0, -1})
-	top := sdf.Cut3D(box, sdf.V3{0, 0, lidZ}, sdf.V3{0, 0, 1})
+	base := sdf.Cut3D(box, v3.Vec{0, 0, lidZ}, v3.Vec{0, 0, -1})
+	top := sdf.Cut3D(box, v3.Vec{0, 0, lidZ}, v3.Vec{0, 0, 1})
 
 	render.RenderSTL(base, 300, "base.stl")
 	render.RenderSTL(top, 300, "top.stl")

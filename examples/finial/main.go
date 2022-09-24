@@ -14,6 +14,7 @@ import (
 
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
@@ -64,14 +65,14 @@ func finial2() (sdf.SDF3, error) {
 	if err != nil {
 		return nil, err
 	}
-	column_3d = sdf.Transform3D(column_3d, sdf.Translate3d(sdf.V3{0, 0, column_ofs}))
+	column_3d = sdf.Transform3D(column_3d, sdf.Translate3d(v3.Vec{0, 0, column_ofs}))
 
 	ball_3d, err := sdf.Sphere3D(ball_radius)
 	if err != nil {
 		return nil, err
 	}
 
-	ball_3d = sdf.Transform3D(ball_3d, sdf.Translate3d(sdf.V3{0, 0, ball_ofs}))
+	ball_3d = sdf.Transform3D(ball_3d, sdf.Translate3d(v3.Vec{0, 0, ball_ofs}))
 
 	base_3d := sdf.Extrude3D(s0, base_height)
 
@@ -106,14 +107,14 @@ func finial1() (sdf.SDF3, error) {
 	if err != nil {
 		return nil, err
 	}
-	column_3d = sdf.Transform3D(column_3d, sdf.Translate3d(sdf.V3{0, 0, column_ofs}))
+	column_3d = sdf.Transform3D(column_3d, sdf.Translate3d(v3.Vec{0, 0, column_ofs}))
 
 	ball_3d, err := sdf.Sphere3D(ball_radius)
 	if err != nil {
 		return nil, err
 	}
 
-	ball_3d = sdf.Transform3D(ball_3d, sdf.Translate3d(sdf.V3{0, 0, ball_ofs}))
+	ball_3d = sdf.Transform3D(ball_3d, sdf.Translate3d(v3.Vec{0, 0, ball_ofs}))
 
 	base_3d := sdf.Extrude3D(s0, base_height)
 

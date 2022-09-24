@@ -15,6 +15,8 @@ import (
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
 	"github.com/deadsy/sdfx/vec/conv"
+	v2 "github.com/deadsy/sdfx/vec/v2"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
@@ -27,11 +29,11 @@ const shrink = 1.0 / 0.999 // PLA ~0.1%
 
 const pipeClearance = 1.01                 // ID of pipe holder slightly larger to allow a slip fit
 const pipeDiameter = 48.45 * pipeClearance // OD of pipe to be fitted
-var baseSize = sdf.V2{77.0, 77.0}          // size of rectangular base
+var baseSize = v2.Vec{77.0, 77.0}          // size of rectangular base
 const baseThickness = 3.0                  // base thickness
 const pipeWall = 3.0                       // pipe holder wall thickness
 const pipeLength = 30.0                    // length of pipe holder (from bottom)
-var pipeOffset = sdf.V2{0, 0}              // offset of pipe holder from base center
+var pipeOffset = v2.Vec{0, 0}              // offset of pipe holder from base center
 
 const pipeRadius = 0.5 * pipeDiameter
 const pipeFillet = 0.95 * pipeWall
@@ -70,7 +72,7 @@ func flange() (sdf.SDF3, error) {
 	s := sdf.Difference3D(s0, innerPipe)
 
 	// return the upper half
-	return sdf.Cut3D(s, sdf.V3{0, 0, 0}, sdf.V3{0, 0, 1}), nil
+	return sdf.Cut3D(s, v3.Vec{0, 0, 0}, v3.Vec{0, 0, 1}), nil
 }
 
 //-----------------------------------------------------------------------------

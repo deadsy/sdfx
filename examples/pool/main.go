@@ -13,6 +13,7 @@ import (
 
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
+	v2 "github.com/deadsy/sdfx/vec/v2"
 )
 
 //-----------------------------------------------------------------------------
@@ -23,7 +24,7 @@ const cubicInchesPerGallon = 231.0
 const poolWidth = 234.0
 const poolLength = 477.0
 
-var poolDepth = []sdf.V2{
+var poolDepth = []v2.Vec{
 	{0.0, 43.0},
 	{101.0, 46.0},
 	{202.0, 58.0},

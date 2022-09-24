@@ -13,15 +13,17 @@ import (
 
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
+	v2 "github.com/deadsy/sdfx/vec/v2"
+	"github.com/deadsy/sdfx/vec/v2i"
 )
 
 //-----------------------------------------------------------------------------
 
 func main() {
 	// create a random set of vertices
-	b := sdf.NewBox2(sdf.V2{0, 0}, sdf.V2{20, 20})
+	b := sdf.NewBox2(v2.Vec{0, 0}, v2.Vec{20, 20})
 	s := b.RandomSet(20)
-	pixels := sdf.V2i{800, 800}
+	pixels := v2i.Vec{800, 800}
 	k := 1.5
 	path := "voronoi.png"
 

@@ -15,6 +15,7 @@ import (
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
@@ -64,7 +65,7 @@ func nutcover() (sdf.SDF3, error) {
 		return nil, err
 	}
 	cover = sdf.Difference3D(cover, sdf.Union3D(recess, counterbore))
-	return sdf.Cut3D(cover, sdf.V3{0, 0, 0}, sdf.V3{0, 0, 1}), nil
+	return sdf.Cut3D(cover, v3.Vec{0, 0, 0}, v3.Vec{0, 0, 1}), nil
 }
 
 func main() {
@@ -73,7 +74,7 @@ func main() {
 		log.Fatalf("error: %s", err)
 	}
 	// un-comment for a cut-away view
-	//s = sdf.Cut3D(s, sdf.V3{0, 0, 0}, sdf.V3{1, 0, 0})
+	//s = sdf.Cut3D(s, v3.Vec{0, 0, 0}, v3.Vec{1, 0, 0})
 	render.RenderSTL(s, 150, "cover.stl")
 }
 

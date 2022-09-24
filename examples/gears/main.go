@@ -14,6 +14,7 @@ import (
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
@@ -69,8 +70,8 @@ func main() {
 		log.Fatalf("error: %s", err)
 	}
 
-	m := sdf.Rotate3d(sdf.V3{0, 0, 1}, sdf.DtoR(180.0/float64(numberTeeth)))
-	m = sdf.Translate3d(sdf.V3{0, 0.39, 0}).Mul(m)
+	m := sdf.Rotate3d(v3.Vec{0, 0, 1}, sdf.DtoR(180.0/float64(numberTeeth)))
+	m = sdf.Translate3d(v3.Vec{0, 0.39, 0}).Mul(m)
 	gear = sdf.Transform3D(gear, m)
 
 	render.RenderSTL(sdf.Union3D(rack, gear), 200, "gear.stl")

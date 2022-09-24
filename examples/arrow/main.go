@@ -14,6 +14,7 @@ import (
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
@@ -31,15 +32,15 @@ func arrow1() (sdf.SDF3, error) {
 //-----------------------------------------------------------------------------
 
 func axes1() (sdf.SDF3, error) {
-	return obj.Axes3D(sdf.V3{-10, -10, -10}, sdf.V3{10, 20, 20})
+	return obj.Axes3D(v3.Vec{-10, -10, -10}, v3.Vec{10, 20, 20})
 }
 
 func axes2() (sdf.SDF3, error) {
-	return obj.Axes3D(sdf.V3{-10, -20, -30}, sdf.V3{0, 0, 0})
+	return obj.Axes3D(v3.Vec{-10, -20, -30}, v3.Vec{0, 0, 0})
 }
 
 func axes3() (sdf.SDF3, error) {
-	return obj.Axes3D(sdf.V3{0, 0, 0}, sdf.V3{500, 500, 1000})
+	return obj.Axes3D(v3.Vec{0, 0, 0}, v3.Vec{500, 500, 1000})
 }
 
 //-----------------------------------------------------------------------------

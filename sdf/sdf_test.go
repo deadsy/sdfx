@@ -11,6 +11,8 @@ import (
 	"testing"
 
 	v2 "github.com/deadsy/sdfx/vec/v2"
+	"github.com/deadsy/sdfx/vec/v2i"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -65,9 +67,9 @@ func Test_Inverse(t *testing.T) {
 func Test_MulBox(t *testing.T) {
 
 	// 2D boxes
-	b2d := Box2{V2{-1, -1}, V2{1, 1}}
+	b2d := Box2{v2.Vec{-1, -1}, v2.Vec{1, 1}}
 	for i := 0; i < 100; i++ {
-		b := NewBox2(V2{0, 0}, V2{10, 10})
+		b := NewBox2(v2.Vec{0, 0}, v2.Vec{10, 10})
 		v := b.Random()
 		// translating
 		m0 := Translate2d(v)
@@ -79,7 +81,7 @@ func Test_MulBox(t *testing.T) {
 		}
 		// scaling
 		m0 = Scale2d(v)
-		m1 = Scale2d(V2{1 / v.X, 1 / v.Y})
+		m1 = Scale2d(v2.Vec{1 / v.X, 1 / v.Y})
 		b1 = m0.MulBox(b2d)
 		b2 = m1.MulBox(b1)
 		if b2d.Equals(b2, tolerance) == false {
@@ -88,9 +90,9 @@ func Test_MulBox(t *testing.T) {
 	}
 
 	// 3D boxes
-	b3d := Box3{V3{-1, -1, -1}, V3{1, 1, 1}}
+	b3d := Box3{v3.Vec{-1, -1, -1}, v3.Vec{1, 1, 1}}
 	for i := 0; i < 100; i++ {
-		b := NewBox3(V3{0, 0, 0}, V3{10, 10, 10})
+		b := NewBox3(v3.Vec{0, 0, 0}, v3.Vec{10, 10, 10})
 		v := b.Random()
 		// translating
 		m0 := Translate3d(v)
@@ -102,7 +104,7 @@ func Test_MulBox(t *testing.T) {
 		}
 		// scaling
 		m0 = Scale3d(v)
-		m1 = Scale3d(V3{1 / v.X, 1 / v.Y, 1 / v.Z})
+		m1 = Scale3d(v3.Vec{1 / v.X, 1 / v.Y, 1 / v.Z})
 		b1 = m0.MulBox(b3d)
 		b2 = m1.MulBox(b1)
 		if b3d.Equals(b2, tolerance) == false {
@@ -114,8 +116,8 @@ func Test_MulBox(t *testing.T) {
 //-----------------------------------------------------------------------------
 
 func Test_ScaleBox(t *testing.T) {
-	b0 := Box3{V3{-1, -1, -1}, V3{1, 1, 1}}
-	b1 := Box3{V3{-2, -2, -2}, V3{2, 2, 2}}
+	b0 := Box3{v3.Vec{-1, -1, -1}, v3.Vec{1, 1, 1}}
+	b1 := Box3{v3.Vec{-2, -2, -2}, v3.Vec{2, 2, 2}}
 	b2 := NewBox3(b0.Center(), b0.Size().MulScalar(2))
 	if b1.Equals(b2, tolerance) == false {
 		t.Error("FAIL")
@@ -126,24 +128,24 @@ func Test_ScaleBox(t *testing.T) {
 
 func Test_Line(t *testing.T) {
 
-	l := newLinePP(V2{0, 1}, V2{0, 2})
+	l := newLinePP(v2.Vec{0, 1}, v2.Vec{0, 2})
 	points := []struct {
-		p V2
+		p v2.Vec
 		d float64
 	}{
-		{V2{0, 1}, 0},
-		{V2{0, 2}, 0},
-		{V2{0, 1.5}, 0},
-		{V2{0, 0}, 1},
-		{V2{0, 3}, 1},
-		{V2{0.5, 1.1}, 0.5},
-		{V2{-0.5, 1.1}, -0.5},
-		{V2{0.1, 1.98}, 0.1},
-		{V2{-0.1, 1.98}, -0.1},
-		{V2{3, 6}, 5},
-		{V2{-3, 6}, -5},
-		{V2{3, -3}, 5},
-		{V2{-3, -3}, -5},
+		{v2.Vec{0, 1}, 0},
+		{v2.Vec{0, 2}, 0},
+		{v2.Vec{0, 1.5}, 0},
+		{v2.Vec{0, 0}, 1},
+		{v2.Vec{0, 3}, 1},
+		{v2.Vec{0.5, 1.1}, 0.5},
+		{v2.Vec{-0.5, 1.1}, -0.5},
+		{v2.Vec{0.1, 1.98}, 0.1},
+		{v2.Vec{-0.1, 1.98}, -0.1},
+		{v2.Vec{3, 6}, 5},
+		{v2.Vec{-3, 6}, -5},
+		{v2.Vec{3, -3}, 5},
+		{v2.Vec{-3, -3}, -5},
 	}
 	for _, p := range points {
 		d := l.Distance(p.p)
@@ -154,17 +156,17 @@ func Test_Line(t *testing.T) {
 	}
 
 	lineTests := []struct {
-		p0, v0 V2
-		p1, v1 V2
+		p0, v0 v2.Vec
+		p1, v1 v2.Vec
 		t0     float64
 		t1     float64
 		err    string
 	}{
-		{V2{0, 0}, V2{0, 1}, V2{1, 0}, V2{-1, 0}, 0, 1, ""},
-		{V2{0, 0}, V2{0, 1}, V2{1, 1}, V2{0, 1}, 0, 1, "zero/many"},
-		{V2{0, 0}, V2{0, 1}, V2{0, 0}, V2{0, 1}, 0, 1, "zero/many"},
-		{V2{0, 0}, V2{1, 1}, V2{0, 10}, V2{1, -1}, 5 * math.Sqrt(2), 5 * math.Sqrt(2), ""},
-		{V2{0, 0}, V2{1, 1}, V2{10, 0}, V2{0, 1}, 10 * math.Sqrt(2), 10, ""},
+		{v2.Vec{0, 0}, v2.Vec{0, 1}, v2.Vec{1, 0}, v2.Vec{-1, 0}, 0, 1, ""},
+		{v2.Vec{0, 0}, v2.Vec{0, 1}, v2.Vec{1, 1}, v2.Vec{0, 1}, 0, 1, "zero/many"},
+		{v2.Vec{0, 0}, v2.Vec{0, 1}, v2.Vec{0, 0}, v2.Vec{0, 1}, 0, 1, "zero/many"},
+		{v2.Vec{0, 0}, v2.Vec{1, 1}, v2.Vec{0, 10}, v2.Vec{1, -1}, 5 * math.Sqrt(2), 5 * math.Sqrt(2), ""},
+		{v2.Vec{0, 0}, v2.Vec{1, 1}, v2.Vec{10, 0}, v2.Vec{0, 1}, 10 * math.Sqrt(2), 10, ""},
 	}
 	for _, test := range lineTests {
 		l0 := newLinePV(test.p0, test.v0)
@@ -188,7 +190,7 @@ func Test_Line(t *testing.T) {
 	}
 
 	for i := 0; i < 10000; i++ {
-		b := NewBox2(V2{0, 0}, V2{20, 20})
+		b := NewBox2(v2.Vec{0, 0}, v2.Vec{20, 20})
 		l0 := newLinePV(b.Random(), b.Random())
 		l1 := newLinePP(b.Random(), b.Random())
 		t0, t1, err := l0.Intersect(l1)
@@ -208,21 +210,21 @@ func Test_Line(t *testing.T) {
 //-----------------------------------------------------------------------------
 
 func Test_Polygon1(t *testing.T) {
-	s, _ := Polygon2D([]V2{{0, 0}, {1, 0}, {0, 1}})
+	s, _ := Polygon2D([]v2.Vec{{0, 0}, {1, 0}, {0, 1}})
 	b := s.BoundingBox()
-	b0 := Box2{V2{0, 0}, V2{1, 1}}
+	b0 := Box2{v2.Vec{0, 0}, v2.Vec{1, 1}}
 	if b.Equals(b0, tolerance) == false {
 		t.Error("FAIL")
 	}
 
-	s, _ = Polygon2D([]V2{{0, -2}, {1, 1}, {-2, 2}})
+	s, _ = Polygon2D([]v2.Vec{{0, -2}, {1, 1}, {-2, 2}})
 	b = s.BoundingBox()
-	b0 = Box2{V2{-2, -2}, V2{1, 2}}
+	b0 = Box2{v2.Vec{-2, -2}, v2.Vec{1, 2}}
 	if b.Equals(b0, tolerance) == false {
 		t.Error("FAIL")
 	}
 
-	points := []V2{
+	points := []v2.Vec{
 		{0, -1},
 		{1, 1},
 		{-1, 1},
@@ -231,26 +233,26 @@ func Test_Polygon1(t *testing.T) {
 	s, _ = Polygon2D(points)
 
 	b = s.BoundingBox()
-	b0 = Box2{V2{-1, -1}, V2{1, 1}}
+	b0 = Box2{v2.Vec{-1, -1}, v2.Vec{1, 1}}
 	if b.Equals(b0, tolerance) == false {
 		t.Error("FAIL")
 	}
 
 	testPoints := []struct {
-		p V2
+		p v2.Vec
 		d float64
 	}{
-		{V2{0, -1}, 0},
-		{V2{1, 1}, 0},
-		{V2{-1, 1}, 0},
-		{V2{0, 1}, 0},
-		{V2{0, 2}, 1},
-		{V2{0, -2}, 1},
-		{V2{1, 0}, 1 / math.Sqrt(5)},
-		{V2{-1, 0}, 1 / math.Sqrt(5)},
-		{V2{0, 0}, -1 / math.Sqrt(5)},
-		{V2{3, 0}, math.Sqrt(5)},
-		{V2{-3, 0}, math.Sqrt(5)},
+		{v2.Vec{0, -1}, 0},
+		{v2.Vec{1, 1}, 0},
+		{v2.Vec{-1, 1}, 0},
+		{v2.Vec{0, 1}, 0},
+		{v2.Vec{0, 2}, 1},
+		{v2.Vec{0, -2}, 1},
+		{v2.Vec{1, 0}, 1 / math.Sqrt(5)},
+		{v2.Vec{-1, 0}, 1 / math.Sqrt(5)},
+		{v2.Vec{0, 0}, -1 / math.Sqrt(5)},
+		{v2.Vec{3, 0}, math.Sqrt(5)},
+		{v2.Vec{-3, 0}, math.Sqrt(5)},
 	}
 
 	for _, p := range testPoints {
@@ -267,14 +269,14 @@ func Test_Polygon1(t *testing.T) {
 func Test_Polygon2(t *testing.T) {
 	k := 1.2
 
-	s0, _ := Polygon2D([]V2{{k, -k}, {k, k}, {-k, k}, {-k, -k}})
-	s0 = Transform2D(s0, Translate2d(V2{0.8, 0}))
+	s0, _ := Polygon2D([]v2.Vec{{k, -k}, {k, k}, {-k, k}, {-k, -k}})
+	s0 = Transform2D(s0, Translate2d(v2.Vec{0.8, 0}))
 
-	s1 := Box2D(V2{2 * k, 2 * k}, 0)
-	s1 = Transform2D(s1, Translate2d(V2{0.8, 0}))
+	s1 := Box2D(v2.Vec{2 * k, 2 * k}, 0)
+	s1 = Transform2D(s1, Translate2d(v2.Vec{0.8, 0}))
 
 	for i := 0; i < 10000; i++ {
-		b := NewBox2(V2{0, 0}, V2{20 * k, 20 * k})
+		b := NewBox2(v2.Vec{0, 0}, v2.Vec{20 * k, 20 * k})
 		p := b.Random()
 		if math.Abs(s0.Evaluate(p)-s1.Evaluate(p)) > tolerance {
 			t.Error("FAIL")
@@ -297,11 +299,11 @@ func Test_Polygon3(t *testing.T) {
 	j := -1.0
 	k := 2.0
 
-	s1 := Box2D(V2{2 * a, 2 * b}, 0)
+	s1 := Box2D(v2.Vec{2 * a, 2 * b}, 0)
 	s1 = Transform2D(s1, Rotate2d(DtoR(theta)))
-	s1 = Transform2D(s1, Translate2d(V2{j, k}))
+	s1 = Transform2D(s1, Translate2d(v2.Vec{j, k}))
 
-	points := []V2{
+	points := []v2.Vec{
 		{j + c*a - s*b, k + s*a + c*b},
 		{j - c*a - s*b, k - s*a + c*b},
 		{j - c*a + s*b, k - s*a - c*b},
@@ -311,7 +313,7 @@ func Test_Polygon3(t *testing.T) {
 	s0, _ := Polygon2D(points)
 
 	for i := 0; i < 1000; i++ {
-		b := NewBox2(V2{0, 0}, V2{10 * b, 10 * b})
+		b := NewBox2(v2.Vec{0, 0}, v2.Vec{10 * b, 10 * b})
 		p := b.Random()
 		if math.Abs(s0.Evaluate(p)-s1.Evaluate(p)) > tolerance {
 			t.Error("FAIL")
@@ -325,10 +327,10 @@ func Test_ArraySDF2(t *testing.T) {
 	r := 0.5
 	s, _ := Circle2D(r)
 	bb := s.BoundingBox()
-	if bb.Min.Equals(V2{-r, -r}, tolerance) == false {
+	if bb.Min.Equals(v2.Vec{-r, -r}, tolerance) == false {
 		t.Error("FAIL")
 	}
-	if bb.Max.Equals(V2{r, r}, tolerance) == false {
+	if bb.Max.Equals(v2.Vec{r, r}, tolerance) == false {
 		t.Error("FAIL")
 	}
 
@@ -336,12 +338,12 @@ func Test_ArraySDF2(t *testing.T) {
 	k := 4
 	dx := 2.0
 	dy := 7.0
-	sa := Array2D(s, V2i{j, k}, V2{dx, dy})
+	sa := Array2D(s, v2i.Vec{j, k}, v2.Vec{dx, dy})
 	saBox := sa.BoundingBox()
-	if saBox.Min.Equals(V2{-r, -r}, tolerance) == false {
+	if saBox.Min.Equals(v2.Vec{-r, -r}, tolerance) == false {
 		t.Error("FAIL")
 	}
-	if saBox.Max.Equals(V2{r + (float64(j-1) * dx), r + (float64(k-1) * dy)}, tolerance) == false {
+	if saBox.Max.Equals(v2.Vec{r + (float64(j-1) * dx), r + (float64(k-1) * dy)}, tolerance) == false {
 		t.Error("FAIL")
 	}
 
@@ -349,12 +351,12 @@ func Test_ArraySDF2(t *testing.T) {
 	k = 4
 	dx = -3.0
 	dy = -5.0
-	sa = Array2D(s, V2i{j, k}, V2{dx, dy})
+	sa = Array2D(s, v2i.Vec{j, k}, v2.Vec{dx, dy})
 	saBox = sa.BoundingBox()
-	if saBox.Min.Equals(V2{-r + (float64(j-1) * dx), -r + (float64(k-1) * dy)}, tolerance) == false {
+	if saBox.Min.Equals(v2.Vec{-r + (float64(j-1) * dx), -r + (float64(k-1) * dy)}, tolerance) == false {
 		t.Error("FAIL")
 	}
-	if saBox.Max.Equals(V2{r, r}, tolerance) == false {
+	if saBox.Max.Equals(v2.Vec{r, r}, tolerance) == false {
 		t.Error("FAIL")
 	}
 
@@ -362,12 +364,12 @@ func Test_ArraySDF2(t *testing.T) {
 	k = 8
 	dx = 5.0
 	dy = -3.0
-	sa = Array2D(s, V2i{j, k}, V2{dx, dy})
+	sa = Array2D(s, v2i.Vec{j, k}, v2.Vec{dx, dy})
 	saBox = sa.BoundingBox()
-	if saBox.Min.Equals(V2{-r, -r + (float64(k-1) * dy)}, tolerance) == false {
+	if saBox.Min.Equals(v2.Vec{-r, -r + (float64(k-1) * dy)}, tolerance) == false {
 		t.Error("FAIL")
 	}
-	if saBox.Max.Equals(V2{r + (float64(j-1) * dx), r}, tolerance) == false {
+	if saBox.Max.Equals(v2.Vec{r + (float64(j-1) * dx), r}, tolerance) == false {
 		t.Error("FAIL")
 	}
 
@@ -375,12 +377,12 @@ func Test_ArraySDF2(t *testing.T) {
 	k = 1
 	dx = -0.5
 	dy = 6.5
-	sa = Array2D(s, V2i{j, k}, V2{dx, dy})
+	sa = Array2D(s, v2i.Vec{j, k}, v2.Vec{dx, dy})
 	saBox = sa.BoundingBox()
-	if saBox.Min.Equals(V2{-r + (float64(j-1) * dx), -r}, tolerance) == false {
+	if saBox.Min.Equals(v2.Vec{-r + (float64(j-1) * dx), -r}, tolerance) == false {
 		t.Error("FAIL")
 	}
-	if saBox.Max.Equals(V2{r, r + (float64(k-1) * dy)}, tolerance) == false {
+	if saBox.Max.Equals(v2.Vec{r, r + (float64(k-1) * dy)}, tolerance) == false {
 		t.Error("FAIL")
 	}
 }
@@ -389,18 +391,18 @@ func Test_ArraySDF2(t *testing.T) {
 
 func Test_Rotation2d(t *testing.T) {
 	r := Rotate2d(DtoR(90))
-	v := V2{1, 0}
+	v := v2.Vec{1, 0}
 	v = r.MulPosition(v)
-	if v.Equals(V2{0, 1}, tolerance) == false {
+	if v.Equals(v2.Vec{0, 1}, tolerance) == false {
 		t.Error("FAIL")
 	}
 }
 
 func Test_Rotation3d(t *testing.T) {
-	r := Rotate3d(V3{0, 0, 1}, DtoR(90))
-	v := V3{1, 0, 0}
+	r := Rotate3d(v3.Vec{0, 0, 1}, DtoR(90))
+	v := v3.Vec{1, 0, 0}
 	v = r.MulPosition(v)
-	if v.Equals(V3{0, 1, 0}, tolerance) == false {
+	if v.Equals(v3.Vec{0, 1, 0}, tolerance) == false {
 		t.Error("FAIL")
 	}
 }
@@ -409,7 +411,7 @@ func Test_Rotation3d(t *testing.T) {
 
 func Test_TriDiagonal(t *testing.T) {
 	n := 5
-	m := make([]V3, n)
+	m := make([]v3.Vec, n)
 	for i := 0; i < n; i++ {
 		m[i].X = 1
 		m[i].Y = 4
@@ -444,11 +446,11 @@ func Test_TriDiagonal(t *testing.T) {
 		}
 	}
 
-	m[0] = V3{0, 1, 2}
-	m[1] = V3{3, 4, 5}
-	m[2] = V3{6, 7, 8}
-	m[3] = V3{9, 10, 11}
-	m[4] = V3{12, 13, 0}
+	m[0] = v3.Vec{0, 1, 2}
+	m[1] = v3.Vec{3, 4, 5}
+	m[2] = v3.Vec{6, 7, 8}
+	m[3] = v3.Vec{9, 10, 11}
+	m[4] = v3.Vec{12, 13, 0}
 	d = []float64{-10, -20, -30, 40, 50}
 	x0 = []float64{60.0 / 49.0, -275.0 / 49.0, -12.0 / 49.0, 33.0 / 49.0, 158.0 / 49.0}
 	x, err = triDiagonal(m, d)
@@ -467,7 +469,7 @@ func Test_TriDiagonal(t *testing.T) {
 
 func Test_CubicSpline(t *testing.T) {
 
-	knot := []V2{
+	knot := []v2.Vec{
 		{-1.5, -1.2},
 		{-0.2, 0},
 		{1, 0.5},
@@ -499,14 +501,14 @@ func Test_CubicSpline(t *testing.T) {
 		if i == 0 {
 			// 2nd derivative at start == 0
 			f2 := cs.f2(0)
-			if !f2.Equals(V2{0, 0}, tolerance) {
+			if !f2.Equals(v2.Vec{0, 0}, tolerance) {
 				t.Error("FAIL")
 			}
 		}
 		if i == n-1 {
 			// 2nd derivative at end == 0
 			f2 := cs.f2(1)
-			if !f2.Equals(V2{0, 0}, tolerance) {
+			if !f2.Equals(v2.Vec{0, 0}, tolerance) {
 				t.Error("FAIL")
 			}
 		} else {
@@ -557,17 +559,17 @@ func Test_Quadratic(t *testing.T) {
 
 func Test_Colinear_Fast(t *testing.T) {
 	test := []struct {
-		a, b, c V2
+		a, b, c v2.Vec
 		result  bool
 	}{
-		{V2{}, V2{}, V2{}, true},
-		{V2{}, V2{}, V2{10, 17}, true},
-		{V2{1, 1}, V2{1, 2}, V2{1, 3}, true},
-		{V2{1, 1}, V2{2, 2}, V2{3, 3}, true},
-		{V2{1, 1}, V2{2, 1}, V2{3, 1}, true},
-		{V2{1, 1}, V2{2, 5}, V2{-2, 4}, false},
-		{V2{1, 1}, V2{1, 1}, V2{-2, 4}, true},
-		{V2{1, 1}, V2{-1, 1}, V2{0, -1}, false},
+		{v2.Vec{}, v2.Vec{}, v2.Vec{}, true},
+		{v2.Vec{}, v2.Vec{}, v2.Vec{10, 17}, true},
+		{v2.Vec{1, 1}, v2.Vec{1, 2}, v2.Vec{1, 3}, true},
+		{v2.Vec{1, 1}, v2.Vec{2, 2}, v2.Vec{3, 3}, true},
+		{v2.Vec{1, 1}, v2.Vec{2, 1}, v2.Vec{3, 1}, true},
+		{v2.Vec{1, 1}, v2.Vec{2, 5}, v2.Vec{-2, 4}, false},
+		{v2.Vec{1, 1}, v2.Vec{1, 1}, v2.Vec{-2, 4}, true},
+		{v2.Vec{1, 1}, v2.Vec{-1, 1}, v2.Vec{0, -1}, false},
 	}
 	for _, v := range test {
 		if colinearFast(v.a, v.b, v.c, epsilon) != v.result {
@@ -714,20 +716,20 @@ func Test_Float_Comparison(t *testing.T) {
 //-----------------------------------------------------------------------------
 
 func Test_Box2_Distances(t *testing.T) {
-	b0 := NewBox2(V2{0, 0}, V2{10, 10})
-	b1 := NewBox2(V2{10, 20}, V2{30, 40})
+	b0 := NewBox2(v2.Vec{0, 0}, v2.Vec{10, 10})
+	b1 := NewBox2(v2.Vec{10, 20}, v2.Vec{30, 40})
 	tests := []struct {
 		b      Box2
-		p      V2
-		result V2
+		p      v2.Vec
+		result v2.Vec
 	}{
-		{b0, V2{0, 0}, V2{0, 50}},
-		{b0, V2{5, 5}, V2{0, 200}},
-		{b0, V2{20, 0}, V2{225, 650}},
-		{b1, V2{0, 0}, V2{0, 2225}},
-		{b1, V2{10, 20}, V2{0, 625}},
-		{b1, V2{0, -10}, V2{100, 3125}},
-		{b1, V2{0, 5}, V2{0, 1850}},
+		{b0, v2.Vec{0, 0}, v2.Vec{0, 50}},
+		{b0, v2.Vec{5, 5}, v2.Vec{0, 200}},
+		{b0, v2.Vec{20, 0}, v2.Vec{225, 650}},
+		{b1, v2.Vec{0, 0}, v2.Vec{0, 2225}},
+		{b1, v2.Vec{10, 20}, v2.Vec{0, 625}},
+		{b1, v2.Vec{0, -10}, v2.Vec{100, 3125}},
+		{b1, v2.Vec{0, 5}, v2.Vec{0, 1850}},
 	}
 	for _, v := range tests {
 		x := v.b.MinMaxDist2(v.p)
@@ -742,13 +744,13 @@ func Test_Box2_Distances(t *testing.T) {
 
 func Test_Rotate_To_Vector(t *testing.T) {
 	tests := []struct {
-		a, b   V3
+		a, b   v3.Vec
 		result M44
 	}{
-		{V3{0, 0, 1}, V3{0, 0, 1}, M44{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1}},
-		{V3{0, 0, 1}, V3{0, 0, -1}, M44{-1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1}},
-		{V3{1, 0, 0}, V3{0, 0, 1}, M44{0, 0, -1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1}},
-		{V3{1, 0, 1}, V3{-1, 0, 1}, M44{0, 0, -1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1}},
+		{v3.Vec{0, 0, 1}, v3.Vec{0, 0, 1}, M44{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1}},
+		{v3.Vec{0, 0, 1}, v3.Vec{0, 0, -1}, M44{-1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1}},
+		{v3.Vec{1, 0, 0}, v3.Vec{0, 0, 1}, M44{0, 0, -1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1}},
+		{v3.Vec{1, 0, 1}, v3.Vec{-1, 0, 1}, M44{0, 0, -1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1}},
 	}
 	for _, v := range tests {
 		x := RotateToVector(v.a, v.b)
@@ -758,7 +760,7 @@ func Test_Rotate_To_Vector(t *testing.T) {
 		}
 	}
 
-	box := NewBox3(V3{}, V3{100, 100, 100})
+	box := NewBox3(v3.Vec{}, v3.Vec{100, 100, 100})
 	for i := 0; i < 1000; i++ {
 		a := box.Random()
 		b := box.Random()
@@ -818,29 +820,29 @@ func TestColinearity(t *testing.T) {
 //-----------------------------------------------------------------------------
 
 func Test_Raycast(t *testing.T) {
-	testSdf := Box2D(V2{1, 1}, 0.2)
+	testSdf := Box2D(v2.Vec{1, 1}, 0.2)
 	eps := 1e-10
-	side, td, steps := Raycast2(testSdf, V2{-1.32442, 0}, V2{1, 0}, 0, 1, eps, 5, 10)
+	side, td, steps := Raycast2(testSdf, v2.Vec{-1.32442, 0}, v2.Vec{1, 0}, 0, 1, eps, 5, 10)
 	if math.Abs(side.X-(-0.5)) > eps {
 		t.Fatal("Should have collided with the side of the cube at -0.5, but got", side, td, steps)
 	}
-	side, td, steps = Raycast2(testSdf, V2{-1.32442, 0}, V2{1, 0}, 1, 0.1, eps, 5, 500)
+	side, td, steps = Raycast2(testSdf, v2.Vec{-1.32442, 0}, v2.Vec{1, 0}, 1, 0.1, eps, 5, 500)
 	if math.Abs(side.X-(-0.5)) > eps {
 		t.Fatal("Should have collided with the side of the cube at -0.5, but got", side, td, steps)
 	}
-	side, td, steps = Raycast2(testSdf, V2{-1.32442, 0}, V2{1, 0}, 0, 0.1, eps, 5, 1000)
+	side, td, steps = Raycast2(testSdf, v2.Vec{-1.32442, 0}, v2.Vec{1, 0}, 0, 0.1, eps, 5, 1000)
 	if math.Abs(side.X-(-0.5)) > eps {
 		t.Fatal("Should have collided with the side of the cube at -0.5, but got", side, td, steps)
 	}
-	side, td, steps = Raycast2(testSdf, V2{-1.32442, 0}, V2{1, 0}, 0, 1, eps, 0.1, 10)
+	side, td, steps = Raycast2(testSdf, v2.Vec{-1.32442, 0}, v2.Vec{1, 0}, 0, 1, eps, 0.1, 10)
 	if td >= 0 {
 		t.Fatal("Should have reached maxDist and not collided", side, td, steps)
 	}
-	side, td, steps = Raycast2(testSdf, V2{-1.32442, -1.32442}, V2{1, 1}, 0, 0.1, eps, 5, 10)
+	side, td, steps = Raycast2(testSdf, v2.Vec{-1.32442, -1.32442}, v2.Vec{1, 1}, 0, 0.1, eps, 5, 10)
 	if side.X < -0.45 {
 		t.Fatal("Should have collided with the ROUND side of the cube at <-0.45, but got", side, td, steps)
 	}
-	side, td, steps = Raycast2(testSdf, V2{0, 0}, V2{1, 0}, 0, 1, eps, 5, 10)
+	side, td, steps = Raycast2(testSdf, v2.Vec{0, 0}, v2.Vec{1, 0}, 0, 1, eps, 5, 10)
 	if math.Abs(side.X-(0.5)) > eps {
 		t.Fatal("Should have returned surface of the SDF from the inside", side, td, steps)
 	}
@@ -849,21 +851,21 @@ func Test_Raycast(t *testing.T) {
 //-----------------------------------------------------------------------------
 
 func Test_Normal(t *testing.T) {
-	testSdf := Box2D(V2{1, 1}, 0.2)
+	testSdf := Box2D(v2.Vec{1, 1}, 0.2)
 	eps := 1e-10
-	n := Normal2(testSdf, V2{0.5, 0}, eps)
-	if !reflect.DeepEqual(n, V2{1, 0}) {
+	n := Normal2(testSdf, v2.Vec{0.5, 0}, eps)
+	if !reflect.DeepEqual(n, v2.Vec{1, 0}) {
 		t.Fatal("Bad normal for box's right side: expected {1 0} but got", n)
 	}
-	n = Normal2(testSdf, V2{0.25, 0}, eps)
-	if !reflect.DeepEqual(n, V2{1, 0}) {
+	n = Normal2(testSdf, v2.Vec{0.25, 0}, eps)
+	if !reflect.DeepEqual(n, v2.Vec{1, 0}) {
 		t.Fatal("Bad normal for box's right side (inside): expected {1 0} but got", n)
 	}
-	n = Normal2(testSdf, V2{0.5, 0.25}, eps)
-	if !reflect.DeepEqual(n, V2{1, 0}) {
+	n = Normal2(testSdf, v2.Vec{0.5, 0.25}, eps)
+	if !reflect.DeepEqual(n, v2.Vec{1, 0}) {
 		t.Fatal("Bad normal for box's right side (displaced): expected {1 0} but got", n)
 	}
-	n = Normal2(testSdf, V2{0.45, 0.45}, eps)
+	n = Normal2(testSdf, v2.Vec{0.45, 0.45}, eps)
 	if !(n.X > 0 && n.Y > 0) {
 		t.Fatal("Bad normal for box's right side (corner): expected {>0 >0} but got", n)
 	}

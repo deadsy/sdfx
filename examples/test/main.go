@@ -15,12 +15,17 @@ import (
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
 	. "github.com/deadsy/sdfx/sdf"
+
+	v2 "github.com/deadsy/sdfx/vec/v2"
+	"github.com/deadsy/sdfx/vec/v2i"
+	v3 "github.com/deadsy/sdfx/vec/v3"
+	"github.com/deadsy/sdfx/vec/v3i"
 )
 
 //-----------------------------------------------------------------------------
 
 func test1() error {
-	s0 := Box2D(V2{0.8, 1.2}, 0.05)
+	s0 := Box2D(v2.Vec{0.8, 1.2}, 0.05)
 	s1, err := RevolveTheta3D(s0, DtoR(225))
 	if err != nil {
 		return err
@@ -30,7 +35,7 @@ func test1() error {
 }
 
 func test2() error {
-	s0 := Box2D(V2{0.8, 1.2}, 0.1)
+	s0 := Box2D(v2.Vec{0.8, 1.2}, 0.1)
 	s1 := Extrude3D(s0, 0.3)
 	render.RenderSTL(s1, 200, "test2.stl")
 	return nil
@@ -41,7 +46,7 @@ func test3() error {
 	if err != nil {
 		return err
 	}
-	s0 = Transform2D(s0, Translate2d(V2{1, 0}))
+	s0 = Transform2D(s0, Translate2d(v2.Vec{1, 0}))
 	s1, err := Revolve3D(s0)
 	if err != nil {
 		return err
@@ -51,8 +56,8 @@ func test3() error {
 }
 
 func test4() error {
-	s0 := Box2D(V2{0.2, 0.4}, 0.05)
-	s0 = Transform2D(s0, Translate2d(V2{1, 0}))
+	s0 := Box2D(v2.Vec{0.2, 0.4}, 0.05)
+	s0 = Transform2D(s0, Translate2d(v2.Vec{1, 0}))
 	s1, err := RevolveTheta3D(s0, DtoR(270))
 	if err != nil {
 		return err
@@ -62,9 +67,9 @@ func test4() error {
 }
 
 func test5() error {
-	s0 := Box2D(V2{0.2, 0.4}, 0.05)
+	s0 := Box2D(v2.Vec{0.2, 0.4}, 0.05)
 	s0 = Transform2D(s0, Rotate2d(DtoR(45)))
-	s0 = Transform2D(s0, Translate2d(V2{1, 0}))
+	s0 = Transform2D(s0, Translate2d(v2.Vec{1, 0}))
 	s1, err := RevolveTheta3D(s0, DtoR(315))
 	if err != nil {
 		return err
@@ -79,8 +84,8 @@ func test6() error {
 		return err
 	}
 	d := 0.4
-	s1 := Transform3D(s0, Translate3d(V3{0, d, 0}))
-	s2 := Transform3D(s0, Translate3d(V3{0, -d, 0}))
+	s1 := Transform3D(s0, Translate3d(v3.Vec{0, d, 0}))
+	s2 := Transform3D(s0, Translate3d(v3.Vec{0, -d, 0}))
 	s3 := Union3D(s1, s2)
 	s3.(*UnionSDF3).SetMin(PolyMin(0.1))
 	render.RenderSTL(s3, 200, "test6.stl")
@@ -88,14 +93,14 @@ func test6() error {
 }
 
 func test7() error {
-	s0, err := Box3D(V3{0.8, 0.8, 0.05}, 0)
+	s0, err := Box3D(v3.Vec{0.8, 0.8, 0.05}, 0)
 	if err != nil {
 		return err
 	}
-	s1 := Transform3D(s0, Rotate3d(V3{1, 0, 0}, DtoR(60)))
+	s1 := Transform3D(s0, Rotate3d(v3.Vec{1, 0, 0}, DtoR(60)))
 	s2 := Union3D(s0, s1)
 	s2.(*UnionSDF3).SetMin(PolyMin(0.1))
-	s3 := Transform3D(s2, Rotate3d(V3{0, 0, 1}, DtoR(-30)))
+	s3 := Transform3D(s2, Rotate3d(v3.Vec{0, 0, 1}, DtoR(-30)))
 	render.RenderSTL(s3, 200, "test7.stl")
 	return nil
 }
@@ -110,11 +115,11 @@ func test9() error {
 }
 
 func test10() error {
-	s0, err := Box3D(V3{0.8, 0.8, 0.05}, 0)
+	s0, err := Box3D(v3.Vec{0.8, 0.8, 0.05}, 0)
 	if err != nil {
 		return err
 	}
-	s1 := Transform3D(s0, Rotate3d(V3{1, 0, 0}, DtoR(60)))
+	s1 := Transform3D(s0, Rotate3d(v3.Vec{1, 0, 0}, DtoR(60)))
 	s := Union3D(s0, s1)
 	s.(*UnionSDF3).SetMin(PolyMin(0.1))
 	render.RenderSTL(s, 200, "test10.stl")
@@ -132,7 +137,7 @@ func test11() error {
 
 func test12() error {
 	k := 0.1
-	points := []V2{
+	points := []v2.Vec{
 		{0, -k},
 		{k, k},
 		{-k, k},
@@ -141,7 +146,7 @@ func test12() error {
 	if err != nil {
 		return err
 	}
-	s0 = Transform2D(s0, Translate2d(V2{0.8, 0}))
+	s0 = Transform2D(s0, Translate2d(v2.Vec{0.8, 0}))
 	s1, err := RevolveTheta3D(s0, DtoR(360))
 	if err != nil {
 		return err
@@ -152,11 +157,11 @@ func test12() error {
 
 func test13() error {
 	k := 0.4
-	s0, err := Polygon2D([]V2{{k, -k}, {k, k}, {-k, k}, {-k, -k}})
+	s0, err := Polygon2D([]v2.Vec{{k, -k}, {k, k}, {-k, k}, {-k, -k}})
 	if err != nil {
 		return err
 	}
-	s0 = Transform2D(s0, Translate2d(V2{0.8, 0}))
+	s0 = Transform2D(s0, Translate2d(v2.Vec{0.8, 0}))
 	s1, err := RevolveTheta3D(s0, DtoR(270))
 	if err != nil {
 		return err
@@ -178,7 +183,7 @@ func test14() error {
 	j := 10.0
 	k := 2.0
 
-	points := []V2{
+	points := []v2.Vec{
 		{j + c*a - s*b, k + s*a + c*b},
 		{j - c*a - s*b, k - s*a + c*b},
 		{j - c*a + s*b, k - s*a - c*b},
@@ -207,7 +212,7 @@ func test15() error {
 	j := 3.0
 	k := 0.0
 
-	points := []V2{
+	points := []v2.Vec{
 		{0, -b},
 		{a, b},
 		{-a, b},
@@ -218,14 +223,14 @@ func test15() error {
 		return err
 	}
 	s0 = Transform2D(s0, Rotate2d(DtoR(theta)))
-	s0 = Transform2D(s0, Translate2d(V2{j, k}))
+	s0 = Transform2D(s0, Translate2d(v2.Vec{j, k}))
 
 	s1, err := RevolveTheta3D(s0, DtoR(300))
 	if err != nil {
 		return err
 	}
 
-	s1 = Transform3D(s1, Rotate3d(V3{0, 0, 1}, DtoR(30)))
+	s1 = Transform3D(s1, Rotate3d(v3.Vec{0, 0, 1}, DtoR(30)))
 
 	render.RenderSTL(s1, 200, "test15.stl")
 	return nil
@@ -244,7 +249,7 @@ func test16() error {
 	j := 4.0
 	k := 0.0
 
-	points := []V2{
+	points := []v2.Vec{
 		{b0, -c},
 		{a0, c},
 		{-a1, c},
@@ -256,14 +261,14 @@ func test16() error {
 		return err
 	}
 	s0 = Transform2D(s0, Rotate2d(DtoR(theta)))
-	s0 = Transform2D(s0, Translate2d(V2{j, k}))
+	s0 = Transform2D(s0, Translate2d(v2.Vec{j, k}))
 
 	s1, err := RevolveTheta3D(s0, DtoR(300))
 	if err != nil {
 		return err
 	}
 
-	s1 = Transform3D(s1, Rotate3d(V3{0, 0, 1}, DtoR(30)))
+	s1 = Transform3D(s1, Rotate3d(v3.Vec{0, 0, 1}, DtoR(30)))
 
 	render.RenderSTL(s1, 200, "test16.stl")
 	return nil
@@ -277,7 +282,7 @@ func test17() error {
 	j := 3.0
 	k := 0.0
 
-	points := []V2{
+	points := []v2.Vec{
 		{a, 0},
 		{-a, b},
 		{-a, -b},
@@ -287,14 +292,14 @@ func test17() error {
 	if err != nil {
 		return err
 	}
-	s0 = Transform2D(s0, Translate2d(V2{j, k}))
+	s0 = Transform2D(s0, Translate2d(v2.Vec{j, k}))
 
 	s1, err := RevolveTheta3D(s0, DtoR(300))
 	if err != nil {
 		return err
 	}
 
-	s1 = Transform3D(s1, Rotate3d(V3{0, 0, 1}, DtoR(30)))
+	s1 = Transform3D(s1, Rotate3d(v3.Vec{0, 0, 1}, DtoR(30)))
 
 	render.RenderSTL(s1, 200, "test17.stl")
 	return nil
@@ -313,7 +318,7 @@ func test18() error {
 	h3 := 3.5
 	h4 := 1.0
 
-	points := []V2{
+	points := []v2.Vec{
 		{0, 0},
 		{r0, 0},
 		{r0, h0},
@@ -333,7 +338,7 @@ func test18() error {
 		return err
 	}
 
-	s1 = Transform3D(s1, Rotate3d(V3{0, 0, 1}, DtoR(30)))
+	s1 = Transform3D(s1, Rotate3d(v3.Vec{0, 0, 1}, DtoR(30)))
 
 	render.RenderSTL(s1, 200, "test18.stl")
 	return nil
@@ -346,7 +351,7 @@ func test19() error {
 	if err != nil {
 		return err
 	}
-	s1 := Array2D(s0, V2i{3, 7}, V2{k * r, k * r})
+	s1 := Array2D(s0, v2i.Vec{3, 7}, v2.Vec{k * r, k * r})
 	s1.(*ArraySDF2).SetMin(PolyMin(0.8))
 	s2 := Extrude3D(s1, 1.0)
 	render.RenderSTL(s2, 200, "test19.stl")
@@ -360,7 +365,7 @@ func test20() error {
 	if err != nil {
 		return err
 	}
-	s0 = Transform2D(s0, Translate2d(V2{d, 0}))
+	s0 = Transform2D(s0, Translate2d(v2.Vec{d, 0}))
 	s0 = RotateUnion2D(s0, 5, Rotate2d(DtoR(20)))
 	s0.(*RotateUnionSDF2).SetMin(PolyMin(1.2))
 	s1 := Extrude3D(s0, 10.0)
@@ -375,7 +380,7 @@ func test21() error {
 	if err != nil {
 		return err
 	}
-	s1 := Array3D(s0, V3i{3, 7, 5}, V3{k * r, k * r, k * r})
+	s1 := Array3D(s0, v3i.Vec{3, 7, 5}, v3.Vec{k * r, k * r, k * r})
 	s1.(*ArraySDF3).SetMin(PolyMin(0.8))
 	render.RenderSTL(s1, 200, "test21.stl")
 	return nil
@@ -388,8 +393,8 @@ func test22() error {
 	if err != nil {
 		return err
 	}
-	s0 = Transform3D(s0, Translate3d(V3{d, 0, 0}))
-	s0 = RotateUnion3D(s0, 5, Rotate3d(V3{0, 0, 1}, DtoR(20)))
+	s0 = Transform3D(s0, Translate3d(v3.Vec{d, 0, 0}))
+	s0 = RotateUnion3D(s0, 5, Rotate3d(v3.Vec{0, 0, 1}, DtoR(20)))
 	s0.(*RotateUnionSDF3).SetMin(PolyMin(1.2))
 	render.RenderSTL(s0, 200, "test22.stl")
 	return nil
@@ -406,7 +411,7 @@ func test26() error {
 
 func test27() error {
 	r := 5.0
-	posn := V3Set{{2 * r, 2 * r, 0}, {-r, r, 0}, {r, -r, 0}, {-r, -r, 0}, {0, 0, 0}}
+	posn := v3.VecSet{{2 * r, 2 * r, 0}, {-r, r, 0}, {r, -r, 0}, {-r, -r, 0}, {0, 0, 0}}
 	cylinder, err := Cylinder3D(3, 1, 0)
 	if err != nil {
 		return err
@@ -434,7 +439,7 @@ func test29() error {
 
 func test30() error {
 	s0 := Line2D(10, 3)
-	s0 = Cut2D(s0, V2{4, 0}, V2{1, 1})
+	s0 = Cut2D(s0, v2.Vec{4, 0}, v2.Vec{1, 1})
 	s1 := Extrude3D(s0, 4)
 	render.RenderSTL(s1, 200, "test30.stl")
 	return nil
@@ -483,7 +488,7 @@ func test35() error {
 	r := 7.0
 	d := 20.0
 	s0 := Line2D(r, 1.0)
-	s0 = Transform2D(s0, Translate2d(V2{d, 0}))
+	s0 = Transform2D(s0, Translate2d(v2.Vec{d, 0}))
 	s0 = RotateCopy2D(s0, 15)
 	s1 := Extrude3D(s0, 10.0)
 	render.RenderSTL(s1, 200, "rotate_copy.stl")
@@ -533,15 +538,15 @@ func test39() error {
 func test40() error {
 	d := 30.0
 	wall := 5.0
-	s0, err := Box3D(V3{d, d, d}, wall/2)
+	s0, err := Box3D(v3.Vec{d, d, d}, wall/2)
 	if err != nil {
 		return err
 	}
-	s1, err := Box3D(V3{d - wall, d - wall, d}, wall/2)
+	s1, err := Box3D(v3.Vec{d - wall, d - wall, d}, wall/2)
 	if err != nil {
 		return err
 	}
-	s1 = Transform3D(s1, Translate3d(V3{0, 0, wall / 2}))
+	s1 = Transform3D(s1, Translate3d(v3.Vec{0, 0, wall / 2}))
 	s := Difference3D(s0, s1)
 	s.(*DifferenceSDF3).SetMax(PolyMax(2))
 	render.RenderSTL(s, 200, "rounded_box.stl")
@@ -553,7 +558,7 @@ func test41() error {
 	if err != nil {
 		return err
 	}
-	s1 := Slice2D(s0, V3{0, 0, 0}, V3{0, 1, 1})
+	s1 := Slice2D(s0, v3.Vec{0, 0, 0}, v3.Vec{0, 1, 1})
 	s2, err := Revolve3D(s1)
 	if err != nil {
 		return err
@@ -564,7 +569,7 @@ func test41() error {
 
 func test43() error {
 	s0 := Line2D(10, 3)
-	s0 = Cut2D(s0, V2{4, 0}, V2{1, 1})
+	s0 = Cut2D(s0, v2.Vec{4, 0}, v2.Vec{1, 1})
 	s1, err := ExtrudeRounded3D(s0, 4, 1)
 	if err != nil {
 		return err

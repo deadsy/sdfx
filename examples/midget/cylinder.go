@@ -13,6 +13,7 @@ import (
 
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/sdf"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
@@ -42,7 +43,7 @@ func cylinderBase() (sdf.SDF3, error) {
 	const round = 0.125
 
 	k := obj.TruncRectPyramidParms{
-		Size:        sdf.V3{x, y, z},
+		Size:        v3.Vec{x, y, z},
 		BaseAngle:   sdf.DtoR(90 - draft),
 		BaseRadius:  round,
 		RoundRadius: round * 1.5,
@@ -53,7 +54,7 @@ func cylinderBase() (sdf.SDF3, error) {
 	}
 	base1 := sdf.Transform3D(base0, sdf.MirrorXY())
 	base := sdf.Union3D(base0, base1)
-	base = sdf.Cut3D(base, sdf.V3{0, 0, 0}, sdf.V3{0, 1, 0})
+	base = sdf.Cut3D(base, v3.Vec{0, 0, 0}, v3.Vec{0, 1, 0})
 	return sdf.Transform3D(base, sdf.RotateX(sdf.DtoR(90))), nil
 }
 
@@ -93,7 +94,7 @@ func cylinderPattern(core, split bool) (sdf.SDF3, error) {
 	if err != nil {
 		return nil, err
 	}
-	base = sdf.Transform3D(base, sdf.Translate3d(sdf.V3{0, 0, cylinderBaseOffset}))
+	base = sdf.Transform3D(base, sdf.Translate3d(v3.Vec{0, 0, cylinderBaseOffset}))
 
 	// add the base to the body pattern
 	body = sdf.Union3D(body, base)
@@ -121,7 +122,7 @@ func cylinderPattern(core, split bool) (sdf.SDF3, error) {
 	}
 
 	if split {
-		cylinder = sdf.Cut3D(cylinder, sdf.V3{0, 0, 0}, sdf.V3{0, 1, 0})
+		cylinder = sdf.Cut3D(cylinder, v3.Vec{0, 0, 0}, v3.Vec{0, 1, 0})
 	}
 
 	return cylinder, nil

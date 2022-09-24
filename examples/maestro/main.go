@@ -16,6 +16,8 @@ import (
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
+	v2 "github.com/deadsy/sdfx/vec/v2"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
@@ -41,13 +43,13 @@ func servoControllerMount() (sdf.SDF3, error) {
 	}
 
 	// standoffs
-	h0 := sdf.V3{-0.45, -0.8, 0.25}.MulScalar(sdf.MillimetresPerInch)
-	h1 := sdf.V3{0.05, 0.8, 0.25}.MulScalar(sdf.MillimetresPerInch)
-	standoffs := sdf.Multi3D(standoff, []sdf.V3{h0, h1})
+	h0 := v3.Vec{-0.45, -0.8, 0.25}.MulScalar(sdf.MillimetresPerInch)
+	h1 := v3.Vec{0.05, 0.8, 0.25}.MulScalar(sdf.MillimetresPerInch)
+	standoffs := sdf.Multi3D(standoff, []v3.Vec{h0, h1})
 
 	// base
 	k1 := obj.PanelParms{
-		Size:         sdf.V2{1.1, 1.8}.MulScalar(sdf.MillimetresPerInch),
+		Size:         v2.Vec{1.1, 1.8}.MulScalar(sdf.MillimetresPerInch),
 		CornerRadius: 2,
 		HoleDiameter: 2.4, // #4 screw
 		HoleMargin:   [4]float64{4, 4, 4, 4},

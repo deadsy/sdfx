@@ -14,6 +14,7 @@ import (
 
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
@@ -121,7 +122,7 @@ func wheel_pattern() (sdf.SDF3, error) {
 		return nil, err
 	}
 	web_3d := sdf.Extrude3D(web_2d, web_length)
-	m := sdf.Translate3d(sdf.V3{0, plate_thickness, hub_radius + web_length/2})
+	m := sdf.Translate3d(v3.Vec{0, plate_thickness, hub_radius + web_length/2})
 	m = sdf.RotateX(sdf.DtoR(90)).Mul(m)
 
 	// build the wheel profile
@@ -176,7 +177,7 @@ func core_box() (sdf.SDF3, error) {
 	w := 4.2 * shaft_radius
 	d := 1.2 * shaft_radius
 	h := (core_height + shaft_length) * 1.1
-	box_3d, err := sdf.Box3D(sdf.V3{h, w, d}, 0)
+	box_3d, err := sdf.Box3D(v3.Vec{h, w, d}, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -185,7 +186,7 @@ func core_box() (sdf.SDF3, error) {
 	dy := w * 0.37
 	dx := h * 0.4
 	hole_radius := ((3.0 / 16.0) * sdf.MillimetresPerInch) / 2.0
-	positions := []sdf.V3{
+	positions := []v3.Vec{
 		{dx, dy, 0},
 		{-dx, dy, 0},
 		{dx, -dy, 0},
@@ -211,7 +212,7 @@ func core_box() (sdf.SDF3, error) {
 		return nil, err
 	}
 
-	m := sdf.Translate3d(sdf.V3{h / 2, 0, d / 2}).Mul(sdf.RotateY(sdf.DtoR(-90)))
+	m := sdf.Translate3d(v3.Vec{h / 2, 0, d / 2}).Mul(sdf.RotateY(sdf.DtoR(-90)))
 	core_3d = sdf.Transform3D(core_3d, m)
 
 	// remove the core from the box
@@ -226,7 +227,7 @@ func main() {
 		log.Fatalf("error: %s", err)
 	}
 	render.RenderSTL(s0, 200, "wheel.stl")
-	render.RenderDXF(sdf.Slice2D(s0, sdf.V3{0, 0, 15.0}, sdf.V3{0, 0, 1}), 200, "wheel.dxf")
+	render.RenderDXF(sdf.Slice2D(s0, v3.Vec{0, 0, 15.0}, v3.Vec{0, 0, 1}), 200, "wheel.dxf")
 
 	s1, err := core_box()
 	if err != nil {

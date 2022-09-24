@@ -15,6 +15,7 @@ import (
 
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
@@ -56,8 +57,8 @@ func zOffset(radius float64) float64 {
 func ballRow(ncol int, radius float64) (sdf.SDF3, error) {
 
 	space := colSpace(radius)
-	x := sdf.V3{-0.5 * ((float64(ncol) - 1) * space), 0, 0}
-	dx := sdf.V3{space, 0, 0}
+	x := v3.Vec{-0.5 * ((float64(ncol) - 1) * space), 0, 0}
+	dx := v3.Vec{space, 0, 0}
 
 	var balls []sdf.SDF3
 	s, err := sdf.Sphere3D(radius)
@@ -79,9 +80,9 @@ func ballGrid(
 ) (sdf.SDF3, error) {
 
 	space := rowSpace(radius)
-	x := sdf.V3{0, -0.5 * ((float64(nrow) - 1) * space), 0}
-	dy0 := sdf.V3{-xOffset(radius), space, 0}
-	dy1 := sdf.V3{xOffset(radius), space, 0}
+	x := v3.Vec{0, -0.5 * ((float64(nrow) - 1) * space), 0}
+	dy0 := v3.Vec{-xOffset(radius), space, 0}
+	dy1 := v3.Vec{xOffset(radius), space, 0}
 
 	var rows []sdf.SDF3
 	s, err := ballRow(ncol, radius)
@@ -106,7 +107,7 @@ func macCheeseGrater(
 	radius float64, // radius of ball
 ) (sdf.SDF3, error) {
 
-	dx := sdf.V3{xOffset(radius), yOffset(radius), zOffset(radius)}.MulScalar(0.5)
+	dx := v3.Vec{xOffset(radius), yOffset(radius), zOffset(radius)}.MulScalar(0.5)
 	g, err := ballGrid(ncol, nrow, radius)
 	if err != nil {
 		return nil, err
@@ -118,7 +119,7 @@ func macCheeseGrater(
 	pX := colSpace(radius) * (float64(ncol) - 1)
 	pY := rowSpace(radius) * (float64(nrow) - 1)
 	pZ := 0.5 * colSpace(radius)
-	plate, err := sdf.Box3D(sdf.V3{pX, pY, pZ}, 0)
+	plate, err := sdf.Box3D(v3.Vec{pX, pY, pZ}, 0)
 	if err != nil {
 		return nil, err
 	}

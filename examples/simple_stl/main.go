@@ -12,7 +12,7 @@ import (
 	"fmt"
 
 	"github.com/deadsy/sdfx/render"
-	"github.com/deadsy/sdfx/sdf"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
@@ -21,10 +21,10 @@ func main() {
 
 	side := 30.0
 
-	a := sdf.V3{0, 0, 0}
-	b := sdf.V3{side, 0, 0}
-	c := sdf.V3{0, side, 0}
-	d := sdf.V3{0, 0, side}
+	a := v3.Vec{0, 0, 0}
+	b := v3.Vec{side, 0, 0}
+	c := v3.Vec{0, side, 0}
+	d := v3.Vec{0, 0, side}
 
 	t1 := render.NewTriangle3(a, b, d)
 	t2 := render.NewTriangle3(a, c, b)

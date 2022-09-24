@@ -14,13 +14,14 @@ import (
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
 
 func box() ([]sdf.SDF3, error) {
 	k := obj.PanelBoxParms{
-		Size:       sdf.V3{50.0, 40.0, 60.0}, // width, height, length
+		Size:       v3.Vec{50.0, 40.0, 60.0}, // width, height, length
 		Wall:       2.5,                      // wall thickness
 		Panel:      3.0,                      // panel thickness
 		Rounding:   5.0,                      // outer corner rounding

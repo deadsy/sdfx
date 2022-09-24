@@ -14,6 +14,7 @@ import (
 
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
@@ -67,22 +68,22 @@ func camshaft() (sdf.SDF3, error) {
 	exhaust3d := sdf.Extrude3D(exhaust2d, camWidth)
 
 	zOfs := (13.0 / 16.0) + (3.0 / 32.0) + (camWidth / 2.0)
-	m := sdf.Translate3d(sdf.V3{0, 0, zOfs})
+	m := sdf.Translate3d(v3.Vec{0, 0, zOfs})
 	m = sdf.RotateZ(0).Mul(m)
 	ex4 := sdf.Transform3D(exhaust3d, m)
 
 	zOfs += (5.0 / 16.0) + camWidth
-	m = sdf.Translate3d(sdf.V3{0, 0, zOfs})
+	m = sdf.Translate3d(v3.Vec{0, 0, zOfs})
 	m = sdf.RotateZ(inletTheta).Mul(m)
 	in3 := sdf.Transform3D(inlet3d, m)
 
 	zOfs += (11.0 / 16.0) + camWidth
-	m = sdf.Translate3d(sdf.V3{0, 0, zOfs})
+	m = sdf.Translate3d(v3.Vec{0, 0, zOfs})
 	m = sdf.RotateZ(inletTheta + sdf.Pi).Mul(m)
 	in2 := sdf.Transform3D(inlet3d, m)
 
 	zOfs += (5.0 / 16.0) + camWidth
-	m = sdf.Translate3d(sdf.V3{0, 0, zOfs})
+	m = sdf.Translate3d(v3.Vec{0, 0, zOfs})
 	m = sdf.RotateZ(sdf.Pi).Mul(m)
 	ex1 := sdf.Transform3D(exhaust3d, m)
 

@@ -15,6 +15,8 @@ import (
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
+	v2 "github.com/deadsy/sdfx/vec/v2"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
@@ -33,7 +35,7 @@ const wheelThickness = 0.25 * sdf.MillimetresPerInch
 // wheelRetainer returns a retaining clip for the entrance wheel.
 func wheelRetainer() (sdf.SDF3, error) {
 
-	size := sdf.V3{
+	size := v3.Vec{
 		1.75 * sdf.MillimetresPerInch,
 		1.5 * sdf.MillimetresPerInch,
 		1.5 * wheelThickness,
@@ -43,17 +45,17 @@ func wheelRetainer() (sdf.SDF3, error) {
 	const holeRadius = 7 * 0.5
 	const clearance = 1
 
-	s2d := sdf.Box2D(sdf.V2{size.X, size.Y}, round)
+	s2d := sdf.Box2D(v2.Vec{size.X, size.Y}, round)
 
 	hole, err := sdf.Circle2D(holeRadius)
 	if err != nil {
 		return nil, err
 	}
-	hole = sdf.Transform2D(hole, sdf.Translate2d(sdf.V2{0, 0.25 * size.Y}))
+	hole = sdf.Transform2D(hole, sdf.Translate2d(v2.Vec{0, 0.25 * size.Y}))
 	s2d = sdf.Difference2D(s2d, hole)
 
 	s3d := sdf.Extrude3D(s2d, size.Z)
-	s3d = sdf.Transform3D(s3d, sdf.Translate3d(sdf.V3{0, wheelRadius, 0}))
+	s3d = sdf.Transform3D(s3d, sdf.Translate3d(v3.Vec{0, wheelRadius, 0}))
 
 	t := wheelThickness * 0.9
 	ofs := 0.5 * (t - size.Z)
@@ -61,7 +63,7 @@ func wheelRetainer() (sdf.SDF3, error) {
 	if err != nil {
 		return nil, err
 	}
-	wheel = sdf.Transform3D(wheel, sdf.Translate3d(sdf.V3{0, 0, ofs}))
+	wheel = sdf.Transform3D(wheel, sdf.Translate3d(v3.Vec{0, 0, ofs}))
 
 	return sdf.Difference3D(s3d, wheel), nil
 }
@@ -69,7 +71,7 @@ func wheelRetainer() (sdf.SDF3, error) {
 //-----------------------------------------------------------------------------
 
 // entrance0 returns an open entrance
-func entrance0(size sdf.V3) (sdf.SDF3, error) {
+func entrance0(size v3.Vec) (sdf.SDF3, error) {
 	r := size.Y * 0.5
 	s0 := sdf.Line2D(size.X-(2*r), r)
 	s1 := sdf.Extrude3D(s0, size.Z)
@@ -77,7 +79,7 @@ func entrance0(size sdf.V3) (sdf.SDF3, error) {
 }
 
 // entrance1 returns a vent entrance
-func entrance1(size sdf.V3) (sdf.SDF3, error) {
+func entrance1(size v3.Vec) (sdf.SDF3, error) {
 
 	const rows = 3
 	const cols = 16
@@ -95,12 +97,12 @@ func entrance1(size sdf.V3) (sdf.SDF3, error) {
 	xOfs := -size.X / 2
 	yOfs := size.Y / 2
 
-	positions := []sdf.V2{}
+	positions := []v2.Vec{}
 	x := xOfs
 	for i := 0; i < cols; i++ {
 		y := yOfs
 		for j := 0; j < rows; j++ {
-			positions = append(positions, sdf.V2{x, y})
+			positions = append(positions, v2.Vec{x, y})
 			y -= dy
 		}
 		x += dx
@@ -123,7 +125,7 @@ func entranceWheel() (sdf.SDF3, error) {
 		return nil, err
 	}
 
-	entranceSize := sdf.V3{
+	entranceSize := v3.Vec{
 		4 * sdf.MillimetresPerInch,
 		0.5 * sdf.MillimetresPerInch,
 		wheelThickness,
@@ -137,14 +139,14 @@ func entranceWheel() (sdf.SDF3, error) {
 	if err != nil {
 		return nil, err
 	}
-	e0 = sdf.Transform3D(e0, sdf.Translate3d(sdf.V3{0, ofs, 0}))
+	e0 = sdf.Transform3D(e0, sdf.Translate3d(v3.Vec{0, ofs, 0}))
 
 	// vent entrance
 	e1, err := entrance1(entranceSize)
 	if err != nil {
 		return nil, err
 	}
-	e1 = sdf.Transform3D(e1, sdf.Translate3d(sdf.V3{0, ofs, 0}))
+	e1 = sdf.Transform3D(e1, sdf.Translate3d(v3.Vec{0, ofs, 0}))
 	e1 = sdf.Transform3D(e1, sdf.RotateZ(sdf.DtoR(120)))
 
 	return sdf.Difference3D(plate, sdf.Union3D(e0, e1, hole)), nil
@@ -167,7 +169,7 @@ func entranceReducer() (sdf.SDF3, error) {
 	const ySize = 1.9 * sdf.MillimetresPerInch
 
 	k := obj.PanelParms{
-		Size:         sdf.V2{xSize, ySize},
+		Size:         v2.Vec{xSize, ySize},
 		CornerRadius: 5.0,
 	}
 	s, err := obj.Panel2D(&k)
@@ -184,8 +186,8 @@ func entranceReducer() (sdf.SDF3, error) {
 	const gap = (entranceSize - (n * holeRadius)) / (n + 1)
 	const yOfs = -ySize * 0.5
 	const xOfs = (n - 1) * (holeRadius + gap) * 0.5
-	p0 := sdf.V2{-xOfs, yOfs}
-	p1 := sdf.V2{xOfs + holeRadius + gap, yOfs}
+	p0 := v2.Vec{-xOfs, yOfs}
+	p1 := v2.Vec{xOfs + holeRadius + gap, yOfs}
 	hole = sdf.LineOf2D(hole, p0, p1, holePattern(n))
 
 	return sdf.Extrude3D(sdf.Difference2D(s, hole), zSize), nil
@@ -211,7 +213,7 @@ func angleHole() (sdf.SDF3, error) {
 		return nil, err
 	}
 
-	s = sdf.Transform3D(s, sdf.Translate3d(sdf.V3{-0.5 * l, -0.5 * l, 0}))
+	s = sdf.Transform3D(s, sdf.Translate3d(v3.Vec{-0.5 * l, -0.5 * l, 0}))
 
 	return s, nil
 }
@@ -243,7 +245,7 @@ func antCap() (sdf.SDF3, error) {
 		return nil, err
 	}
 	zOfs := -0.5 * capWall
-	hat1 = sdf.Transform3D(hat1, sdf.Translate3d(sdf.V3{0, 0, zOfs}))
+	hat1 = sdf.Transform3D(hat1, sdf.Translate3d(v3.Vec{0, 0, zOfs}))
 
 	return sdf.Difference3D(hat0, sdf.Union3D(angle3d, hat1)), nil
 }

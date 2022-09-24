@@ -20,6 +20,7 @@ import (
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
@@ -62,14 +63,14 @@ func alignmentHoles() (sdf.SDF3, error) {
 	if err != nil {
 		return nil, err
 	}
-	return sdf.Multi3D(cylinder, sdf.V3Set{{xofs, 0, 0}, {-xofs, 0, 0}}), nil
+	return sdf.Multi3D(cylinder, v3.VecSet{{xofs, 0, 0}, {-xofs, 0, 0}}), nil
 }
 
 // pinLug returns a single pin lug.
 func pinLug(w float64) (sdf.SDF3, error) {
 	// pin
 	k := obj.TruncRectPyramidParms{
-		Size:        sdf.V3{w, lugThickness, lugHeight},
+		Size:        v3.Vec{w, lugThickness, lugHeight},
 		BaseAngle:   sdf.DtoR(90 - lugDraft),
 		BaseRadius:  lugThickness * 0.5,
 		RoundRadius: lugThickness * 0.1,
@@ -83,7 +84,7 @@ func pinLugs() (sdf.SDF3, error) {
 	w := lugBaseWidth
 	r := lugThickness*0.5 + lugOffset
 	k := obj.TruncRectPyramidParms{
-		Size:        sdf.V3{w, w, lugBaseThickness},
+		Size:        v3.Vec{w, w, lugBaseThickness},
 		BaseAngle:   sdf.DtoR(90 - lugBaseDraft),
 		BaseRadius:  r,
 		RoundRadius: lugBaseThickness * 0.25,
@@ -100,8 +101,8 @@ func pinLugs() (sdf.SDF3, error) {
 		return nil, err
 	}
 	yofs := 0.5 * (pinWidth - lugThickness)
-	pin0 := sdf.Transform3D(pin, sdf.Translate3d(sdf.V3{0, yofs, lugBaseThickness}))
-	pin1 := sdf.Transform3D(pin, sdf.Translate3d(sdf.V3{0, -yofs, lugBaseThickness}))
+	pin0 := sdf.Transform3D(pin, sdf.Translate3d(v3.Vec{0, yofs, lugBaseThickness}))
+	pin1 := sdf.Transform3D(pin, sdf.Translate3d(v3.Vec{0, -yofs, lugBaseThickness}))
 
 	// combine the base and pins
 	s := sdf.Union3D(base, pin0, pin1)
@@ -118,7 +119,7 @@ func pinLugs() (sdf.SDF3, error) {
 //-----------------------------------------------------------------------------
 
 // sandKey returns an SDF3 for the internal sand key.
-func sandKey(size sdf.V3) (sdf.SDF3, error) {
+func sandKey(size v3.Vec) (sdf.SDF3, error) {
 	theta := sdf.DtoR(90 - keyDraft)
 	r := keyDepth / math.Tan(theta)
 	k := obj.TruncRectPyramidParms{
@@ -143,7 +144,7 @@ func oddSide(height float64) (sdf.SDF3, error) {
 	sz := d
 
 	k := obj.TruncRectPyramidParms{
-		Size:        sdf.V3{sx, sy, sz},
+		Size:        v3.Vec{sx, sy, sz},
 		BaseAngle:   theta45,
 		BaseRadius:  0.5 * sx,
 		RoundRadius: 0,
@@ -154,14 +155,14 @@ func oddSide(height float64) (sdf.SDF3, error) {
 	h := 3.0 * d
 	yofs := (height*1.1 - cornerThickness) * 0.5
 	hole, _ := sdf.Cylinder3D(h, holeRadius, 0)
-	holes := sdf.Multi3D(hole, sdf.V3Set{{0, yofs, 0}, {0, -yofs, 0}})
+	holes := sdf.Multi3D(hole, v3.VecSet{{0, yofs, 0}, {0, -yofs, 0}})
 
 	// hook into internal sand key
 	sx = 0.8 * sx
 	sy = height * keyRatio * 0.99
 	sz = keyDepth
-	key, _ := sandKey(sdf.V3{sx, sy, sz})
-	key = sdf.Transform3D(key, sdf.Translate3d(sdf.V3{0.5 * sx, 0, 0}))
+	key, _ := sandKey(v3.Vec{sx, sy, sz})
+	key = sdf.Transform3D(key, sdf.Translate3d(v3.Vec{0.5 * sx, 0, 0}))
 
 	return sdf.Difference3D(sdf.Union3D(base, key), holes), nil
 }
@@ -230,7 +231,7 @@ func pullHoles(width float64) (sdf.SDF3, error) {
 	h := (wallThickness + keyDepth) * 2.0
 	xofs := width * 0.9 * 0.5
 	hole, _ := sdf.Cylinder3D(h, holeRadius, 0)
-	return sdf.Multi3D(hole, sdf.V3Set{{xofs, 0, 0}, {-xofs, 0, 0}}), nil
+	return sdf.Multi3D(hole, v3.VecSet{{xofs, 0, 0}, {-xofs, 0, 0}}), nil
 }
 
 func flaskHalf(width, height float64) (sdf.SDF3, error) {
@@ -255,7 +256,7 @@ func flaskSide(width, height float64) (sdf.SDF3, error) {
 	w := width + 2.0*cornerLength
 
 	// internal sand key
-	key, err := sandKey(sdf.V3{w, height * keyRatio, keyDepth})
+	key, err := sandKey(v3.Vec{w, height * keyRatio, keyDepth})
 	if err != nil {
 		return nil, err
 	}

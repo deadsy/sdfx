@@ -14,6 +14,8 @@ import (
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
+	v2 "github.com/deadsy/sdfx/vec/v2"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
@@ -45,7 +47,7 @@ func halfBreadBoardStandoffs(h float64) (sdf.SDF3, error) {
 	if err != nil {
 		return nil, err
 	}
-	positions := sdf.V3Set{
+	positions := v3.VecSet{
 		{0, -1450 * sdf.Mil, 0},
 		{0, 1450 * sdf.Mil, 0},
 	}
@@ -60,7 +62,7 @@ func pot0() (sdf.SDF3, error) {
 	k := obj.PanelHoleParms{
 		Diameter:  9.4,
 		Thickness: panelThickness,
-		Indent:    sdf.V3{2, 4, 2},
+		Indent:    v3.Vec{2, 4, 2},
 		Offset:    11.0,
 		//Orientation: sdf.DtoR(0),
 	}
@@ -72,7 +74,7 @@ func pot1() (sdf.SDF3, error) {
 	k := obj.PanelHoleParms{
 		Diameter:  7.2,
 		Thickness: panelThickness,
-		Indent:    sdf.V3{2, 2, 1.5},
+		Indent:    v3.Vec{2, 2, 1.5},
 		Offset:    7.0,
 		//Orientation: sdf.DtoR(0),
 	}
@@ -84,7 +86,7 @@ func spdt() (sdf.SDF3, error) {
 	k := obj.PanelHoleParms{
 		Diameter:  6.2,
 		Thickness: panelThickness,
-		Indent:    sdf.V3{2, 2, 1.5},
+		Indent:    v3.Vec{2, 2, 1.5},
 		Offset:    5.4,
 		//Orientation: sdf.DtoR(0),
 	}
@@ -105,7 +107,7 @@ func jack35() (sdf.SDF3, error) {
 	k := obj.PanelHoleParms{
 		Diameter:  6.4,
 		Thickness: panelThickness,
-		Indent:    sdf.V3{2, 2, 1.5},
+		Indent:    v3.Vec{2, 2, 1.5},
 		Offset:    4.9,
 		//Orientation: sdf.DtoR(0),
 	}
@@ -129,7 +131,7 @@ func powerBoardMount() (sdf.SDF3, error) {
 	}
 	// 4x2 sections
 	const zOfs = (baseThickness + standoffHeight) * 0.5
-	positions := sdf.V3Set{
+	positions := v3.VecSet{
 		{-1.5 * xSpace, -0.5 * ySpace, zOfs},
 		{-1.5 * xSpace, 0.5 * ySpace, zOfs},
 		{-0.5 * xSpace, -0.5 * ySpace, zOfs},
@@ -145,7 +147,7 @@ func powerBoardMount() (sdf.SDF3, error) {
 	const baseX = (4 - 0.1) * xSpace
 	const baseY = 2.0 * ySpace
 	k := obj.PanelParms{
-		Size:         sdf.V2{baseX, baseY},
+		Size:         v2.Vec{baseX, baseY},
 		CornerRadius: 5.0,
 		HoleDiameter: 3.5,
 		HoleMargin:   [4]float64{5.0, 5.0, 5.0, 5.0},
@@ -157,7 +159,7 @@ func powerBoardMount() (sdf.SDF3, error) {
 	}
 
 	// cutout
-	c0 := sdf.Box2D(sdf.V2{3 * xSpace, 0.5 * ySpace}, 3.0)
+	c0 := sdf.Box2D(v2.Vec{3 * xSpace, 0.5 * ySpace}, 3.0)
 	s3 := sdf.Extrude3D(sdf.Difference2D(s2, c0), baseThickness)
 
 	s4 := sdf.Union3D(s3, s1)
@@ -168,7 +170,7 @@ func powerBoardMount() (sdf.SDF3, error) {
 
 //-----------------------------------------------------------------------------
 
-var psuSize = sdf.V3{98, 129, 38}
+var psuSize = v3.Vec{98, 129, 38}
 
 // rt65b returns a model of a Meanwell RT-65B PSU
 func rt65b() (sdf.SDF3, error) {
@@ -188,14 +190,14 @@ func rt65b() (sdf.SDF3, error) {
 
 	// vertical screws
 	vs0 := sdf.Transform3D(s0, sdf.RotateY(sdf.DtoR(180)))
-	vs0 = sdf.Transform3D(vs0, sdf.Translate3d(sdf.V3{31, 4.5 + 73.5, 0}))
-	vs1 := sdf.Transform3D(vs0, sdf.Translate3d(sdf.V3{33, 0, 0}))
+	vs0 = sdf.Transform3D(vs0, sdf.Translate3d(v3.Vec{31, 4.5 + 73.5, 0}))
+	vs1 := sdf.Transform3D(vs0, sdf.Translate3d(v3.Vec{33, 0, 0}))
 
 	// horizontal screws
 	hs0 := sdf.Transform3D(s0, sdf.RotateY(sdf.DtoR(90)))
-	hs0 = sdf.Transform3D(hs0, sdf.Translate3d(sdf.V3{psuSize.X, 32, 38 - 18.5}))
-	hs1 := sdf.Transform3D(hs0, sdf.Translate3d(sdf.V3{0, 77, 9}))
-	hs2 := sdf.Transform3D(hs0, sdf.Translate3d(sdf.V3{0, 77, -9}))
+	hs0 = sdf.Transform3D(hs0, sdf.Translate3d(v3.Vec{psuSize.X, 32, 38 - 18.5}))
+	hs1 := sdf.Transform3D(hs0, sdf.Translate3d(v3.Vec{0, 77, 9}))
+	hs2 := sdf.Transform3D(hs0, sdf.Translate3d(v3.Vec{0, 77, -9}))
 
 	psu := sdf.Union3D(body, vs0, vs1, hs0, hs1, hs2)
 
@@ -207,7 +209,7 @@ func psuMount() (sdf.SDF3, error) {
 
 	// base
 	const baseThickness = 6
-	baseSize := sdf.V2{135, 145}
+	baseSize := v2.Vec{135, 145}
 	k0 := obj.PanelParms{
 		Size:         baseSize,
 		CornerRadius: 5.0,
@@ -223,7 +225,7 @@ func psuMount() (sdf.SDF3, error) {
 
 	// cutout 0
 	k2 := obj.PanelParms{
-		Size:         sdf.V2{90, 55},
+		Size:         v2.Vec{90, 55},
 		CornerRadius: 4.0,
 		Thickness:    baseThickness,
 	}
@@ -231,11 +233,11 @@ func psuMount() (sdf.SDF3, error) {
 	if err != nil {
 		return nil, err
 	}
-	c0 = sdf.Transform3D(c0, sdf.Translate3d(sdf.V3{-10, -27.5, 0}))
+	c0 = sdf.Transform3D(c0, sdf.Translate3d(v3.Vec{-10, -27.5, 0}))
 
 	// cutout 1
 	k3 := obj.PanelParms{
-		Size:         sdf.V2{90, 30},
+		Size:         v2.Vec{90, 30},
 		CornerRadius: 4.0,
 		Thickness:    baseThickness,
 	}
@@ -243,10 +245,10 @@ func psuMount() (sdf.SDF3, error) {
 	if err != nil {
 		return nil, err
 	}
-	c1 = sdf.Transform3D(c1, sdf.Translate3d(sdf.V3{-10, 40, 0}))
+	c1 = sdf.Transform3D(c1, sdf.Translate3d(v3.Vec{-10, 40, 0}))
 
 	// upright mount
-	uprightSize := sdf.V2{psuSize.Z + baseThickness*0.5, baseSize.Y}
+	uprightSize := v2.Vec{psuSize.Z + baseThickness*0.5, baseSize.Y}
 	k1 := obj.PanelParms{
 		Size:         uprightSize,
 		CornerRadius: 3.0,
@@ -257,14 +259,14 @@ func psuMount() (sdf.SDF3, error) {
 		return nil, err
 	}
 	upright = sdf.Transform3D(upright, sdf.RotateY(sdf.DtoR(90)))
-	uprightOffset := sdf.V3{psuSize.X + baseThickness, 0, uprightSize.X}.MulScalar(0.5)
+	uprightOffset := v3.Vec{psuSize.X + baseThickness, 0, uprightSize.X}.MulScalar(0.5)
 	upright = sdf.Transform3D(upright, sdf.Translate3d(uprightOffset))
 
 	psu, err := rt65b()
 	if err != nil {
 		return nil, err
 	}
-	psuOffset := sdf.V3{-psuSize.X, -psuSize.Y, baseThickness}.MulScalar(0.5)
+	psuOffset := v3.Vec{-psuSize.X, -psuSize.Y, baseThickness}.MulScalar(0.5)
 	psu = sdf.Transform3D(psu, sdf.Translate3d(psuOffset))
 
 	mount := sdf.Difference3D(sdf.Union3D(base, upright), sdf.Union3D(psu, c0, c1))
@@ -280,7 +282,7 @@ func powerPanel() (sdf.SDF3, error) {
 	const baseThickness = 4
 
 	k := obj.PanelParms{
-		Size:         sdf.V2{85, 95},
+		Size:         v2.Vec{85, 95},
 		CornerRadius: 5.0,
 		HoleDiameter: 4.0,
 		HoleMargin:   [4]float64{5.0, 5.0, 5.0, 5.0},
@@ -293,15 +295,15 @@ func powerPanel() (sdf.SDF3, error) {
 	}
 
 	// panel cutout
-	c0 := sdf.Box2D(sdf.V2{28, 48}, 3)
+	c0 := sdf.Box2D(v2.Vec{28, 48}, 3)
 
 	// mounting holes
 	hole, err := sdf.Circle2D(0.5 * 4.5)
 	if err != nil {
 		return nil, err
 	}
-	c1 := sdf.Transform2D(hole, sdf.Translate2d(sdf.V2{20, 0}))
-	c2 := sdf.Transform2D(hole, sdf.Translate2d(sdf.V2{-20, 0}))
+	c1 := sdf.Transform2D(hole, sdf.Translate2d(v2.Vec{20, 0}))
+	c2 := sdf.Transform2D(hole, sdf.Translate2d(v2.Vec{-20, 0}))
 
 	cutouts := sdf.Union2D(c0, c1, c2)
 
@@ -333,46 +335,46 @@ func arPanel() (sdf.SDF3, error) {
 	if err != nil {
 		return nil, err
 	}
-	so = sdf.Transform3D(so, sdf.Translate3d(sdf.V3{0, 3, (panelThickness + standoffHeight) * 0.5}))
+	so = sdf.Transform3D(so, sdf.Translate3d(v3.Vec{0, 3, (panelThickness + standoffHeight) * 0.5}))
 	s = sdf.Union3D(s, so)
 	s.(*sdf.UnionSDF3).SetMin(sdf.PolyMin(2))
 
 	// push button
-	pb, err := sdf.Box3D(sdf.V3{13.2, 10.8, panelThickness}, 0)
+	pb, err := sdf.Box3D(v3.Vec{13.2, 10.8, panelThickness}, 0)
 	if err != nil {
 		return nil, err
 	}
-	pb = sdf.Transform3D(pb, sdf.Translate3d(sdf.V3{0, 0, 0}))
+	pb = sdf.Transform3D(pb, sdf.Translate3d(v3.Vec{0, 0, 0}))
 
 	// cv input/output
 	cv, err := jack35()
 	if err != nil {
 		return nil, err
 	}
-	cv0 := sdf.Transform3D(cv, sdf.Translate3d(sdf.V3{-20, -45, 0}))
-	cv1 := sdf.Transform3D(cv, sdf.Translate3d(sdf.V3{20, -45, 0}))
+	cv0 := sdf.Transform3D(cv, sdf.Translate3d(v3.Vec{-20, -45, 0}))
+	cv1 := sdf.Transform3D(cv, sdf.Translate3d(v3.Vec{20, -45, 0}))
 
 	// LED
 	led, err := led()
 	if err != nil {
 		return nil, err
 	}
-	led = sdf.Transform3D(led, sdf.Translate3d(sdf.V3{0, -45, 0}))
+	led = sdf.Transform3D(led, sdf.Translate3d(v3.Vec{0, -45, 0}))
 
 	// attack/release pots
 	pot, err := pot0()
 	if err != nil {
 		return nil, err
 	}
-	pot0 := sdf.Transform3D(pot, sdf.Translate3d(sdf.V3{-15, 25, 0}))
-	pot1 := sdf.Transform3D(pot, sdf.Translate3d(sdf.V3{15, 25, 0}))
+	pot0 := sdf.Transform3D(pot, sdf.Translate3d(v3.Vec{-15, 25, 0}))
+	pot1 := sdf.Transform3D(pot, sdf.Translate3d(v3.Vec{15, 25, 0}))
 
 	// spdt switch
 	spdt, err := spdt()
 	if err != nil {
 		return nil, err
 	}
-	spdt = sdf.Transform3D(spdt, sdf.Translate3d(sdf.V3{0, -22, 0}))
+	spdt = sdf.Transform3D(spdt, sdf.Translate3d(v3.Vec{0, -22, 0}))
 
 	return sdf.Difference3D(s, sdf.Union3D(pb, cv0, cv1, led, pot0, pot1, spdt)), nil
 }
@@ -402,7 +404,7 @@ func bbPanel() (sdf.SDF3, error) {
 	if err != nil {
 		return nil, err
 	}
-	so = sdf.Transform3D(so, sdf.Translate3d(sdf.V3{0, 3, (panelThickness + standoffHeight) * 0.5}))
+	so = sdf.Transform3D(so, sdf.Translate3d(v3.Vec{0, 3, (panelThickness + standoffHeight) * 0.5}))
 	s = sdf.Union3D(s, so)
 	s.(*sdf.UnionSDF3).SetMin(sdf.PolyMin(2))
 

@@ -14,6 +14,8 @@ import (
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
+	v2 "github.com/deadsy/sdfx/vec/v2"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
@@ -40,7 +42,7 @@ func nRF52dkStandoffs() (sdf.SDF3, error) {
 		HoleDepth:      10.0,
 		HoleDiameter:   2.4, // #4 screw
 	}
-	positions0 := sdf.V3Set{
+	positions0 := v3.VecSet{
 		{550.0 * sdf.Mil, 300.0 * sdf.Mil, zOfs},
 		{2600.0 * sdf.Mil, 1600.0 * sdf.Mil, zOfs},
 		{2600.0 * sdf.Mil, 500.0 * sdf.Mil, zOfs},
@@ -51,7 +53,7 @@ func nRF52dkStandoffs() (sdf.SDF3, error) {
 
 	// standoffs with support stubs
 	k.HoleDepth = -2.0
-	positions1 := sdf.V3Set{
+	positions1 := v3.VecSet{
 		{600.0 * sdf.Mil, 2200.0 * sdf.Mil, zOfs},
 	}
 	s, _ = obj.Standoff3D(k)
@@ -69,7 +71,7 @@ func nRF52dk() (sdf.SDF3, error) {
 
 	// base
 	pp := &obj.PanelParms{
-		Size:         sdf.V2{baseX, baseY},
+		Size:         v2.Vec{baseX, baseY},
 		CornerRadius: 5.0,
 		HoleDiameter: 3.5,
 		HoleMargin:   [4]float64{5.0, 5.0, 5.0, 5.0},
@@ -81,16 +83,16 @@ func nRF52dk() (sdf.SDF3, error) {
 	}
 
 	// cutouts
-	c1 := sdf.Box2D(sdf.V2{53.0, 35.0}, 3.0)
-	c1 = sdf.Transform2D(c1, sdf.Translate2d(sdf.V2{-22.0, 1.00}))
-	c2 := sdf.Box2D(sdf.V2{20.0, 40.0}, 3.0)
-	c2 = sdf.Transform2D(c2, sdf.Translate2d(sdf.V2{37.0, 3.0}))
+	c1 := sdf.Box2D(v2.Vec{53.0, 35.0}, 3.0)
+	c1 = sdf.Transform2D(c1, sdf.Translate2d(v2.Vec{-22.0, 1.00}))
+	c2 := sdf.Box2D(v2.Vec{20.0, 40.0}, 3.0)
+	c2 = sdf.Transform2D(c2, sdf.Translate2d(v2.Vec{37.0, 3.0}))
 
 	// extrude the base
 	s2 := sdf.Extrude3D(sdf.Difference2D(s0, sdf.Union2D(c1, c2)), baseThickness)
 	xOfs := 0.5 * pcbX
 	yOfs := pcbY - (0.5 * baseY)
-	s2 = sdf.Transform3D(s2, sdf.Translate3d(sdf.V3{xOfs, yOfs, 0}))
+	s2 = sdf.Transform3D(s2, sdf.Translate3d(v3.Vec{xOfs, yOfs, 0}))
 
 	// add the standoffs
 	s3, err := nRF52dkStandoffs()
@@ -118,7 +120,7 @@ func nRF52833dkStandoffs() (sdf.SDF3, error) {
 		HoleDepth:      10.0,
 		HoleDiameter:   2.4, // #4 screw
 	}
-	positions0 := sdf.V3Set{
+	positions0 := v3.VecSet{
 		{550.0 * sdf.Mil, 300.0 * sdf.Mil, zOfs},
 		{2600.0 * sdf.Mil, 500.0 * sdf.Mil, zOfs},
 		{2600.0 * sdf.Mil, 1600.0 * sdf.Mil, zOfs},
@@ -133,7 +135,7 @@ func nRF52833dkStandoffs() (sdf.SDF3, error) {
 
 	// standoffs with support stubs
 	k.HoleDepth = -2.0
-	positions1 := sdf.V3Set{
+	positions1 := v3.VecSet{
 		{600.0 * sdf.Mil, 2200.0 * sdf.Mil, zOfs},
 		{3550.0 * sdf.Mil, 2200.0 * sdf.Mil, zOfs},
 		{3800.0 * sdf.Mil, 300.0 * sdf.Mil, zOfs},
@@ -157,7 +159,7 @@ func nRF52833dk() (sdf.SDF3, error) {
 
 	// base
 	pp := &obj.PanelParms{
-		Size:         sdf.V2{baseX, baseY},
+		Size:         v2.Vec{baseX, baseY},
 		CornerRadius: 5.0,
 		HoleDiameter: 3.5,
 		HoleMargin:   [4]float64{5.0, 5.0, 5.0, 5.0},
@@ -168,16 +170,16 @@ func nRF52833dk() (sdf.SDF3, error) {
 		return nil, err
 	}
 	// cutouts
-	c1 := sdf.Box2D(sdf.V2{53.0, 35.0}, 3.0)
-	c1 = sdf.Transform2D(c1, sdf.Translate2d(sdf.V2{-40.0, 0}))
-	c2 := sdf.Box2D(sdf.V2{40.0, 35.0}, 3.0)
-	c2 = sdf.Transform2D(c2, sdf.Translate2d(sdf.V2{32.0, 0}))
+	c1 := sdf.Box2D(v2.Vec{53.0, 35.0}, 3.0)
+	c1 = sdf.Transform2D(c1, sdf.Translate2d(v2.Vec{-40.0, 0}))
+	c2 := sdf.Box2D(v2.Vec{40.0, 35.0}, 3.0)
+	c2 = sdf.Transform2D(c2, sdf.Translate2d(v2.Vec{32.0, 0}))
 
 	// extrude the base
 	s2 := sdf.Extrude3D(sdf.Difference2D(s0, sdf.Union2D(c1, c2)), baseThickness)
 	xOfs := 0.5 * pcbX
 	yOfs := pcbY - (0.5 * baseY)
-	s2 = sdf.Transform3D(s2, sdf.Translate3d(sdf.V3{xOfs, yOfs, 0}))
+	s2 = sdf.Transform3D(s2, sdf.Translate3d(v3.Vec{xOfs, yOfs, 0}))
 
 	// add the standoffs
 	s3, err := nRF52833dkStandoffs()

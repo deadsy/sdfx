@@ -18,6 +18,8 @@ import (
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
+	v2 "github.com/deadsy/sdfx/vec/v2"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
@@ -53,7 +55,7 @@ type msParms struct {
 func envelope(k *msParms, machined bool) (sdf.SDF3, error) {
 	c := k.nose
 	l := k.size - c
-	s0, err := sdf.Polygon2D([]sdf.V2{{0, 0}, {l, 0}, {l, c}, {c, l}, {0, l}})
+	s0, err := sdf.Polygon2D([]v2.Vec{{0, 0}, {l, 0}, {l, c}, {c, l}, {0, l}})
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +82,7 @@ func envelope(k *msParms, machined bool) (sdf.SDF3, error) {
 // wall returns an outside wall with casting draft of length l
 func wall(k *msParms, l float64) (sdf.SDF3, error) {
 	trp := &obj.TruncRectPyramidParms{
-		Size:        sdf.V3{l, k.wallThickness + k.allowance, (k.width * 0.5) + k.allowance},
+		Size:        v3.Vec{l, k.wallThickness + k.allowance, (k.width * 0.5) + k.allowance},
 		BaseAngle:   sdf.DtoR(90.0 - draft),
 		BaseRadius:  (k.wallThickness + k.allowance) * 0.5,
 		RoundRadius: k.wallThickness * 0.25,
@@ -90,7 +92,7 @@ func wall(k *msParms, l float64) (sdf.SDF3, error) {
 		return nil, err
 	}
 	ofs := (k.wallThickness - k.allowance) * 0.5
-	s = sdf.Transform3D(s, sdf.Translate3d(sdf.V3{0, ofs, 0}))
+	s = sdf.Transform3D(s, sdf.Translate3d(v3.Vec{0, ofs, 0}))
 	return s, nil
 }
 
@@ -109,7 +111,7 @@ func walls(k *msParms) (sdf.SDF3, error) {
 		return nil, err
 	}
 	ofs := 0.5*l0 - k.allowance
-	w0 := sdf.Transform3D(w, sdf.Translate3d(sdf.V3{ofs, 0, 0}))
+	w0 := sdf.Transform3D(w, sdf.Translate3d(v3.Vec{ofs, 0, 0}))
 
 	// build the y-wall
 	w1 := sdf.Transform3D(w0, sdf.MirrorXeqY())
@@ -122,7 +124,7 @@ func walls(k *msParms) (sdf.SDF3, error) {
 	}
 	ofs = 0.5 * k.size
 	w2 := sdf.Transform3D(w, sdf.RotateZ(sdf.DtoR(135)))
-	w2 = sdf.Transform3D(w2, sdf.Translate3d(sdf.V3{ofs, ofs, 0}))
+	w2 = sdf.Transform3D(w2, sdf.Translate3d(v3.Vec{ofs, ofs, 0}))
 
 	// build the flipped walls
 	w0f := sdf.Transform3D(w0, sdf.MirrorXY())
@@ -139,7 +141,7 @@ func webHole(k *msParms) (sdf.SDF2, error) {
 	r := k.holeRadius + 0.5*k.webThickness
 	l := 2.0*k.holeOffset + k.webThickness
 	s := sdf.Line2D(l, r)
-	return sdf.Cut2D(s, sdf.V2{0, 0}, sdf.V2{0, 1}), nil
+	return sdf.Cut2D(s, v2.Vec{0, 0}, v2.Vec{0, 1}), nil
 }
 
 // web2d returns the 2d internal web.
@@ -147,7 +149,7 @@ func web2d(k *msParms) (sdf.SDF2, error) {
 	ofs := k.wallThickness * 0.9
 	l := k.size - ofs*(2.0+math.Sqrt(2.0))
 
-	s, err := sdf.Polygon2D([]sdf.V2{{ofs, ofs}, {ofs + l, ofs}, {ofs, ofs + l}})
+	s, err := sdf.Polygon2D([]v2.Vec{{ofs, ofs}, {ofs + l, ofs}, {ofs, ofs + l}})
 	if err != nil {
 		return nil, err
 	}
@@ -165,15 +167,15 @@ func web2d(k *msParms) (sdf.SDF2, error) {
 	k1 := k.size * 0.6
 	k2 := k.size * 0.5
 
-	h0 := sdf.Transform2D(hole, sdf.Translate2d(sdf.V2{0, k0}))
-	h1 := sdf.Transform2D(hole, sdf.Translate2d(sdf.V2{0, k1}))
+	h0 := sdf.Transform2D(hole, sdf.Translate2d(v2.Vec{0, k0}))
+	h1 := sdf.Transform2D(hole, sdf.Translate2d(v2.Vec{0, k1}))
 
 	hole = sdf.Transform2D(hole, sdf.Rotate2d(sdf.DtoR(90.0)))
-	h2 := sdf.Transform2D(hole, sdf.Translate2d(sdf.V2{k0, 0}))
-	h3 := sdf.Transform2D(hole, sdf.Translate2d(sdf.V2{k1, 0}))
+	h2 := sdf.Transform2D(hole, sdf.Translate2d(v2.Vec{k0, 0}))
+	h3 := sdf.Transform2D(hole, sdf.Translate2d(v2.Vec{k1, 0}))
 
 	hole = sdf.Transform2D(hole, sdf.Rotate2d(sdf.DtoR(135.0)))
-	h4 := sdf.Transform2D(hole, sdf.Translate2d(sdf.V2{k2, k2}))
+	h4 := sdf.Transform2D(hole, sdf.Translate2d(v2.Vec{k2, k2}))
 
 	return sdf.Difference2D(s, sdf.Union2D(h0, h1, h2, h3, h4)), nil
 }
@@ -192,7 +194,7 @@ func web(k *msParms) (sdf.SDF3, error) {
 func corner90(k *msParms) (sdf.SDF3, error) {
 	r := 2.0 * k.wallThickness
 	trp := &obj.TruncRectPyramidParms{
-		Size:        sdf.V3{2.0 * r, 2.0 * r, (k.width * 0.5) + k.allowance},
+		Size:        v3.Vec{2.0 * r, 2.0 * r, (k.width * 0.5) + k.allowance},
 		BaseAngle:   sdf.DtoR(90.0 - 3.0*draft),
 		BaseRadius:  r,
 		RoundRadius: k.wallThickness * 0.25,
@@ -202,14 +204,14 @@ func corner90(k *msParms) (sdf.SDF3, error) {
 		return nil, err
 	}
 	ofs := 0.8 * r
-	s = sdf.Transform3D(s, sdf.Translate3d(sdf.V3{ofs, ofs, 0}))
+	s = sdf.Transform3D(s, sdf.Translate3d(v3.Vec{ofs, ofs, 0}))
 	return s, nil
 }
 
 func corner45(k *msParms) (sdf.SDF3, error) {
 	r := 2.3 * k.wallThickness
 	trp := &obj.TruncRectPyramidParms{
-		Size:        sdf.V3{2.0 * r, 2.0 * r, (k.width * 0.5) + k.allowance},
+		Size:        v3.Vec{2.0 * r, 2.0 * r, (k.width * 0.5) + k.allowance},
 		BaseAngle:   sdf.DtoR(90.0 - 3.0*draft),
 		BaseRadius:  r,
 		RoundRadius: k.wallThickness * 0.25,
@@ -220,7 +222,7 @@ func corner45(k *msParms) (sdf.SDF3, error) {
 	}
 	dy := 0.7 * r
 	dx := dy * (1.0 + math.Sqrt(2.0))
-	s = sdf.Transform3D(s, sdf.Translate3d(sdf.V3{k.size - dx, dy, 0}))
+	s = sdf.Transform3D(s, sdf.Translate3d(v3.Vec{k.size - dx, dy, 0}))
 	return s, nil
 }
 
@@ -266,7 +268,7 @@ func pins(k *msParms) (sdf.SDF3, error) {
 		return nil, err
 	}
 	ofs := 1.5 * k.wallThickness
-	p0 = sdf.Transform3D(p0, sdf.Translate3d(sdf.V3{ofs, ofs, 0}))
+	p0 = sdf.Transform3D(p0, sdf.Translate3d(v3.Vec{ofs, ofs, 0}))
 
 	// build the pins at the 45 degree corners
 	p1, err := pin(k)
@@ -275,7 +277,7 @@ func pins(k *msParms) (sdf.SDF3, error) {
 	}
 	dy := 1.5 * k.wallThickness
 	dx := dy * (1.0 + math.Sqrt(2.0))
-	p1 = sdf.Transform3D(p1, sdf.Translate3d(sdf.V3{k.size - dx, dy, 0}))
+	p1 = sdf.Transform3D(p1, sdf.Translate3d(v3.Vec{k.size - dx, dy, 0}))
 	p2 := sdf.Transform3D(p1, sdf.MirrorXeqY())
 
 	return sdf.Union3D(p0, p1, p2), nil
@@ -320,10 +322,10 @@ func mSquare(k *msParms, machined bool) error {
 	s = sdf.ScaleUniform3D(s, shrink*scale)
 	render.RenderSTL(s, 300, fmt.Sprintf("%s.stl", k.name))
 
-	sUpper := sdf.Cut3D(s, sdf.V3{0, 0, 0}, sdf.V3{0, 0, 1})
+	sUpper := sdf.Cut3D(s, v3.Vec{0, 0, 0}, v3.Vec{0, 0, 1})
 	render.RenderSTL(sUpper, 300, fmt.Sprintf("%s_upper.stl", k.name))
 
-	sLower := sdf.Cut3D(s, sdf.V3{0, 0, 0}, sdf.V3{0, 0, -1})
+	sLower := sdf.Cut3D(s, v3.Vec{0, 0, 0}, v3.Vec{0, 0, -1})
 	render.RenderSTL(sLower, 300, fmt.Sprintf("%s_lower.stl", k.name))
 
 	return nil

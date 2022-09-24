@@ -31,6 +31,7 @@ import (
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
@@ -82,14 +83,14 @@ func innerCavity() (sdf.SDF3, error) {
 		return nil, err
 	}
 
-	s1 = sdf.Cut3D(s1, sdf.V3{topGap * 0.5, 0, 0}, sdf.V3{-1, 0, 0})
-	s1 = sdf.Cut3D(s1, sdf.V3{-topGap * 0.5, 0, 0}, sdf.V3{1, 0, 0})
+	s1 = sdf.Cut3D(s1, v3.Vec{topGap * 0.5, 0, 0}, v3.Vec{-1, 0, 0})
+	s1 = sdf.Cut3D(s1, v3.Vec{-topGap * 0.5, 0, 0}, v3.Vec{1, 0, 0})
 
 	return sdf.Union3D(s0, s1), nil
 }
 
 func tab() (sdf.SDF3, error) {
-	size := sdf.V3{
+	size := v3.Vec{
 		X: tabWidth,
 		Y: ringWidth + tabDepth,
 		Z: (ringHeight + tabDepth) * 2.0,
@@ -99,7 +100,7 @@ func tab() (sdf.SDF3, error) {
 		return nil, err
 	}
 	yofs := (size.Y + innerDiameter) * 0.5
-	s = sdf.Transform3D(s, sdf.Translate3d(sdf.V3{0, yofs, 0}))
+	s = sdf.Transform3D(s, sdf.Translate3d(v3.Vec{0, yofs, 0}))
 	return s, nil
 }
 
@@ -110,7 +111,7 @@ func tabs() (sdf.SDF3, error) {
 	}
 
 	theta := sdf.Tau / numTabs
-	return sdf.RotateUnion3D(t, numTabs, sdf.Rotate3d(sdf.V3{0, 0, 1}, theta)), nil
+	return sdf.RotateUnion3D(t, numTabs, sdf.Rotate3d(v3.Vec{0, 0, 1}, theta)), nil
 }
 
 func screwHole() (sdf.SDF3, error) {
@@ -124,7 +125,7 @@ func screwHole() (sdf.SDF3, error) {
 	}
 
 	zofs := (l * 0.5) + ringHeight
-	s = sdf.Transform3D(s, sdf.Translate3d(sdf.V3{0, 0, -zofs}))
+	s = sdf.Transform3D(s, sdf.Translate3d(v3.Vec{0, 0, -zofs}))
 
 	return s, nil
 }
@@ -134,12 +135,12 @@ func screwHoles() (sdf.SDF3, error) {
 	if err != nil {
 		return nil, err
 	}
-	s0 := sdf.Transform3D(s, sdf.Translate3d(sdf.V3{screwX, screwY, 0}))
-	s1 := sdf.Transform3D(s, sdf.Translate3d(sdf.V3{-screwX, screwY, 0}))
-	s2 := sdf.Transform3D(s, sdf.Translate3d(sdf.V3{screwX, -screwY, 0}))
-	s3 := sdf.Transform3D(s, sdf.Translate3d(sdf.V3{-screwX, -screwY, 0}))
-	s4 := sdf.Transform3D(s, sdf.Translate3d(sdf.V3{screwX, 0, 0}))
-	s5 := sdf.Transform3D(s, sdf.Translate3d(sdf.V3{-screwX, 0, 0}))
+	s0 := sdf.Transform3D(s, sdf.Translate3d(v3.Vec{screwX, screwY, 0}))
+	s1 := sdf.Transform3D(s, sdf.Translate3d(v3.Vec{-screwX, screwY, 0}))
+	s2 := sdf.Transform3D(s, sdf.Translate3d(v3.Vec{screwX, -screwY, 0}))
+	s3 := sdf.Transform3D(s, sdf.Translate3d(v3.Vec{-screwX, -screwY, 0}))
+	s4 := sdf.Transform3D(s, sdf.Translate3d(v3.Vec{screwX, 0, 0}))
+	s5 := sdf.Transform3D(s, sdf.Translate3d(v3.Vec{-screwX, 0, 0}))
 	return sdf.Union3D(s0, s1, s2, s3, s4, s5), nil
 }
 
@@ -172,7 +173,7 @@ func tool() (sdf.SDF3, error) {
 	s := sdf.Difference3D(body, sdf.Union3D(cavity, tabs, screws))
 
 	// cut it on the xy plane
-	s = sdf.Cut3D(s, sdf.V3{0, 0, 0}, sdf.V3{0, 0, -1})
+	s = sdf.Cut3D(s, v3.Vec{0, 0, 0}, v3.Vec{0, 0, -1})
 	return s, nil
 }
 

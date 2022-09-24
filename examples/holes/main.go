@@ -18,6 +18,7 @@ import (
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
+	v2 "github.com/deadsy/sdfx/vec/v2"
 )
 
 //-----------------------------------------------------------------------------
@@ -48,7 +49,7 @@ func testHoles() (sdf.SDF3, error) {
 	for j := 0; j < nY; j++ {
 		for k := 0; k < nX; k++ {
 			c, _ := sdf.Circle2D(r)
-			s[i] = sdf.Transform2D(c, sdf.Translate2d(sdf.V2{xOfs, yOfs}))
+			s[i] = sdf.Transform2D(c, sdf.Translate2d(v2.Vec{xOfs, yOfs}))
 			i++
 			r += rInc
 			xOfs += xInc
@@ -60,11 +61,11 @@ func testHoles() (sdf.SDF3, error) {
 	holes := sdf.Union2D(s...)
 	xOfs = -float64(nX-1) * xInc * 0.5
 	yOfs = -float64(nY-1) * yInc * 0.5
-	holes = sdf.Transform2D(holes, sdf.Translate2d(sdf.V2{xOfs, yOfs}))
+	holes = sdf.Transform2D(holes, sdf.Translate2d(v2.Vec{xOfs, yOfs}))
 
 	// make a panel
 	k := obj.PanelParms{
-		Size:         sdf.V2{(nX + 1) * xInc, (nY + 1) * yInc},
+		Size:         v2.Vec{(nX + 1) * xInc, (nY + 1) * yInc},
 		CornerRadius: xInc * 0.2,
 	}
 	panel, err := obj.Panel2D(&k)

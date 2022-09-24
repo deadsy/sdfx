@@ -17,6 +17,7 @@ import (
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
@@ -27,8 +28,8 @@ const shrink = 1.0 / 0.999 // PLA ~0.1%
 
 //-----------------------------------------------------------------------------
 
-var baseSize = sdf.V3{40, 60, 10} // 20
-var portSize = sdf.V3{30, 50, 10} // 15
+var baseSize = v3.Vec{40, 60, 10} // 20
+var portSize = v3.Vec{30, 50, 10} // 15
 
 //-----------------------------------------------------------------------------
 

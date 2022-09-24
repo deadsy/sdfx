@@ -14,6 +14,8 @@ import (
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
+	v2 "github.com/deadsy/sdfx/vec/v2"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
@@ -38,7 +40,7 @@ func holder() (sdf.SDF3, error) {
 	const bodyHeight = 2.0 * 8.0
 
 	// body
-	bodySize := sdf.V2{
+	bodySize := v2.Vec{
 		xLoadcell + 2.0*outerMargin,
 		yLoadCell + 2.0*outerMargin,
 	}
@@ -51,7 +53,7 @@ func holder() (sdf.SDF3, error) {
 
 	// tabs
 	tabX := 15.0
-	tabSize := sdf.V2{
+	tabSize := v2.Vec{
 		bodySize.X + 2.0*tabX,
 		0.5 * bodySize.Y,
 	}
@@ -68,12 +70,12 @@ func holder() (sdf.SDF3, error) {
 		return nil, err
 	}
 	screwOfs := 0.5*(bodySize.X+tabX) + 1.0
-	screwL := sdf.Transform3D(screw0, sdf.Translate3d(sdf.V3{-screwOfs, 0, 0}))
-	screwR := sdf.Transform3D(screw0, sdf.Translate3d(sdf.V3{screwOfs, 0, 0}))
+	screwL := sdf.Transform3D(screw0, sdf.Translate3d(v3.Vec{-screwOfs, 0, 0}))
+	screwR := sdf.Transform3D(screw0, sdf.Translate3d(v3.Vec{screwOfs, 0, 0}))
 	screw3d := sdf.Union3D(screwL, screwR)
 
 	// inner hole
-	holeSize := sdf.V2{
+	holeSize := v2.Vec{
 		xLoadcell - 2.0*innerMargin,
 		yLoadCell - 2.0*innerMargin,
 	}
@@ -82,17 +84,17 @@ func holder() (sdf.SDF3, error) {
 	hole3d := sdf.Extrude3D(hole2d, bodyHeight)
 
 	// recess
-	recessSize := sdf.V2{
+	recessSize := v2.Vec{
 		xLoadcell,
 		yLoadCell,
 	}
 	recess2d := sdf.Box2D(recessSize, rLoadCell)
 	recess3d := sdf.Extrude3D(recess2d, zLoadCell)
 	zOfs := 0.5 * (bodyHeight - zLoadCell)
-	recess3d = sdf.Transform3D(recess3d, sdf.Translate3d(sdf.V3{0, 0, zOfs}))
+	recess3d = sdf.Transform3D(recess3d, sdf.Translate3d(v3.Vec{0, 0, zOfs}))
 
 	// wire recess
-	wireSize := sdf.V3{2.0, 2.0, 3.0 * outerMargin}
+	wireSize := v3.Vec{2.0, 2.0, 3.0 * outerMargin}
 	wire3d, err := sdf.Box3D(wireSize, 0)
 	if err != nil {
 		return nil, err
@@ -100,7 +102,7 @@ func holder() (sdf.SDF3, error) {
 	wire3d = sdf.Transform3D(wire3d, sdf.RotateX(sdf.DtoR(90)))
 	zOfs = 0.5 * (bodyHeight - wireSize.X)
 	yOfs := 0.5 * (yLoadCell + outerMargin)
-	wire3d = sdf.Transform3D(wire3d, sdf.Translate3d(sdf.V3{0, yOfs, zOfs}))
+	wire3d = sdf.Transform3D(wire3d, sdf.Translate3d(v3.Vec{0, yOfs, zOfs}))
 
 	holder := sdf.Union3D(body3d, tab3d)
 	// add some filleting
@@ -108,7 +110,7 @@ func holder() (sdf.SDF3, error) {
 	// remove the holes
 	holder = sdf.Difference3D(holder, sdf.Union3D(hole3d, recess3d, screw3d, wire3d))
 	// cut it along the xy plane
-	holder = sdf.Cut3D(holder, sdf.V3{0, 0, 0}, sdf.V3{0, 0, 1})
+	holder = sdf.Cut3D(holder, v3.Vec{0, 0, 0}, v3.Vec{0, 0, 1})
 
 	return holder, nil
 }

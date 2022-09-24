@@ -11,6 +11,8 @@ package main
 import (
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
+	v2 "github.com/deadsy/sdfx/vec/v2"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
@@ -34,15 +36,15 @@ func base() sdf.SDF3 {
 	w := pillarWidth + 2.0*(feetWidth+wallThickness)
 	h := pillarWidth + 2.0*wallThickness
 	r := pillarRadius + wallThickness
-	base2d := sdf.Box2D(sdf.V2{w, h}, r)
+	base2d := sdf.Box2D(v2.Vec{w, h}, r)
 	return sdf.Extrude3D(base2d, baseThickness)
 }
 
 func wall(w, r float64) sdf.SDF3 {
-	base := sdf.Box2D(sdf.V2{w, w}, r)
+	base := sdf.Box2D(v2.Vec{w, w}, r)
 	s := sdf.Extrude3D(base, wallHeight)
 	ofs := 0.5 * (wallHeight - baseThickness)
-	return sdf.Transform3D(s, sdf.Translate3d(sdf.V3{0, 0, ofs}))
+	return sdf.Transform3D(s, sdf.Translate3d(v3.Vec{0, 0, ofs}))
 }
 
 func holder() sdf.SDF3 {

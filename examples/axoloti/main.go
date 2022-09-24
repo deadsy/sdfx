@@ -15,6 +15,8 @@ import (
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
 	"github.com/deadsy/sdfx/vec/conv"
+	v2 "github.com/deadsy/sdfx/vec/v2"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
@@ -57,7 +59,7 @@ func standoffs() (sdf.SDF3, error) {
 	zOfs := 0.5 * (pillarHeight + baseThickness)
 
 	// from the board mechanicals
-	positions := sdf.V3Set{
+	positions := v3.VecSet{
 		{3.5, 10.0, zOfs},   // H1
 		{3.5, 40.0, zOfs},   // H2
 		{54.0, 40.0, zOfs},  // H3
@@ -81,7 +83,7 @@ func standoffs() (sdf.SDF3, error) {
 func base() (sdf.SDF3, error) {
 	// base
 	pp := &obj.PanelParms{
-		Size:         sdf.V2{baseLength, baseWidth},
+		Size:         v2.Vec{baseLength, baseWidth},
 		CornerRadius: 5.0,
 		HoleDiameter: 3.5,
 		HoleMargin:   [4]float64{7.0, 20.0, 7.0, 20.0},
@@ -95,14 +97,14 @@ func base() (sdf.SDF3, error) {
 	// cutout
 	l := baseLength - (2.0 * baseFootWidth)
 	w := 18.0
-	s1 := sdf.Box2D(sdf.V2{l, w}, baseFootCornerRadius)
+	s1 := sdf.Box2D(v2.Vec{l, w}, baseFootCornerRadius)
 	yOfs := 0.5 * (baseWidth - pcbWidth)
-	s1 = sdf.Transform2D(s1, sdf.Translate2d(sdf.V2{0, yOfs}))
+	s1 = sdf.Transform2D(s1, sdf.Translate2d(v2.Vec{0, yOfs}))
 
 	s2 := sdf.Extrude3D(sdf.Difference2D(s0, s1), baseThickness)
 	xOfs := 0.5 * pcbLength
 	yOfs = pcbWidth - (0.5 * baseWidth)
-	s2 = sdf.Transform3D(s2, sdf.Translate3d(sdf.V3{xOfs, yOfs, 0}))
+	s2 = sdf.Transform3D(s2, sdf.Translate3d(v3.Vec{xOfs, yOfs, 0}))
 
 	// standoffs
 	s3, err := standoffs()
@@ -120,15 +122,15 @@ func base() (sdf.SDF3, error) {
 // front panel cutouts
 
 type panelHole struct {
-	center sdf.V2   // center of hole
+	center v2.Vec   // center of hole
 	hole   sdf.SDF2 // 2d hole
 }
 
 // button positions
 const pbX = 53.0
 
-var pb0 = sdf.V2{pbX, 0.8}
-var pb1 = sdf.V2{pbX + 5.334, 0.8}
+var pb0 = v2.Vec{pbX, 0.8}
+var pb1 = v2.Vec{pbX + 5.334, 0.8}
 
 // panelCutouts returns the 2D front panel cutouts
 func panelCutouts() (sdf.SDF2, error) {
@@ -146,7 +148,7 @@ func panelCutouts() (sdf.SDF2, error) {
 		return nil, err
 	}
 
-	sLed := sdf.Box2D(sdf.V2{1.6, 1.6}, 0)
+	sLed := sdf.Box2D(v2.Vec{1.6, 1.6}, 0)
 
 	k := obj.FingerButtonParms{
 		Width:  4.0,
@@ -164,18 +166,18 @@ func panelCutouts() (sdf.SDF2, error) {
 	ledX := 62.9
 
 	holes := []panelHole{
-		{sdf.V2{midiX, 10.2}, sMidi},                         // MIDI DIN Jack
-		{sdf.V2{midiX + 20.32, 10.2}, sMidi},                 // MIDI DIN Jack
-		{sdf.V2{jackX, 8.14}, sJack0},                        // 1/4" Stereo Jack
-		{sdf.V2{jackX + 19.5, 8.14}, sJack0},                 // 1/4" Stereo Jack
-		{sdf.V2{107.6, 2.3}, sJack1},                         // 3.5 mm Headphone Jack
-		{sdf.V2{ledX, 0.5}, sLed},                            // LED
-		{sdf.V2{ledX + 3.635, 0.5}, sLed},                    // LED
+		{v2.Vec{midiX, 10.2}, sMidi},                         // MIDI DIN Jack
+		{v2.Vec{midiX + 20.32, 10.2}, sMidi},                 // MIDI DIN Jack
+		{v2.Vec{jackX, 8.14}, sJack0},                        // 1/4" Stereo Jack
+		{v2.Vec{jackX + 19.5, 8.14}, sJack0},                 // 1/4" Stereo Jack
+		{v2.Vec{107.6, 2.3}, sJack1},                         // 3.5 mm Headphone Jack
+		{v2.Vec{ledX, 0.5}, sLed},                            // LED
+		{v2.Vec{ledX + 3.635, 0.5}, sLed},                    // LED
 		{pb0, sButton},                                       // Push Button
 		{pb1, sButton},                                       // Push Button
-		{sdf.V2{84.1, 1.0}, sdf.Box2D(sdf.V2{16.0, 7.5}, 0)}, // micro SD card
-		{sdf.V2{96.7, 1.0}, sdf.Box2D(sdf.V2{11.0, 7.5}, 0)}, // micro USB connector
-		{sdf.V2{73.1, 7.1}, sdf.Box2D(sdf.V2{7.5, 15.0}, 0)}, // fullsize USB connector
+		{v2.Vec{84.1, 1.0}, sdf.Box2D(v2.Vec{16.0, 7.5}, 0)}, // micro SD card
+		{v2.Vec{96.7, 1.0}, sdf.Box2D(v2.Vec{11.0, 7.5}, 0)}, // micro USB connector
+		{v2.Vec{73.1, 7.1}, sdf.Box2D(v2.Vec{7.5, 15.0}, 0)}, // fullsize USB connector
 	}
 
 	s := make([]sdf.SDF2, len(holes))
@@ -193,7 +195,7 @@ func frontPanel() (sdf.SDF3, error) {
 
 	// overall panel
 	pp := &obj.PanelParms{
-		Size:         sdf.V2{frontPanelLength, frontPanelHeight},
+		Size:         v2.Vec{frontPanelLength, frontPanelHeight},
 		CornerRadius: 5.0,
 		HoleDiameter: 3.5,
 		HoleMargin:   [4]float64{5.0, 5.0, 5.0, 5.0},
@@ -206,7 +208,7 @@ func frontPanel() (sdf.SDF3, error) {
 
 	xOfs := 0.5 * pcbLength
 	yOfs := (0.5 * frontPanelHeight) - frontPanelYOffset
-	panel = sdf.Transform2D(panel, sdf.Translate2d(sdf.V2{xOfs, yOfs}))
+	panel = sdf.Transform2D(panel, sdf.Translate2d(v2.Vec{xOfs, yOfs}))
 
 	// extrude to 3d
 	panelCutouts, err := panelCutouts()
@@ -244,7 +246,7 @@ func main() {
 	render.RenderSTL(sdf.ScaleUniform3D(s1, shrink), 400, "base.stl")
 
 	// both together
-	s0 = sdf.Transform3D(s0, sdf.Translate3d(sdf.V3{0, 80, 0}))
+	s0 = sdf.Transform3D(s0, sdf.Translate3d(v3.Vec{0, 80, 0}))
 	s3 := sdf.Union3D(s0, s1)
 	render.RenderSTL(sdf.ScaleUniform3D(s3, shrink), 400, "panel_and_base.stl")
 }

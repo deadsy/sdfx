@@ -13,6 +13,7 @@ import (
 
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
@@ -34,16 +35,16 @@ const stemRound = 0.05
 // keyStem returns a keycap stem of a given length.
 func keyStem(length float64) (sdf.SDF3, error) {
 	ofs := length - crossDepth
-	s0, err := sdf.Box3D(sdf.V3{crossX, crossWidth, length}, crossX*stemRound)
+	s0, err := sdf.Box3D(v3.Vec{crossX, crossWidth, length}, crossX*stemRound)
 	if err != nil {
 		return nil, err
 	}
-	s1, err := sdf.Box3D(sdf.V3{crossWidth, stemY * (1.0 + 2.0*stemRound), length}, crossX*stemRound)
+	s1, err := sdf.Box3D(v3.Vec{crossWidth, stemY * (1.0 + 2.0*stemRound), length}, crossX*stemRound)
 	if err != nil {
 		return nil, err
 	}
-	cavity := sdf.Transform3D(sdf.Union3D(s0, s1), sdf.Translate3d(sdf.V3{0, 0, ofs}))
-	stem, err := sdf.Box3D(sdf.V3{stemX, stemY, length}, stemX*stemRound)
+	cavity := sdf.Transform3D(sdf.Union3D(s0, s1), sdf.Translate3d(v3.Vec{0, 0, ofs}))
+	stem, err := sdf.Box3D(v3.Vec{stemX, stemY, length}, stemX*stemRound)
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +70,7 @@ func roundCap(diameter, height, wall float64) (sdf.SDF3, error) {
 		return nil, err
 	}
 
-	inner = sdf.Transform3D(inner, sdf.Translate3d(sdf.V3{0, 0, wall}))
+	inner = sdf.Transform3D(inner, sdf.Translate3d(v3.Vec{0, 0, wall}))
 	keycap := sdf.Difference3D(outer, inner)
 
 	stem, err := keyStem(stemLength)
@@ -77,7 +78,7 @@ func roundCap(diameter, height, wall float64) (sdf.SDF3, error) {
 		return nil, err
 	}
 	ofs := (stemLength - height) * 0.5
-	stem = sdf.Transform3D(stem, sdf.Translate3d(sdf.V3{0, 0, ofs}))
+	stem = sdf.Transform3D(stem, sdf.Translate3d(v3.Vec{0, 0, ofs}))
 
 	return sdf.Union3D(keycap, stem), nil
 }

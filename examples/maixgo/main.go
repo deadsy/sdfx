@@ -18,6 +18,8 @@ import (
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
+	v2 "github.com/deadsy/sdfx/vec/v2"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
@@ -50,7 +52,7 @@ func boardStandoffs() (sdf.SDF3, error) {
 	y := 54.0
 	x0 := -34.0
 	y0 := -0.5 * y
-	positions := sdf.V3Set{
+	positions := v3.VecSet{
 		{x0, y0, zOfs},
 		{x0 + x, y0, zOfs},
 		{x0, y0 + y, zOfs},
@@ -76,7 +78,7 @@ func bezelStandoffs() (sdf.SDF3, error) {
 	y := 55.0
 	x0 := -0.5 * x
 	y0 := -0.5 * y
-	positions := sdf.V3Set{
+	positions := v3.VecSet{
 		{x0, y0, zOfs},
 		{x0 + x, y0, zOfs},
 		{x0, y0 + y, zOfs},
@@ -88,7 +90,7 @@ func bezelStandoffs() (sdf.SDF3, error) {
 
 //-----------------------------------------------------------------------------
 
-func speakerHoles(d float64, ofs sdf.V2) (sdf.SDF2, error) {
+func speakerHoles(d float64, ofs v2.Vec) (sdf.SDF2, error) {
 	holeRadius := 1.7
 	s0, err := sdf.Circle2D(holeRadius)
 	if err != nil {
@@ -101,7 +103,7 @@ func speakerHoles(d float64, ofs sdf.V2) (sdf.SDF2, error) {
 	return sdf.Transform2D(sdf.Union2D(s0, s1), sdf.Translate2d(ofs)), nil
 }
 
-func speakerHolder(d float64, ofs sdf.V2) (sdf.SDF3, error) {
+func speakerHolder(d float64, ofs v2.Vec) (sdf.SDF3, error) {
 	thickness := 3.0
 	zOfs := 0.5 * (thickness + baseThickness)
 	k := obj.WasherParms{
@@ -115,22 +117,22 @@ func speakerHolder(d float64, ofs sdf.V2) (sdf.SDF3, error) {
 		return nil, err
 	}
 	s = sdf.Transform3D(s, sdf.RotateZ(sdf.Pi))
-	return sdf.Transform3D(s, sdf.Translate3d(sdf.V3{ofs.X, ofs.Y, zOfs})), nil
+	return sdf.Transform3D(s, sdf.Translate3d(v3.Vec{ofs.X, ofs.Y, zOfs})), nil
 }
 
 //-----------------------------------------------------------------------------
 
 func bezel() (sdf.SDF3, error) {
 
-	speakerOfs := sdf.V2{60, 14}
+	speakerOfs := v2.Vec{60, 14}
 	speakerDiameter := 20.3
 
 	// bezel
-	bezel := sdf.V2{150, 65}
+	bezel := v2.Vec{150, 65}
 	b0 := sdf.Box2D(bezel, 2)
 
 	// lcd cutout
-	lcd := sdf.V2{60, 46}
+	lcd := v2.Vec{60, 46}
 	l0 := sdf.Box2D(lcd, 2)
 
 	// camera cutout
@@ -138,14 +140,14 @@ func bezel() (sdf.SDF3, error) {
 	if err != nil {
 		return nil, err
 	}
-	c0 = sdf.Transform2D(c0, sdf.Translate2d(sdf.V2{42, 0}))
+	c0 = sdf.Transform2D(c0, sdf.Translate2d(v2.Vec{42, 0}))
 
 	// led hole cutout
 	c1, err := sdf.Circle2D(2)
 	if err != nil {
 		return nil, err
 	}
-	c1 = sdf.Transform2D(c1, sdf.Translate2d(sdf.V2{44, -20}))
+	c1 = sdf.Transform2D(c1, sdf.Translate2d(v2.Vec{44, -20}))
 
 	// speaker holes cutout
 	c2, err := speakerHoles(speakerDiameter, speakerOfs)

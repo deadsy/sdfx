@@ -14,6 +14,7 @@ import (
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
@@ -44,7 +45,7 @@ func capInner() (sdf.SDF3, error) {
 	if err != nil {
 		return nil, err
 	}
-	return sdf.Transform3D(screw, sdf.Translate3d(sdf.V3{0, 0, -capThickness})), nil
+	return sdf.Transform3D(screw, sdf.Translate3d(v3.Vec{0, 0, -capThickness})), nil
 }
 
 func capHole() (sdf.SDF3, error) {

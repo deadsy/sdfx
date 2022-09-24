@@ -18,6 +18,8 @@ import (
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
+	v2 "github.com/deadsy/sdfx/vec/v2"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
@@ -65,7 +67,7 @@ func planView() (sdf.SDF2, error) {
 	if err != nil {
 		return nil, err
 	}
-	s1 = sdf.Transform2D(s1, sdf.Translate2d(sdf.V2{0, centerToCenter}))
+	s1 = sdf.Transform2D(s1, sdf.Translate2d(v2.Vec{0, centerToCenter}))
 
 	k := obj.WasherParms{
 		InnerRadius: radiusInnerBig,
@@ -133,7 +135,7 @@ func shaft() (sdf.SDF3, error) {
 
 	m := sdf.RotateY(sdf.DtoR(-90))
 	m = sdf.RotateX(sdf.DtoR(-30)).Mul(m)
-	m = sdf.Translate3d(sdf.V3{0, radiusOuterSmall, 0}).Mul(m)
+	m = sdf.Translate3d(v3.Vec{0, radiusOuterSmall, 0}).Mul(m)
 	s = sdf.Transform3D(s, m)
 
 	return s, nil
@@ -155,7 +157,7 @@ func part() (sdf.SDF3, error) {
 	}
 	plan3d := sdf.Extrude3D(plan2d, overallHeight)
 	m := sdf.RotateZ(sdf.DtoR(180))
-	m = sdf.Translate3d(sdf.V3{0, centerToCenter + radiusOuterSmall, 0}).Mul(m)
+	m = sdf.Translate3d(v3.Vec{0, centerToCenter + radiusOuterSmall, 0}).Mul(m)
 	m = sdf.RotateY(sdf.DtoR(90)).Mul(m)
 	plan3d = sdf.Transform3D(plan3d, m)
 

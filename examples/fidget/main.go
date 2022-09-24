@@ -16,6 +16,8 @@ import (
 	"github.com/deadsy/sdfx/sdf"
 	"github.com/deadsy/sdfx/vec/conv"
 	"github.com/deadsy/sdfx/vec/p2"
+	v2 "github.com/deadsy/sdfx/vec/v2"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
@@ -44,10 +46,10 @@ func flower(n int, r0, r1, r2 float64) (sdf.SDF2, error) {
 	theta := sdf.Tau / float64(n)
 	b := sdf.NewBezier()
 
-	k0 := sdf.V2{r1, 0}.Add(conv.P2ToV2(p2.Vec{r0, sdf.DtoR(-135)}))
-	k1 := sdf.V2{r1, 0}.Add(conv.P2ToV2(p2.Vec{r0, sdf.DtoR(-45)}))
-	k2 := sdf.V2{r1, 0}.Add(conv.P2ToV2(p2.Vec{r0, sdf.DtoR(45)}))
-	k3 := sdf.V2{r1, 0}.Add(conv.P2ToV2(p2.Vec{r0, sdf.DtoR(135)}))
+	k0 := v2.Vec{r1, 0}.Add(conv.P2ToV2(p2.Vec{r0, sdf.DtoR(-135)}))
+	k1 := v2.Vec{r1, 0}.Add(conv.P2ToV2(p2.Vec{r0, sdf.DtoR(-45)}))
+	k2 := v2.Vec{r1, 0}.Add(conv.P2ToV2(p2.Vec{r0, sdf.DtoR(45)}))
+	k3 := v2.Vec{r1, 0}.Add(conv.P2ToV2(p2.Vec{r0, sdf.DtoR(135)}))
 	k4 := conv.P2ToV2(p2.Vec{r2, theta / 2})
 
 	m := sdf.Rotate(theta)
@@ -132,7 +134,7 @@ func body2() (sdf.SDF3, error) {
 	if err != nil {
 		return nil, err
 	}
-	arm = sdf.Transform3D(arm, sdf.Translate3d(sdf.V3{-1.5 * r0, 0, 0}))
+	arm = sdf.Transform3D(arm, sdf.Translate3d(v3.Vec{-1.5 * r0, 0, 0}))
 
 	// create 6 arms
 	arms := sdf.RotateUnion3D(arm, 6, sdf.RotateZ(sdf.DtoR(60)))
@@ -218,7 +220,7 @@ func spincapDouble(male bool) (sdf.SDF3, error) {
 		if err != nil {
 			return nil, err
 		}
-		screw = sdf.Transform3D(screw, sdf.Translate3d(sdf.V3{0, 0, 1.5 * l}))
+		screw = sdf.Transform3D(screw, sdf.Translate3d(v3.Vec{0, 0, 1.5 * l}))
 		sc, err := spincap(r, l+0.5)
 		if err != nil {
 			return nil, err
@@ -234,7 +236,7 @@ func spincapDouble(male bool) (sdf.SDF3, error) {
 	if err != nil {
 		return nil, err
 	}
-	screw = sdf.Transform3D(screw, sdf.Translate3d(sdf.V3{0, 0, l * 0.5}))
+	screw = sdf.Transform3D(screw, sdf.Translate3d(v3.Vec{0, 0, l * 0.5}))
 	sc, err := spincap(r, l-0.5)
 	if err != nil {
 		return nil, err

@@ -14,6 +14,7 @@ import (
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
@@ -37,7 +38,7 @@ var edges = []edge{
 
 const φ = 1.618033988749895
 
-var vertex = []sdf.V3{
+var vertex = []v3.Vec{
 	{1, φ, 0}, {-1, φ, 0}, {1, -φ, 0}, {-1, -φ, 0},
 	{0, 1, φ}, {0, -1, φ}, {0, 1, -φ}, {0, -1, -φ},
 	{φ, 0, 1}, {-φ, 0, 1}, {φ, 0, -1}, {-φ, 0, -1},

@@ -13,6 +13,8 @@ import (
 
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
+	v2 "github.com/deadsy/sdfx/vec/v2"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
@@ -36,10 +38,10 @@ func extrude1() (sdf.SDF3, error) {
 
 	// position them on the y-axis
 	d := 60.0
-	sLinear = sdf.Transform3D(sLinear, sdf.Translate3d(sdf.V3{0, -1.5 * d, 0}))
-	sFwd = sdf.Transform3D(sFwd, sdf.Translate3d(sdf.V3{0, -0.5 * d, 0}))
-	sRev = sdf.Transform3D(sRev, sdf.Translate3d(sdf.V3{0, 0.5 * d, 0}))
-	sCombo = sdf.Transform3D(sCombo, sdf.Translate3d(sdf.V3{0, 1.5 * d, 0}))
+	sLinear = sdf.Transform3D(sLinear, sdf.Translate3d(v3.Vec{0, -1.5 * d, 0}))
+	sFwd = sdf.Transform3D(sFwd, sdf.Translate3d(v3.Vec{0, -0.5 * d, 0}))
+	sRev = sdf.Transform3D(sRev, sdf.Translate3d(v3.Vec{0, 0.5 * d, 0}))
+	sCombo = sdf.Transform3D(sCombo, sdf.Translate3d(v3.Vec{0, 1.5 * d, 0}))
 
 	// return a union of them all
 	return sdf.Union3D(sLinear, sFwd, sRev, sCombo), nil
@@ -52,13 +54,13 @@ func extrude2() (sdf.SDF3, error) {
 		return nil, err
 	}
 
-	s0 := sdf.ScaleExtrude3D(sdf.Offset2D(h, 8), 80, sdf.V2{0.25, 0.5})
-	s1 := sdf.ScaleTwistExtrude3D(sdf.Offset2D(h, 8), 80, sdf.Pi, sdf.V2{0.25, 0.5})
+	s0 := sdf.ScaleExtrude3D(sdf.Offset2D(h, 8), 80, v2.Vec{0.25, 0.5})
+	s1 := sdf.ScaleTwistExtrude3D(sdf.Offset2D(h, 8), 80, sdf.Pi, v2.Vec{0.25, 0.5})
 
 	// position them on the y-axis
 	d := 30.0
-	s0 = sdf.Transform3D(s0, sdf.Translate3d(sdf.V3{0, -d, 0}))
-	s1 = sdf.Transform3D(s1, sdf.Translate3d(sdf.V3{0, d, 0}))
+	s0 = sdf.Transform3D(s0, sdf.Translate3d(v3.Vec{0, -d, 0}))
+	s1 = sdf.Transform3D(s1, sdf.Translate3d(v3.Vec{0, d, 0}))
 
 	return sdf.Union3D(s0, s1), nil
 }

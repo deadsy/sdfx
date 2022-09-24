@@ -14,6 +14,7 @@ import (
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
@@ -52,7 +53,7 @@ func boltContainer() (sdf.SDF3, error) {
 	if err != nil {
 		return nil, err
 	}
-	screw = sdf.Transform3D(screw, sdf.Translate3d(sdf.V3{0, 0, l / 2}))
+	screw = sdf.Transform3D(screw, sdf.Translate3d(v3.Vec{0, 0, l / 2}))
 
 	// build the internal cavity
 	r = screwRadius * 0.75
@@ -63,7 +64,7 @@ func boltContainer() (sdf.SDF3, error) {
 	if err != nil {
 		return nil, err
 	}
-	cavity = sdf.Transform3D(cavity, sdf.Translate3d(sdf.V3{0, 0, ofs}))
+	cavity = sdf.Transform3D(cavity, sdf.Translate3d(v3.Vec{0, 0, ofs}))
 
 	return sdf.Difference3D(sdf.Union3D(hex, screw), cavity), nil
 }

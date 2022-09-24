@@ -15,6 +15,7 @@ import (
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
@@ -42,11 +43,11 @@ func monkeyWithHat() (sdf.SDF3, error) {
 	if err != nil {
 		return nil, err
 	}
-	edge = sdf.Transform3D(edge, sdf.Translate3d(sdf.V3{Z: -hatHeight / 2}))
+	edge = sdf.Transform3D(edge, sdf.Translate3d(v3.Vec{Z: -hatHeight / 2}))
 	fullHat := sdf.Union3D(hat, edge)
 
 	// put the hat on the monkey
-	fullHat = sdf.Transform3D(fullHat, sdf.Translate3d(sdf.V3{Y: 0.15, Z: 1}))
+	fullHat = sdf.Transform3D(fullHat, sdf.Translate3d(v3.Vec{Y: 0.15, Z: 1}))
 	monkeyHat := sdf.Union3D(monkeyImported, fullHat)
 
 	// Cache the mesh full SDF3 hierarchy for faster evaluation (at the cost of initialization time and memory).

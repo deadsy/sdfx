@@ -16,6 +16,8 @@ import (
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
+	v2 "github.com/deadsy/sdfx/vec/v2"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
@@ -54,21 +56,21 @@ func buttonCavity() (sdf.SDF3, error) {
 func buttons() (sdf.SDF3, error) {
 	// single key column
 	d := buttonsV * bDeltaV
-	p := sdf.V3{-math.Sin(bTheta) * d, math.Cos(bTheta) * d, 0}
+	p := v3.Vec{-math.Sin(bTheta) * d, math.Cos(bTheta) * d, 0}
 	bc, err := buttonCavity()
 	if err != nil {
 		return nil, err
 	}
-	col := sdf.LineOf3D(bc, sdf.V3{}, p, strings.Repeat("x", buttonsV))
+	col := sdf.LineOf3D(bc, v3.Vec{}, p, strings.Repeat("x", buttonsV))
 	// multiple key columns
 	d = buttonsH * bDeltaH
-	p = sdf.V3{d, 0, 0}
-	matrix := sdf.LineOf3D(col, sdf.V3{}, p, strings.Repeat("x", buttonsH))
+	p = v3.Vec{d, 0, 0}
+	matrix := sdf.LineOf3D(col, v3.Vec{}, p, strings.Repeat("x", buttonsH))
 	// centered on the origin
 	d = (buttonsV - 1) * bDeltaV
 	dx := 0.5 * (((buttonsH - 1) * bDeltaH) - (d * math.Sin(bTheta)))
 	dy := 0.5 * d * math.Cos(bTheta)
-	return sdf.Transform3D(matrix, sdf.Translate3d(sdf.V3{-dx, -dy, 0})), nil
+	return sdf.Transform3D(matrix, sdf.Translate3d(v3.Vec{-dx, -dy, 0})), nil
 }
 
 //-----------------------------------------------------------------------------
@@ -86,11 +88,11 @@ func cherryMX() (sdf.SDF2, error) {
 
 	cherryOfs := ((cherryD0 / 2.0) - cherryD3) - (cherryD2 / 2.0)
 
-	r0 := sdf.Box2D(sdf.V2{cherryD0, cherryD0}, 0)
-	r1 := sdf.Box2D(sdf.V2{cherryD1, cherryD2}, 0)
+	r0 := sdf.Box2D(v2.Vec{cherryD0, cherryD0}, 0)
+	r1 := sdf.Box2D(v2.Vec{cherryD1, cherryD2}, 0)
 
-	r2 := sdf.Transform2D(r1, sdf.Translate2d(sdf.V2{0, cherryOfs}))
-	r3 := sdf.Transform2D(r1, sdf.Translate2d(sdf.V2{0, -cherryOfs}))
+	r2 := sdf.Transform2D(r1, sdf.Translate2d(v2.Vec{0, cherryOfs}))
+	r3 := sdf.Transform2D(r1, sdf.Translate2d(v2.Vec{0, -cherryOfs}))
 
 	r4 := sdf.Union2D(r2, r3)
 	r5 := sdf.Transform2D(r4, sdf.Rotate2d(sdf.Pi*0.5))
@@ -109,7 +111,7 @@ func panel() (sdf.SDF3, error) {
 	sy := vy * 1.9
 
 	pp := &obj.PanelParms{
-		Size:         sdf.V2{sx, sy},
+		Size:         v2.Vec{sx, sy},
 		CornerRadius: 5.0,
 		HoleDiameter: 3.0,
 		HoleMargin:   [4]float64{5.0, 5.0, 5.0, 5.0},
@@ -135,8 +137,8 @@ func main() {
 		log.Fatalf("error: %s", err)
 	}
 	s := sdf.Difference3D(panel, buttons)
-	upper := sdf.Cut3D(s, sdf.V3{}, sdf.V3{0, 0, 1})
-	lower := sdf.Cut3D(s, sdf.V3{}, sdf.V3{0, 0, -1})
+	upper := sdf.Cut3D(s, v3.Vec{}, v3.Vec{0, 0, 1})
+	lower := sdf.Cut3D(s, v3.Vec{}, v3.Vec{0, 0, -1})
 
 	render.RenderSTL(upper, 400, "upper.stl")
 	render.RenderSTL(lower, 400, "lower.stl")

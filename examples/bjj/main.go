@@ -16,6 +16,8 @@ import (
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
+	v2 "github.com/deadsy/sdfx/vec/v2"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
@@ -69,10 +71,10 @@ func plateHoles2D() (sdf.SDF2, error) {
 	if err != nil {
 		return nil, err
 	}
-	s0 := sdf.Transform2D(h, sdf.Translate2d(sdf.V2{d, d}))
-	s1 := sdf.Transform2D(h, sdf.Translate2d(sdf.V2{-d, -d}))
-	s2 := sdf.Transform2D(h, sdf.Translate2d(sdf.V2{-d, d}))
-	s3 := sdf.Transform2D(h, sdf.Translate2d(sdf.V2{d, -d}))
+	s0 := sdf.Transform2D(h, sdf.Translate2d(v2.Vec{d, d}))
+	s1 := sdf.Transform2D(h, sdf.Translate2d(v2.Vec{-d, -d}))
+	s2 := sdf.Transform2D(h, sdf.Translate2d(v2.Vec{-d, d}))
+	s3 := sdf.Transform2D(h, sdf.Translate2d(v2.Vec{d, -d}))
 	return sdf.Union2D(s0, s1, s2, s3), nil
 }
 
@@ -84,8 +86,8 @@ func lockingRod() (sdf.SDF3, error) {
 	if err != nil {
 		return nil, err
 	}
-	s1 := sdf.Box2D(sdf.V2{2 * rod_r, rod_r}, 0)
-	s1 = sdf.Transform2D(s1, sdf.Translate2d(sdf.V2{0, -0.5 * rod_r}))
+	s1 := sdf.Box2D(v2.Vec{2 * rod_r, rod_r}, 0)
+	s1 = sdf.Transform2D(s1, sdf.Translate2d(v2.Vec{0, -0.5 * rod_r}))
 	s2 := sdf.Union2D(s0, s1)
 	return sdf.Extrude3D(s2, l), nil
 }
@@ -118,7 +120,7 @@ func plate() (sdf.SDF3, error) {
 	if err != nil {
 		return nil, err
 	}
-	m := sdf.Translate3d(sdf.V3{0, 0, h/2 - rod_r})
+	m := sdf.Translate3d(v3.Vec{0, 0, h/2 - rod_r})
 	m = m.Mul(sdf.RotateX(sdf.DtoR(-90.0)))
 	s3 := sdf.Transform3D(lr, m)
 
@@ -161,8 +163,8 @@ func gears() (sdf.SDF3, error) {
 	}
 	g1 := sdf.Extrude3D(g1_2d, g_height)
 
-	s0 := sdf.Transform3D(g0, sdf.Translate3d(sdf.V3{0, 0, g_height / 2.0}))
-	s1 := sdf.Transform3D(g1, sdf.Translate3d(sdf.V3{0, 0, -g_height / 2.0}))
+	s0 := sdf.Transform3D(g0, sdf.Translate3d(v3.Vec{0, 0, g_height / 2.0}))
+	s1 := sdf.Transform3D(g1, sdf.Translate3d(v3.Vec{0, 0, -g_height / 2.0}))
 
 	// center hole
 	s2, err := sdf.Cylinder3D(2.0*g_height, ch_r, 0)
@@ -177,7 +179,7 @@ func gears() (sdf.SDF3, error) {
 	}
 	screw_depth := 10.0
 	s3 := sdf.Extrude3D(ph, screw_depth)
-	s3 = sdf.Transform3D(s3, sdf.Translate3d(sdf.V3{0, 0, screw_depth/2.0 - g_height}))
+	s3 = sdf.Transform3D(s3, sdf.Translate3d(v3.Vec{0, 0, screw_depth/2.0 - g_height}))
 
 	return sdf.Difference3D(sdf.Union3D(s0, s1), sdf.Union3D(s2, s3)), nil
 }
