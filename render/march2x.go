@@ -17,12 +17,14 @@ import (
 
 	"github.com/deadsy/sdfx/sdf"
 	"github.com/deadsy/sdfx/vec/conv"
+	v2 "github.com/deadsy/sdfx/vec/v2"
+	"github.com/deadsy/sdfx/vec/v2i"
 )
 
 //-----------------------------------------------------------------------------
 
 type square struct {
-	v sdf.V2i // origin of square as integers
+	v v2i.Vec // origin of square as integers
 	n uint    // level of square, size = 1 << n
 }
 
@@ -30,21 +32,21 @@ type square struct {
 // Evaluate the SDF2 via a distance cache to avoid repeated evaluations.
 
 type dcache2 struct {
-	origin     sdf.V2              // origin of the overall bounding square
+	origin     v2.Vec              // origin of the overall bounding square
 	resolution float64             // size of smallest quadtree square
 	hdiag      []float64           // lookup table of square half diagonals
 	s          sdf.SDF2            // the SDF2 to be rendered
-	cache      map[sdf.V2i]float64 // cache of distances
+	cache      map[v2i.Vec]float64 // cache of distances
 	lock       sync.RWMutex        // lock the the cache during reads/writes
 }
 
-func newDcache2(s sdf.SDF2, origin sdf.V2, resolution float64, n uint) *dcache2 {
+func newDcache2(s sdf.SDF2, origin v2.Vec, resolution float64, n uint) *dcache2 {
 	dc := dcache2{
 		origin:     origin,
 		resolution: resolution,
 		hdiag:      make([]float64, n),
 		s:          s,
-		cache:      make(map[sdf.V2i]float64),
+		cache:      make(map[v2i.Vec]float64),
 	}
 	// build a lut for cube half diagonal lengths
 	for i := range dc.hdiag {
@@ -56,7 +58,7 @@ func newDcache2(s sdf.SDF2, origin sdf.V2, resolution float64, n uint) *dcache2 
 }
 
 // read from the cache
-func (dc *dcache2) read(vi sdf.V2i) (float64, bool) {
+func (dc *dcache2) read(vi v2i.Vec) (float64, bool) {
 	dc.lock.RLock()
 	dist, found := dc.cache[vi]
 	dc.lock.RUnlock()
@@ -64,13 +66,13 @@ func (dc *dcache2) read(vi sdf.V2i) (float64, bool) {
 }
 
 // write to the cache
-func (dc *dcache2) write(vi sdf.V2i, dist float64) {
+func (dc *dcache2) write(vi v2i.Vec, dist float64) {
 	dc.lock.Lock()
 	dc.cache[vi] = dist
 	dc.lock.Unlock()
 }
 
-func (dc *dcache2) evaluate(vi sdf.V2i) (sdf.V2, float64) {
+func (dc *dcache2) evaluate(vi v2i.Vec) (v2.Vec, float64) {
 	v := dc.origin.Add(conv.V2iToV2(vi).MulScalar(dc.resolution))
 	// do we have it in the cache?
 	dist, found := dc.read(vi)
@@ -98,11 +100,11 @@ func (dc *dcache2) processSquare(c *square, output chan<- *Line) {
 	if !dc.isEmpty(c) {
 		if c.n == 1 {
 			// this square is at the required resolution
-			c0, d0 := dc.evaluate(c.v.Add(sdf.V2i{0, 0}))
-			c1, d1 := dc.evaluate(c.v.Add(sdf.V2i{2, 0}))
-			c2, d2 := dc.evaluate(c.v.Add(sdf.V2i{2, 2}))
-			c3, d3 := dc.evaluate(c.v.Add(sdf.V2i{0, 2}))
-			corners := [4]sdf.V2{c0, c1, c2, c3}
+			c0, d0 := dc.evaluate(c.v.Add(v2i.Vec{0, 0}))
+			c1, d1 := dc.evaluate(c.v.Add(v2i.Vec{2, 0}))
+			c2, d2 := dc.evaluate(c.v.Add(v2i.Vec{2, 2}))
+			c3, d3 := dc.evaluate(c.v.Add(v2i.Vec{0, 2}))
+			corners := [4]v2.Vec{c0, c1, c2, c3}
 			values := [4]float64{d0, d1, d2, d3}
 			// output the line(s) for this square
 			for _, l := range msToLines(corners, values, 0) {
@@ -113,10 +115,10 @@ func (dc *dcache2) processSquare(c *square, output chan<- *Line) {
 			n := c.n - 1
 			s := 1 << n
 			// TODO - turn these into throttled go-routines
-			dc.processSquare(&square{c.v.Add(sdf.V2i{0, 0}), n}, output)
-			dc.processSquare(&square{c.v.Add(sdf.V2i{s, 0}), n}, output)
-			dc.processSquare(&square{c.v.Add(sdf.V2i{s, s}), n}, output)
-			dc.processSquare(&square{c.v.Add(sdf.V2i{0, s}), n}, output)
+			dc.processSquare(&square{c.v.Add(v2i.Vec{0, 0}), n}, output)
+			dc.processSquare(&square{c.v.Add(v2i.Vec{s, 0}), n}, output)
+			dc.processSquare(&square{c.v.Add(v2i.Vec{s, s}), n}, output)
+			dc.processSquare(&square{c.v.Add(v2i.Vec{0, s}), n}, output)
 		}
 	}
 }
@@ -138,7 +140,7 @@ func marchingSquaresQuadtree(s sdf.SDF2, resolution float64, output chan<- *Line
 	// create the distance cache
 	dc := newDcache2(s, bb.Min, resolution, levels)
 	// process the quadtree, start at the top level
-	dc.processSquare(&square{sdf.V2i{0, 0}, levels - 1}, output)
+	dc.processSquare(&square{v2i.Vec{0, 0}, levels - 1}, output)
 }
 
 //-----------------------------------------------------------------------------

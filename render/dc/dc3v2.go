@@ -20,6 +20,9 @@ import (
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
 	"github.com/deadsy/sdfx/vec/conv"
+	"github.com/deadsy/sdfx/vec/v2i"
+	v3 "github.com/deadsy/sdfx/vec/v3"
+	"github.com/deadsy/sdfx/vec/v3i"
 )
 
 //-----------------------------------------------------------------------------
@@ -76,13 +79,13 @@ func (dc *DualContouringV2) Info(s sdf.SDF3, meshCells int) string {
 func (dc *DualContouringV2) Render(s sdf.SDF3, meshCells int, output chan<- *render.Triangle3) {
 	// Place one vertex for each cellIndex
 	_, cells := dc.getCells(s, meshCells)
-	s2 := &dcSdf{s, map[sdf.V3]float64{}}
+	s2 := &dcSdf{s, map[v3.Vec]float64{}}
 	vertexBuffer, vertexVoxelInfo, vertexVoxelInfoIndexed := dc.placeVertices(s2, cells)
 	// Stitch vertices together generating triangles
 	dc.generateTriangles(s2, vertexBuffer, vertexVoxelInfo, vertexVoxelInfoIndexed, output)
 }
 
-func (dc *DualContouringV2) getCells(s sdf.SDF3, meshCells int) (float64, sdf.V3i) {
+func (dc *DualContouringV2) getCells(s sdf.SDF3, meshCells int) (float64, v3i.Vec) {
 	bbSize := s.BoundingBox().Size()
 	resolution := bbSize.MaxComponent() / float64(meshCells)
 	return resolution, conv.V3ToV3i(bbSize.DivScalar(resolution))
@@ -94,10 +97,10 @@ func (dc *DualContouringV2) getCells(s sdf.SDF3, meshCells int) (float64, sdf.V3
 
 type dcSdf struct {
 	impl  sdf.SDF3
-	cache map[sdf.V3]float64
+	cache map[v3.Vec]float64
 }
 
-func (d *dcSdf) evaluateCached(p sdf.V3) float64 { // Reduces evaluation cost from 62.8% to 46.3% on cylinder_head
+func (d *dcSdf) evaluateCached(p v3.Vec) float64 { // Reduces evaluation cost from 62.8% to 46.3% on cylinder_head
 	res, ok := d.cache[p]
 	if ok {
 		return res
@@ -107,7 +110,7 @@ func (d *dcSdf) evaluateCached(p sdf.V3) float64 { // Reduces evaluation cost fr
 	return res
 }
 
-func (d *dcSdf) Evaluate(p sdf.V3) float64 {
+func (d *dcSdf) Evaluate(p v3.Vec) float64 {
 	return d.impl.Evaluate(p)
 }
 
@@ -121,12 +124,12 @@ func (d *dcSdf) BoundingBox() sdf.Box3 {
 // CONSTANT DATA
 //-----------------------------------------------------------------------------
 
-var dcCorners = []sdf.V3{
+var dcCorners = []v3.Vec{
 	{0, 0, 0}, {0, 0, 1}, {0, 1, 0}, {0, 1, 1},
 	{1, 0, 0}, {1, 0, 1}, {1, 1, 0}, {1, 1, 1},
 }
 
-var dcEdges = []sdf.V2i{
+var dcEdges = []v2i.Vec{
 	{0, 1}, {0, 2}, {0, 4},
 	{1, 3}, {1, 5},
 	{2, 3}, {2, 6},
@@ -136,38 +139,38 @@ var dcEdges = []sdf.V2i{
 	{6, 7},
 }
 
-var dcFarEdges = []sdf.V2i{
+var dcFarEdges = []v2i.Vec{
 	{3, 7},
 	{5, 7},
 	{6, 7},
 }
 
-var dcAxes = []sdf.V3{{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}
+var dcAxes = []v3.Vec{{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}
 
 //-----------------------------------------------------------------------------
 // MAIN ALGORITHM
 //-----------------------------------------------------------------------------
 
 type dcVoxelInfo struct {
-	cellIndex sdf.V3i
+	cellIndex v3i.Vec
 	bufIndex  int
 	// Cached metadata (could be removed if memory is a problem)
-	cellStart, cellSize sdf.V3
+	cellStart, cellSize v3.Vec
 }
 
-func (dc *DualContouringV2) placeVertices(s *dcSdf, cells sdf.V3i) (buf []sdf.V3, bufMap []*dcVoxelInfo, bufMapIndexed map[sdf.V3i]*dcVoxelInfo) {
+func (dc *DualContouringV2) placeVertices(s *dcSdf, cells v3i.Vec) (buf []v3.Vec, bufMap []*dcVoxelInfo, bufMapIndexed map[v3i.Vec]*dcVoxelInfo) {
 	// Start with big enough buffers for performance avoiding allocations (but not too big, may expand later)
-	buf = make([]sdf.V3, 0, dcMaxI(32, cells.X*cells.Y*cells.Z/100))
+	buf = make([]v3.Vec, 0, dcMaxI(32, cells.X*cells.Y*cells.Z/100))
 	bufMap = make([]*dcVoxelInfo, 0, dcMaxI(32, cells.X*cells.Y*cells.Z/100))
-	bufMapIndexed = make(map[sdf.V3i]*dcVoxelInfo, dcMaxI(32, cells.X*cells.Y*cells.Z/100))
+	bufMapIndexed = make(map[v3i.Vec]*dcVoxelInfo, dcMaxI(32, cells.X*cells.Y*cells.Z/100))
 	// Other pre-allocated vertex placing buffers
-	normals := make([]sdf.V3, 0, 11)
+	normals := make([]v3.Vec, 0, 11)
 	planeDs := make([]float64, 0, 11)
 	// Some cached variables
 	bb := s.BoundingBox()
 	cellSize := bb.Size().Div(conv.V3iToV3(cells))
 	cellSizeHalf := cellSize.DivScalar(2)
-	cellIndex := sdf.V3i{}
+	cellIndex := v3i.Vec{}
 	// Iterate over all cells (could be parallelized, synchronizing on each vertex positioned)
 	for cellIndex.X = 0; cellIndex.X < cells.X; cellIndex.X++ {
 		for cellIndex.Y = 0; cellIndex.Y < cells.Y; cellIndex.Y++ {
@@ -195,11 +198,11 @@ func (dc *DualContouringV2) placeVertices(s *dcSdf, cells sdf.V3i) (buf []sdf.V3
 	return
 }
 
-func (dc *DualContouringV2) placeVertex(s *dcSdf, cellStart, cellCenter, cellSize sdf.V3, normals []sdf.V3, planeDs []float64) sdf.V3 {
+func (dc *DualContouringV2) placeVertex(s *dcSdf, cellStart, cellCenter, cellSize v3.Vec, normals []v3.Vec, planeDs []float64) v3.Vec {
 	inside := dc.computeCornersInside(s, cellStart, cellSize)
 	if inside == 0 || inside == math.MaxUint8 {
 		// voxel is fully inside or outside the volume: no vertex to place
-		return sdf.V3{X: math.Inf(1)}
+		return v3.Vec{X: math.Inf(1)}
 	}
 
 	//// Add candidate planes from all surface-crossing edges (using the surface point on the edge)
@@ -270,7 +273,7 @@ func (dc *DualContouringV2) placeVertex(s *dcSdf, cellStart, cellCenter, cellSiz
 	return vertexPos
 }
 
-func (dc *DualContouringV2) computeCornersInside(s *dcSdf, cellStart sdf.V3, cellSize sdf.V3) uint8 {
+func (dc *DualContouringV2) computeCornersInside(s *dcSdf, cellStart v3.Vec, cellSize v3.Vec) uint8 {
 	// Check each corner and store if they are inside or outside the surface in the bit set
 	inside := uint8(0)
 	for i, corner := range dcCorners {
@@ -282,9 +285,9 @@ func (dc *DualContouringV2) computeCornersInside(s *dcSdf, cellStart sdf.V3, cel
 	return inside
 }
 
-func (dc *DualContouringV2) generateTriangles(s *dcSdf, vertices []sdf.V3, info []*dcVoxelInfo, infoI map[sdf.V3i]*dcVoxelInfo, output chan<- *render.Triangle3) {
+func (dc *DualContouringV2) generateTriangles(s *dcSdf, vertices []v3.Vec, info []*dcVoxelInfo, infoI map[v3i.Vec]*dcVoxelInfo, output chan<- *render.Triangle3) {
 	for _, voxelInfo := range info {
-		v0 := voxelInfo.bufIndex // v0 is the vertex (index) of this voxel, which will be connected to others
+		k0 := voxelInfo.bufIndex // k0 is the vertex (index) of this voxel, which will be connected to others
 		cellIndex := voxelInfo.cellIndex
 
 		inside := dc.computeCornersInside(s, voxelInfo.cellStart, voxelInfo.cellSize)
@@ -297,22 +300,22 @@ func (dc *DualContouringV2) generateTriangles(s *dcSdf, vertices []sdf.V3, info 
 			}
 
 			// Get other vertices for triangle generation
-			var v1, v2, v3 *dcVoxelInfo
+			var k1, k2, k3 *dcVoxelInfo
 			if ai == 0 {
-				v1, _ = infoI[cellIndex.Add(sdf.V3i{0, 0, 1})]
-				v2, _ = infoI[cellIndex.Add(sdf.V3i{0, 1, 0})]
-				v3, _ = infoI[cellIndex.Add(sdf.V3i{0, 1, 1})]
+				k1, _ = infoI[cellIndex.Add(v3i.Vec{0, 0, 1})]
+				k2, _ = infoI[cellIndex.Add(v3i.Vec{0, 1, 0})]
+				k3, _ = infoI[cellIndex.Add(v3i.Vec{0, 1, 1})]
 			} else if ai == 1 {
-				v1, _ = infoI[cellIndex.Add(sdf.V3i{0, 0, 1})]
-				v2, _ = infoI[cellIndex.Add(sdf.V3i{1, 0, 0})]
-				v3, _ = infoI[cellIndex.Add(sdf.V3i{1, 0, 1})]
+				k1, _ = infoI[cellIndex.Add(v3i.Vec{0, 0, 1})]
+				k2, _ = infoI[cellIndex.Add(v3i.Vec{1, 0, 0})]
+				k3, _ = infoI[cellIndex.Add(v3i.Vec{1, 0, 1})]
 			} else {
-				v1, _ = infoI[cellIndex.Add(sdf.V3i{0, 1, 0})]
-				v2, _ = infoI[cellIndex.Add(sdf.V3i{1, 0, 0})]
-				v3, _ = infoI[cellIndex.Add(sdf.V3i{1, 1, 0})]
+				k1, _ = infoI[cellIndex.Add(v3i.Vec{0, 1, 0})]
+				k2, _ = infoI[cellIndex.Add(v3i.Vec{1, 0, 0})]
+				k3, _ = infoI[cellIndex.Add(v3i.Vec{1, 1, 0})]
 			}
 
-			if v1 == nil || v2 == nil || v3 == nil { // Shouldn't ever happen
+			if k1 == nil || k2 == nil || k3 == nil { // Shouldn't ever happen
 				if !dc.faceVertexNotFoundWarned {
 					log.Println("[DualContouringV1] WARNING: no vertex found for completing face, there will be holes")
 					dc.faceVertexNotFoundWarned = true
@@ -321,8 +324,8 @@ func (dc *DualContouringV2) generateTriangles(s *dcSdf, vertices []sdf.V3, info 
 			}
 
 			// Define triangles
-			t0 := &render.Triangle3{V: [3]sdf.V3{vertices[v0], vertices[v1.bufIndex], vertices[v3.bufIndex]}}
-			t1 := &render.Triangle3{V: [3]sdf.V3{vertices[v0], vertices[v3.bufIndex], vertices[v2.bufIndex]}}
+			t0 := &render.Triangle3{V: [3]v3.Vec{vertices[k0], vertices[k1.bufIndex], vertices[k3.bufIndex]}}
+			t1 := &render.Triangle3{V: [3]v3.Vec{vertices[k0], vertices[k3.bufIndex], vertices[k2.bufIndex]}}
 
 			// Get the normals right:
 			if ((inside >> edge.X) & 1) != uint8(ai&1) { // xor
@@ -345,7 +348,7 @@ func (dc *DualContouringV2) generateTriangles(s *dcSdf, vertices []sdf.V3, info 
 // VERTEX POSITION SOLVER
 //-----------------------------------------------------------------------------
 
-func (dc *DualContouringV2) computeVertexPos(normals []sdf.V3, planeDs []float64) sdf.V3 {
+func (dc *DualContouringV2) computeVertexPos(normals []v3.Vec, planeDs []float64) v3.Vec {
 	// ### 1. Minecraft-like voxels
 	//return cellCenter
 	// ### 2. Solve using least squares
@@ -366,7 +369,7 @@ func (dc *DualContouringV2) computeVertexPos(normals []sdf.V3, planeDs []float64
 	//		log.Println("[DualContouringV1] WARNING: QEF solver failed: ", err.Error())
 	//		dc.qefFailedImplWarned = true
 	//	}
-	//	return sdf.V3{X: math.Inf(1)}
+	//	return v3.Vec{X: math.Inf(1)}
 	//}
-	//return sdf.V3{X: res.At(0, 0), Y: res.At(1, 0), Z: res.At(2, 0)}
+	//return v3.Vec{X: res.At(0, 0), Y: res.At(1, 0), Z: res.At(2, 0)}
 }

@@ -18,19 +18,21 @@ import (
 
 	"github.com/deadsy/sdfx/sdf"
 	"github.com/deadsy/sdfx/vec/conv"
+	v3 "github.com/deadsy/sdfx/vec/v3"
+	"github.com/deadsy/sdfx/vec/v3i"
 )
 
 //-----------------------------------------------------------------------------
 
 type layerYZ struct {
-	base  sdf.V3    // base coordinate of layer
-	inc   sdf.V3    // dx, dy, dz for each step
-	steps sdf.V3i   // number of x,y,z steps
+	base  v3.Vec    // base coordinate of layer
+	inc   v3.Vec    // dx, dy, dz for each step
+	steps v3i.Vec   // number of x,y,z steps
 	val0  []float64 // SDF values for x layer
 	val1  []float64 // SDF values for x + dx layer
 }
 
-func newLayerYZ(base, inc sdf.V3, steps sdf.V3i) *layerYZ {
+func newLayerYZ(base, inc v3.Vec, steps v3i.Vec) *layerYZ {
 	return &layerYZ{base, inc, steps, nil, nil}
 }
 
@@ -40,8 +42,8 @@ func newLayerYZ(base, inc sdf.V3, steps sdf.V3i) *layerYZ {
 // is stored in the corresponding index of the `out` slice.
 type evalReq struct {
 	out []float64
-	p   []sdf.V3
-	fn  func(sdf.V3) float64
+	p   []v3.Vec
+	fn  func(v3.Vec) float64
 	wg  *sync.WaitGroup
 }
 
@@ -51,7 +53,7 @@ func init() {
 	for i := 0; i < runtime.NumCPU(); i++ {
 		go func() {
 			var i int
-			var p sdf.V3
+			var p v3.Vec
 			for r := range evalProcessCh {
 				for i, p = range r.p {
 					r.out[i] = r.fn(p)
@@ -78,7 +80,7 @@ func (l *layerYZ) Evaluate(s sdf.SDF3, x int) {
 
 	// setup the loop variables
 	idx := 0
-	var p sdf.V3
+	var p v3.Vec
 	p.X = l.base.X + float64(x)*dx
 
 	// define the base struct for requesting evaluation
@@ -94,7 +96,7 @@ func (l *layerYZ) Evaluate(s sdf.SDF3, x int) {
 	// Performance doesn't seem to improve past 100.
 	const batchSize = 100
 
-	eReq.p = make([]sdf.V3, 0, batchSize)
+	eReq.p = make([]v3.Vec, 0, batchSize)
 	for y := 0; y < ny+1; y++ {
 		p.Z = l.base.Z
 		for z := 0; z < nz+1; z++ {
@@ -103,7 +105,7 @@ func (l *layerYZ) Evaluate(s sdf.SDF3, x int) {
 				eReq.wg.Add(1)
 				evalProcessCh <- eReq
 				eReq.out = eReq.out[batchSize:]       // shift the output slice for processing
-				eReq.p = make([]sdf.V3, 0, batchSize) // create a new slice for the next batch
+				eReq.p = make([]v3.Vec, 0, batchSize) // create a new slice for the next batch
 			}
 			idx++
 			p.Z += dz
@@ -147,7 +149,7 @@ func marchingCubes(s sdf.SDF3, box sdf.Box3, step float64) []*Triangle3 {
 	nx, ny, nz := steps.X, steps.Y, steps.Z
 	dx, dy, dz := inc.X, inc.Y, inc.Z
 
-	var p sdf.V3
+	var p v3.Vec
 	p.X = base.X
 	for x := 0; x < nx; x++ {
 		// read the x + 1 layer
@@ -159,7 +161,7 @@ func marchingCubes(s sdf.SDF3, box sdf.Box3, step float64) []*Triangle3 {
 			for z := 0; z < nz; z++ {
 				x0, y0, z0 := p.X, p.Y, p.Z
 				x1, y1, z1 := x0+dx, y0+dy, z0+dz
-				corners := [8]sdf.V3{
+				corners := [8]v3.Vec{
 					{x0, y0, z0},
 					{x1, y0, z0},
 					{x1, y1, z0},
@@ -190,7 +192,7 @@ func marchingCubes(s sdf.SDF3, box sdf.Box3, step float64) []*Triangle3 {
 
 //-----------------------------------------------------------------------------
 
-func mcToTriangles(p [8]sdf.V3, v [8]float64, x float64) []*Triangle3 {
+func mcToTriangles(p [8]v3.Vec, v [8]float64, x float64) []*Triangle3 {
 	// which of the 0..255 patterns do we have?
 	index := 0
 	for i := 0; i < 8; i++ {
@@ -203,7 +205,7 @@ func mcToTriangles(p [8]sdf.V3, v [8]float64, x float64) []*Triangle3 {
 		return nil
 	}
 	// work out the interpolated points on the edges
-	var points [12]sdf.V3
+	var points [12]v3.Vec
 	for i := 0; i < 12; i++ {
 		bit := 1 << uint(i)
 		if mcEdgeTable[index]&bit != 0 {
@@ -230,7 +232,7 @@ func mcToTriangles(p [8]sdf.V3, v [8]float64, x float64) []*Triangle3 {
 
 //-----------------------------------------------------------------------------
 
-func mcInterpolate(p1, p2 sdf.V3, v1, v2, x float64) sdf.V3 {
+func mcInterpolate(p1, p2 v3.Vec, v1, v2, x float64) v3.Vec {
 
 	closeToV1 := math.Abs(x-v1) < epsilon
 	closeToV2 := math.Abs(x-v2) < epsilon
@@ -252,7 +254,7 @@ func mcInterpolate(p1, p2 sdf.V3, v1, v2, x float64) sdf.V3 {
 		t = (x - v1) / (v2 - v1)
 	}
 
-	return sdf.V3{
+	return v3.Vec{
 		p1.X + t*(p2.X-p1.X),
 		p1.Y + t*(p2.Y-p1.Y),
 		p1.Z + t*(p2.Z-p1.Z),

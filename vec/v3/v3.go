@@ -171,6 +171,35 @@ func (a Vec) Cos() Vec {
 
 //-----------------------------------------------------------------------------
 
+// Get the n-th component of the vector.
+func (a Vec) Get(i int) float64 {
+	switch i {
+	case 0:
+		return a.X
+	case 1:
+		return a.Y
+	case 2:
+		return a.Z
+	}
+	panic("bad vector component")
+}
+
+// Set the n-th component of the vector.
+func (a *Vec) Set(i int, val float64) {
+	switch i {
+	case 0:
+		a.X = val
+	case 1:
+		a.Y = val
+	case 2:
+		a.Z = val
+	default:
+		panic("bad vector component")
+	}
+}
+
+//-----------------------------------------------------------------------------
+
 // VecSet is a set of 3D float64 vectors.
 type VecSet []Vec
 

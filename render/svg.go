@@ -16,6 +16,7 @@ import (
 	svg "github.com/ajstarks/svgo/float"
 	"github.com/deadsy/sdfx/sdf"
 	"github.com/deadsy/sdfx/vec/conv"
+	v2 "github.com/deadsy/sdfx/vec/v2"
 )
 
 //-----------------------------------------------------------------------------
@@ -24,8 +25,8 @@ import (
 type SVG struct {
 	filename  string
 	lineStyle string
-	p0s, p1s  []sdf.V2
-	min, max  sdf.V2
+	p0s, p1s  []v2.Vec
+	min, max  v2.Vec
 }
 
 // NewSVG returns an SVG renderer.
@@ -37,7 +38,7 @@ func NewSVG(filename, lineStyle string) *SVG {
 }
 
 // Line outputs a line to the SVG file.
-func (s *SVG) Line(p0, p1 sdf.V2) {
+func (s *SVG) Line(p0, p1 v2.Vec) {
 	if len(s.p0s) == 0 {
 		s.min = p0.Min(p1)
 		s.max = p0.Max(p1)

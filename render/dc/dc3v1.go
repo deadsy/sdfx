@@ -21,6 +21,8 @@ import (
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
 	"github.com/deadsy/sdfx/vec/conv"
+	v3 "github.com/deadsy/sdfx/vec/v3"
+	"github.com/deadsy/sdfx/vec/v3i"
 	"gonum.org/v1/gonum/mat"
 )
 
@@ -75,7 +77,7 @@ func (m *DualContouringV1) Render(s sdf.SDF3, meshCells int, output chan<- *rend
 
 //-----------------------------------------------------------------------------
 
-var dcChildMinOffsets = [8]sdf.V3i{
+var dcChildMinOffsets = [8]v3i.Vec{
 	{0, 0, 0},
 	{0, 0, 1},
 	{0, 1, 0},
@@ -140,9 +142,9 @@ const (
 
 type dcOctree struct {
 	kind           dcOctreeNodeType
-	minOffset      sdf.V3i
+	minOffset      v3i.Vec
 	size, meshSize int
-	cellCounts     sdf.V3i
+	cellCounts     v3i.Vec
 	children       [8]*dcOctree
 	drawInfo       *dcOctreeDrawInfo
 	// Extra parameters
@@ -152,7 +154,7 @@ type dcOctree struct {
 
 type dcOctreeDrawInfo struct {
 	index, corners          int
-	position, averageNormal sdf.V3
+	position, averageNormal v3.Vec
 	qef                     *dcQefSolver
 }
 
@@ -169,8 +171,8 @@ func nextPowerOfTwo(v int) int {
 }
 
 // dcNewOctree builds the whole octree structure (without simplification) for the given size.
-func dcNewOctree(cellCounts sdf.V3i, rCond float64, lockVertices bool) *dcOctree {
-	cellCounts = sdf.V3i{ // Need powers of 2 for this algorithm (round-up for more precision)
+func dcNewOctree(cellCounts v3i.Vec, rCond float64, lockVertices bool) *dcOctree {
+	cellCounts = v3i.Vec{ // Need powers of 2 for this algorithm (round-up for more precision)
 		nextPowerOfTwo(cellCounts.X),
 		nextPowerOfTwo(cellCounts.Y),
 		nextPowerOfTwo(cellCounts.Z),
@@ -179,7 +181,7 @@ func dcNewOctree(cellCounts sdf.V3i, rCond float64, lockVertices bool) *dcOctree
 	cubicSize := int(conv.V3iToV3(cellCounts).MaxComponent())
 	rootNode := &dcOctree{
 		kind:         dcOctreeNodeTypeInternal,
-		minOffset:    sdf.V3i{0, 0, 0},
+		minOffset:    v3i.Vec{0, 0, 0},
 		size:         cubicSize,
 		meshSize:     cubicSize,
 		cellCounts:   cellCounts,
@@ -225,7 +227,7 @@ func (node *dcOctree) Populate(d sdf.SDF3) {
 	}
 }
 
-func (node *dcOctree) relToSDF(d sdf.SDF3, i sdf.V3i) sdf.V3 {
+func (node *dcOctree) relToSDF(d sdf.SDF3, i v3i.Vec) v3.Vec {
 	bb := d.BoundingBox()
 	return bb.Min.Add(bb.Size().Mul(conv.V3iToV3(i).DivScalar(float64(node.meshSize)).
 		Div(conv.V3iToV3(node.cellCounts).DivScalar(float64(node.meshSize)))))
@@ -248,7 +250,7 @@ func (node *dcOctree) computeOctreeLeaf(d sdf.SDF3) {
 	// otherwise, the voxel contains the surface, so find the edge intersections
 	const maxCrossings = 6
 	edgeCount := 0
-	normalSum := sdf.V3{X: 0, Y: 0, Z: 0}
+	normalSum := v3.Vec{X: 0, Y: 0, Z: 0}
 	qefSolver := new(dcQefSolver)
 	for i := 0; i < 12 && edgeCount < maxCrossings; i++ {
 		c1 := dcEdgevmap[i][0]
@@ -284,10 +286,10 @@ func (node *dcOctree) computeOctreeLeaf(d sdf.SDF3) {
 
 // dcBoundVertexPosition binds the given vertex to their right voxel by using the mass point if out of bounds.
 // NOTE: The next code avoids small triangles and even bad meshes (on noisy fields?), but reduces sharp edge accuracy
-func dcBoundVertexPosition(d sdf.SDF3, leaf *dcOctree, qefPosition sdf.V3, qefSolver *dcQefSolver) sdf.V3 {
+func dcBoundVertexPosition(d sdf.SDF3, leaf *dcOctree, qefPosition v3.Vec, qefSolver *dcQefSolver) v3.Vec {
 	// Avoid placing vertex outside node bounds
 	min := leaf.relToSDF(d, leaf.minOffset)
-	max := leaf.relToSDF(d, leaf.minOffset.Add(sdf.V3i{leaf.size, leaf.size, leaf.size}))
+	max := leaf.relToSDF(d, leaf.minOffset.Add(v3i.Vec{leaf.size, leaf.size, leaf.size}))
 	if qefPosition.X < min.X || qefPosition.Y < min.Y || qefPosition.Z < min.Z ||
 		qefPosition.X > max.X || qefPosition.Y > max.Y || qefPosition.Z > max.Z {
 		//log.Println("Fixing vertex position", qefPosition, "-->", qefSolver.massPointSum)
@@ -368,7 +370,7 @@ func (node *dcOctree) Simplify(d sdf.SDF3, threshold float64) {
 	return
 }
 
-func (node *dcOctree) generateVertexIndices(vertexBuffer *[]sdf.V3) {
+func (node *dcOctree) generateVertexIndices(vertexBuffer *[]v3.Vec) {
 	if node == nil { // Does not contain the surface
 		return
 	}
@@ -509,7 +511,7 @@ func dcContourProcessEdge(node [4]*dcOctree, dir int, indexBuffer *[]int) {
 }
 
 func (node *dcOctree) GenerateMesh(output chan<- *render.Triangle3) {
-	vertexBuffer := new([]sdf.V3)
+	vertexBuffer := new([]v3.Vec)
 	indexBuffer := new([]int)
 	// Populate buffers
 	node.generateVertexIndices(vertexBuffer)
@@ -517,7 +519,7 @@ func (node *dcOctree) GenerateMesh(output chan<- *render.Triangle3) {
 	// Return triangles
 	for tri := 0; tri < len(*indexBuffer)/3; tri++ {
 		triangle := &render.Triangle3{
-			V: [3]sdf.V3{
+			V: [3]v3.Vec{
 				(*vertexBuffer)[(*indexBuffer)[tri*3]],
 				(*vertexBuffer)[(*indexBuffer)[tri*3+1]],
 				(*vertexBuffer)[(*indexBuffer)[tri*3+2]],
@@ -531,13 +533,13 @@ func (node *dcOctree) GenerateMesh(output chan<- *render.Triangle3) {
 // dcQefSolver is used for vertex position estimation (sharp edges!)
 type dcQefSolver struct {
 	ata                  *mat.SymDense
-	atb, massPointSum, x sdf.V3
+	atb, massPointSum, x v3.Vec
 	btb                  float64
 	numPoints            int
 	hasSolution          bool
 }
 
-func (q *dcQefSolver) Add(p, n sdf.V3) {
+func (q *dcQefSolver) Add(p, n v3.Vec) {
 	n = n.Normalize()
 	if q.ata == nil {
 		q.ata = mat.NewSymDense(3, nil)
@@ -570,11 +572,11 @@ func (q *dcQefSolver) AddSolver(q2 *dcQefSolver) {
 	q.hasSolution = false
 }
 
-func (q *dcQefSolver) MassPoint() sdf.V3 {
+func (q *dcQefSolver) MassPoint() v3.Vec {
 	return q.massPointSum.DivScalar(float64(q.numPoints))
 }
 
-func (q *dcQefSolver) Solve(rCond float64) sdf.V3 {
+func (q *dcQefSolver) Solve(rCond float64) v3.Vec {
 	// assert q.ata != nil (some points inserted)
 	// VecUtils::scale(this->massPointSum, 1.0f / this->data.numPoints);
 	massPointClone := q.MassPoint()
@@ -608,7 +610,7 @@ func (q *dcQefSolver) GetError() float64 {
 	return q.getErrorPos(&q.x)
 }
 
-func (q *dcQefSolver) getErrorPos(pos *sdf.V3) float64 {
+func (q *dcQefSolver) getErrorPos(pos *v3.Vec) float64 {
 	//MatUtils::vmul_symmetric(atax, this->ata, pos);
 	var atax mat.Dense
 	atax.Mul(q.ata, toVec(*pos))
@@ -616,17 +618,17 @@ func (q *dcQefSolver) getErrorPos(pos *sdf.V3) float64 {
 	return pos.Dot(toV3(&atax)) - 2*pos.Dot(q.atb) + q.btb
 }
 
-func toVec(massPointClone sdf.V3) *mat.VecDense {
+func toVec(massPointClone v3.Vec) *mat.VecDense {
 	return mat.NewVecDense(3, []float64{massPointClone.X, massPointClone.Y, massPointClone.Z})
 }
 
-func toV3(x mat.Matrix) sdf.V3 {
-	return sdf.V3{X: x.At(0, 0), Y: x.At(1, 0), Z: x.At(2, 0)}
+func toV3(x mat.Matrix) v3.Vec {
+	return v3.Vec{X: x.At(0, 0), Y: x.At(1, 0), Z: x.At(2, 0)}
 }
 
 //-----------------------------------------------------------------------------
 
-func dcApproximateZeroCrossingPosition(d sdf.SDF3, p0, p1 sdf.V3) sdf.V3 {
+func dcApproximateZeroCrossingPosition(d sdf.SDF3, p0, p1 v3.Vec) v3.Vec {
 	const steps = 8. // good enough precision? Note that errors easily explode or cause noise/instability on future operations
 	// Original implementation:
 	//minValue := math.MaxFloat64
@@ -655,11 +657,11 @@ func dcApproximateZeroCrossingPosition(d sdf.SDF3, p0, p1 sdf.V3) sdf.V3 {
 	return p0.Add(p1.Sub(p0).MulScalar(t))
 }
 
-func dcCalculateSurfaceNormal(d sdf.SDF3, p sdf.V3) sdf.V3 {
+func dcCalculateSurfaceNormal(d sdf.SDF3, p v3.Vec) v3.Vec {
 	const eps = 0.001
-	return sdf.V3{
-		X: d.Evaluate(p.Add(sdf.V3{X: eps})) - d.Evaluate(p.Add(sdf.V3{X: -eps})),
-		Y: d.Evaluate(p.Add(sdf.V3{Y: eps})) - d.Evaluate(p.Add(sdf.V3{Y: -eps})),
-		Z: d.Evaluate(p.Add(sdf.V3{Z: eps})) - d.Evaluate(p.Add(sdf.V3{Z: -eps})),
+	return v3.Vec{
+		X: d.Evaluate(p.Add(v3.Vec{X: eps})) - d.Evaluate(p.Add(v3.Vec{X: -eps})),
+		Y: d.Evaluate(p.Add(v3.Vec{Y: eps})) - d.Evaluate(p.Add(v3.Vec{Y: -eps})),
+		Z: d.Evaluate(p.Add(v3.Vec{Z: eps})) - d.Evaluate(p.Add(v3.Vec{Z: -eps})),
 	}.Normalize()
 }

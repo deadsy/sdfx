@@ -15,6 +15,7 @@ import (
 
 	"github.com/deadsy/sdfx/sdf"
 	"github.com/deadsy/sdfx/vec/conv"
+	v2 "github.com/deadsy/sdfx/vec/v2"
 	"github.com/yofu/dxf"
 	"github.com/yofu/dxf/color"
 	"github.com/yofu/dxf/drawing"
@@ -41,13 +42,13 @@ func NewDXF(name string) *DXF {
 }
 
 // Line adds a line to a dxf drawing object.
-func (d *DXF) Line(p0, p1 sdf.V2) {
+func (d *DXF) Line(p0, p1 v2.Vec) {
 	d.drawing.ChangeLayer("Lines")
 	d.drawing.Line(p0.X, p0.Y, 0, p1.X, p1.Y, 0)
 }
 
 // Lines adds a set of lines to a dxf drawing object.
-func (d *DXF) Lines(s sdf.V2Set) {
+func (d *DXF) Lines(s v2.VecSet) {
 	d.drawing.ChangeLayer("Lines")
 	p1 := s[0]
 	for i := 0; i < len(s)-1; i++ {
@@ -58,7 +59,7 @@ func (d *DXF) Lines(s sdf.V2Set) {
 }
 
 // Points adds a set of points to a dxf drawing object.
-func (d *DXF) Points(s sdf.V2Set, r float64) {
+func (d *DXF) Points(s v2.VecSet, r float64) {
 	d.drawing.ChangeLayer("Points")
 	for _, p := range s {
 		d.drawing.Circle(p.X, p.Y, 0, r)
@@ -67,7 +68,7 @@ func (d *DXF) Points(s sdf.V2Set, r float64) {
 
 // Triangle adds a triangle to a dxf drawing object.
 func (d *DXF) Triangle(t Triangle2) {
-	d.Lines([]sdf.V2{t[0], t[1], t[2], t[0]})
+	d.Lines([]v2.Vec{t[0], t[1], t[2], t[0]})
 }
 
 // Save writes a dxf drawing object to a file.

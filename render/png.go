@@ -16,6 +16,8 @@ import (
 	"os"
 
 	"github.com/deadsy/sdfx/sdf"
+	v2 "github.com/deadsy/sdfx/vec/v2"
+	"github.com/deadsy/sdfx/vec/v2i"
 	"github.com/llgcode/draw2d/draw2dimg"
 )
 
@@ -25,13 +27,13 @@ import (
 type PNG struct {
 	name   string
 	bb     sdf.Box2
-	pixels sdf.V2i
+	pixels v2i.Vec
 	m      *sdf.Map2
 	img    *image.RGBA
 }
 
 // NewPNG returns an empty PNG object.
-func NewPNG(name string, bb sdf.Box2, pixels sdf.V2i) (*PNG, error) {
+func NewPNG(name string, bb sdf.Box2, pixels v2i.Vec) (*PNG, error) {
 	d := PNG{}
 	d.name = name
 	d.bb = bb
@@ -58,7 +60,7 @@ func (d *PNG) RenderSDF2MinMax(s sdf.SDF2, dmin, dmax float64) {
 		//distance := make([]float64, d.pixels[0]*d.pixels[1]) // Less allocations: faster (70ms -> 60ms), use cache in SDF if needed
 		for x := 0; x < d.pixels.X; x++ {
 			for y := 0; y < d.pixels.Y; y++ {
-				d := s.Evaluate(d.m.ToV2(sdf.V2i{x, y}))
+				d := s.Evaluate(d.m.ToV2(v2i.Vec{x, y}))
 				dmax = math.Max(dmax, d)
 				dmin = math.Min(dmin, d)
 			}
@@ -67,7 +69,7 @@ func (d *PNG) RenderSDF2MinMax(s sdf.SDF2, dmin, dmax float64) {
 	// scale and set the pixel values
 	for x := 0; x < d.pixels.X; x++ {
 		for y := 0; y < d.pixels.Y; y++ {
-			dist := s.Evaluate(d.m.ToV2(sdf.V2i{x, y}))
+			dist := s.Evaluate(d.m.ToV2(v2i.Vec{x, y}))
 			d.img.Set(x, y, color.Gray{Y: uint8(255 * imageColor2(dist, dmin, dmax))})
 		}
 	}
@@ -89,7 +91,7 @@ func imageColor2(dist, dmin, dmax float64) float64 {
 }
 
 // Line adds a line to a png object.
-func (d *PNG) Line(p0, p1 sdf.V2) {
+func (d *PNG) Line(p0, p1 v2.Vec) {
 	gc := draw2dimg.NewGraphicContext(d.img)
 	gc.SetFillColor(color.RGBA{0xff, 0, 0, 0xff})
 	gc.SetStrokeColor(color.RGBA{0xff, 0, 0, 0xff})
@@ -103,7 +105,7 @@ func (d *PNG) Line(p0, p1 sdf.V2) {
 }
 
 // Lines adds a set of lines line to a png object.
-func (d *PNG) Lines(s sdf.V2Set) {
+func (d *PNG) Lines(s v2.VecSet) {
 	gc := draw2dimg.NewGraphicContext(d.img)
 	gc.SetFillColor(color.RGBA{0xff, 0, 0, 0xff})
 	gc.SetStrokeColor(color.RGBA{0xff, 0, 0, 0xff})
@@ -120,7 +122,7 @@ func (d *PNG) Lines(s sdf.V2Set) {
 
 // Triangle adds a triangle to a png object.
 func (d *PNG) Triangle(t Triangle2) {
-	d.Lines([]sdf.V2{t[0], t[1], t[2], t[0]})
+	d.Lines([]v2.Vec{t[0], t[1], t[2], t[0]})
 }
 
 // Save saves a png object to a file.
