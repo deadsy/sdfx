@@ -12,6 +12,7 @@ import (
 	"math"
 
 	"github.com/deadsy/sdfx/sdf"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
@@ -39,7 +40,7 @@ func pillarWeb(k *StandoffParms) (sdf.SDF3, error) {
 		return nil, err
 	}
 	s := sdf.Extrude3D(p, k.WebWidth)
-	m := sdf.Translate3d(sdf.V3{0, 0, -0.5 * k.PillarHeight}).Mul(sdf.RotateX(sdf.DtoR(90.0)))
+	m := sdf.Translate3d(v3.Vec{0, 0, -0.5 * k.PillarHeight}).Mul(sdf.RotateX(sdf.DtoR(90.0)))
 	return sdf.Transform3D(s, m), nil
 }
 
@@ -72,7 +73,7 @@ func pillarHole(k *StandoffParms) (sdf.SDF3, error) {
 		return nil, err
 	}
 	zOfs := 0.5 * (k.PillarHeight - k.HoleDepth)
-	return sdf.Transform3D(s, sdf.Translate3d(sdf.V3{0, 0, zOfs})), nil
+	return sdf.Transform3D(s, sdf.Translate3d(v3.Vec{0, 0, zOfs})), nil
 }
 
 // Standoff3D returns a single board standoff.

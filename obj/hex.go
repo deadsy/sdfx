@@ -12,6 +12,7 @@ import (
 	"math"
 
 	"github.com/deadsy/sdfx/sdf"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
@@ -40,10 +41,10 @@ func HexHead3D(
 		}
 		zOfs := math.Sqrt(topRound*topRound-d*d) - height/2
 		if round == "t" || round == "tb" {
-			hex3d = sdf.Intersect3D(hex3d, sdf.Transform3D(sphere3d, sdf.Translate3d(sdf.V3{0, 0, -zOfs})))
+			hex3d = sdf.Intersect3D(hex3d, sdf.Transform3D(sphere3d, sdf.Translate3d(v3.Vec{0, 0, -zOfs})))
 		}
 		if round == "b" || round == "tb" {
-			hex3d = sdf.Intersect3D(hex3d, sdf.Transform3D(sphere3d, sdf.Translate3d(sdf.V3{0, 0, zOfs})))
+			hex3d = sdf.Intersect3D(hex3d, sdf.Transform3D(sphere3d, sdf.Translate3d(v3.Vec{0, 0, zOfs})))
 		}
 	}
 	return hex3d, nil

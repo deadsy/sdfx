@@ -14,6 +14,7 @@ import (
 	"math"
 
 	"github.com/deadsy/sdfx/sdf"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
@@ -158,29 +159,29 @@ func connectorArm(radius, length float64) (sdf.SDF3, error) {
 	if err != nil {
 		return nil, err
 	}
-	s = sdf.Cut3D(s, sdf.V3{0, 0, 0.5 * length}, sdf.V3{0, 0, -1})
-	return sdf.Transform3D(s, sdf.Translate3d(sdf.V3{0, 0, length * 0.5})), nil
+	s = sdf.Cut3D(s, v3.Vec{0, 0, 0.5 * length}, v3.Vec{0, 0, -1})
+	return sdf.Transform3D(s, sdf.Translate3d(v3.Vec{0, 0, length * 0.5})), nil
 }
 
 func pipeConnector1(radius, length float64, cfg [6]bool) (sdf.SDF3, error) {
-	var dirn []sdf.V3
+	var dirn []v3.Vec
 	if cfg[0] {
-		dirn = append(dirn, sdf.V3{1, 0, 0})
+		dirn = append(dirn, v3.Vec{1, 0, 0})
 	}
 	if cfg[1] {
-		dirn = append(dirn, sdf.V3{-1, 0, 0})
+		dirn = append(dirn, v3.Vec{-1, 0, 0})
 	}
 	if cfg[2] {
-		dirn = append(dirn, sdf.V3{0, 1, 0})
+		dirn = append(dirn, v3.Vec{0, 1, 0})
 	}
 	if cfg[3] {
-		dirn = append(dirn, sdf.V3{0, -1, 0})
+		dirn = append(dirn, v3.Vec{0, -1, 0})
 	}
 	if cfg[4] {
-		dirn = append(dirn, sdf.V3{0, 0, 1})
+		dirn = append(dirn, v3.Vec{0, 0, 1})
 	}
 	if cfg[5] {
-		dirn = append(dirn, sdf.V3{0, 0, -1})
+		dirn = append(dirn, v3.Vec{0, 0, -1})
 	}
 	if len(dirn) < 1 {
 		return nil, sdf.ErrMsg("no connectors")
@@ -189,7 +190,7 @@ func pipeConnector1(radius, length float64, cfg [6]bool) (sdf.SDF3, error) {
 	if err != nil {
 		return nil, err
 	}
-	return sdf.Orient3D(s, sdf.V3{0, 0, 1}, dirn), nil
+	return sdf.Orient3D(s, v3.Vec{0, 0, 1}, dirn), nil
 }
 
 func pipeConnector2(outer, inner, length float64, cfg [6]bool) (sdf.SDF3, error) {

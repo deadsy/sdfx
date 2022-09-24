@@ -14,6 +14,7 @@ import (
 
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 	"github.com/dhconnelly/rtreego"
 	"github.com/hschendel/stl"
 )
@@ -28,7 +29,7 @@ type triMeshSdf struct {
 
 const stlEpsilon = 1e-1
 
-func (t *triMeshSdf) Evaluate(p sdf.V3) float64 {
+func (t *triMeshSdf) Evaluate(p v3.Vec) float64 {
 	// Check all triangle distances
 	signedDistanceResult := 1.
 	closestTriangle := math.MaxFloat64
@@ -70,8 +71,8 @@ func ImportTriMesh(tris chan *render.Triangle3, numNeighbors, minChildren, maxCh
 		rtree:        nil,
 		numNeighbors: numNeighbors,
 		bb: sdf.Box3{
-			Min: sdf.V3{X: math.MaxFloat64, Y: math.MaxFloat64, Z: math.MaxFloat64},
-			Max: sdf.V3{X: -math.MaxFloat64, Y: -math.MaxFloat64, Z: -math.MaxFloat64},
+			Min: v3.Vec{X: math.MaxFloat64, Y: math.MaxFloat64, Z: math.MaxFloat64},
+			Max: v3.Vec{X: -math.MaxFloat64, Y: -math.MaxFloat64, Z: -math.MaxFloat64},
 		},
 	}
 
@@ -94,7 +95,7 @@ func ImportTriMesh(tris chan *render.Triangle3, numNeighbors, minChildren, maxCh
 
 //-----------------------------------------------------------------------------
 
-func stlPointToTriangleDistSq(p sdf.V3, triangle *render.Triangle3) (float64, bool /* falls outside? */) {
+func stlPointToTriangleDistSq(p v3.Vec, triangle *render.Triangle3) (float64, bool /* falls outside? */) {
 	// Compute the closest point
 	closest, fallsOutside := stlClosestTrianglePointTo(p, triangle)
 	// Compute distance to the closest point
@@ -110,7 +111,7 @@ func stlPointToTriangleDistSq(p sdf.V3, triangle *render.Triangle3) (float64, bo
 }
 
 // https://stackoverflow.com/a/47505833
-func stlClosestTrianglePointTo(p sdf.V3, triangle *render.Triangle3) (sdf.V3, bool /* falls outside? */) {
+func stlClosestTrianglePointTo(p v3.Vec, triangle *render.Triangle3) (v3.Vec, bool /* falls outside? */) {
 	edgeAbDelta := triangle.V[1].Sub(triangle.V[0])
 	edgeCaDelta := triangle.V[0].Sub(triangle.V[2])
 	edgeBcDelta := triangle.V[2].Sub(triangle.V[1])
@@ -148,19 +149,19 @@ func stlClosestTrianglePointTo(p sdf.V3, triangle *render.Triangle3) (sdf.V3, bo
 	return stlPlaneProject(triangle.V[0], triNormal, p), false
 }
 
-func stlEdgeProject(edge1, edgeDelta, p sdf.V3) float64 {
+func stlEdgeProject(edge1, edgeDelta, p v3.Vec) float64 {
 	return p.Sub(edge1).Dot(edgeDelta) / edgeDelta.Length2()
 }
 
-func stlEdgePointAt(edge1, edgeDelta sdf.V3, t float64) sdf.V3 {
+func stlEdgePointAt(edge1, edgeDelta v3.Vec, t float64) v3.Vec {
 	return edge1.Add(edgeDelta.MulScalar(t))
 }
 
-func stlPlaneIsAbove(anyPoint, normal, testPoint sdf.V3) bool {
+func stlPlaneIsAbove(anyPoint, normal, testPoint v3.Vec) bool {
 	return normal.Dot(testPoint.Sub(anyPoint)) > 0
 }
 
-func stlPlaneProject(anyPoint, normal, testPoint sdf.V3) sdf.V3 {
+func stlPlaneProject(anyPoint, normal, testPoint v3.Vec) v3.Vec {
 	v := testPoint.Sub(anyPoint)
 	d := normal.Dot(v)
 	p := testPoint.Sub(normal.MulScalar(d))
@@ -184,7 +185,7 @@ func (s *stlTriangle) Bounds() *rtreego.Rect {
 	return points
 }
 
-func stlToPoint(v3 sdf.V3) rtreego.Point {
+func stlToPoint(v3 v3.Vec) rtreego.Point {
 	return rtreego.Point{v3.X, v3.Y, v3.Z}
 }
 
@@ -201,7 +202,7 @@ func ImportSTL(reader io.ReadSeeker, numNeighbors, minChildren, maxChildren int)
 		for _, triangle := range mesh.Triangles {
 			tri := &render.Triangle3{}
 			for i, vertex := range triangle.Vertices {
-				tri.V[i] = sdf.V3{X: float64(vertex[0]), Y: float64(vertex[1]), Z: float64(vertex[2])}
+				tri.V[i] = v3.Vec{X: float64(vertex[0]), Y: float64(vertex[1]), Z: float64(vertex[2])}
 			}
 			tris <- tri
 		}

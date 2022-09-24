@@ -18,15 +18,17 @@ import (
 	"fmt"
 
 	"github.com/deadsy/sdfx/sdf"
+	v2 "github.com/deadsy/sdfx/vec/v2"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
 
 // ServoParms stores the parameters that define the servo.
 type ServoParms struct {
-	Body        sdf.V3  // body size
-	Mount       sdf.V3  // mounting lugs size
-	Hole        sdf.V2  // hole layout
+	Body        v3.Vec  // body size
+	Mount       v3.Vec  // mounting lugs size
+	Hole        v2.Vec  // hole layout
 	MountOffset float64 // z-offset of mounting lugs (from base of servo)
 	ShaftOffset float64 // x-offset of drive shaft (from mounting hole center to shaft)
 	ShaftLength float64
@@ -47,9 +49,9 @@ func initServoLookup() servoDatabase {
 	m := make(servoDatabase)
 
 	k := ServoParms{
-		Body:        sdf.V3{20, 8.7, 20.3},
-		Mount:       sdf.V3{28, 8.7, 1},
-		Hole:        sdf.V2{24, 0},
+		Body:        v3.Vec{20, 8.7, 20.3},
+		Mount:       v3.Vec{28, 8.7, 1},
+		Hole:        v2.Vec{24, 0},
 		MountOffset: 12,
 		ShaftOffset: 6.4,
 		ShaftLength: 2.8,
@@ -60,9 +62,9 @@ func initServoLookup() servoDatabase {
 	m.Add("nano", &k)
 
 	k = ServoParms{
-		Body:        sdf.V3{22.6, 11.5, 24.5},
-		Mount:       sdf.V3{32.6, 10.4, 1},
-		Hole:        sdf.V2{28.5, 0},
+		Body:        v3.Vec{22.6, 11.5, 24.5},
+		Mount:       v3.Vec{32.6, 10.4, 1},
+		Hole:        v2.Vec{28.5, 0},
 		MountOffset: 16.6,
 		ShaftOffset: 9,
 		ShaftLength: 2.5,
@@ -73,9 +75,9 @@ func initServoLookup() servoDatabase {
 	m.Add("submicro", &k)
 
 	k = ServoParms{
-		Body:        sdf.V3{29.1, 13, 30.4},
-		Mount:       sdf.V3{40, 12, 2},
-		Hole:        sdf.V2{35.6, 0},
+		Body:        v3.Vec{29.1, 13, 30.4},
+		Mount:       v3.Vec{40, 12, 2},
+		Hole:        v2.Vec{35.6, 0},
 		MountOffset: 19,
 		ShaftOffset: 9.8,
 		ShaftLength: 3.8,
@@ -86,9 +88,9 @@ func initServoLookup() servoDatabase {
 	m.Add("micro", &k)
 
 	k = ServoParms{
-		Body:        sdf.V3{32.3, 16.8, 33},
-		Mount:       sdf.V3{44.3, 16, 2.2},
-		Hole:        sdf.V2{39.6, 7.9},
+		Body:        v3.Vec{32.3, 16.8, 33},
+		Mount:       v3.Vec{44.3, 16, 2.2},
+		Hole:        v2.Vec{39.6, 7.9},
 		MountOffset: 23.5,
 		ShaftOffset: 12.2,
 		ShaftLength: 3.3,
@@ -99,9 +101,9 @@ func initServoLookup() servoDatabase {
 	m.Add("mini", &k)
 
 	k = ServoParms{
-		Body:        sdf.V3{40.2, 20.2, 38.3},
-		Mount:       sdf.V3{52.9, 20.2, 2.5},
-		Hole:        sdf.V2{47.6, 10.1},
+		Body:        v3.Vec{40.2, 20.2, 38.3},
+		Mount:       v3.Vec{52.9, 20.2, 2.5},
+		Hole:        v2.Vec{47.6, 10.1},
 		MountOffset: 26.5,
 		ShaftOffset: 13.85,
 		ShaftLength: 3.5,
@@ -112,9 +114,9 @@ func initServoLookup() servoDatabase {
 	m.Add("standard", &k)
 
 	k = ServoParms{
-		Body:        sdf.V3{40, 20, 41.5},
-		Mount:       sdf.V3{54.2, 18.5, 3},
-		Hole:        sdf.V2{49.5, 10},
+		Body:        v3.Vec{40, 20, 41.5},
+		Mount:       v3.Vec{54.2, 18.5, 3},
+		Hole:        v2.Vec{49.5, 10},
 		MountOffset: 28,
 		ShaftOffset: 14.75,
 		ShaftLength: 4.2,
@@ -124,9 +126,9 @@ func initServoLookup() servoDatabase {
 	m.Add("annimos_ds3218", &k)
 
 	k = ServoParms{
-		Body:        sdf.V3{65.9, 29.9, 59.3},
-		Mount:       sdf.V3{82.9, 29.9, 4},
-		Hole:        sdf.V2{74.9, 17.8},
+		Body:        v3.Vec{65.9, 29.9, 59.3},
+		Mount:       v3.Vec{82.9, 29.9, 4},
+		Hole:        v2.Vec{74.9, 17.8},
 		MountOffset: 42,
 		ShaftOffset: 18.9,
 		ShaftLength: 5.4,
@@ -137,9 +139,9 @@ func initServoLookup() servoDatabase {
 	m.Add("large", &k)
 
 	k = ServoParms{
-		Body:        sdf.V3{64, 33, 73.3},
-		Mount:       sdf.V3{88, 33, 4},
-		Hole:        sdf.V2{76, 21},
+		Body:        v3.Vec{64, 33, 73.3},
+		Mount:       v3.Vec{88, 33, 4},
+		Hole:        v2.Vec{76, 21},
 		MountOffset: 53.3,
 		ShaftOffset: 20.6,
 		ShaftLength: 7.6,
@@ -173,10 +175,10 @@ func Servo3D(k *ServoParms) (sdf.SDF3, error) {
 	}
 
 	// mounting lugs
-	m := sdf.Box2D(sdf.V2{k.Mount.X, k.Mount.Y}, 0.1*k.Mount.Y)
+	m := sdf.Box2D(v2.Vec{k.Mount.X, k.Mount.Y}, 0.1*k.Mount.Y)
 	mount := sdf.Extrude3D(m, k.Mount.Z)
 	zOfs := k.MountOffset - 0.5*(k.Body.Z-k.Mount.Z)
-	mount = sdf.Transform3D(mount, sdf.Translate3d(sdf.V3{0, 0, zOfs}))
+	mount = sdf.Transform3D(mount, sdf.Translate3d(v3.Vec{0, 0, zOfs}))
 
 	// output shaft
 	shaft, err := sdf.Cylinder3D(k.ShaftLength, k.ShaftRadius, 0)
@@ -185,7 +187,7 @@ func Servo3D(k *ServoParms) (sdf.SDF3, error) {
 	}
 	xOfs := 0.5*k.Hole.X - k.ShaftOffset
 	zOfs = 0.5 * (k.Body.Z + k.ShaftLength)
-	shaft = sdf.Transform3D(shaft, sdf.Translate3d(sdf.V3{-xOfs, 0, zOfs}))
+	shaft = sdf.Transform3D(shaft, sdf.Translate3d(v3.Vec{-xOfs, 0, zOfs}))
 
 	// holes
 	hole, err := sdf.Cylinder3D(k.Body.Z, k.HoleRadius, 0)
@@ -194,14 +196,14 @@ func Servo3D(k *ServoParms) (sdf.SDF3, error) {
 	}
 	xOfs = 0.5 * k.Hole.X
 	yOfs := 0.5 * k.Hole.Y
-	holes := sdf.Multi3D(hole, []sdf.V3{{xOfs, yOfs, 0}, {-xOfs, yOfs, 0}, {xOfs, -yOfs, 0}, {-xOfs, -yOfs, 0}})
+	holes := sdf.Multi3D(hole, []v3.Vec{{xOfs, yOfs, 0}, {-xOfs, yOfs, 0}, {xOfs, -yOfs, 0}, {-xOfs, -yOfs, 0}})
 
 	s := sdf.Difference3D(sdf.Union3D(body, mount, shaft), holes)
 
 	// position the shaft on the z-axis and the bottom of the servo at z=0
 	xOfs = 0.5*k.Hole.X - k.ShaftOffset
 	zOfs = 0.5 * k.Body.Z
-	s = sdf.Transform3D(s, sdf.Translate3d(sdf.V3{xOfs, 0, zOfs}))
+	s = sdf.Transform3D(s, sdf.Translate3d(v3.Vec{xOfs, 0, zOfs}))
 
 	return s, nil
 }
@@ -218,7 +220,7 @@ func Servo2D(k *ServoParms, holeRadius float64) (sdf.SDF2, error) {
 	const clearance = 1.0 // mounting hole clearance
 
 	// servo body
-	body := sdf.Box2D(sdf.V2{k.Body.X + clearance, k.Body.Y + clearance}, 0)
+	body := sdf.Box2D(v2.Vec{k.Body.X + clearance, k.Body.Y + clearance}, 0)
 
 	// holes
 	hole, err := sdf.Circle2D(holeRadius)
@@ -227,13 +229,13 @@ func Servo2D(k *ServoParms, holeRadius float64) (sdf.SDF2, error) {
 	}
 	xOfs := 0.5 * k.Hole.X
 	yOfs := 0.5 * k.Hole.Y
-	holes := sdf.Multi2D(hole, []sdf.V2{{xOfs, yOfs}, {-xOfs, yOfs}, {xOfs, -yOfs}, {-xOfs, -yOfs}})
+	holes := sdf.Multi2D(hole, []v2.Vec{{xOfs, yOfs}, {-xOfs, yOfs}, {xOfs, -yOfs}, {-xOfs, -yOfs}})
 
 	s := sdf.Union2D(body, holes)
 
 	// position the shaft at the origin
 	xOfs = 0.5*k.Hole.X - k.ShaftOffset
-	s = sdf.Transform2D(s, sdf.Translate2d(sdf.V2{xOfs, 0}))
+	s = sdf.Transform2D(s, sdf.Translate2d(v2.Vec{xOfs, 0}))
 
 	return s, nil
 }

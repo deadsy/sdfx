@@ -12,6 +12,7 @@ import (
 	"fmt"
 
 	"github.com/deadsy/sdfx/sdf"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
@@ -65,7 +66,7 @@ func Bolt(k *BoltParms) (sdf.SDF3, error) {
 	if err != nil {
 		return nil, err
 	}
-	shank = sdf.Transform3D(shank, sdf.Translate3d(sdf.V3{0, 0, shankOffset}))
+	shank = sdf.Transform3D(shank, sdf.Translate3d(v3.Vec{0, 0, shankOffset}))
 
 	// external thread
 	threadLength := k.TotalLength - k.ShankLength
@@ -89,7 +90,7 @@ func Bolt(k *BoltParms) (sdf.SDF3, error) {
 		if err != nil {
 			return nil, err
 		}
-		thread = sdf.Transform3D(thread, sdf.Translate3d(sdf.V3{0, 0, threadOffset}))
+		thread = sdf.Transform3D(thread, sdf.Translate3d(v3.Vec{0, 0, threadOffset}))
 	}
 
 	return sdf.Union3D(head, shank, thread), nil

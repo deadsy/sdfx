@@ -12,6 +12,7 @@ import (
 	"math"
 
 	"github.com/deadsy/sdfx/sdf"
+	v2 "github.com/deadsy/sdfx/vec/v2"
 )
 
 //-----------------------------------------------------------------------------
@@ -20,10 +21,10 @@ import (
 func involuteXY(
 	r float64, // base radius
 	theta float64, // involute angle
-) sdf.V2 {
+) v2.Vec {
 	c := math.Cos(theta)
 	s := math.Sin(theta)
-	return sdf.V2{
+	return v2.Vec{
 		r * (c + theta*s),
 		r * (s - theta*c),
 	}
@@ -64,7 +65,7 @@ func involuteGearTooth(
 	stopAngle := involuteTheta(baseRadius, outerRadius)
 	dtheta := (stopAngle - startAngle) / float64(facets)
 
-	v := make([]sdf.V2, 2*(facets+1)+1)
+	v := make([]v2.Vec, 2*(facets+1)+1)
 
 	// lower tooth face
 	m := sdf.Rotate(-centerAngle)
@@ -77,11 +78,11 @@ func involuteGearTooth(
 	// upper tooth face (mirror the lower point)
 	for i := 0; i <= facets; i++ {
 		p := v[facets-i]
-		v[facets+1+i] = sdf.V2{p.X, -p.Y}
+		v[facets+1+i] = v2.Vec{p.X, -p.Y}
 	}
 
 	// add the origin to make the polygon a tooth wedge
-	v[2*(facets+1)] = sdf.V2{0, 0}
+	v[2*(facets+1)] = v2.Vec{0, 0}
 
 	return sdf.Polygon2D(v)
 }

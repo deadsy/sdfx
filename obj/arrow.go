@@ -12,6 +12,7 @@ import (
 	"fmt"
 
 	"github.com/deadsy/sdfx/sdf"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
@@ -31,7 +32,7 @@ func arrowStyle3D(style byte, size [2]float64, tail bool) (sdf.SDF3, error) {
 		if err != nil {
 			return nil, err
 		}
-		cone = sdf.Transform3D(cone, sdf.Translate3d(sdf.V3{0, 0, size[0] * 0.5}))
+		cone = sdf.Transform3D(cone, sdf.Translate3d(v3.Vec{0, 0, size[0] * 0.5}))
 		if tail {
 			// flip it
 			cone = sdf.Transform3D(cone, sdf.RotateX(sdf.Pi))
@@ -89,10 +90,10 @@ func Arrow3D(k *ArrowParms) (sdf.SDF3, error) {
 
 	zOfs := k.Axis[0] * 0.5
 	if head != nil {
-		head = sdf.Transform3D(head, sdf.Translate3d(sdf.V3{0, 0, zOfs}))
+		head = sdf.Transform3D(head, sdf.Translate3d(v3.Vec{0, 0, zOfs}))
 	}
 	if tail != nil {
-		tail = sdf.Transform3D(tail, sdf.Translate3d(sdf.V3{0, 0, -zOfs}))
+		tail = sdf.Transform3D(tail, sdf.Translate3d(v3.Vec{0, 0, -zOfs}))
 	}
 	return sdf.Union3D(axis, head, tail), nil
 }
@@ -129,11 +130,11 @@ func axis3D(a, b, r float64) (sdf.SDF3, error) {
 		return nil, err
 	}
 	ofs := (a + b) * 0.5
-	return sdf.Transform3D(s, sdf.Translate3d(sdf.V3{0, 0, ofs})), nil
+	return sdf.Transform3D(s, sdf.Translate3d(v3.Vec{0, 0, ofs})), nil
 }
 
 // Axes3D returns a set of axes for a 1, 2 or 3d coordinate systems.
-func Axes3D(p0, p1 sdf.V3) (sdf.SDF3, error) {
+func Axes3D(p0, p1 v3.Vec) (sdf.SDF3, error) {
 	// work out the common axis radius
 	r := p0.Sub(p1).Abs().MaxComponent() * 0.025
 	// x-axis
@@ -163,7 +164,7 @@ func Axes3D(p0, p1 sdf.V3) (sdf.SDF3, error) {
 //-----------------------------------------------------------------------------
 
 // DirectedArrow3D returns an arrow between points head/tail.
-func DirectedArrow3D(k *ArrowParms, head, tail sdf.V3) (sdf.SDF3, error) {
+func DirectedArrow3D(k *ArrowParms, head, tail v3.Vec) (sdf.SDF3, error) {
 	v := head.Sub(tail)
 	l := v.Length()
 	k.Axis[0] = l
@@ -173,7 +174,7 @@ func DirectedArrow3D(k *ArrowParms, head, tail sdf.V3) (sdf.SDF3, error) {
 	}
 	// position the arrow
 	ofs := head.Add(tail).MulScalar(0.5)
-	m := sdf.Translate3d(ofs).Mul(sdf.RotateToVector(sdf.V3{0, 0, 1}, v))
+	m := sdf.Translate3d(ofs).Mul(sdf.RotateToVector(v3.Vec{0, 0, 1}, v))
 	return sdf.Transform3D(arrow, m), nil
 }
 

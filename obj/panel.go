@@ -8,7 +8,11 @@ Create 2d/3d panels.
 
 package obj
 
-import "github.com/deadsy/sdfx/sdf"
+import (
+	"github.com/deadsy/sdfx/sdf"
+	v2 "github.com/deadsy/sdfx/vec/v2"
+	v3 "github.com/deadsy/sdfx/vec/v3"
+)
 
 //-----------------------------------------------------------------------------
 /*
@@ -29,7 +33,7 @@ etc.
 
 // PanelParms defines the parameters for a 2D panel.
 type PanelParms struct {
-	Size         sdf.V2     // size of the panel
+	Size         v2.Vec     // size of the panel
 	CornerRadius float64    // radius of rounded corners
 	HoleDiameter float64    // diameter of panel holes
 	HoleMargin   [4]float64 // hole margins for top, right, bottom, left
@@ -47,10 +51,10 @@ func Panel2D(k *PanelParms) (sdf.SDF2, error) {
 	}
 
 	// corners
-	tl := sdf.V2{-0.5*k.Size.X + k.HoleMargin[3], 0.5*k.Size.Y - k.HoleMargin[0]}
-	tr := sdf.V2{0.5*k.Size.X - k.HoleMargin[1], 0.5*k.Size.Y - k.HoleMargin[0]}
-	br := sdf.V2{0.5*k.Size.X - k.HoleMargin[1], -0.5*k.Size.Y + k.HoleMargin[2]}
-	bl := sdf.V2{-0.5*k.Size.X + k.HoleMargin[3], -0.5*k.Size.Y + k.HoleMargin[2]}
+	tl := v2.Vec{-0.5*k.Size.X + k.HoleMargin[3], 0.5*k.Size.Y - k.HoleMargin[0]}
+	tr := v2.Vec{0.5*k.Size.X - k.HoleMargin[1], 0.5*k.Size.Y - k.HoleMargin[0]}
+	br := v2.Vec{0.5*k.Size.X - k.HoleMargin[1], -0.5*k.Size.Y + k.HoleMargin[2]}
+	bl := v2.Vec{-0.5*k.Size.X + k.HoleMargin[3], -0.5*k.Size.Y + k.HoleMargin[2]}
 
 	// holes
 	hole, err := sdf.Circle2D(0.5 * k.HoleDiameter)
@@ -132,7 +136,7 @@ func EuroRackPanel2D(k *EuroRackParms) (sdf.SDF2, error) {
 	y := erUSize(k.U)
 
 	pk := PanelParms{
-		Size:         sdf.V2{x, y},
+		Size:         v2.Vec{x, y},
 		CornerRadius: k.CornerRadius,
 		HoleDiameter: k.HoleDiameter,
 		HoleMargin:   [4]float64{vMargin, hMargin, vMargin, hMargin},
@@ -166,16 +170,16 @@ func EuroRackPanel3D(k *EuroRackParms) (sdf.SDF3, error) {
 	xSize := k.Thickness
 	ySize := erUSize(k.U) - 18.0
 	zSize := k.Thickness * 1.5
-	r, err := sdf.Box3D(sdf.V3{xSize, ySize, zSize}, 0)
+	r, err := sdf.Box3D(v3.Vec{xSize, ySize, zSize}, 0)
 	if err != nil {
 		return nil, err
 	}
 	// add the ridges to the sides
 	zOfs := 0.5 * (k.Thickness + zSize)
 	xOfs := 0.5 * (erHPSize(k.HP) - xSize)
-	r = sdf.Transform3D(r, sdf.Translate3d(sdf.V3{0, 0, zOfs}))
-	r0 := sdf.Transform3D(r, sdf.Translate3d(sdf.V3{xOfs, 0, 0}))
-	r1 := sdf.Transform3D(r, sdf.Translate3d(sdf.V3{-xOfs, 0, 0}))
+	r = sdf.Transform3D(r, sdf.Translate3d(v3.Vec{0, 0, zOfs}))
+	r0 := sdf.Transform3D(r, sdf.Translate3d(v3.Vec{xOfs, 0, 0}))
+	r1 := sdf.Transform3D(r, sdf.Translate3d(v3.Vec{-xOfs, 0, 0}))
 
 	return sdf.Union3D(s, r0, r1), nil
 }
@@ -186,7 +190,7 @@ func EuroRackPanel3D(k *EuroRackParms) (sdf.SDF3, error) {
 type PanelHoleParms struct {
 	Diameter    float64 // hole diameter
 	Thickness   float64 // panel thickness
-	Indent      sdf.V3  // indent size
+	Indent      v3.Vec  // indent size
 	Offset      float64 // indent offset from main axis
 	Orientation float64 // orientation of indent, 0 == x-axis
 }
@@ -220,7 +224,7 @@ func PanelHole3D(k *PanelHoleParms) (sdf.SDF3, error) {
 	// build the indent
 	indent, err := sdf.Box3D(k.Indent, 0)
 	zOfs := (k.Thickness - k.Indent.Z) * 0.5
-	indent = sdf.Transform3D(indent, sdf.Translate3d(sdf.V3{k.Offset, 0, zOfs}))
+	indent = sdf.Transform3D(indent, sdf.Translate3d(v3.Vec{k.Offset, 0, zOfs}))
 
 	s = sdf.Union3D(s, indent)
 	if k.Orientation != 0 {

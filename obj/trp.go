@@ -18,13 +18,14 @@ import (
 	"math"
 
 	"github.com/deadsy/sdfx/sdf"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
 
 // TruncRectPyramidParms defines the parameters for a truncated rectangular pyramid.
 type TruncRectPyramidParms struct {
-	Size        sdf.V3  // size of truncated pyramid
+	Size        v3.Vec  // size of truncated pyramid
 	BaseAngle   float64 // base angle of pyramid (radians)
 	BaseRadius  float64 // base corner radius
 	RoundRadius float64 // edge rounding radius
@@ -55,8 +56,8 @@ func TruncRectPyramid3D(k *TruncRectPyramidParms) (sdf.SDF3, error) {
 	}
 	wx := math.Max(k.Size.X-2.0*k.BaseRadius, 0)
 	wy := math.Max(k.Size.Y-2.0*k.BaseRadius, 0)
-	s = sdf.Elongate3D(s, sdf.V3{wx, wy, 0})
-	s = sdf.Cut3D(s, sdf.V3{0, 0, 0}, sdf.V3{0, 0, 1})
+	s = sdf.Elongate3D(s, v3.Vec{wx, wy, 0})
+	s = sdf.Cut3D(s, v3.Vec{0, 0, 0}, v3.Vec{0, 0, 1})
 	return s, nil
 }
 

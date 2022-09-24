@@ -14,6 +14,7 @@ import (
 	"math"
 
 	"github.com/deadsy/sdfx/sdf"
+	v2 "github.com/deadsy/sdfx/vec/v2"
 )
 
 //-----------------------------------------------------------------------------
@@ -63,13 +64,13 @@ func Geneva2D(k *GenevaParms) (sdf.SDF2, sdf.SDF2, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	s = sdf.Transform2D(s, sdf.Translate2d(sdf.V2{k.CenterDistance, 0}))
+	s = sdf.Transform2D(s, sdf.Translate2d(v2.Vec{k.CenterDistance, 0}))
 	s = sdf.RotateCopy2D(s, k.NumSectors)
 	sDriven = sdf.Difference2D(sDriven, s)
 	// cutouts for the pin slots
 	slotLength := pinOffset + k.DrivenRadius - k.CenterDistance
 	s = sdf.Line2D(2*slotLength, k.PinRadius+k.Clearance)
-	s = sdf.Transform2D(s, sdf.Translate2d(sdf.V2{k.DrivenRadius, 0}))
+	s = sdf.Transform2D(s, sdf.Translate2d(v2.Vec{k.DrivenRadius, 0}))
 	s = sdf.RotateCopy2D(s, k.NumSectors)
 	s = sdf.Transform2D(s, sdf.Rotate2d(theta))
 	sDriven = sdf.Difference2D(sDriven, s)
@@ -84,14 +85,14 @@ func Geneva2D(k *GenevaParms) (sdf.SDF2, sdf.SDF2, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	s = sdf.Transform2D(s, sdf.Translate2d(sdf.V2{k.CenterDistance, 0}))
+	s = sdf.Transform2D(s, sdf.Translate2d(v2.Vec{k.CenterDistance, 0}))
 	sDriver = sdf.Difference2D(sDriver, s)
 	// driver pin
 	s, err = sdf.Circle2D(k.PinRadius)
 	if err != nil {
 		return nil, nil, err
 	}
-	s = sdf.Transform2D(s, sdf.Translate2d(sdf.V2{pinOffset, 0}))
+	s = sdf.Transform2D(s, sdf.Translate2d(v2.Vec{pinOffset, 0}))
 	sDriver = sdf.Union2D(sDriver, s)
 
 	return sDriver, sDriven, nil

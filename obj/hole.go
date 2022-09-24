@@ -8,7 +8,11 @@ Holes
 
 package obj
 
-import "github.com/deadsy/sdfx/sdf"
+import (
+	"github.com/deadsy/sdfx/sdf"
+	v2 "github.com/deadsy/sdfx/vec/v2"
+	v3 "github.com/deadsy/sdfx/vec/v3"
+)
 
 //-----------------------------------------------------------------------------
 
@@ -27,7 +31,7 @@ func CounterBoredHole3D(
 	if err != nil {
 		return nil, err
 	}
-	s1 = sdf.Transform3D(s1, sdf.Translate3d(sdf.V3{0, 0, (l - cbDepth) * 0.5}))
+	s1 = sdf.Transform3D(s1, sdf.Translate3d(v3.Vec{0, 0, (l - cbDepth) * 0.5}))
 	return sdf.Union3D(s0, s1), nil
 }
 
@@ -45,7 +49,7 @@ func ChamferedHole3D(
 	if err != nil {
 		return nil, err
 	}
-	s1 = sdf.Transform3D(s1, sdf.Translate3d(sdf.V3{0, 0, (l - chRadius) * 0.5}))
+	s1 = sdf.Transform3D(s1, sdf.Translate3d(v3.Vec{0, 0, (l - chRadius) * 0.5}))
 	return sdf.Union3D(s0, s1), nil
 }
 
@@ -69,7 +73,7 @@ func BoltCircle2D(
 	if err != nil {
 		return nil, err
 	}
-	s = sdf.Transform2D(s, sdf.Translate2d(sdf.V2{circleRadius, 0}))
+	s = sdf.Transform2D(s, sdf.Translate2d(v2.Vec{circleRadius, 0}))
 	s = sdf.RotateCopy2D(s, numHoles)
 	return s, nil
 }

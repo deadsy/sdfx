@@ -10,6 +10,7 @@ package obj
 
 import (
 	"github.com/deadsy/sdfx/sdf"
+	v2 "github.com/deadsy/sdfx/vec/v2"
 )
 
 //-----------------------------------------------------------------------------
@@ -41,13 +42,13 @@ func Keyway2D(k *KeywayParameters) (sdf.SDF2, error) {
 	if k.KeyRadius < k.ShaftRadius {
 		// The key is cut into the shaft (shaft profile)
 		l := k.ShaftRadius - k.KeyRadius
-		key := sdf.Box2D(sdf.V2{l, k.KeyWidth}, 0)
-		key = sdf.Transform2D(key, sdf.Translate2d(sdf.V2{k.ShaftRadius - l*0.5, 0}))
+		key := sdf.Box2D(v2.Vec{l, k.KeyWidth}, 0)
+		key = sdf.Transform2D(key, sdf.Translate2d(v2.Vec{k.ShaftRadius - l*0.5, 0}))
 		s = sdf.Difference2D(shaft, key)
 	} else {
 		// The key is proud of the shaft (bore profile)
-		key := sdf.Box2D(sdf.V2{k.KeyRadius, k.KeyWidth}, 0)
-		key = sdf.Transform2D(key, sdf.Translate2d(sdf.V2{k.KeyRadius * 0.5, 0}))
+		key := sdf.Box2D(v2.Vec{k.KeyRadius, k.KeyWidth}, 0)
+		key = sdf.Transform2D(key, sdf.Translate2d(v2.Vec{k.KeyRadius * 0.5, 0}))
 		s = sdf.Union2D(shaft, key)
 	}
 	return s, nil

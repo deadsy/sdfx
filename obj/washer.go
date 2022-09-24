@@ -12,6 +12,7 @@ package obj
 
 import (
 	"github.com/deadsy/sdfx/sdf"
+	v2 "github.com/deadsy/sdfx/vec/v2"
 )
 
 //-----------------------------------------------------------------------------
@@ -77,8 +78,8 @@ func Washer3D(k *WasherParms) (sdf.SDF3, error) {
 	dx := k.OuterRadius - k.InnerRadius
 	dy := k.Thickness
 	xofs := 0.5 * (k.InnerRadius + k.OuterRadius)
-	b := sdf.Box2D(sdf.V2{dx, dy}, 0)
-	b = sdf.Transform2D(b, sdf.Translate2d(sdf.V2{xofs, 0}))
+	b := sdf.Box2D(v2.Vec{dx, dy}, 0)
+	b = sdf.Transform2D(b, sdf.Translate2d(v2.Vec{xofs, 0}))
 	// rotate about the z-axis
 	theta := sdf.Tau * (1.0 - k.Remove)
 	s, err := sdf.RevolveTheta3D(b, theta)

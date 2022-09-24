@@ -8,7 +8,10 @@
 
 package obj
 
-import "github.com/deadsy/sdfx/sdf"
+import (
+	"github.com/deadsy/sdfx/sdf"
+	v2 "github.com/deadsy/sdfx/vec/v2"
+)
 
 //-----------------------------------------------------------------------------
 
@@ -25,8 +28,8 @@ func FingerButton2D(k *FingerButtonParms) (sdf.SDF2, error) {
 	r1 := r0 - k.Gap
 	l := 2.0 * k.Length
 	s := sdf.Difference2D(sdf.Line2D(l, r0), sdf.Line2D(l, r1))
-	s = sdf.Cut2D(s, sdf.V2{0, 0}, sdf.V2{0, 1})
-	return sdf.Transform2D(s, sdf.Translate2d(sdf.V2{-k.Length, 0})), nil
+	s = sdf.Cut2D(s, v2.Vec{0, 0}, v2.Vec{0, 1})
+	return sdf.Transform2D(s, sdf.Translate2d(v2.Vec{-k.Length, 0})), nil
 }
 
 //-----------------------------------------------------------------------------
