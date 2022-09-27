@@ -279,7 +279,7 @@ func (m *MarchingCubesUniform) Info(s sdf.SDF3, meshCells int) string {
 }
 
 // Render produces a 3d triangle mesh over the bounding volume of an sdf3.
-func (m *MarchingCubesUniform) Render(s sdf.SDF3, meshCells int, output chan<- *Triangle3) {
+func (m *MarchingCubesUniform) Render(s sdf.SDF3, meshCells int, output chan<- []*Triangle3) {
 	// work out the region we will sample
 	bb0 := s.BoundingBox()
 	bb0Size := bb0.Size()
@@ -288,9 +288,7 @@ func (m *MarchingCubesUniform) Render(s sdf.SDF3, meshCells int, output chan<- *
 	bb1Size = bb1Size.Ceil().AddScalar(1)
 	bb1Size = bb1Size.MulScalar(meshInc)
 	bb := sdf.NewBox3(bb0.Center(), bb1Size)
-	for _, tri := range marchingCubes(s, bb, meshInc) {
-		output <- tri
-	}
+	output <- marchingCubes(s, bb, meshInc)
 }
 
 //-----------------------------------------------------------------------------

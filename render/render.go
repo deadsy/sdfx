@@ -19,7 +19,7 @@ import (
 
 // Render3 implementations produce a 3d triangle mesh over the bounding volume of an sdf3.
 type Render3 interface {
-	Render(sdf3 sdf.SDF3, meshCells int, output chan<- *Triangle3)
+	Render(sdf3 sdf.SDF3, meshCells int, output chan<- []*Triangle3)
 	Info(sdf3 sdf.SDF3, meshCells int) string
 }
 
