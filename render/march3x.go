@@ -158,21 +158,28 @@ func marchingCubesOctree(s sdf.SDF3, resolution float64, output chan<- []*Triang
 
 // MarchingCubesOctree renders using marching cubes with octree space sampling.
 type MarchingCubesOctree struct {
+	meshCells int // number of cells on the longest axis of bounding box. e.g 200
+}
+
+func NewMarchingCubesOctree(meshCells int) *MarchingCubesOctree {
+	return &MarchingCubesOctree{
+		meshCells: meshCells,
+	}
 }
 
 // Info returns a string describing the rendered volume.
-func (m *MarchingCubesOctree) Info(s sdf.SDF3, meshCells int) string {
+func (r *MarchingCubesOctree) Info(s sdf.SDF3) string {
 	bbSize := s.BoundingBox().Size()
-	resolution := bbSize.MaxComponent() / float64(meshCells)
+	resolution := bbSize.MaxComponent() / float64(r.meshCells)
 	cells := conv.V3ToV3i(bbSize.MulScalar(1 / resolution))
 	return fmt.Sprintf("%dx%dx%d, resolution %.2f", cells.X, cells.Y, cells.Z, resolution)
 }
 
 // Render produces a 3d triangle mesh over the bounding volume of an sdf3.
-func (m *MarchingCubesOctree) Render(s sdf.SDF3, meshCells int, output chan<- []*Triangle3) {
+func (r *MarchingCubesOctree) Render(s sdf.SDF3, output chan<- []*Triangle3) {
 	// work out the sampling resolution to use
 	bbSize := s.BoundingBox().Size()
-	resolution := bbSize.MaxComponent() / float64(meshCells)
+	resolution := bbSize.MaxComponent() / float64(r.meshCells)
 	marchingCubesOctree(s, resolution, output)
 }
 

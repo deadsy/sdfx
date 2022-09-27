@@ -265,13 +265,20 @@ func mcInterpolate(p1, p2 v3.Vec, v1, v2, x float64) v3.Vec {
 
 // MarchingCubesUniform renders using marching cubes with uniform space sampling.
 type MarchingCubesUniform struct {
+	meshCells int // number of cells on the longest axis of bounding box. e.g 200
+}
+
+func NewMarchingCubesUniform(meshCells int) *MarchingCubesUniform {
+	return &MarchingCubesUniform{
+		meshCells: meshCells,
+	}
 }
 
 // Info returns a string describing the rendered volume.
-func (m *MarchingCubesUniform) Info(s sdf.SDF3, meshCells int) string {
+func (r *MarchingCubesUniform) Info(s sdf.SDF3) string {
 	bb0 := s.BoundingBox()
 	bb0Size := bb0.Size()
-	meshInc := bb0Size.MaxComponent() / float64(meshCells)
+	meshInc := bb0Size.MaxComponent() / float64(r.meshCells)
 	bb1Size := bb0Size.DivScalar(meshInc)
 	bb1Size = bb1Size.Ceil().AddScalar(1)
 	cells := conv.V3ToV3i(bb1Size)
@@ -279,11 +286,11 @@ func (m *MarchingCubesUniform) Info(s sdf.SDF3, meshCells int) string {
 }
 
 // Render produces a 3d triangle mesh over the bounding volume of an sdf3.
-func (m *MarchingCubesUniform) Render(s sdf.SDF3, meshCells int, output chan<- []*Triangle3) {
+func (r *MarchingCubesUniform) Render(s sdf.SDF3, output chan<- []*Triangle3) {
 	// work out the region we will sample
 	bb0 := s.BoundingBox()
 	bb0Size := bb0.Size()
-	meshInc := bb0Size.MaxComponent() / float64(meshCells)
+	meshInc := bb0Size.MaxComponent() / float64(r.meshCells)
 	bb1Size := bb0Size.DivScalar(meshInc)
 	bb1Size = bb1Size.Ceil().AddScalar(1)
 	bb1Size = bb1Size.MulScalar(meshInc)

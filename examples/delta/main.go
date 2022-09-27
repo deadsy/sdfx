@@ -372,35 +372,35 @@ func main() {
 		log.Fatalf("error: %s", err)
 	}
 	s = sdf.ScaleUniform3D(s, shrink)
-	render.ToSTL(s, 500, "arm.stl", &render.MarchingCubesOctree{})
+	render.ToSTL(s, "arm.stl", render.NewMarchingCubesOctree(500))
 
 	s, err = servoMount()
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 	s = sdf.ScaleUniform3D(s, shrink)
-	render.ToSTL(s, 250, "servomount.stl", &render.MarchingCubesOctree{})
+	render.ToSTL(s, "servomount.stl", render.NewMarchingCubesOctree(250))
 
 	s, err = deltaBase()
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 	s = sdf.ScaleUniform3D(s, shrink)
-	render.ToSTL(s, 300, "base.stl", &render.MarchingCubesOctree{})
+	render.ToSTL(s, "base.stl", render.NewMarchingCubesOctree(300))
 
 	s, err = rodEnd()
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 	s = sdf.ScaleUniform3D(s, shrink)
-	render.ToSTL(s, 100, "rodend.stl", &render.MarchingCubesOctree{})
+	render.ToSTL(s, "rodend.stl", render.NewMarchingCubesOctree(100))
 
 	s, err = platform()
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 	s = sdf.ScaleUniform3D(s, shrink)
-	render.ToSTL(s, 300, "platform.stl", &render.MarchingCubesOctree{})
+	render.ToSTL(s, "platform.stl", render.NewMarchingCubesOctree(300))
 
 }
 

@@ -66,8 +66,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.ToSTL(monkeyHat, 128, "monkey-out.stl", &render.MarchingCubesUniform{})
-	//render.ToSTL(monkeyHat, 128, "monkey-out.stl", &render.MarchingCubesOctree{})
+	render.ToSTL(monkeyHat, "monkey-out.stl", render.NewMarchingCubesUniform(128))
+	//render.ToSTL(monkeyHat, "monkey-out.stl", render.NewMarchingCubesOctree(128))
 	//render.ToSTL(monkeyHat, 64, "monkey-out.stl", dc.NewDualContouringDefault())
 }
 

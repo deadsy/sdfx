@@ -19,18 +19,17 @@ import (
 
 // Render3 implementations produce a 3d triangle mesh over the bounding volume of an sdf3.
 type Render3 interface {
-	Render(sdf3 sdf.SDF3, meshCells int, output chan<- []*Triangle3)
-	Info(sdf3 sdf.SDF3, meshCells int) string
+	Render(sdf3 sdf.SDF3, output chan<- []*Triangle3)
+	Info(sdf3 sdf.SDF3) string
 }
 
 // ToSTL renders an SDF3 to an STL file.
 func ToSTL(
 	s sdf.SDF3, // sdf3 to render
-	meshCells int, // number of cells on the longest axis of bounding box. e.g 200
 	path string, // path to filename
 	r Render3, // rendering method
 ) {
-	fmt.Printf("rendering %s (%s)\n", path, r.Info(s, meshCells))
+	fmt.Printf("rendering %s (%s)\n", path, r.Info(s))
 	// write the triangles to an STL file
 	var wg sync.WaitGroup
 	output, err := WriteSTL(&wg, path)
@@ -39,7 +38,7 @@ func ToSTL(
 		return
 	}
 	// run the renderer
-	r.Render(s, meshCells, output)
+	r.Render(s, output)
 	// stop the STL writer reading on the channel
 	close(output)
 	// wait for the file write to complete
@@ -55,7 +54,7 @@ func RenderSTL(
 	meshCells int, //number of cells on the longest axis. e.g 200
 	path string, //path to filename
 ) {
-	ToSTL(s, meshCells, path, &MarchingCubesOctree{})
+	ToSTL(s, path, NewMarchingCubesOctree(meshCells))
 }
 
 // RenderSTLSlow renders an SDF3 as an STL file (uses uniform grid sampling).
@@ -64,7 +63,7 @@ func RenderSTLSlow(
 	meshCells int, //number of cells on the longest axis. e.g 200
 	path string, //path to filename
 ) {
-	ToSTL(s, meshCells, path, &MarchingCubesUniform{})
+	ToSTL(s, path, NewMarchingCubesUniform(meshCells))
 }
 
 //-----------------------------------------------------------------------------

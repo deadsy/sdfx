@@ -57,7 +57,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.ToSTL(pool, 300, "pool1.stl", &render.MarchingCubesOctree{})
+	render.ToSTL(pool, "pool1.stl", render.NewMarchingCubesOctree(300))
 	//render.ToSTL(pool, 15, "pool2.stl", dc.NewDualContouringDefault())
 }
 
