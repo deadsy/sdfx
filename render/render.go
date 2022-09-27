@@ -57,13 +57,4 @@ func RenderSTL(
 	ToSTL(s, path, NewMarchingCubesOctree(meshCells))
 }
 
-// RenderSTLSlow renders an SDF3 as an STL file (uses uniform grid sampling).
-func RenderSTLSlow(
-	s sdf.SDF3, //sdf3 to render
-	meshCells int, //number of cells on the longest axis. e.g 200
-	path string, //path to filename
-) {
-	ToSTL(s, path, NewMarchingCubesUniform(meshCells))
-}
-
 //-----------------------------------------------------------------------------

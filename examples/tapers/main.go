@@ -59,13 +59,13 @@ func main() {
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.RenderSTLSlow(s1, 300, "taper1.stl")
+	render.ToSTL(s1, "taper1.stl", render.NewMarchingCubesUniform(300))
 
 	s2, err := taper2()
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.RenderSTLSlow(s2, 300, "taper2.stl")
+	render.ToSTL(s2, "taper2.stl", render.NewMarchingCubesUniform(300))
 }
 
 //-----------------------------------------------------------------------------

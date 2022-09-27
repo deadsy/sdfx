@@ -72,13 +72,13 @@ func main() {
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.RenderSTLSlow(ex1, 200, "extrude1.stl")
+	render.ToSTL(ex1, "extrude1.stl", render.NewMarchingCubesUniform(200))
 
 	ex2, err := extrude2()
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.RenderSTLSlow(ex2, 200, "extrude2.stl")
+	render.ToSTL(ex2, "extrude2.stl", render.NewMarchingCubesUniform(200))
 }
 
 //-----------------------------------------------------------------------------

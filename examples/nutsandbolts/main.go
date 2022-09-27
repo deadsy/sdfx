@@ -77,7 +77,8 @@ func main() {
 	}
 	s2 = sdf.Transform3D(s2, sdf.Translate3d(v3.Vec{xOffset, 0, 0}))
 
-	render.RenderSTLSlow(sdf.Union3D(s0, s1, s2), 400, "nutandbolt.stl")
+	s := sdf.Union3D(s0, s1, s2)
+	render.ToSTL(s, "nutandbolt.stl", render.NewMarchingCubesUniform(400))
 }
 
 //-----------------------------------------------------------------------------

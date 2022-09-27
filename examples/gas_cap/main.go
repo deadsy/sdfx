@@ -83,7 +83,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.RenderSTLSlow(gasCap, 200, "cap.stl")
+	render.ToSTL(gasCap, "cap.stl", render.NewMarchingCubesUniform(200))
 }
 
 //-----------------------------------------------------------------------------

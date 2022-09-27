@@ -80,13 +80,13 @@ func main() {
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.RenderSTLSlow(s0, 300, "gyroid_cube.stl")
+	render.ToSTL(s0, "gyroid_cube.stl", render.NewMarchingCubesUniform(300))
 
 	s1, err := gyroidSurface()
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.RenderSTLSlow(s1, 150, "gyroid_surface.stl")
+	render.ToSTL(s1, "gyroid_surface.stl", render.NewMarchingCubesUniform(150))
 }
 
 //-----------------------------------------------------------------------------

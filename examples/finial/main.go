@@ -131,13 +131,13 @@ func main() {
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.RenderSTLSlow(s, 300, "f1.stl")
+	render.ToSTL(s, "f1.stl", render.NewMarchingCubesUniform(300))
 
 	s, err = finial2()
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.RenderSTLSlow(s, 300, "f2.stl")
+	render.ToSTL(s, "f2.stl", render.NewMarchingCubesUniform(300))
 }
 
 //-----------------------------------------------------------------------------
