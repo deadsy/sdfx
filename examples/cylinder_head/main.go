@@ -11,12 +11,9 @@ No draft version for 3d printing and lost-PLA investment casting.
 package main
 
 import (
-	"log"
 	"math"
-	"time"
 
 	"github.com/deadsy/sdfx/render"
-	"github.com/deadsy/sdfx/render/dc"
 	"github.com/deadsy/sdfx/sdf"
 	v2 "github.com/deadsy/sdfx/vec/v2"
 	v3 "github.com/deadsy/sdfx/vec/v3"
@@ -35,29 +32,26 @@ const al_shrink = 1.0 / 0.99   // ~1%
 const pla_shrink = 1.0 / 0.998 //~0.2%
 const abs_shrink = 1.0 / 0.995 //~0.5%
 
-// dimension scaling
-func dim(x float64) float64 {
-	return x * desired_scale * sdf.MillimetresPerInch * al_shrink * pla_shrink
-}
+const shrink = desired_scale * al_shrink * pla_shrink
 
-var general_round = dim(0.1)
+const general_round = 0.1
 
 //-----------------------------------------------------------------------------
 // exhaust bosses
 
-var eb_side_radius = dim(5.0 / 32.0)
-var eb_main_radius = dim(5.0 / 16.0)
-var eb_hole_radius = dim(3.0 / 16.0)
-var eb_c2c_distance = dim(13.0 / 16.0)
-var eb_distance = eb_c2c_distance / 2.0
+const eb_side_radius = 5.0 / 32.0
+const eb_main_radius = 5.0 / 16.0
+const eb_hole_radius = 3.0 / 16.0
+const eb_c2c_distance = 13.0 / 16.0
+const eb_distance = eb_c2c_distance / 2.0
 
-var eb_x_offset = 0.5*(head_length+eb_height) - eb_height0
-var eb_y_offset = (head_width / 2.0) - eb_distance - eb_side_radius
-var eb_z_offset = dim(1.0 / 16.0)
+const eb_x_offset = 0.5*(head_length+eb_height) - eb_height0
+const eb_y_offset = (head_width / 2.0) - eb_distance - eb_side_radius
+const eb_z_offset = 1.0 / 16.0
 
-var eb_height0 = dim(1.0 / 16.0)
-var eb_height1 = dim(1.0 / 8.0)
-var eb_height = eb_height0 + eb_height1
+const eb_height0 = 1.0 / 16.0
+const eb_height1 = 1.0 / 8.0
+const eb_height = eb_height0 + eb_height1
 
 func exhaust_boss(mode string, x_ofs float64) sdf.SDF3 {
 
@@ -86,22 +80,23 @@ func exhaust_bosses(mode string) sdf.SDF3 {
 //-----------------------------------------------------------------------------
 // spark plug bosses
 
-var sp2sp_distance = dim(1.0 + (5.0 / 8.0))
+const sp2sp_distance = 1.0 + (5.0 / 8.0)
+
 var sp_theta = sdf.DtoR(30)
 
-var sp_boss_r1 = dim(21.0 / 64.0)
-var sp_boss_r2 = dim(15.0 / 32.0)
-var sp_boss_h1 = dim(0.79)
-var sp_boss_h2 = dim(0.94)
-var sp_boss_h3 = dim(2)
+const sp_boss_r1 = 21.0 / 64.0
+const sp_boss_r2 = 15.0 / 32.0
+const sp_boss_h1 = 0.79
+const sp_boss_h2 = 0.94
+const sp_boss_h3 = 2
 
-var sp_hole_d = dim(21.0 / 64.0)
-var sp_hole_r = sp_hole_d / 2.0
-var sp_hole_h = dim(1.0)
+const sp_hole_d = 21.0 / 64.0
+const sp_hole_r = sp_hole_d / 2.0
+const sp_hole_h = 1.0
 
-var sp_cb_h1 = dim(1.0)
-var sp_cb_h2 = dim(2.0)
-var sp_cb_r = dim(5.0 / 16.0)
+const sp_cb_h1 = 1.0
+const sp_cb_h2 = 2.0
+const sp_cb_r = 5.0 / 16.0
 
 var sp_hyp = sp_hole_h + sp_cb_r*math.Tan(sp_theta)
 var sp_y_ofs = sp_hyp*math.Cos(sp_theta) - head_width/2
@@ -151,11 +146,12 @@ func sparkplugs(mode string) sdf.SDF3 {
 //-----------------------------------------------------------------------------
 // valve bosses
 
-var valve_diameter = dim(1.0 / 4.0)
-var valve_radius = valve_diameter / 2.0
-var valve_y_offset = dim(1.0 / 8.0)
-var valve_wall = dim(5.0 / 32.0)
-var v2v_distance = dim(1.0 / 2.0)
+const valve_diameter = 1.0 / 4.0
+const valve_radius = valve_diameter / 2.0
+const valve_y_offset = 1.0 / 8.0
+const valve_wall = 5.0 / 32.0
+const v2v_distance = 1.0 / 2.0
+
 var valve_draft = sdf.DtoR(5)
 
 func valve(d float64, mode string) sdf.SDF3 {
@@ -193,16 +189,17 @@ func valve_sets(mode string) sdf.SDF3 {
 //-----------------------------------------------------------------------------
 // cylinder domes (or full base)
 
-var cylinder_height = dim(3.0 / 16.0)
-var cylinder_diameter = dim(1.0 + (1.0 / 8.0))
-var cylinder_wall = dim(1.0 / 4.0)
-var cylinder_radius = cylinder_diameter / 2.0
+const cylinder_height = 3.0 / 16.0
+const cylinder_diameter = 1.0 + (1.0 / 8.0)
+const cylinder_wall = 1.0 / 4.0
+const cylinder_radius = cylinder_diameter / 2.0
 
-var dome_radius = cylinder_wall + cylinder_radius
-var dome_height = cylinder_wall + cylinder_height
+const dome_radius = cylinder_wall + cylinder_radius
+const dome_height = cylinder_wall + cylinder_height
+
 var dome_draft = sdf.DtoR(5)
 
-var c2c_distance = dim(1.0 + (3.0 / 8.0))
+const c2c_distance = 1.0 + (3.0 / 8.0)
 
 func cylinder_head(d float64, mode string) sdf.SDF3 {
 	var s sdf.SDF3
@@ -240,11 +237,11 @@ func head_base() sdf.SDF3 {
 //-----------------------------------------------------------------------------
 // cylinder studs: location, bosses and holes
 
-var stud_hole_radius = dim(1.0 / 16.0)
-var stud_boss_radius = dim(3.0 / 16.0)
-var stud_hole_dy = dim(11.0 / 16.0)
-var stud_hole_dx0 = dim(7.0 / 16.0)
-var stud_hole_dx1 = dim(1.066)
+const stud_hole_radius = 1.0 / 16.0
+const stud_boss_radius = 3.0 / 16.0
+const stud_hole_dy = 11.0 / 16.0
+const stud_hole_dx0 = 7.0 / 16.0
+const stud_hole_dx1 = 1.066
 
 var stud_locations = []v2.Vec{
 	{stud_hole_dx0 + stud_hole_dx1, 0},
@@ -268,11 +265,11 @@ func head_stud_holes() sdf.SDF3 {
 //-----------------------------------------------------------------------------
 // head walls
 
-var head_length = dim(4.30 / 1.25)
-var head_width = dim(2.33 / 1.25)
-var head_height = dim(7.0 / 8.0)
-var head_corner_round = dim((5.0 / 32.0) / 1.25)
-var head_wall_thickness = dim(0.154)
+const head_length = 4.30 / 1.25
+const head_width = 2.33 / 1.25
+const head_height = 7.0 / 8.0
+const head_corner_round = (5.0 / 32.0) / 1.25
+const head_wall_thickness = 0.154
 
 func head_wall_outer_2d() sdf.SDF2 {
 	return sdf.Box2D(v2.Vec{head_length, head_width}, head_corner_round)
@@ -303,16 +300,16 @@ func head_wall() sdf.SDF3 {
 //-----------------------------------------------------------------------------
 // manifolds
 
-var manifold_radius = dim(4.5 / 16.0)
-var manifold_hole_radius = dim(1.0 / 8.0)
-var inlet_theta = 30.2564
-var exhaust_theta = 270.0 + 13.9736
-var exhaust_x_offset = (c2c_distance / 2) + (v2v_distance / 2)
-var inlet_x_offset = (c2c_distance / 2) - (v2v_distance / 2)
+const manifold_radius = 4.5 / 16.0
+const manifold_hole_radius = 1.0 / 8.0
+const inlet_theta = 30.2564
+const exhaust_theta = 270.0 + 13.9736
+const exhaust_x_offset = (c2c_distance / 2) + (v2v_distance / 2)
+const inlet_x_offset = (c2c_distance / 2) - (v2v_distance / 2)
 
 func manifold_set(r float64) sdf.SDF3 {
 
-	h := dim(2)
+	const h = 2
 
 	s_ex, _ := sdf.Cylinder3D(h, r, 0)
 	m := sdf.Translate3d(v3.Vec{0, 0, h / 2})
@@ -403,14 +400,7 @@ func subtractive() sdf.SDF3 {
 
 func main() {
 	s := sdf.Difference3D(additive(), subtractive())
-	render.RenderSTL(s, 400, "head.stl")
-	t1 := time.Now()
-	render.ToSTL(s, 128, "head2.stl", dc.NewDualContouringV1(-1, 0, false))
-	t2 := time.Now()
-	render.ToSTL(s, 128, "head2.stl", dc.NewDualContouringDefault())
-	td2 := time.Since(t2)
-	td1 := t2.Sub(t1)
-	log.Println("DualContouringV1 delta time:", td1, "- DualContouringDefault delta time:", td2)
+	render.RenderSTL(sdf.ScaleUniform3D(s, shrink), 400, "head.stl")
 }
 
 //-----------------------------------------------------------------------------

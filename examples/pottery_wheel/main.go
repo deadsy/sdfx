@@ -20,16 +20,9 @@ import (
 //-----------------------------------------------------------------------------
 // overall build controls
 
-const scale = 1.0 / 0.98 // 2% Al shrinkage
-const core_print = false // add the core print to the wheel
-const pie_print = false  // create a 1/n pie segment (n = number of webs)
-
-//-----------------------------------------------------------------------------
-
-// dimension scaling
-func dim(x float64) float64 {
-	return scale * x
-}
+const shrink = 1.0 / 0.98 // 2% Al shrinkage
+const core_print = false  // add the core print to the wheel
+const pie_print = false   // create a 1/n pie segment (n = number of webs)
 
 //-----------------------------------------------------------------------------
 
@@ -38,24 +31,24 @@ var draft_angle = sdf.DtoR(4.0)       // standard overall draft
 var core_draft_angle = sdf.DtoR(10.0) // draft angle for the core print
 
 // nominal size values (mm)
-var wheel_diameter = dim(sdf.MillimetresPerInch * 8.0) // total wheel diameter
-var hub_diameter = dim(40.0)                           // base diameter of central shaft hub
-var hub_height = dim(53.0)                             // height of cental shaft hub
-var shaft_diameter = dim(21.0)                         // 1" target size - reduced for machining allowance
-var shaft_length = dim(45.0)                           // length of shaft bore
-var wall_height = dim(35.0)                            // height of wheel side walls
-var wall_thickness = dim(4.0)                          // base thickness of outer wheel walls
-var plate_thickness = dim(7.0)                         // thickness of wheel top plate
-var web_width = dim(2.0)                               // thickness of reinforcing webs
-var web_height = dim(25.0)                             // height of reinforcing webs
-var core_height = dim(15.0)                            // height of core print
-var number_of_webs = 6                                 // number of reinforcing webs
+const wheel_diameter = sdf.MillimetresPerInch * 8.0 // total wheel diameter
+const hub_diameter = 40.0                           // base diameter of central shaft hub
+const hub_height = 53.0                             // height of cental shaft hub
+const shaft_diameter = 21.0                         // 1" target size - reduced for machining allowance
+const shaft_length = 45.0                           // length of shaft bore
+const wall_height = 35.0                            // height of wheel side walls
+const wall_thickness = 4.0                          // base thickness of outer wheel walls
+const plate_thickness = 7.0                         // thickness of wheel top plate
+const web_width = 2.0                               // thickness of reinforcing webs
+const web_height = 25.0                             // height of reinforcing webs
+const core_height = 15.0                            // height of core print
+const number_of_webs = 6                            // number of reinforcing webs
 
 // derived values
-var wheel_radius = wheel_diameter / 2
-var hub_radius = hub_diameter / 2
-var shaft_radius = shaft_diameter / 2
-var web_length = wheel_radius - wall_thickness - hub_radius
+const wheel_radius = wheel_diameter / 2
+const hub_radius = hub_diameter / 2
+const shaft_radius = shaft_diameter / 2
+const web_length = wheel_radius - wall_thickness - hub_radius
 
 //-----------------------------------------------------------------------------
 
@@ -226,6 +219,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
+	s0 = sdf.ScaleUniform3D(s0, shrink)
 	render.RenderSTL(s0, 200, "wheel.stl")
 	render.RenderDXF(sdf.Slice2D(s0, v3.Vec{0, 0, 15.0}, v3.Vec{0, 0, 1}), 200, "wheel.dxf")
 
@@ -233,7 +227,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.RenderSTL(s1, 200, "core_box.stl")
+	render.RenderSTL(sdf.ScaleUniform3D(s1, shrink), 200, "core_box.stl")
 }
 
 //-----------------------------------------------------------------------------
