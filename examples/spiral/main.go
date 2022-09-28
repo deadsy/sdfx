@@ -22,7 +22,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("error: %s\n", err)
 	}
-	render.RenderDXF(s, 400, "spiral.dxf")
+	render.ToDXF(s, "spiral.dxf", render.NewMarchingSquaresQuadtree(400))
 }
 
 //-----------------------------------------------------------------------------

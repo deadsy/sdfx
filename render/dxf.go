@@ -14,7 +14,6 @@ import (
 	"sync"
 
 	"github.com/deadsy/sdfx/sdf"
-	"github.com/deadsy/sdfx/vec/conv"
 	v2 "github.com/deadsy/sdfx/vec/v2"
 	"github.com/yofu/dxf"
 	"github.com/yofu/dxf/color"
@@ -132,36 +131,7 @@ func WriteDXF(wg *sync.WaitGroup, path string) (chan<- []*Line, error) {
 
 //-----------------------------------------------------------------------------
 
-// RenderDXF renders an SDF2 as a DXF file. (uses quadtree sampling)
-func RenderDXF(
-	s sdf.SDF2, //sdf2 to render
-	meshCells int, //number of cells on the longest axis. e.g 200
-	path string, //path to filename
-) {
-
-	// work out the sampling resolution to use
-	bbSize := s.BoundingBox().Size()
-	resolution := bbSize.MaxComponent() / float64(meshCells)
-	cells := conv.V2ToV2i(bbSize.MulScalar(1 / resolution))
-
-	fmt.Printf("rendering %s (%dx%d, resolution %.2f)\n", path, cells.X, cells.Y, resolution)
-
-	// write the line segments to a DXF file
-	var wg sync.WaitGroup
-	output, err := WriteDXF(&wg, path)
-	if err != nil {
-		fmt.Printf("%s", err)
-		return
-	}
-
-	// run marching squares to generate the line segments
-	marchingSquaresQuadtree(s, resolution, output)
-
-	// stop the DXF writer reading on the channel
-	close(output)
-	// wait for the file write to complete
-	wg.Wait()
-}
+/*
 
 // RenderDXFSlow renders an SDF2 as a DXF file. (uses uniform grid sampling)
 func RenderDXFSlow(
@@ -188,6 +158,8 @@ func RenderDXFSlow(
 		fmt.Printf("%s", err)
 	}
 }
+
+*/
 
 //-----------------------------------------------------------------------------
 

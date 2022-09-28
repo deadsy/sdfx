@@ -17,11 +17,19 @@ import (
 
 //-----------------------------------------------------------------------------
 
-// Render3 implementations produce a 3d triangle mesh over the bounding volume of an sdf3.
+// Render3 renders a 3d triangle mesh over the bounding volume of an sdf3.
 type Render3 interface {
 	Render(sdf3 sdf.SDF3, output chan<- []*Triangle3)
 	Info(sdf3 sdf.SDF3) string
 }
+
+// Render2 renders a line set over the bounding area of an sdf2.
+type Render2 interface {
+	Render(s sdf.SDF2, output chan<- []*Line)
+	Info(s sdf.SDF2) string
+}
+
+//-----------------------------------------------------------------------------
 
 // ToSTL renders an SDF3 to an STL file.
 func ToSTL(
@@ -47,19 +55,31 @@ func ToSTL(
 
 //-----------------------------------------------------------------------------
 
-// Render2 implementations produce a line set over the bounding area of an sdf2.
-type Render2 interface {
-	Render(s sdf.SDF2, output chan<- []*Line)
-	Info(s sdf.SDF2) string
-}
-
 // ToDXF renders an SDF2 to a DXF file.
 func ToDXF(
 	s sdf.SDF2, // sdf2 to render
 	path string, // path to filename
 	r Render2, // rendering method
 ) {
+	fmt.Printf("rendering %s (%s)\n", path, r.Info(s))
+	// write the line segments to a DXF file
+	var wg sync.WaitGroup
+	output, err := WriteDXF(&wg, path)
+	if err != nil {
+		fmt.Printf("%s", err)
+		return
+	}
+	// run the renderer
+	r.Render(s, output)
+	// stop the DXF writer reading on the channel
+	close(output)
+	// wait for the file write to complete
+	wg.Wait()
 }
+
+//-----------------------------------------------------------------------------
+
+const svgLineStyle = "fill:none;stroke:black;stroke-width:0.1"
 
 // ToSVG renders an SDF2 to an SVG file.
 func ToSVG(
@@ -67,6 +87,19 @@ func ToSVG(
 	path string, // path to filename
 	r Render2, // rendering method
 ) {
+	fmt.Printf("rendering %s (%s)\n", path, r.Info(s))
+	// write the line segments to an SVG file
+	var wg sync.WaitGroup
+	output, err := WriteSVG(&wg, path, svgLineStyle)
+	if err != nil {
+		fmt.Printf("%s", err)
+	}
+	// run the renderer
+	r.Render(s, output)
+	// stop the SVG writer reading on the channel
+	close(output)
+	// wait for the file write to complete
+	wg.Wait()
 }
 
 //-----------------------------------------------------------------------------

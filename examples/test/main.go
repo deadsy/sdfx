@@ -601,7 +601,7 @@ func test49() error {
 	if err != nil {
 		return err
 	}
-	render.RenderDXF(s0, 50, "circle_2d.dxf")
+	render.ToDXF(s0, "circle_2d.dxf", render.NewMarchingSquaresQuadtree(50))
 	return nil
 }
 

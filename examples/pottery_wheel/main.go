@@ -221,7 +221,7 @@ func main() {
 	}
 	s0 = sdf.ScaleUniform3D(s0, shrink)
 	render.ToSTL(s0, "wheel.stl", render.NewMarchingCubesOctree(200))
-	render.RenderDXF(sdf.Slice2D(s0, v3.Vec{0, 0, 15.0}, v3.Vec{0, 0, 1}), 200, "wheel.dxf")
+	render.ToDXF(sdf.Slice2D(s0, v3.Vec{0, 0, 15.0}, v3.Vec{0, 0, 1}), "wheel.dxf", render.NewMarchingSquaresQuadtree(200))
 
 	s1, err := core_box()
 	if err != nil {

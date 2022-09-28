@@ -147,7 +147,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.RenderDXF(cherryMX, 400, "plate.dxf")
+	render.ToDXF(cherryMX, "plate.dxf", render.NewMarchingSquaresQuadtree(400))
 }
 
 //-----------------------------------------------------------------------------

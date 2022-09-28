@@ -14,8 +14,6 @@ import (
 	"sync"
 
 	svg "github.com/ajstarks/svgo/float"
-	"github.com/deadsy/sdfx/sdf"
-	"github.com/deadsy/sdfx/vec/conv"
 	v2 "github.com/deadsy/sdfx/vec/v2"
 )
 
@@ -116,36 +114,7 @@ func WriteSVG(wg *sync.WaitGroup, path, lineStyle string) (chan<- []*Line, error
 
 //-----------------------------------------------------------------------------
 
-// RenderSVG renders an SDF2 as an SVG file. (uses quadtree sampling)
-func RenderSVG(
-	s sdf.SDF2, // sdf2 to render
-	meshCells int, // number of cells on the longest axis. e.g 200
-	path string, // path to filename
-	lineStyle string, // SVG line style
-) error {
-	// work out the sampling resolution to use
-	bbSize := s.BoundingBox().Size()
-	resolution := bbSize.MaxComponent() / float64(meshCells)
-	cells := conv.V2ToV2i(bbSize.DivScalar(resolution))
-
-	fmt.Printf("rendering %s (%dx%d, resolution %.2f)\n", path, cells.X, cells.Y, resolution)
-
-	// write the line segments to an SVG file
-	var wg sync.WaitGroup
-	output, err := WriteSVG(&wg, path, lineStyle)
-	if err != nil {
-		return err
-	}
-
-	// run marching squares to generate the line segments
-	marchingSquaresQuadtree(s, resolution, output)
-
-	// stop the SVG writer reading on the channel
-	close(output)
-	// wait for the file write to complete
-	wg.Wait()
-	return nil
-}
+/*
 
 // RenderSVGSlow renders an SDF2 as an SVG file. (uses uniform grid sampling)
 func RenderSVGSlow(
@@ -170,5 +139,7 @@ func RenderSVGSlow(
 	m := marchingSquares(s, bb, meshInc)
 	return SaveSVG(path, lineStyle, m)
 }
+
+*/
 
 //-----------------------------------------------------------------------------

@@ -12,6 +12,7 @@ Uses quadtree space subdivision.
 package render
 
 import (
+	"fmt"
 	"math"
 	"sync"
 
@@ -139,6 +140,35 @@ func marchingSquaresQuadtree(s sdf.SDF2, resolution float64, output chan<- []*Li
 	dc := newDcache2(s, bb.Min, resolution, levels)
 	// process the quadtree, start at the top level
 	dc.processSquare(&square{v2i.Vec{0, 0}, levels - 1}, output)
+}
+
+//-----------------------------------------------------------------------------
+
+// MarchingSquaresQuadtree renders using marching squares with quadtree space sampling.
+type MarchingSquaresQuadtree struct {
+	meshCells int // number of cells on the longest axis of bounding box. e.g 200
+}
+
+func NewMarchingSquaresQuadtree(meshCells int) *MarchingSquaresQuadtree {
+	return &MarchingSquaresQuadtree{
+		meshCells: meshCells,
+	}
+}
+
+// Info returns a string describing the rendered area.
+func (r *MarchingSquaresQuadtree) Info(s sdf.SDF2) string {
+	bbSize := s.BoundingBox().Size()
+	resolution := bbSize.MaxComponent() / float64(r.meshCells)
+	cells := conv.V2ToV2i(bbSize.MulScalar(1 / resolution))
+	return fmt.Sprintf("%dx%d, resolution %.2f", cells.X, cells.Y, resolution)
+}
+
+// Render produces a 2d line mesh over the bounding area of an sdf2.
+func (r *MarchingSquaresQuadtree) Render(s sdf.SDF2, output chan<- []*Line) {
+	// work out the sampling resolution to use
+	bbSize := s.BoundingBox().Size()
+	resolution := bbSize.MaxComponent() / float64(r.meshCells)
+	marchingSquaresQuadtree(s, resolution, output)
 }
 
 //-----------------------------------------------------------------------------
