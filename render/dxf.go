@@ -101,22 +101,24 @@ func SaveDXF(path string, mesh []*Line) error {
 //-----------------------------------------------------------------------------
 
 // WriteDXF writes a stream of line segments to a DXF file.
-func WriteDXF(wg *sync.WaitGroup, path string) (chan<- *Line, error) {
+func WriteDXF(wg *sync.WaitGroup, path string) (chan<- []*Line, error) {
 
 	d := NewDXF(path)
 	d.drawing.ChangeLayer("Lines")
 
 	// External code writes line segments to this channel.
 	// This goroutine reads the channel and writes line segments to the file.
-	c := make(chan *Line)
+	c := make(chan []*Line)
 
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		for l := range c {
-			p0 := l[0]
-			p1 := l[1]
-			d.drawing.Line(p0.X, p0.Y, 0, p1.X, p1.Y, 0)
+		for ls := range c {
+			for _, l := range ls {
+				p0 := l[0]
+				p1 := l[1]
+				d.drawing.Line(p0.X, p0.Y, 0, p1.X, p1.Y, 0)
+			}
 		}
 		err := d.Save()
 		if err != nil {

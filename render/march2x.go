@@ -96,7 +96,7 @@ func (dc *dcache2) isEmpty(c *square) bool {
 }
 
 // Process a square. Generate line segments, or more squares.
-func (dc *dcache2) processSquare(c *square, output chan<- *Line) {
+func (dc *dcache2) processSquare(c *square, output chan<- []*Line) {
 	if !dc.isEmpty(c) {
 		if c.n == 1 {
 			// this square is at the required resolution
@@ -107,9 +107,7 @@ func (dc *dcache2) processSquare(c *square, output chan<- *Line) {
 			corners := [4]v2.Vec{c0, c1, c2, c3}
 			values := [4]float64{d0, d1, d2, d3}
 			// output the line(s) for this square
-			for _, l := range msToLines(corners, values, 0) {
-				output <- l
-			}
+			output <- msToLines(corners, values, 0)
 		} else {
 			// process the sub squares
 			n := c.n - 1
@@ -126,7 +124,7 @@ func (dc *dcache2) processSquare(c *square, output chan<- *Line) {
 //-----------------------------------------------------------------------------
 
 // marchingSquaresQuadtree generates line segments for an SDF2 using quadtree subdivision.
-func marchingSquaresQuadtree(s sdf.SDF2, resolution float64, output chan<- *Line) {
+func marchingSquaresQuadtree(s sdf.SDF2, resolution float64, output chan<- []*Line) {
 	// Scale the bounding box about the center to make sure the boundaries
 	// aren't on the object surface.
 	bb := s.BoundingBox()

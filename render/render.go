@@ -46,3 +46,27 @@ func ToSTL(
 }
 
 //-----------------------------------------------------------------------------
+
+// Render2 implementations produce a line set over the bounding area of an sdf2.
+type Render2 interface {
+	Render(s sdf.SDF2, output chan<- []*Line)
+	Info(s sdf.SDF2) string
+}
+
+// ToDXF renders an SDF2 to a DXF file.
+func ToDXF(
+	s sdf.SDF2, // sdf2 to render
+	path string, // path to filename
+	r Render2, // rendering method
+) {
+}
+
+// ToSVG renders an SDF2 to an SVG file.
+func ToSVG(
+	s sdf.SDF2, // sdf2 to render
+	path string, // path to filename
+	r Render2, // rendering method
+) {
+}
+
+//-----------------------------------------------------------------------------
