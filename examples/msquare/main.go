@@ -320,13 +320,13 @@ func mSquare(k *msParms, machined bool) error {
 	s = sdf.Intersect3D(s, env)
 
 	s = sdf.ScaleUniform3D(s, shrink*scale)
-	render.RenderSTL(s, 300, fmt.Sprintf("%s.stl", k.name))
+	render.ToSTL(s, fmt.Sprintf("%s.stl", k.name), render.NewMarchingCubesOctree(300))
 
 	sUpper := sdf.Cut3D(s, v3.Vec{0, 0, 0}, v3.Vec{0, 0, 1})
-	render.RenderSTL(sUpper, 300, fmt.Sprintf("%s_upper.stl", k.name))
+	render.ToSTL(sUpper, fmt.Sprintf("%s_upper.stl", k.name), render.NewMarchingCubesOctree(300))
 
 	sLower := sdf.Cut3D(s, v3.Vec{0, 0, 0}, v3.Vec{0, 0, -1})
-	render.RenderSTL(sLower, 300, fmt.Sprintf("%s_lower.stl", k.name))
+	render.ToSTL(sLower, fmt.Sprintf("%s_lower.stl", k.name), render.NewMarchingCubesOctree(300))
 
 	return nil
 }

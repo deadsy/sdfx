@@ -82,7 +82,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.RenderSTL(sdf.ScaleUniform3D(flange, shrink), 300, "flange.stl")
+	render.ToSTL(sdf.ScaleUniform3D(flange, shrink), "flange.stl", render.NewMarchingCubesOctree(300))
 }
 
 //-----------------------------------------------------------------------------

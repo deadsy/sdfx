@@ -82,7 +82,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.RenderSTL(bc, 200, "container.stl")
+	render.ToSTL(bc, "container.stl", render.NewMarchingCubesOctree(200))
 }
 
 //-----------------------------------------------------------------------------

@@ -156,19 +156,19 @@ func main() {
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.RenderSTL(s, 150, "fdd_fvh25.stl")
+	render.ToSTL(s, "fdd_fvh25.stl", render.NewMarchingCubesOctree(150))
 
 	s, err = vacuumToPipeMM("sch40:2")
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.RenderSTL(s, 150, "mvh25_mpvc.stl")
+	render.ToSTL(s, "mvh25_mpvc.stl", render.NewMarchingCubesOctree(150))
 
 	s, err = dustDeputyToPipeFM("sch40:2")
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.RenderSTL(s, 150, "fdd_mpvc.stl")
+	render.ToSTL(s, "fdd_mpvc.stl", render.NewMarchingCubesOctree(150))
 }
 
 //-----------------------------------------------------------------------------

@@ -400,7 +400,7 @@ func subtractive() sdf.SDF3 {
 
 func main() {
 	s := sdf.Difference3D(additive(), subtractive())
-	render.RenderSTL(sdf.ScaleUniform3D(s, shrink), 400, "head.stl")
+	render.ToSTL(sdf.ScaleUniform3D(s, shrink), "head.stl", render.NewMarchingCubesOctree(400))
 }
 
 //-----------------------------------------------------------------------------

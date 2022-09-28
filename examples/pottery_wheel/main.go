@@ -220,14 +220,15 @@ func main() {
 		log.Fatalf("error: %s", err)
 	}
 	s0 = sdf.ScaleUniform3D(s0, shrink)
-	render.RenderSTL(s0, 200, "wheel.stl")
+	render.ToSTL(s0, "wheel.stl", render.NewMarchingCubesOctree(200))
 	render.RenderDXF(sdf.Slice2D(s0, v3.Vec{0, 0, 15.0}, v3.Vec{0, 0, 1}), 200, "wheel.dxf")
 
 	s1, err := core_box()
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.RenderSTL(sdf.ScaleUniform3D(s1, shrink), 200, "core_box.stl")
+	s1 = sdf.ScaleUniform3D(s1, shrink)
+	render.ToSTL(s1, "core_box.stl", render.NewMarchingCubesOctree(200))
 }
 
 //-----------------------------------------------------------------------------

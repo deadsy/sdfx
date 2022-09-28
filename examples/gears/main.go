@@ -74,7 +74,7 @@ func main() {
 	m = sdf.Translate3d(v3.Vec{0, 0.39, 0}).Mul(m)
 	gear = sdf.Transform3D(gear, m)
 
-	render.RenderSTL(sdf.Union3D(rack, gear), 200, "gear.stl")
+	render.ToSTL(sdf.Union3D(rack, gear), "gear.stl", render.NewMarchingCubesOctree(200))
 }
 
 //-----------------------------------------------------------------------------

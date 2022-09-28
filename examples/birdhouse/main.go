@@ -115,7 +115,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.RenderSTL(s, 300, "birdhouse.stl")
+	render.ToSTL(s, "birdhouse.stl", render.NewMarchingCubesOctree(300))
 }
 
 //-----------------------------------------------------------------------------

@@ -419,31 +419,31 @@ func main() {
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.RenderSTL(sdf.ScaleUniform3D(p0, shrink), 300, "ar_panel.stl")
+	render.ToSTL(sdf.ScaleUniform3D(p0, shrink), "ar_panel.stl", render.NewMarchingCubesOctree(300))
 
 	p1, err := powerBoardMount()
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.RenderSTL(sdf.ScaleUniform3D(p1, shrink), 300, "pwr_mount.stl")
+	render.ToSTL(sdf.ScaleUniform3D(p1, shrink), "pwr_mount.stl", render.NewMarchingCubesOctree(300))
 
 	p2, err := powerPanel()
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.RenderSTL(sdf.ScaleUniform3D(p2, shrink), 300, "pwr_panel.stl")
+	render.ToSTL(sdf.ScaleUniform3D(p2, shrink), "pwr_panel.stl", render.NewMarchingCubesOctree(300))
 
 	p3, err := psuMount()
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.RenderSTL(sdf.ScaleUniform3D(p3, shrink), 300, "psu_mount.stl")
+	render.ToSTL(sdf.ScaleUniform3D(p3, shrink), "psu_mount.stl", render.NewMarchingCubesOctree(300))
 
 	p4, err := bbPanel()
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.RenderSTL(sdf.ScaleUniform3D(p4, shrink), 300, "bb_panel.stl")
+	render.ToSTL(sdf.ScaleUniform3D(p4, shrink), "bb_panel.stl", render.NewMarchingCubesOctree(300))
 }
 
 //-----------------------------------------------------------------------------

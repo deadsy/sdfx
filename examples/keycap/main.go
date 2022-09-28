@@ -90,7 +90,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.RenderSTL(sdf.ScaleUniform3D(s, shrink), 150, "round_cap.stl")
+	render.ToSTL(sdf.ScaleUniform3D(s, shrink), "round_cap.stl", render.NewMarchingCubesOctree(150))
 }
 
 //-----------------------------------------------------------------------------

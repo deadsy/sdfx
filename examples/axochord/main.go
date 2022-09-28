@@ -140,8 +140,8 @@ func main() {
 	upper := sdf.Cut3D(s, v3.Vec{}, v3.Vec{0, 0, 1})
 	lower := sdf.Cut3D(s, v3.Vec{}, v3.Vec{0, 0, -1})
 
-	render.RenderSTL(upper, 400, "upper.stl")
-	render.RenderSTL(lower, 400, "lower.stl")
+	render.ToSTL(upper, "upper.stl", render.NewMarchingCubesOctree(400))
+	render.ToSTL(lower, "lower.stl", render.NewMarchingCubesOctree(400))
 
 	cherryMX, err := cherryMX()
 	if err != nil {

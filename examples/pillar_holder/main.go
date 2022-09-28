@@ -58,7 +58,8 @@ func holder() sdf.SDF3 {
 
 func main() {
 	s := holder()
-	render.RenderSTL(sdf.ScaleUniform3D(s, shrink), 300, "holder.stl")
+	s = sdf.ScaleUniform3D(s, shrink)
+	render.ToSTL(s, "holder.stl", render.NewMarchingCubesOctree(300))
 }
 
 //-----------------------------------------------------------------------------

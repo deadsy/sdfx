@@ -40,9 +40,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("error: %s\n", err)
 	}
-	render.RenderSTL(s[0], 300, "panel.stl")
-	render.RenderSTL(s[1], 300, "top.stl")
-	render.RenderSTL(s[2], 300, "bottom.stl")
+	render.ToSTL(s[0], "panel.stl", render.NewMarchingCubesOctree(300))
+	render.ToSTL(s[1], "top.stl", render.NewMarchingCubesOctree(300))
+	render.ToSTL(s[2], "bottom.stl", render.NewMarchingCubesOctree(300))
 }
 
 //-----------------------------------------------------------------------------

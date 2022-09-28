@@ -18,13 +18,13 @@ func main() {
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.RenderSTL(s, 200, "cc16a.stl")
+	render.ToSTL(s, "cc16a.stl", render.NewMarchingCubesOctree(200))
 
 	s, err = cc16b()
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.RenderSTL(s, 200, "cc16b.stl")
+	render.ToSTL(s, "cc16b.stl", render.NewMarchingCubesOctree(200))
 
 	cc18a()
 
@@ -32,13 +32,13 @@ func main() {
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.RenderSTL(s, 200, "cc18b.stl")
+	render.ToSTL(s, "cc18b.stl", render.NewMarchingCubesOctree(200))
 
 	s, err = cc18c()
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.RenderSTL(s, 200, "cc18c.stl")
+	render.ToSTL(s, "cc18c.stl", render.NewMarchingCubesOctree(200))
 }
 
 //-----------------------------------------------------------------------------

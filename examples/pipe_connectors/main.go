@@ -30,49 +30,49 @@ func main() {
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.RenderSTL(s, 300, "pipe_connector_2a.stl")
+	render.ToSTL(s, "pipe_connector_2a.stl", render.NewMarchingCubesOctree(300))
 
 	// 2-way
 	s, err = obj.StdPipeConnector3D(name, units, length, [6]bool{true, false, false, false, true, false})
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.RenderSTL(s, 300, "pipe_connector_2b.stl")
+	render.ToSTL(s, "pipe_connector_2b.stl", render.NewMarchingCubesOctree(300))
 
 	// 3-way
 	s, err = obj.StdPipeConnector3D(name, units, length, [6]bool{true, false, false, false, true, true})
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.RenderSTL(s, 300, "pipe_connector_3a.stl")
+	render.ToSTL(s, "pipe_connector_3a.stl", render.NewMarchingCubesOctree(300))
 
 	// 3-way
 	s, err = obj.StdPipeConnector3D(name, units, length, [6]bool{true, false, true, false, true, false})
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.RenderSTL(s, 300, "pipe_connector_3b.stl")
+	render.ToSTL(s, "pipe_connector_3b.stl", render.NewMarchingCubesOctree(300))
 
 	// 4-way
 	s, err = obj.StdPipeConnector3D(name, units, length, [6]bool{true, true, true, true, false, false})
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.RenderSTL(s, 300, "pipe_connector_4a.stl")
+	render.ToSTL(s, "pipe_connector_4a.stl", render.NewMarchingCubesOctree(300))
 
 	// 4-way
 	s, err = obj.StdPipeConnector3D(name, units, length, [6]bool{true, false, true, true, true, false})
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.RenderSTL(s, 300, "pipe_connector_4b.stl")
+	render.ToSTL(s, "pipe_connector_4b.stl", render.NewMarchingCubesOctree(300))
 
 	// 5-way
 	s, err = obj.StdPipeConnector3D(name, units, length, [6]bool{true, true, true, true, true, false})
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.RenderSTL(s, 300, "pipe_connector_5a.stl")
+	render.ToSTL(s, "pipe_connector_5a.stl", render.NewMarchingCubesOctree(300))
 
 }
 

@@ -77,7 +77,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.RenderSTL(s, 300, "icosahedron.stl")
+	render.ToSTL(s, "icosahedron.stl", render.NewMarchingCubesOctree(300))
 }
 
 //-----------------------------------------------------------------------------

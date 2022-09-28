@@ -30,14 +30,14 @@ func test1() error {
 	if err != nil {
 		return err
 	}
-	render.RenderSTL(s1, 200, "test1.stl")
+	render.ToSTL(s1, "test1.stl", render.NewMarchingCubesOctree(200))
 	return nil
 }
 
 func test2() error {
 	s0 := Box2D(v2.Vec{0.8, 1.2}, 0.1)
 	s1 := Extrude3D(s0, 0.3)
-	render.RenderSTL(s1, 200, "test2.stl")
+	render.ToSTL(s1, "test2.stl", render.NewMarchingCubesOctree(200))
 	return nil
 }
 
@@ -51,7 +51,7 @@ func test3() error {
 	if err != nil {
 		return err
 	}
-	render.RenderSTL(s1, 200, "test3.stl")
+	render.ToSTL(s1, "test3.stl", render.NewMarchingCubesOctree(200))
 	return nil
 }
 
@@ -62,7 +62,7 @@ func test4() error {
 	if err != nil {
 		return err
 	}
-	render.RenderSTL(s1, 200, "test4.stl")
+	render.ToSTL(s1, "test4.stl", render.NewMarchingCubesOctree(200))
 	return nil
 }
 
@@ -74,7 +74,7 @@ func test5() error {
 	if err != nil {
 		return err
 	}
-	render.RenderSTL(s1, 200, "test5.stl")
+	render.ToSTL(s1, "test5.stl", render.NewMarchingCubesOctree(200))
 	return nil
 }
 
@@ -88,7 +88,7 @@ func test6() error {
 	s2 := Transform3D(s0, Translate3d(v3.Vec{0, -d, 0}))
 	s3 := Union3D(s1, s2)
 	s3.(*UnionSDF3).SetMin(PolyMin(0.1))
-	render.RenderSTL(s3, 200, "test6.stl")
+	render.ToSTL(s3, "test6.stl", render.NewMarchingCubesOctree(200))
 	return nil
 }
 
@@ -101,7 +101,7 @@ func test7() error {
 	s2 := Union3D(s0, s1)
 	s2.(*UnionSDF3).SetMin(PolyMin(0.1))
 	s3 := Transform3D(s2, Rotate3d(v3.Vec{0, 0, 1}, DtoR(-30)))
-	render.RenderSTL(s3, 200, "test7.stl")
+	render.ToSTL(s3, "test7.stl", render.NewMarchingCubesOctree(200))
 	return nil
 }
 
@@ -110,7 +110,7 @@ func test9() error {
 	if err != nil {
 		return err
 	}
-	render.RenderSTL(s, 200, "test9.stl")
+	render.ToSTL(s, "test9.stl", render.NewMarchingCubesOctree(200))
 	return nil
 }
 
@@ -122,7 +122,7 @@ func test10() error {
 	s1 := Transform3D(s0, Rotate3d(v3.Vec{1, 0, 0}, DtoR(60)))
 	s := Union3D(s0, s1)
 	s.(*UnionSDF3).SetMin(PolyMin(0.1))
-	render.RenderSTL(s, 200, "test10.stl")
+	render.ToSTL(s, "test10.stl", render.NewMarchingCubesOctree(200))
 	return nil
 }
 
@@ -131,7 +131,7 @@ func test11() error {
 	if err != nil {
 		return err
 	}
-	render.RenderSTL(s, 200, "test11.stl")
+	render.ToSTL(s, "test11.stl", render.NewMarchingCubesOctree(200))
 	return nil
 }
 
@@ -151,7 +151,7 @@ func test12() error {
 	if err != nil {
 		return err
 	}
-	render.RenderSTL(s1, 200, "test12.stl")
+	render.ToSTL(s1, "test12.stl", render.NewMarchingCubesOctree(200))
 	return nil
 }
 
@@ -166,7 +166,7 @@ func test13() error {
 	if err != nil {
 		return err
 	}
-	render.RenderSTL(s1, 200, "test13.stl")
+	render.ToSTL(s1, "test13.stl", render.NewMarchingCubesOctree(200))
 	return nil
 }
 
@@ -198,7 +198,7 @@ func test14() error {
 	if err != nil {
 		return err
 	}
-	render.RenderSTL(s1, 200, "test14.stl")
+	render.ToSTL(s1, "test14.stl", render.NewMarchingCubesOctree(200))
 	return nil
 }
 
@@ -232,7 +232,7 @@ func test15() error {
 
 	s1 = Transform3D(s1, Rotate3d(v3.Vec{0, 0, 1}, DtoR(30)))
 
-	render.RenderSTL(s1, 200, "test15.stl")
+	render.ToSTL(s1, "test15.stl", render.NewMarchingCubesOctree(200))
 	return nil
 }
 
@@ -270,7 +270,7 @@ func test16() error {
 
 	s1 = Transform3D(s1, Rotate3d(v3.Vec{0, 0, 1}, DtoR(30)))
 
-	render.RenderSTL(s1, 200, "test16.stl")
+	render.ToSTL(s1, "test16.stl", render.NewMarchingCubesOctree(200))
 	return nil
 }
 
@@ -301,7 +301,7 @@ func test17() error {
 
 	s1 = Transform3D(s1, Rotate3d(v3.Vec{0, 0, 1}, DtoR(30)))
 
-	render.RenderSTL(s1, 200, "test17.stl")
+	render.ToSTL(s1, "test17.stl", render.NewMarchingCubesOctree(200))
 	return nil
 }
 
@@ -340,7 +340,7 @@ func test18() error {
 
 	s1 = Transform3D(s1, Rotate3d(v3.Vec{0, 0, 1}, DtoR(30)))
 
-	render.RenderSTL(s1, 200, "test18.stl")
+	render.ToSTL(s1, "test18.stl", render.NewMarchingCubesOctree(200))
 	return nil
 }
 
@@ -354,7 +354,7 @@ func test19() error {
 	s1 := Array2D(s0, v2i.Vec{3, 7}, v2.Vec{k * r, k * r})
 	s1.(*ArraySDF2).SetMin(PolyMin(0.8))
 	s2 := Extrude3D(s1, 1.0)
-	render.RenderSTL(s2, 200, "test19.stl")
+	render.ToSTL(s2, "test19.stl", render.NewMarchingCubesOctree(200))
 	return nil
 }
 
@@ -369,7 +369,7 @@ func test20() error {
 	s0 = RotateUnion2D(s0, 5, Rotate2d(DtoR(20)))
 	s0.(*RotateUnionSDF2).SetMin(PolyMin(1.2))
 	s1 := Extrude3D(s0, 10.0)
-	render.RenderSTL(s1, 200, "test20.stl")
+	render.ToSTL(s1, "test20.stl", render.NewMarchingCubesOctree(200))
 	return nil
 }
 
@@ -382,7 +382,7 @@ func test21() error {
 	}
 	s1 := Array3D(s0, v3i.Vec{3, 7, 5}, v3.Vec{k * r, k * r, k * r})
 	s1.(*ArraySDF3).SetMin(PolyMin(0.8))
-	render.RenderSTL(s1, 200, "test21.stl")
+	render.ToSTL(s1, "test21.stl", render.NewMarchingCubesOctree(200))
 	return nil
 }
 
@@ -396,7 +396,7 @@ func test22() error {
 	s0 = Transform3D(s0, Translate3d(v3.Vec{d, 0, 0}))
 	s0 = RotateUnion3D(s0, 5, Rotate3d(v3.Vec{0, 0, 1}, DtoR(20)))
 	s0.(*RotateUnionSDF3).SetMin(PolyMin(1.2))
-	render.RenderSTL(s0, 200, "test22.stl")
+	render.ToSTL(s0, "test22.stl", render.NewMarchingCubesOctree(200))
 	return nil
 }
 
@@ -405,7 +405,7 @@ func test26() error {
 	if err != nil {
 		return err
 	}
-	render.RenderSTL(s, 200, "test26.stl")
+	render.ToSTL(s, "test26.stl", render.NewMarchingCubesOctree(200))
 	return nil
 }
 
@@ -417,7 +417,7 @@ func test27() error {
 		return err
 	}
 	s := Multi3D(cylinder, posn)
-	render.RenderSTL(s, 200, "test27.stl")
+	render.ToSTL(s, "test27.stl", render.NewMarchingCubesOctree(200))
 	return nil
 }
 
@@ -426,14 +426,14 @@ func test28() error {
 	if err != nil {
 		return err
 	}
-	render.RenderSTL(s, 200, "test28.stl")
+	render.ToSTL(s, "test28.stl", render.NewMarchingCubesOctree(200))
 	return nil
 }
 
 func test29() error {
 	s0 := Line2D(10, 3)
 	s1 := Extrude3D(s0, 4)
-	render.RenderSTL(s1, 200, "test29.stl")
+	render.ToSTL(s1, "test29.stl", render.NewMarchingCubesOctree(200))
 	return nil
 }
 
@@ -441,7 +441,7 @@ func test30() error {
 	s0 := Line2D(10, 3)
 	s0 = Cut2D(s0, v2.Vec{4, 0}, v2.Vec{1, 1})
 	s1 := Extrude3D(s0, 4)
-	render.RenderSTL(s1, 200, "test30.stl")
+	render.ToSTL(s1, "test30.stl", render.NewMarchingCubesOctree(200))
 	return nil
 }
 
@@ -450,7 +450,7 @@ func test31() error {
 	if err != nil {
 		return err
 	}
-	render.RenderSTL(s, 200, "test31.stl")
+	render.ToSTL(s, "test31.stl", render.NewMarchingCubesOctree(200))
 	return nil
 }
 
@@ -460,7 +460,7 @@ func test32() error {
 		return err
 	}
 	s1 := Extrude3D(s0, 0.1)
-	render.RenderSTL(s1, 200, "cam0.stl")
+	render.ToSTL(s1, "cam0.stl", render.NewMarchingCubesOctree(200))
 	return nil
 }
 
@@ -470,7 +470,7 @@ func test33() error {
 		return err
 	}
 	s1 := Extrude3D(s0, 4)
-	render.RenderSTL(s1, 200, "cam1.stl")
+	render.ToSTL(s1, "cam1.stl", render.NewMarchingCubesOctree(200))
 	return nil
 }
 
@@ -480,7 +480,7 @@ func test34() error {
 		return err
 	}
 	s1 := Extrude3D(s0, 0.1)
-	render.RenderSTL(s1, 200, "cam2.stl")
+	render.ToSTL(s1, "cam2.stl", render.NewMarchingCubesOctree(200))
 	return nil
 }
 
@@ -491,7 +491,7 @@ func test35() error {
 	s0 = Transform2D(s0, Translate2d(v2.Vec{d, 0}))
 	s0 = RotateCopy2D(s0, 15)
 	s1 := Extrude3D(s0, 10.0)
-	render.RenderSTL(s1, 200, "rotate_copy.stl")
+	render.ToSTL(s1, "rotate_copy.stl", render.NewMarchingCubesOctree(200))
 	return nil
 }
 
@@ -508,8 +508,8 @@ func test36() error {
 	if err != nil {
 		return err
 	}
-	render.RenderSTL(Extrude3D(sDriver, 10), 200, "driver.stl")
-	render.RenderSTL(Extrude3D(sDriven, 10), 200, "driven.stl")
+	render.ToSTL(Extrude3D(sDriver, 10), "driver.stl", render.NewMarchingCubesOctree(200))
+	render.ToSTL(Extrude3D(sDriven, 10), "driven.stl", render.NewMarchingCubesOctree(200))
 	return nil
 }
 
@@ -524,14 +524,14 @@ func test37() error {
 	if err != nil {
 		return err
 	}
-	render.RenderSTL(s, 400, "screw.stl")
+	render.ToSTL(s, "screw.stl", render.NewMarchingCubesOctree(400))
 	return nil
 }
 
 func test39() error {
 	s0 := NewFlange1(30, 20, 10)
 	s1 := Extrude3D(s0, 5)
-	render.RenderSTL(s1, 200, "flange.stl")
+	render.ToSTL(s1, "flange.stl", render.NewMarchingCubesOctree(200))
 	return nil
 }
 
@@ -549,7 +549,7 @@ func test40() error {
 	s1 = Transform3D(s1, Translate3d(v3.Vec{0, 0, wall / 2}))
 	s := Difference3D(s0, s1)
 	s.(*DifferenceSDF3).SetMax(PolyMax(2))
-	render.RenderSTL(s, 200, "rounded_box.stl")
+	render.ToSTL(s, "rounded_box.stl", render.NewMarchingCubesOctree(200))
 	return nil
 }
 
@@ -563,7 +563,7 @@ func test41() error {
 	if err != nil {
 		return err
 	}
-	render.RenderSTL(s2, 200, "ellipsoid_egg.stl")
+	render.ToSTL(s2, "ellipsoid_egg.stl", render.NewMarchingCubesOctree(200))
 	return nil
 }
 
@@ -574,7 +574,7 @@ func test43() error {
 	if err != nil {
 		return err
 	}
-	render.RenderSTL(s1, 300, "cut2d.stl")
+	render.ToSTL(s1, "cut2d.stl", render.NewMarchingCubesOctree(300))
 	return nil
 }
 
@@ -592,7 +592,7 @@ func test44() error {
 	if err != nil {
 		return err
 	}
-	render.RenderSTL(s2, 300, "loft.stl")
+	render.ToSTL(s2, "loft.stl", render.NewMarchingCubesOctree(300))
 	return err
 }
 
@@ -616,7 +616,7 @@ func test50() error {
 	if err != nil {
 		return err
 	}
-	render.RenderSTL(s, 300, "washer.stl")
+	render.ToSTL(s, "washer.stl", render.NewMarchingCubesOctree(300))
 	return nil
 }
 
@@ -625,7 +625,7 @@ func test51() error {
 	if err != nil {
 		return err
 	}
-	render.RenderSTL(s, 300, "standard_pipe.stl")
+	render.ToSTL(s, "standard_pipe.stl", render.NewMarchingCubesOctree(300))
 	return nil
 }
 

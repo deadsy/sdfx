@@ -175,9 +175,9 @@ func subtractive() sdf.SDF3 {
 //-----------------------------------------------------------------------------
 
 func main() {
-	render.RenderSTL(clip(), 300, "clip.stl")
+	render.ToSTL(clip(), "clip.stl", render.NewMarchingCubesOctree(300))
 	s := sdf.Difference3D(additive(), subtractive())
-	render.RenderSTL(s, 300, "holder.stl")
+	render.ToSTL(s, "holder.stl", render.NewMarchingCubesOctree(300))
 }
 
 //-----------------------------------------------------------------------------

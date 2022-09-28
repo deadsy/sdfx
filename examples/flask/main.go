@@ -300,20 +300,23 @@ func main() {
 		// rotate for the preferred print orientation
 		s = sdf.Transform3D(s, sdf.RotateX(-sdf.DtoR(sideDraft)))
 		name := fmt.Sprintf("flask_%d.stl", int(w))
-		render.RenderSTL(sdf.ScaleUniform3D(s, shrink), 300, name)
+		s = sdf.ScaleUniform3D(s, shrink)
+		render.ToSTL(s, name, render.NewMarchingCubesOctree(300))
 	}
 
 	pinLugs, err := pinLugs()
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.RenderSTL(sdf.ScaleUniform3D(pinLugs, shrink), 120, "pins.stl")
+	pinLugs = sdf.ScaleUniform3D(pinLugs, shrink)
+	render.ToSTL(pinLugs, "pins.stl", render.NewMarchingCubesOctree(120))
 
 	oddSide, err := oddSide(height)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.RenderSTL(sdf.ScaleUniform3D(oddSide, shrink), 300, "odd_side.stl")
+	oddSide = sdf.ScaleUniform3D(oddSide, shrink)
+	render.ToSTL(oddSide, "odd_side.stl", render.NewMarchingCubesOctree(300))
 }
 
 //-----------------------------------------------------------------------------

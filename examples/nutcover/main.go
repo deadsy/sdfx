@@ -75,7 +75,7 @@ func main() {
 	}
 	// un-comment for a cut-away view
 	//s = sdf.Cut3D(s, v3.Vec{0, 0, 0}, v3.Vec{1, 0, 0})
-	render.RenderSTL(s, 150, "cover.stl")
+	render.ToSTL(s, "cover.stl", render.NewMarchingCubesOctree(150))
 }
 
 //-----------------------------------------------------------------------------

@@ -42,7 +42,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	render.RenderSTL(s3d, 600, "shape.stl")
+	render.ToSTL(s3d, "shape.stl", render.NewMarchingCubesOctree(600))
 }
 
 //-----------------------------------------------------------------------------

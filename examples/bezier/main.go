@@ -39,7 +39,7 @@ func bowlingPin() error {
 	if err != nil {
 		return err
 	}
-	render.RenderSTL(s1, 300, "bowlingpin.stl")
+	render.ToSTL(s1, "bowlingpin.stl", render.NewMarchingCubesOctree(300))
 	return nil
 }
 
@@ -63,7 +63,7 @@ func egg1() error {
 	if err != nil {
 		return err
 	}
-	render.RenderSTL(s1, 300, "egg1.stl")
+	render.ToSTL(s1, "egg1.stl", render.NewMarchingCubesOctree(300))
 	return nil
 }
 
@@ -91,7 +91,7 @@ func egg2() error {
 	if err != nil {
 		return err
 	}
-	render.RenderSTL(s1, 300, "egg2.stl")
+	render.ToSTL(s1, "egg2.stl", render.NewMarchingCubesOctree(300))
 	return nil
 }
 
@@ -141,7 +141,7 @@ func bowl() error {
 	if err != nil {
 		return err
 	}
-	render.RenderSTL(s1, 300, "bowl.stl")
+	render.ToSTL(s1, "bowl.stl", render.NewMarchingCubesOctree(300))
 	return nil
 }
 
@@ -189,7 +189,8 @@ func vase() error {
 	if err != nil {
 		return err
 	}
-	render.RenderSTL(s1, 300, "vase.stl")
+	render.ToSTL(s1, "vase.stl", render.NewMarchingCubesOctree(300))
+
 	return nil
 }
 
@@ -369,7 +370,8 @@ func shape() error {
 	if err != nil {
 		return err
 	}
-	render.RenderSTL(s3d, 300, "shape.stl")
+	render.ToSTL(s3d, "shape.stl", render.NewMarchingCubesOctree(300))
+
 	return nil
 }
 
