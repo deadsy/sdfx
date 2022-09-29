@@ -11,6 +11,7 @@ Convert an SDF2 boundary to a set of line segments.
 package render
 
 import (
+	"fmt"
 	"math"
 
 	"github.com/deadsy/sdfx/sdf"
@@ -73,12 +74,15 @@ func (l *lineCache) get(x, y int) float64 {
 
 //-----------------------------------------------------------------------------
 
-func marchingSquares(s sdf.SDF2, box sdf.Box2, step float64) []*Line {
+func marchingSquares(s sdf.SDF2, resolution float64) []*Line {
+	// Scale the bounding box about the center to make sure the boundaries
+	// aren't on the object surface.
+	bb := s.BoundingBox()
+	bb = bb.ScaleAboutCenter(1.01)
 
-	var lines []*Line
-	size := box.Size()
-	base := box.Min
-	steps := conv.V2ToV2i(size.MulScalar(1 / step).Ceil())
+	size := bb.Size()
+	base := bb.Min
+	steps := conv.V2ToV2i(size.MulScalar(1 / resolution).Ceil())
 	inc := size.Div(conv.V2iToV2(steps))
 
 	// create the line cache
@@ -89,6 +93,7 @@ func marchingSquares(s sdf.SDF2, box sdf.Box2, step float64) []*Line {
 	nx, ny := steps.X, steps.Y
 	dx, dy := inc.X, inc.Y
 
+	var lines []*Line
 	var p v2.Vec
 	p.X = base.X
 	for x := 0; x < nx; x++ {
@@ -118,6 +123,34 @@ func marchingSquares(s sdf.SDF2, box sdf.Box2, step float64) []*Line {
 	}
 
 	return lines
+}
+
+//-----------------------------------------------------------------------------
+
+// MarchingSquaresUniform renders using marching squares with uniform area sampling.
+type MarchingSquaresUniform struct {
+	meshCells int // number of cells on the longest axis of bounding box. e.g 200
+}
+
+func NewMarchingSquaresUniform(meshCells int) *MarchingSquaresUniform {
+	return &MarchingSquaresUniform{
+		meshCells: meshCells,
+	}
+}
+
+// Info returns a string describing the rendered area.
+func (r *MarchingSquaresUniform) Info(s sdf.SDF2) string {
+	bbSize := s.BoundingBox().Size()
+	resolution := bbSize.MaxComponent() / float64(r.meshCells)
+	cells := conv.V2ToV2i(bbSize.MulScalar(1 / resolution))
+	return fmt.Sprintf("%dx%d, resolution %.2f", cells.X, cells.Y, resolution)
+}
+
+// Render produces a 2d line mesh over the bounding area of an sdf2.
+func (r *MarchingSquaresUniform) Render(s sdf.SDF2, output chan<- []*Line) {
+	bbSize := s.BoundingBox().Size()
+	resolution := bbSize.MaxComponent() / float64(r.meshCells)
+	output <- marchingSquares(s, resolution)
 }
 
 //-----------------------------------------------------------------------------

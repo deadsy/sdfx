@@ -144,7 +144,7 @@ func marchingSquaresQuadtree(s sdf.SDF2, resolution float64, output chan<- []*Li
 
 //-----------------------------------------------------------------------------
 
-// MarchingSquaresQuadtree renders using marching squares with quadtree space sampling.
+// MarchingSquaresQuadtree renders using marching squares with quadtree area sampling.
 type MarchingSquaresQuadtree struct {
 	meshCells int // number of cells on the longest axis of bounding box. e.g 200
 }
@@ -165,7 +165,6 @@ func (r *MarchingSquaresQuadtree) Info(s sdf.SDF2) string {
 
 // Render produces a 2d line mesh over the bounding area of an sdf2.
 func (r *MarchingSquaresQuadtree) Render(s sdf.SDF2, output chan<- []*Line) {
-	// work out the sampling resolution to use
 	bbSize := s.BoundingBox().Size()
 	resolution := bbSize.MaxComponent() / float64(r.meshCells)
 	marchingSquaresQuadtree(s, resolution, output)

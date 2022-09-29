@@ -1,7 +1,7 @@
 //-----------------------------------------------------------------------------
 /*
 
-SVG Rendering Code
+Output a 2D line set to an SVG file.
 
 */
 //-----------------------------------------------------------------------------
@@ -111,35 +111,5 @@ func WriteSVG(wg *sync.WaitGroup, path, lineStyle string) (chan<- []*Line, error
 
 	return c, nil
 }
-
-//-----------------------------------------------------------------------------
-
-/*
-
-// RenderSVGSlow renders an SDF2 as an SVG file. (uses uniform grid sampling)
-func RenderSVGSlow(
-	s sdf.SDF2, // sdf2 to render
-	meshCells int, // number of cells on the longest axis. e.g 200
-	path string, // path to filename
-	lineStyle string, // SVG line style
-) error {
-	// work out the region we will sample
-	bb0 := s.BoundingBox()
-	bb0Size := bb0.Size()
-	meshInc := bb0Size.MaxComponent() / float64(meshCells)
-	bb1Size := bb0Size.DivScalar(meshInc)
-	bb1Size = bb1Size.Ceil().AddScalar(1)
-	cells := conv.V2ToV2i(bb1Size)
-	bb1Size = bb1Size.MulScalar(meshInc)
-	bb := sdf.NewBox2(bb0.Center(), bb1Size)
-
-	fmt.Printf("rendering %s (%dx%d)\n", path, cells.X, cells.Y)
-
-	// run marching squares to generate the line segments
-	m := marchingSquares(s, bb, meshInc)
-	return SaveSVG(path, lineStyle, m)
-}
-
-*/
 
 //-----------------------------------------------------------------------------
