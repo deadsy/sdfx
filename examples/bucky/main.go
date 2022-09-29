@@ -78,6 +78,7 @@ func main() {
 		log.Fatalf("error: %s", err)
 	}
 	render.ToSTL(s, "icosahedron.stl", render.NewMarchingCubesOctree(300))
+	render.To3MF(s, "icosahedron.3mf", render.NewMarchingCubesOctree(300))
 }
 
 //-----------------------------------------------------------------------------

@@ -55,6 +55,30 @@ func ToSTL(
 
 //-----------------------------------------------------------------------------
 
+// To3MF renders an SDF3 to a 3MF file.
+func To3MF(
+	s sdf.SDF3, // sdf3 to render
+	path string, // path to filename
+	r Render3, // rendering method
+) {
+	fmt.Printf("rendering %s (%s)\n", path, r.Info(s))
+	// write the triangles to a 3MF file
+	var wg sync.WaitGroup
+	output, err := Write3MF(&wg, path)
+	if err != nil {
+		fmt.Printf("%s", err)
+		return
+	}
+	// run the renderer
+	r.Render(s, output)
+	// stop the STL writer reading on the channel
+	close(output)
+	// wait for the file write to complete
+	wg.Wait()
+}
+
+//-----------------------------------------------------------------------------
+
 // ToDXF renders an SDF2 to a DXF file.
 func ToDXF(
 	s sdf.SDF2, // sdf2 to render

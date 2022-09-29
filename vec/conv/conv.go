@@ -16,6 +16,7 @@ import (
 	"github.com/deadsy/sdfx/vec/v2i"
 	v3 "github.com/deadsy/sdfx/vec/v3"
 	"github.com/deadsy/sdfx/vec/v3i"
+	"github.com/hpinc/go3mf"
 )
 
 //-----------------------------------------------------------------------------
@@ -58,6 +59,11 @@ func V2ToV2i(a v2.Vec) v2i.Vec {
 // V3ToV3i converts a 3D float vector to a 3D integer vector.
 func V3ToV3i(a v3.Vec) v3i.Vec {
 	return v3i.Vec{int(a.X), int(a.Y), int(a.Z)}
+}
+
+// V3ToPoint3D converts a 3D float vector to a go3mf 3D vector.
+func V3ToPoint3D(a v3.Vec) go3mf.Point3D {
+	return go3mf.Point3D{float32(a.X), float32(a.Y), float32(a.Z)}
 }
 
 //-----------------------------------------------------------------------------

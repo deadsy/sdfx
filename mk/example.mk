@@ -21,3 +21,4 @@ clean:
 	-rm -f *.png
 	-rm -f *.stl
 	-rm -f *.dxf
+	-rm -f *.3mf
