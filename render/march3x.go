@@ -161,6 +161,7 @@ type MarchingCubesOctree struct {
 	meshCells int // number of cells on the longest axis of bounding box. e.g 200
 }
 
+// NewMarchingCubesOctree returns a Render3 object.
 func NewMarchingCubesOctree(meshCells int) *MarchingCubesOctree {
 	return &MarchingCubesOctree{
 		meshCells: meshCells,

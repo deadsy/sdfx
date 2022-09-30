@@ -149,6 +149,7 @@ type MarchingSquaresQuadtree struct {
 	meshCells int // number of cells on the longest axis of bounding box. e.g 200
 }
 
+// NewMarchingSquaresQuadtree returns a Render2 object.
 func NewMarchingSquaresQuadtree(meshCells int) *MarchingSquaresQuadtree {
 	return &MarchingSquaresQuadtree{
 		meshCells: meshCells,

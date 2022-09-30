@@ -132,6 +132,7 @@ type MarchingSquaresUniform struct {
 	meshCells int // number of cells on the longest axis of bounding box. e.g 200
 }
 
+// NewMarchingSquaresUniform returns a Render2 object.
 func NewMarchingSquaresUniform(meshCells int) *MarchingSquaresUniform {
 	return &MarchingSquaresUniform{
 		meshCells: meshCells,

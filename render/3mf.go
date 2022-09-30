@@ -3,6 +3,19 @@
 
 Output a 3D triangle mesh to a 3MF file.
 
+https://3mf.io/specification/
+
+Notes:
+
+3D manufacturing files (3mf) generally contain meta data about the 3d object.
+The files produced by this code are very basic. They are the equivalent of an
+STL in 3MF format. That is: just the triangle mesh with a default 1mm unit.
+
+File sizes for 3MF are around 7x smaller than an STL with the same mesh.
+
+3MF files are not identical from run to run. 3MF files are a zipped archive.
+The contents of the archive *are* the same but the containing zip file differs.
+
 */
 //-----------------------------------------------------------------------------
 

@@ -8,14 +8,14 @@ A simple CAD package written in Go (https://golang.org/)
 
  * Objects are modelled with 2d and 3d signed distance functions (SDFs).
  * Objects are defined with Go code.
- * Objects are rendered to an STL file to be viewed and/or 3d printed.
+ * Objects are rendered to an STL/3MF file to be viewed and/or 3d printed.
 
 ## How To
  1. See the examples.
  2. Write some Go code to define your own object.
  3. Build and run the Go code.
- 4. Preview the STL output in an STL viewer (e.g. http://www.meshlab.net/)
- 5. Print the STL file if you like it enough.
+ 4. Preview the output in an 3d file viewer (e.g. http://www.meshlab.net/)
+ 5. Print the STL/3MF file if you like it enough.
 
 [SDF Viewer Go](https://github.com/Yeicor/sdf-viewer-go) or [SDFX-UI](https://github.com/Yeicor/sdfx-ui) allow faster development iterations, replacing steps 3 and 4 until the final build.
 
