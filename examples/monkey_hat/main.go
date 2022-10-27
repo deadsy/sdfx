@@ -22,7 +22,7 @@ import (
 
 func monkeyWithHat() (sdf.SDF3, error) {
 	// read the monkey head stl file.
-	file, err := os.OpenFile("monkey.stl", os.O_RDONLY, 0400)
+	file, err := os.OpenFile("../../files/monkey.stl", os.O_RDONLY, 0400)
 	if err != nil {
 		return nil, err
 	}

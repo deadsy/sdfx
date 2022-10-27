@@ -46,11 +46,11 @@ func carveinside(stl string) (sdf.SDF3, error) {
 //-----------------------------------------------------------------------------
 
 func main() {
-	inside, err := carveinside("Utah_teapot_solid.stl")
+	inside, err := carveinside("../../files/teapot.stl")
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.ToSTL(inside, "inside-carved-out.stl", render.NewMarchingCubesOctree(300))
+	render.ToSTL(inside, "inside-carved-out.stl", render.NewMarchingCubesUniform(300))
 }
 
 //-----------------------------------------------------------------------------
