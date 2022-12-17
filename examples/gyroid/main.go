@@ -11,7 +11,6 @@ package main
 
 import (
 	"log"
-	"math"
 	"os"
 
 	"github.com/deadsy/sdfx/obj"
@@ -96,14 +95,16 @@ func gyroidTeapot() (sdf.SDF3, error) {
 
 	min := teapot.BoundingBox().Min
 	max := teapot.BoundingBox().Max
+
 	dimX := max.X - min.X
 	dimY := max.Y - min.Y
 	dimZ := max.Z - min.Z
-	dimMin := math.Min(dimX, math.Min(dimY, dimZ)) // teapot shortest side
 
-	k := dimMin * 0.1 // 10 cycles per shortest side
+	kX := dimX * 0.1 // 10 cycles per side
+	kY := dimY * 0.1 // 10 cycles per side
+	kZ := dimZ * 0.1 // 10 cycles per side
 
-	gyroid, err := sdf.Gyroid3D(v3.Vec{k, k, k})
+	gyroid, err := sdf.Gyroid3D(v3.Vec{kX, kY, kZ})
 	if err != nil {
 		return nil, err
 	}
