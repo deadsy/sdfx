@@ -103,7 +103,7 @@ func gyroidTeapot() (sdf.SDF3, error) {
 
 	k := dimMin * 0.1 // 10 cycles per shortest side
 
-	gyroid, err := sdf.Gyroid3D(v3.Vec{X: k, Y: k, Z: k})
+	gyroid, err := sdf.Gyroid3D(v3.Vec{k, k, k})
 	if err != nil {
 		return nil, err
 	}
