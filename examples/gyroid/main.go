@@ -10,6 +10,7 @@ Gyroid Teapot
 package main
 
 import (
+	"errors"
 	"log"
 	"os"
 
@@ -77,7 +78,10 @@ func gyroidSurface() (sdf.SDF3, error) {
 
 //-----------------------------------------------------------------------------
 
-func gyroidTeapot() (sdf.SDF3, error) {
+func gyroidTeapot(cyclesPerSide uint32) (sdf.SDF3, error) {
+	if cyclesPerSide < 1 {
+		return nil, errors.New("cycles per side could not be zero")
+	}
 
 	stl := "../../files/teapot.stl"
 
@@ -100,9 +104,9 @@ func gyroidTeapot() (sdf.SDF3, error) {
 	dimY := max.Y - min.Y
 	dimZ := max.Z - min.Z
 
-	kX := dimX * 0.1 // 10 cycles per side
-	kY := dimY * 0.1 // 10 cycles per side
-	kZ := dimZ * 0.1 // 10 cycles per side
+	kX := dimX * 1.0 / float64(cyclesPerSide) // cycles per side
+	kY := dimY * 1.0 / float64(cyclesPerSide) // cycles per side
+	kZ := dimZ * 1.0 / float64(cyclesPerSide) // cycles per side
 
 	gyroid, err := sdf.Gyroid3D(v3.Vec{kX, kY, kZ})
 	if err != nil {
@@ -128,7 +132,7 @@ func main() {
 	}
 	render.ToSTL(s1, "gyroid_surface.stl", render.NewMarchingCubesUniform(150))
 
-	s2, err := gyroidTeapot()
+	s2, err := gyroidTeapot(10)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
