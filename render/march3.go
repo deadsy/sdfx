@@ -47,9 +47,11 @@ type evalReq struct {
 	wg  *sync.WaitGroup
 }
 
-var evalProcessCh = make(chan evalReq, 100)
+// Evaluate the SDF for a given XY layer
+func (l *layerYZ) Evaluate(s sdf.SDF3, x int) {
+	var evalProcessCh = make(chan evalReq, 100)
+	defer close(evalProcessCh)
 
-func init() {
 	for i := 0; i < runtime.NumCPU(); i++ {
 		go func() {
 			var i int
@@ -62,10 +64,6 @@ func init() {
 			}
 		}()
 	}
-}
-
-// Evaluate the SDF for a given XY layer
-func (l *layerYZ) Evaluate(s sdf.SDF3, x int) {
 
 	// Swap the layers
 	l.val0, l.val1 = l.val1, l.val0
