@@ -25,7 +25,7 @@ import (
 func gyroidCube() (sdf.SDF3, error) {
 
 	l := 100.0   // cube side
-	k := l * 0.1 // 10 cycles per side
+	k := l * 0.2 // 5 cycles per side
 
 	gyroid, err := sdf.Gyroid3D(v3.Vec{k, k, k})
 	if err != nil {
@@ -42,6 +42,7 @@ func gyroidCube() (sdf.SDF3, error) {
 
 //-----------------------------------------------------------------------------
 
+// gyroidSurface - suitable for printing
 func gyroidSurface() (sdf.SDF3, error) {
 
 	l := 60.0    // cube side
@@ -78,9 +79,9 @@ func gyroidSurface() (sdf.SDF3, error) {
 
 //-----------------------------------------------------------------------------
 
-func gyroidTeapot(cyclesPerSide uint32) (sdf.SDF3, error) {
+func gyroidTeapot(cyclesPerSide int) (sdf.SDF3, error) {
 	if cyclesPerSide < 1 {
-		return nil, errors.New("cycles per side could not be zero")
+		return nil, errors.New("cycles per side should not be <= 0")
 	}
 
 	stl := "../../files/teapot.stl"
@@ -100,13 +101,9 @@ func gyroidTeapot(cyclesPerSide uint32) (sdf.SDF3, error) {
 	min := teapot.BoundingBox().Min
 	max := teapot.BoundingBox().Max
 
-	dimX := max.X - min.X
-	dimY := max.Y - min.Y
-	dimZ := max.Z - min.Z
-
-	kX := dimX * 1.0 / float64(cyclesPerSide) // cycles per side
-	kY := dimY * 1.0 / float64(cyclesPerSide) // cycles per side
-	kZ := dimZ * 1.0 / float64(cyclesPerSide) // cycles per side
+	kX := (max.X - min.X) / float64(cyclesPerSide)
+	kY := (max.Y - min.Y) / float64(cyclesPerSide)
+	kZ := (max.Z - min.Z) / float64(cyclesPerSide)
 
 	gyroid, err := sdf.Gyroid3D(v3.Vec{kX, kY, kZ})
 	if err != nil {
@@ -136,8 +133,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.ToSTL(s2, "gyroid_teapot.stl", render.NewMarchingCubesUniform(50))
-
+	render.ToSTL(s2, "gyroid_teapot.stl", render.NewMarchingCubesUniform(200))
 }
 
 //-----------------------------------------------------------------------------
