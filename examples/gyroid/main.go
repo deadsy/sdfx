@@ -2,6 +2,7 @@
 /*
 
 Gyroid Cubes
+Gyroid Teapot
 
 */
 //-----------------------------------------------------------------------------
@@ -9,8 +10,11 @@ Gyroid Cubes
 package main
 
 import (
+	"errors"
 	"log"
+	"os"
 
+	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
 	v3 "github.com/deadsy/sdfx/vec/v3"
@@ -74,6 +78,46 @@ func gyroidSurface() (sdf.SDF3, error) {
 
 //-----------------------------------------------------------------------------
 
+func gyroidTeapot(cyclesPerSide uint32) (sdf.SDF3, error) {
+	if cyclesPerSide < 1 {
+		return nil, errors.New("cycles per side could not be zero")
+	}
+
+	stl := "../../files/teapot.stl"
+
+	// read the stl file.
+	file, err := os.OpenFile(stl, os.O_RDONLY, 0400)
+	if err != nil {
+		return nil, err
+	}
+
+	// create the SDF from the STL mesh
+	teapot, err := obj.ImportSTL(file, 20, 3, 5)
+	if err != nil {
+		return nil, err
+	}
+
+	min := teapot.BoundingBox().Min
+	max := teapot.BoundingBox().Max
+
+	dimX := max.X - min.X
+	dimY := max.Y - min.Y
+	dimZ := max.Z - min.Z
+
+	kX := dimX * 1.0 / float64(cyclesPerSide) // cycles per side
+	kY := dimY * 1.0 / float64(cyclesPerSide) // cycles per side
+	kZ := dimZ * 1.0 / float64(cyclesPerSide) // cycles per side
+
+	gyroid, err := sdf.Gyroid3D(v3.Vec{kX, kY, kZ})
+	if err != nil {
+		return nil, err
+	}
+
+	return sdf.Intersect3D(teapot, gyroid), nil
+}
+
+//-----------------------------------------------------------------------------
+
 func main() {
 
 	s0, err := gyroidCube()
@@ -87,6 +131,13 @@ func main() {
 		log.Fatalf("error: %s", err)
 	}
 	render.ToSTL(s1, "gyroid_surface.stl", render.NewMarchingCubesUniform(150))
+
+	s2, err := gyroidTeapot(10)
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	render.ToSTL(s2, "gyroid_teapot.stl", render.NewMarchingCubesUniform(50))
+
 }
 
 //-----------------------------------------------------------------------------
