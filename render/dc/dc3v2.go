@@ -78,7 +78,7 @@ func (dc *DualContouringV2) Info(s sdf.SDF3) string {
 }
 
 // Render produces a 3d triangle mesh over the bounding volume of an sdf3.
-func (dc *DualContouringV2) Render(sdf3 sdf.SDF3, output chan<- *render.Triangle3) {
+func (dc *DualContouringV2) Render(sdf3 sdf.SDF3, output chan<- []*render.Triangle3) {
 	// Place one vertex for each cellIndex
 	_, cells := dc.getCells(sdf3)
 	s2 := &dcSdf{sdf3, map[v3.Vec]float64{}}
@@ -287,7 +287,7 @@ func (dc *DualContouringV2) computeCornersInside(s *dcSdf, cellStart v3.Vec, cel
 	return inside
 }
 
-func (dc *DualContouringV2) generateTriangles(s *dcSdf, vertices []v3.Vec, info []*dcVoxelInfo, infoI map[v3i.Vec]*dcVoxelInfo, output chan<- *render.Triangle3) {
+func (dc *DualContouringV2) generateTriangles(s *dcSdf, vertices []v3.Vec, info []*dcVoxelInfo, infoI map[v3i.Vec]*dcVoxelInfo, output chan<- []*render.Triangle3) {
 	for _, voxelInfo := range info {
 		k0 := voxelInfo.bufIndex // k0 is the vertex (index) of this voxel, which will be connected to others
 		cellIndex := voxelInfo.cellIndex
@@ -326,21 +326,18 @@ func (dc *DualContouringV2) generateTriangles(s *dcSdf, vertices []v3.Vec, info 
 			}
 
 			// Define triangles
-			t0 := &render.Triangle3{V: [3]v3.Vec{vertices[k0], vertices[k1.bufIndex], vertices[k3.bufIndex]}}
-			t1 := &render.Triangle3{V: [3]v3.Vec{vertices[k0], vertices[k3.bufIndex], vertices[k2.bufIndex]}}
+			t := make([]*render.Triangle3, 0)
+			t = append(t, &render.Triangle3{V: [3]v3.Vec{vertices[k0], vertices[k1.bufIndex], vertices[k3.bufIndex]}})
+			t = append(t, &render.Triangle3{V: [3]v3.Vec{vertices[k0], vertices[k3.bufIndex], vertices[k2.bufIndex]}})
 
 			// Get the normals right:
 			if ((inside >> edge.X) & 1) != uint8(ai&1) { // xor
-				t0 = dcFlip(t0)
-				t1 = dcFlip(t1)
+				t[0] = dcFlip(t[0])
+				t[1] = dcFlip(t[1])
 			}
-
 			// Output built triangles (if not degenerate)
-			if !t0.Degenerate(0) {
-				output <- t0
-			}
-			if !t1.Degenerate(0) {
-				output <- t1
+			if !t[0].Degenerate(0) && !t[1].Degenerate(0) {
+				output <- t
 			}
 		}
 	}
