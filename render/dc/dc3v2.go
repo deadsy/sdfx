@@ -72,7 +72,7 @@ func NewDualContouringV2(farAway float64, centerPush float64, raycastScaleAndSig
 }
 
 // Info returns a string describing the rendered volume.
-func (dc *DualContouringV2) Info(s sdf.SDF3, meshCells int) string {
+func (dc *DualContouringV2) Info(s sdf.SDF3) string {
 	resolution, cells := dc.getCells(s)
 	return fmt.Sprintf("%dx%dx%d, resolution %.2f", cells.X, cells.Y, cells.Z, resolution)
 }
