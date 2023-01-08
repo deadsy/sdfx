@@ -78,7 +78,7 @@ func (dc *DualContouringV2) Info(s sdf.SDF3) string {
 }
 
 // Render produces a 3d triangle mesh over the bounding volume of an sdf3.
-func (dc *DualContouringV2) Render(s sdf.SDF3, meshCells int, output chan<- *render.Triangle3) {
+func (dc *DualContouringV2) Render(s sdf.SDF3, output chan<- *render.Triangle3) {
 	// Place one vertex for each cellIndex
 	_, cells := dc.getCells(s)
 	s2 := &dcSdf{s, map[v3.Vec]float64{}}
