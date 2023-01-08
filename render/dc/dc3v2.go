@@ -80,8 +80,8 @@ func (dc *DualContouringV2) Info(s sdf.SDF3) string {
 // Render produces a 3d triangle mesh over the bounding volume of an sdf3.
 func (dc *DualContouringV2) Render(sdf3 sdf.SDF3, output chan<- *render.Triangle3) {
 	// Place one vertex for each cellIndex
-	_, cells := dc.getCells(s)
-	s2 := &dcSdf{s, map[v3.Vec]float64{}}
+	_, cells := dc.getCells(sdf3)
+	s2 := &dcSdf{sdf3, map[v3.Vec]float64{}}
 	vertexBuffer, vertexVoxelInfo, vertexVoxelInfoIndexed := dc.placeVertices(s2, cells)
 	// Stitch vertices together generating triangles
 	dc.generateTriangles(s2, vertexBuffer, vertexVoxelInfo, vertexVoxelInfoIndexed, output)
