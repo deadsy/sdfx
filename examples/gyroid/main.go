@@ -2,6 +2,7 @@
 /*
 
 Gyroid Cubes
+Gyroid Teapot
 
 */
 //-----------------------------------------------------------------------------
@@ -9,8 +10,11 @@ Gyroid Cubes
 package main
 
 import (
+	"errors"
 	"log"
+	"os"
 
+	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
 	v3 "github.com/deadsy/sdfx/vec/v3"
@@ -21,7 +25,7 @@ import (
 func gyroidCube() (sdf.SDF3, error) {
 
 	l := 100.0   // cube side
-	k := l * 0.1 // 10 cycles per side
+	k := l * 0.2 // 5 cycles per side
 
 	gyroid, err := sdf.Gyroid3D(v3.Vec{k, k, k})
 	if err != nil {
@@ -38,6 +42,7 @@ func gyroidCube() (sdf.SDF3, error) {
 
 //-----------------------------------------------------------------------------
 
+// gyroidSurface - suitable for printing
 func gyroidSurface() (sdf.SDF3, error) {
 
 	l := 60.0    // cube side
@@ -74,6 +79,42 @@ func gyroidSurface() (sdf.SDF3, error) {
 
 //-----------------------------------------------------------------------------
 
+func gyroidTeapot(cyclesPerSide int) (sdf.SDF3, error) {
+	if cyclesPerSide < 1 {
+		return nil, errors.New("cycles per side should not be <= 0")
+	}
+
+	stl := "../../files/teapot.stl"
+
+	// read the stl file.
+	file, err := os.OpenFile(stl, os.O_RDONLY, 0400)
+	if err != nil {
+		return nil, err
+	}
+
+	// create the SDF from the STL mesh
+	teapot, err := obj.ImportSTL(file, 20, 3, 5)
+	if err != nil {
+		return nil, err
+	}
+
+	min := teapot.BoundingBox().Min
+	max := teapot.BoundingBox().Max
+
+	kX := (max.X - min.X) / float64(cyclesPerSide)
+	kY := (max.Y - min.Y) / float64(cyclesPerSide)
+	kZ := (max.Z - min.Z) / float64(cyclesPerSide)
+
+	gyroid, err := sdf.Gyroid3D(v3.Vec{kX, kY, kZ})
+	if err != nil {
+		return nil, err
+	}
+
+	return sdf.Intersect3D(teapot, gyroid), nil
+}
+
+//-----------------------------------------------------------------------------
+
 func main() {
 
 	s0, err := gyroidCube()
@@ -87,6 +128,12 @@ func main() {
 		log.Fatalf("error: %s", err)
 	}
 	render.ToSTL(s1, "gyroid_surface.stl", render.NewMarchingCubesUniform(150))
+
+	s2, err := gyroidTeapot(10)
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	render.ToSTL(s2, "gyroid_teapot.stl", render.NewMarchingCubesUniform(200))
 }
 
 //-----------------------------------------------------------------------------
