@@ -24,22 +24,8 @@ import (
 
 //-----------------------------------------------------------------------------
 
-type layerYZ struct {
-	base  v3.Vec    // base coordinate of layer
-	inc   v3.Vec    // dx, dy, dz for each step
-	steps v3i.Vec   // number of x,y,z steps
-	val0  []float64 // SDF values for x layer
-	val1  []float64 // SDF values for x + dx layer
-}
-
-func newLayerYZ(base, inc v3.Vec, steps v3i.Vec) *layerYZ {
-	return &layerYZ{base, inc, steps, nil, nil}
-}
-
 // evalReq is used for processing evaluations in parallel.
-//
-// A slice of V3 is run through `fn`; the result of which
-// is stored in the corresponding index of the `out` slice.
+// A slice of V3 is evaluated with fn, the result is stored in out.
 type evalReq struct {
 	out []float64
 	p   []v3.Vec
@@ -49,7 +35,8 @@ type evalReq struct {
 
 var evalProcessCh = make(chan evalReq, 100)
 
-func init() {
+// evalRoutines starts a set of concurrent evaluation routines.
+func evalRoutines() {
 	for i := 0; i < runtime.NumCPU(); i++ {
 		go func() {
 			var i int
@@ -62,6 +49,20 @@ func init() {
 			}
 		}()
 	}
+}
+
+//-----------------------------------------------------------------------------
+
+type layerYZ struct {
+	base  v3.Vec    // base coordinate of layer
+	inc   v3.Vec    // dx, dy, dz for each step
+	steps v3i.Vec   // number of x,y,z steps
+	val0  []float64 // SDF values for x layer
+	val1  []float64 // SDF values for x + dx layer
+}
+
+func newLayerYZ(base, inc v3.Vec, steps v3i.Vec) *layerYZ {
+	return &layerYZ{base, inc, steps, nil, nil}
 }
 
 // Evaluate the SDF for a given XY layer
@@ -79,7 +80,6 @@ func (l *layerYZ) Evaluate(s sdf.SDF3, x int) {
 	}
 
 	// setup the loop variables
-	idx := 0
 	var p v3.Vec
 	p.X = l.base.X + float64(x)*dx
 
@@ -107,7 +107,6 @@ func (l *layerYZ) Evaluate(s sdf.SDF3, x int) {
 				eReq.out = eReq.out[batchSize:]       // shift the output slice for processing
 				eReq.p = make([]v3.Vec, 0, batchSize) // create a new slice for the next batch
 			}
-			idx++
 			p.Z += dz
 		}
 		p.Y += dy
@@ -140,6 +139,9 @@ func marchingCubes(s sdf.SDF3, box sdf.Box3, step float64) []*Triangle3 {
 	base := box.Min
 	steps := conv.V3ToV3i(size.DivScalar(step).Ceil())
 	inc := size.Div(conv.V3iToV3(steps))
+
+	// start the evaluation routines
+	evalRoutines()
 
 	// create the SDF layer cache
 	l := newLayerYZ(base, inc, steps)
