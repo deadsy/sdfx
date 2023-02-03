@@ -29,8 +29,9 @@ func drain4() (sdf.SDF3, error) {
 		CoverThickness: 0.2 * sdf.MillimetresPerInch,
 		GrateNumber:    8,
 		GrateWidth:     1.1,
-		CrossBarWidth:  0.8,
 		GrateDraft:     sdf.DtoR(8.0),
+		CrossBarWidth:  0.8,
+		CrossBarWeb:    false,
 	}
 	return obj.DrainCover(k)
 }
@@ -46,8 +47,9 @@ func drain12() (sdf.SDF3, error) {
 		CoverThickness: 0.3 * sdf.MillimetresPerInch,
 		GrateNumber:    10,
 		GrateWidth:     1.0,
-		CrossBarWidth:  1.5,
 		GrateDraft:     sdf.DtoR(8.0),
+		CrossBarWidth:  1.5,
+		CrossBarWeb:    true,
 	}
 	return obj.DrainCover(k)
 }

@@ -3,8 +3,8 @@
 
 Drain Covers
 
-This code implements a parametric drain cover. Draft angles are used so a
-3d printed cover can be used as a sand casting pattern.
+This code implements a parametric drain cover. Draft angles are implemented so a
+3D printed model can be used as a sand casting pattern.
 
 */
 //-----------------------------------------------------------------------------
@@ -29,10 +29,11 @@ type DrainCoverParms struct {
 	OuterWidth     float64 // extra width beyond the wall
 	InnerWidth     float64 // width between inner wall and grate field
 	CoverThickness float64 // thickness of the drain cover
-	GrateNumber    int     // number of grate holes
-	GrateWidth     float64 // width of the grate hole
+	GrateNumber    int     // number of grate slots
+	GrateWidth     float64 // multiple of inter-slot gap
+	GrateDraft     float64 // draft angle of grate slots (radians)
 	CrossBarWidth  float64 // multiple of InnerWidth
-	GrateDraft     float64 // draft angle of grates (radians)
+	CrossBarWeb    bool    // add a reinforcing crossbar web
 }
 
 //-----------------------------------------------------------------------------
@@ -138,12 +139,47 @@ func dcGrateCrossBar(k *DrainCoverParms) (sdf.SDF3, error) {
 	return sdf.Union3D(g0, g1), nil
 }
 
+func dcCrossWeb(k *DrainCoverParms) (sdf.SDF3, error) {
+
+	l := k.WallDiameter - k.WallThickness
+	x := k.WallHeight * 0.6
+	y := k.WallThickness * 0.5
+	dy := 0.5 * x * math.Tan(k.WallDraft)
+
+	// build the 2d profile
+	p := sdf.NewPolygon()
+	p.Add(0, 0)
+	p.Add(0, y+dy)
+	p.Add(x, y-dy).Smooth(0.25*k.WallThickness, 4)
+	p.Add(x, -y+dy).Smooth(0.25*k.WallThickness, 4)
+	p.Add(0, -y-dy)
+
+	s, err := sdf.Polygon2D(p.Vertices())
+	if err != nil {
+		return nil, err
+	}
+
+	web := sdf.Extrude3D(s, l)
+	web = sdf.Transform3D(web, sdf.RotateY(sdf.DtoR(-90)))
+	web = sdf.Transform3D(web, sdf.Translate3d(v3.Vec{0, 0, k.CoverThickness}))
+	return web, nil
+}
+
 // DrainCover returns a grated drain pipe cover.
 func DrainCover(k *DrainCoverParms) (sdf.SDF3, error) {
 
 	body, err := dcBody(k)
 	if err != nil {
 		return nil, err
+	}
+
+	if k.CrossBarWeb && k.CrossBarWidth != 0 {
+		web, err := dcCrossWeb(k)
+		if err != nil {
+			return nil, err
+		}
+		body = sdf.Union3D(body, web)
+		body.(*sdf.UnionSDF3).SetMin(sdf.PolyMin(k.WallThickness))
 	}
 
 	var grate sdf.SDF3
