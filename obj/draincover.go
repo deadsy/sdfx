@@ -141,7 +141,7 @@ func dcGrateCrossBar(k *DrainCoverParms) (sdf.SDF3, error) {
 
 func dcCrossWeb(k *DrainCoverParms) (sdf.SDF3, error) {
 
-	l := k.WallDiameter - k.WallThickness
+	l := k.WallDiameter - (2.0 * k.WallThickness)
 	x := k.WallHeight * 0.6
 	y := k.WallThickness * 0.5
 	dy := 0.5 * x * math.Tan(k.WallDraft)
