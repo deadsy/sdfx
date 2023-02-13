@@ -25,9 +25,16 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/deadsy/sdfx/vec/conv"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 	"github.com/hpinc/go3mf"
 )
+
+//-----------------------------------------------------------------------------
+
+// toPoint3D converts a 3D float vector to a go3mf 3D vector.
+func toPoint3D(a v3.Vec) go3mf.Point3D {
+	return go3mf.Point3D{float32(a.X), float32(a.Y), float32(a.Z)}
+}
 
 //-----------------------------------------------------------------------------
 
@@ -62,9 +69,9 @@ func Write3MF(wg *sync.WaitGroup, path string) (chan<- []*Triangle3, error) {
 		// read triangles from the channel and add them to the model
 		for ts := range c {
 			for _, t := range ts {
-				v1 := mb.AddVertex(V3ToPoint3D(t.V[0]))
-				v2 := mb.AddVertex(V3ToPoint3D(t.V[1]))
-				v3 := mb.AddVertex(V3ToPoint3D(t.V[2]))
+				v1 := mb.AddVertex(toPoint3D(t.V[0]))
+				v2 := mb.AddVertex(toPoint3D(t.V[1]))
+				v3 := mb.AddVertex(toPoint3D(t.V[2]))
 				mesh.Triangles.Triangle = append(mesh.Triangles.Triangle, go3mf.Triangle{V1: v1, V2: v2, V3: v3})
 			}
 		}
@@ -76,11 +83,6 @@ func Write3MF(wg *sync.WaitGroup, path string) (chan<- []*Triangle3, error) {
 	}()
 
 	return c, nil
-}
-
-// V3ToPoint3D converts a 3D float vector to a go3mf 3D vector.
-func V3ToPoint3D(a v3.Vec) go3mf.Point3D {
-	return go3mf.Point3D{float32(a.X), float32(a.Y), float32(a.Z)}
 }
 
 //-----------------------------------------------------------------------------
