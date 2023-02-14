@@ -7,6 +7,7 @@ import (
 )
 
 // Writes a stream of triangles, keeping only the raw vertex buffer.
+// Every three consecutive vertices on the vertex buffer is corresponding to a triangle.
 //
 // Pass slice by pointer. Because the function adds new elements to the slice,
 // that requires changing the slice header, which the caller will not see.
