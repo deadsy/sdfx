@@ -13,6 +13,7 @@ import (
 	"sync"
 
 	"github.com/deadsy/sdfx/sdf"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
@@ -30,6 +31,30 @@ type Render2 interface {
 }
 
 //-----------------------------------------------------------------------------
+
+// Renders an SDF3 to a triangle mesh and returns the vertexes.
+func ToVertexes(
+	s sdf.SDF3, // sdf3 to render
+	r Render3, // rendering method
+) []v3.Vec {
+	vertexes := make([]v3.Vec, 0)
+
+	var wg sync.WaitGroup
+
+	// Write the triangles to corresponding vertices.
+	writer := writeVertexes(&wg, &vertexes)
+
+	// Run the renderer.
+	r.Render(s, writer)
+
+	// Stop the writer reading on the channel.
+	close(writer)
+
+	// Wait for the write to complete.
+	wg.Wait()
+
+	return vertexes
+}
 
 // ToSTL renders an SDF3 to an STL file.
 func ToSTL(
