@@ -33,6 +33,7 @@ type Render2 interface {
 //-----------------------------------------------------------------------------
 
 // Renders an SDF3 to a triangle mesh and returns the vertex buffer.
+// Every three consecutive vertices on the vertex buffer is corresponding to a triangle.
 func ToVertices(
 	s sdf.SDF3, // sdf3 to render
 	r Render3, // rendering method
