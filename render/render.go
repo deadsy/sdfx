@@ -32,17 +32,17 @@ type Render2 interface {
 
 //-----------------------------------------------------------------------------
 
-// Renders an SDF3 to a triangle mesh and returns the vertexes.
-func ToVertexes(
+// Renders an SDF3 to a triangle mesh and returns the vertex buffer.
+func ToVertices(
 	s sdf.SDF3, // sdf3 to render
 	r Render3, // rendering method
 ) []v3.Vec {
-	vertexes := make([]v3.Vec, 0)
+	vertices := make([]v3.Vec, 0)
 
 	var wg sync.WaitGroup
 
 	// Write the triangles to corresponding vertices.
-	writer := writeVertexes(&wg, &vertexes)
+	writer := writeVertices(&wg, &vertices)
 
 	// Run the renderer.
 	r.Render(s, writer)
@@ -53,7 +53,7 @@ func ToVertexes(
 	// Wait for the write to complete.
 	wg.Wait()
 
-	return vertexes
+	return vertices
 }
 
 // ToSTL renders an SDF3 to an STL file.
