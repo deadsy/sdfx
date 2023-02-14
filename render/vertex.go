@@ -20,19 +20,10 @@ func writeVertexes(wg *sync.WaitGroup, vertexes *[]v3.Vec) chan<- []*Triangle3 {
 	go func() {
 		defer wg.Done()
 
-		// Triangle corners.
-		// Pre-initialize to make the next loop faster.
-		var a v3.Vec
-		var b v3.Vec
-		var c v3.Vec
-
-		// Read triangles from the channel and write them to vertices
+		// Read triangles from the channel and write their vertices
 		for ts := range writer {
 			for _, t := range ts {
-				a = t.V[0]
-				b = t.V[1]
-				c = t.V[2]
-				*vertexes = append(*vertexes, a, b, c)
+				*vertexes = append(*vertexes, t.V[0], t.V[1], t.V[2])
 			}
 		}
 	}()
