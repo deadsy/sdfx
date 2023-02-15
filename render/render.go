@@ -31,29 +31,26 @@ type Render2 interface {
 
 //-----------------------------------------------------------------------------
 
-// Renders an SDF3 to a triangle mesh.
+// ToTriangles renders an SDF3 to a triangle mesh.
 func ToTriangles(
 	s sdf.SDF3, // sdf3 to render
 	r Render3, // rendering method
 ) []Triangle3 {
 	triangles := make([]Triangle3, 0)
-
 	var wg sync.WaitGroup
-
 	// To write the triangles.
-	writer := writeTriangles(&wg, &triangles)
-
+	output := writeTriangles(&wg, &triangles)
 	// Run the renderer.
-	r.Render(s, writer)
-
+	r.Render(s, output)
 	// Stop the writer reading on the channel.
-	close(writer)
-
+	close(output)
 	// Wait for the write to complete.
 	wg.Wait()
-
+	// return all the triangles
 	return triangles
 }
+
+//-----------------------------------------------------------------------------
 
 // ToSTL renders an SDF3 to an STL file.
 func ToSTL(
@@ -64,7 +61,7 @@ func ToSTL(
 	fmt.Printf("rendering %s (%s)\n", path, r.Info(s))
 	// write the triangles to an STL file
 	var wg sync.WaitGroup
-	output, err := WriteSTL(&wg, path)
+	output, err := writeSTL(&wg, path)
 	if err != nil {
 		fmt.Printf("%s", err)
 		return
@@ -88,7 +85,7 @@ func To3MF(
 	fmt.Printf("rendering %s (%s)\n", path, r.Info(s))
 	// write the triangles to a 3MF file
 	var wg sync.WaitGroup
-	output, err := Write3MF(&wg, path)
+	output, err := write3MF(&wg, path)
 	if err != nil {
 		fmt.Printf("%s", err)
 		return
@@ -112,7 +109,7 @@ func ToDXF(
 	fmt.Printf("rendering %s (%s)\n", path, r.Info(s))
 	// write the line segments to a DXF file
 	var wg sync.WaitGroup
-	output, err := WriteDXF(&wg, path)
+	output, err := writeDXF(&wg, path)
 	if err != nil {
 		fmt.Printf("%s", err)
 		return
@@ -138,7 +135,7 @@ func ToSVG(
 	fmt.Printf("rendering %s (%s)\n", path, r.Info(s))
 	// write the line segments to an SVG file
 	var wg sync.WaitGroup
-	output, err := WriteSVG(&wg, path, svgLineStyle)
+	output, err := writeSVG(&wg, path, svgLineStyle)
 	if err != nil {
 		fmt.Printf("%s", err)
 	}

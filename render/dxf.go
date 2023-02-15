@@ -99,8 +99,8 @@ func SaveDXF(path string, mesh []*Line) error {
 
 //-----------------------------------------------------------------------------
 
-// WriteDXF writes a stream of line segments to a DXF file.
-func WriteDXF(wg *sync.WaitGroup, path string) (chan<- []*Line, error) {
+// writeDXF writes a stream of line segments to a DXF file.
+func writeDXF(wg *sync.WaitGroup, path string) (chan<- []*Line, error) {
 
 	d := NewDXF(path)
 	d.drawing.ChangeLayer("Lines")

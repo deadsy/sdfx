@@ -85,8 +85,8 @@ func SaveSVG(path, lineStyle string, mesh []*Line) error {
 
 //-----------------------------------------------------------------------------
 
-// WriteSVG writes a stream of line segments to an SVG file.
-func WriteSVG(wg *sync.WaitGroup, path, lineStyle string) (chan<- []*Line, error) {
+// writeSVG writes a stream of line segments to an SVG file.
+func writeSVG(wg *sync.WaitGroup, path, lineStyle string) (chan<- []*Line, error) {
 
 	s := NewSVG(path, lineStyle)
 

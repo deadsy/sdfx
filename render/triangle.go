@@ -9,6 +9,8 @@ Triangles
 package render
 
 import (
+	"sync"
+
 	v2 "github.com/deadsy/sdfx/vec/v2"
 	v3 "github.com/deadsy/sdfx/vec/v3"
 )
@@ -55,6 +57,28 @@ func (t *Triangle3) Degenerate(tolerance float64) bool {
 	}
 	// TODO more tests needed
 	return false
+}
+
+//-----------------------------------------------------------------------------
+
+// writeTriangles writes a stream of triangles to a slice.
+func writeTriangles(wg *sync.WaitGroup, triangles *[]Triangle3) chan<- []*Triangle3 {
+	// External code writes triangles to this channel.
+	// This goroutine reads the channel and appends the triangles to a slice.
+	c := make(chan []*Triangle3)
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		// read triangles from the channel and append them to the slice
+		for ts := range c {
+			for _, t := range ts {
+				*triangles = append(*triangles, *t)
+			}
+		}
+	}()
+
+	return c
 }
 
 //-----------------------------------------------------------------------------

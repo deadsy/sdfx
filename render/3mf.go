@@ -38,8 +38,8 @@ func toPoint3D(a v3.Vec) go3mf.Point3D {
 
 //-----------------------------------------------------------------------------
 
-// Write3MF writes a stream of triangles to a 3MF file.
-func Write3MF(wg *sync.WaitGroup, path string) (chan<- []*Triangle3, error) {
+// write3MF writes a stream of triangles to a 3MF file.
+func write3MF(wg *sync.WaitGroup, path string) (chan<- []*Triangle3, error) {
 
 	f, err := go3mf.CreateWriter(path)
 	if err != nil {
