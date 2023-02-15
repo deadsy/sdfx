@@ -13,7 +13,6 @@ import (
 	"sync"
 
 	"github.com/deadsy/sdfx/sdf"
-	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
@@ -32,18 +31,17 @@ type Render2 interface {
 
 //-----------------------------------------------------------------------------
 
-// Renders an SDF3 to a triangle mesh and returns the vertex buffer.
-// Every three consecutive vertices on the vertex buffer is corresponding to a triangle.
-func ToVertices(
+// Renders an SDF3 to a triangle mesh.
+func ToTriangles(
 	s sdf.SDF3, // sdf3 to render
 	r Render3, // rendering method
-) []v3.Vec {
-	vertices := make([]v3.Vec, 0)
+) []Triangle3 {
+	triangles := make([]Triangle3, 0)
 
 	var wg sync.WaitGroup
 
-	// Write the triangles to corresponding vertices.
-	writer := writeVertices(&wg, &vertices)
+	// To write the triangles.
+	writer := writeTriangles(&wg, &triangles)
 
 	// Run the renderer.
 	r.Render(s, writer)
@@ -54,7 +52,7 @@ func ToVertices(
 	// Wait for the write to complete.
 	wg.Wait()
 
-	return vertices
+	return triangles
 }
 
 // ToSTL renders an SDF3 to an STL file.
