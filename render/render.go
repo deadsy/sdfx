@@ -31,6 +31,30 @@ type Render2 interface {
 
 //-----------------------------------------------------------------------------
 
+// Renders an SDF3 to a triangle mesh.
+func ToTriangles(
+	s sdf.SDF3, // sdf3 to render
+	r Render3, // rendering method
+) []Triangle3 {
+	triangles := make([]Triangle3, 0)
+
+	var wg sync.WaitGroup
+
+	// To write the triangles.
+	writer := writeTriangles(&wg, &triangles)
+
+	// Run the renderer.
+	r.Render(s, writer)
+
+	// Stop the writer reading on the channel.
+	close(writer)
+
+	// Wait for the write to complete.
+	wg.Wait()
+
+	return triangles
+}
+
 // ToSTL renders an SDF3 to an STL file.
 func ToSTL(
 	s sdf.SDF3, // sdf3 to render
