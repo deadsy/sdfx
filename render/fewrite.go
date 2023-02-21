@@ -12,8 +12,8 @@ func writeFE(wg *sync.WaitGroup, path string) (chan<- []*Tetrahedron, error) {
 		return nil, err
 	}
 
-	// External code writes triangles to this channel.
-	// This goroutine reads the channel and writes triangles to the file.
+	// External code writes tetrahedra to this channel.
+	// This goroutine reads the channel and writes tetrahedra to the file.
 	c := make(chan []*Tetrahedron)
 
 	wg.Add(1)
@@ -21,7 +21,7 @@ func writeFE(wg *sync.WaitGroup, path string) (chan<- []*Tetrahedron, error) {
 		defer wg.Done()
 		defer f.Close()
 
-		// read finite elements from the channel and write them to the file
+		// read tetrahedra from the channel and write them to the file
 		for ts := range c {
 			for _, t := range ts {
 				_ = t

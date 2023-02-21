@@ -53,14 +53,14 @@ func ToTriangles(
 //-----------------------------------------------------------------------------
 
 // ToFE renders an SDF3 to finite elements in the shape of tetrahedra.
-// Finite elements would then be written to an ABAQUS or CalculiX input file.
+// Tetrahedra would then be written to an ABAQUS or CalculiX input file.
 func ToFE(
 	s sdf.SDF3, // sdf3 to render
 	path string, // path to filename
 	r Render3, // rendering method
 ) {
 	fmt.Printf("rendering %s (%s)\n", path, r.Info(s))
-	// write the finite elements to an ABAQUS or CalculiX file
+	// write the tetrahedra to an ABAQUS or CalculiX file
 	var wg sync.WaitGroup
 	output, err := writeFE(&wg, path)
 	if err != nil {
