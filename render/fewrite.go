@@ -25,6 +25,7 @@ func writeFE(wg *sync.WaitGroup, path string) (chan<- []*Tetrahedron, error) {
 		for ts := range c {
 			for _, t := range ts {
 				_ = t
+				// TODO.
 			}
 		}
 	}()
