@@ -11,6 +11,7 @@ import (
 
 func marchingTetrahedra(s sdf.SDF3, box sdf.Box3, step float64) []*Tetrahedron {
 	// TODO: Logic.
+	fmt.Printf("marching tetrahedra, bbox center: %v , step: %v\n", s.BoundingBox().Center(), step)
 	return nil
 }
 
