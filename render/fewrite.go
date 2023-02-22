@@ -3,7 +3,6 @@ package render
 import (
 	"bufio"
 	"encoding/binary"
-	"fmt"
 	"os"
 	"sync"
 	"time"
@@ -42,8 +41,6 @@ func writeFE(wg *sync.WaitGroup, path string) (chan<- []*Tetrahedron, error) {
 	// write general comments
 	cmnts := InpComments{}
 	copy(cmnts.Text[:], []byte("**\n** Structure: tetrahedral elements of a 3D model.\n**\n"))
-
-	fmt.Println(len(cmnts.Text))
 
 	err = binary.Write(buf, binary.LittleEndian, &cmnts)
 	if err != nil {
