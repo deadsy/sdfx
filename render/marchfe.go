@@ -5,14 +5,39 @@ import (
 
 	"github.com/deadsy/sdfx/sdf"
 	"github.com/deadsy/sdfx/vec/conv"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
 
 func marchingTetrahedra(s sdf.SDF3, box sdf.Box3, step float64) []*Tetrahedron {
-	// TODO: Logic.
 	fmt.Printf("marching tetrahedra, bbox center: %v , step: %v\n", s.BoundingBox().Center(), step)
-	return nil
+	var tetrahedra []*Tetrahedron
+
+	// Constant hard-coded tetrahedra vertices to develop and debug the output API.
+	// https://math.stackexchange.com/a/3311988/197913
+	tetrahedra = append(tetrahedra, &Tetrahedron{
+		V: [4]v3.Vec{{X: 0, Y: 0, Z: 0}, {X: 1, Y: 0, Z: 0}, {X: 1, Y: 1, Z: 0}, {X: 1, Y: 0, Z: 1}},
+	})
+	tetrahedra = append(tetrahedra, &Tetrahedron{
+		V: [4]v3.Vec{{X: 0, Y: 0, Z: 0}, {X: 1, Y: 1, Z: 1}, {X: 1, Y: 1, Z: 0}, {X: 1, Y: 0, Z: 1}},
+	})
+	tetrahedra = append(tetrahedra, &Tetrahedron{
+		V: [4]v3.Vec{{X: 0, Y: 0, Z: 0}, {X: 0, Y: 1, Z: 0}, {X: 1, Y: 1, Z: 0}, {X: 0, Y: 1, Z: 1}},
+	})
+	tetrahedra = append(tetrahedra, &Tetrahedron{
+		V: [4]v3.Vec{{X: 0, Y: 0, Z: 0}, {X: 1, Y: 1, Z: 1}, {X: 1, Y: 1, Z: 0}, {X: 0, Y: 1, Z: 1}},
+	})
+	tetrahedra = append(tetrahedra, &Tetrahedron{
+		V: [4]v3.Vec{{X: 0, Y: 0, Z: 0}, {X: 0, Y: 0, Z: 1}, {X: 0, Y: 1, Z: 1}, {X: 1, Y: 0, Z: 1}},
+	})
+	tetrahedra = append(tetrahedra, &Tetrahedron{
+		V: [4]v3.Vec{{X: 0, Y: 0, Z: 0}, {X: 1, Y: 1, Z: 1}, {X: 0, Y: 1, Z: 1}, {X: 1, Y: 0, Z: 1}},
+	})
+
+	// TODO: Logic.
+
+	return tetrahedra
 }
 
 //-----------------------------------------------------------------------------
