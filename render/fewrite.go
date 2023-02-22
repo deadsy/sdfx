@@ -55,7 +55,7 @@ func writeFE(wg *sync.WaitGroup, path string) (chan<- []*Tetrahedron, error) {
 	copy(hdng.Break0[:], []byte("\n"))
 	copy(hdng.Model[:], []byte("Model: 3D model"))
 	copy(hdng.Tab[:], []byte("\t"))
-	copy(hdng.Date[:], []byte("Date: "+time.Now().UTC().Format("2006-January-02 MST")))
+	copy(hdng.Date[:], []byte("Date: "+time.Now().UTC().Format("2006-Jan-02 MST")))
 	copy(hdng.Break1[:], []byte("\n"))
 
 	err = binary.Write(buf, binary.LittleEndian, &hdng)
