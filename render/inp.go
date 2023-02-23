@@ -16,13 +16,30 @@ type InpComments struct {
 	Text [56]byte // General comments.
 }
 
+func NewInpComments() InpComments {
+	cmnts := InpComments{}
+	copy(cmnts.Text[:], []byte("**\n** Structure: tetrahedral elements of a 3D model.\n**\n"))
+	return cmnts
+}
+
 type InpHeading struct {
 	Title  [8]byte  //
 	Break0 [1]byte  // Line break.
 	Model  [15]byte //
 	Tab    [1]byte  // Tab.
-	Date   [26]byte //
+	Date   [21]byte // Exact size of text.
 	Break1 [1]byte  // Line break.
+}
+
+func NewInpHeading() InpHeading {
+	hdng := InpHeading{}
+	copy(hdng.Title[:], []byte("*HEADING"))
+	copy(hdng.Break0[:], []byte("\n"))
+	copy(hdng.Model[:], []byte("Model: 3D model"))
+	copy(hdng.Tab[:], []byte("\t"))
+	copy(hdng.Date[:], []byte("Date: "+time.Now().UTC().Format("2006-Jan-02 MST")))
+	copy(hdng.Break1[:], []byte("\n"))
+	return hdng
 }
 
 //-----------------------------------------------------------------------------
@@ -38,23 +55,13 @@ func writeFE(wg *sync.WaitGroup, path string) (chan<- []*Tetrahedron, error) {
 	// The default buffer size doesn't appear to limit performance.
 	buf := bufio.NewWriter(f)
 
-	// write general comments
-	cmnts := InpComments{}
-	copy(cmnts.Text[:], []byte("**\n** Structure: tetrahedral elements of a 3D model.\n**\n"))
-
+	cmnts := NewInpComments()
 	err = binary.Write(buf, binary.LittleEndian, &cmnts)
 	if err != nil {
 		return nil, err
 	}
 
-	hdng := InpHeading{}
-	copy(hdng.Title[:], []byte("*HEADING"))
-	copy(hdng.Break0[:], []byte("\n"))
-	copy(hdng.Model[:], []byte("Model: 3D model"))
-	copy(hdng.Tab[:], []byte("\t"))
-	copy(hdng.Date[:], []byte("Date: "+time.Now().UTC().Format("2006-Jan-02 MST")))
-	copy(hdng.Break1[:], []byte("\n"))
-
+	hdng := NewInpHeading()
 	err = binary.Write(buf, binary.LittleEndian, &hdng)
 	if err != nil {
 		return nil, err
