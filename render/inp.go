@@ -10,8 +10,21 @@ import (
 
 // Define the ABAQUS or CalculiX inp file sections.
 
+type Separator struct {
+	Comma byte
+	Space byte
+}
+
+func NewSep() Separator {
+	return Separator{
+		Comma: 0x2C, // Comma ASCII Character in hexadecimal.
+		Space: 0x20, // Space ASCII Character in hexadecimal.
+	}
+}
+
 type InpNode struct {
-	Id uint32 //
+	Id  uint32    //
+	sep Separator //
 }
 
 //-----------------------------------------------------------------------------
