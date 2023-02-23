@@ -9,33 +9,11 @@ import (
 
 //-----------------------------------------------------------------------------
 
-// Define the ABAQUS or CalculiX inp file requirements.
-
-type inpNode struct {
-	Id     uint32  //
-	Comma0 byte    //
-	X      float32 //
-	Comma1 byte    //
-	Y      float32 //
-	Comma2 byte    //
-	Z      float32 //
-}
-
-func newInpNode(id uint32, x, y, z float32) inpNode {
-	return inpNode{
-		Id:     id,
-		Comma0: 0x2C,
-		X:      x,
-		Comma1: 0x2C,
-		Y:      y,
-		Comma2: 0x2C,
-		Z:      z,
-	}
-}
+// Define the ABAQUS or CalculiX inp file requirements, if any.
 
 //-----------------------------------------------------------------------------
 
-// writeFE writes a stream of finite elements in the shape of tetrahedra to an ABAQUS or CalculiX file.
+// writeFE writes a stream of finite elements in the shape of tetrahedra to an ABAQUS or CalculiX `inp` file.
 func writeFE(wg *sync.WaitGroup, path string) (chan<- []*Tetrahedron, error) {
 	f, err := os.Create(path)
 	if err != nil {
