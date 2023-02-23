@@ -36,6 +36,7 @@ type InpHeading struct {
 
 func NewInpHeading() InpHeading {
 	hdng := InpHeading{}
+	// Don't modify any of the following texts. Their sizes matter.
 	copy(hdng.Title[:], []byte("*HEADING"))
 	copy(hdng.Break0[:], []byte("\n"))
 	copy(hdng.Model[:], []byte("Model: 3D model"))
