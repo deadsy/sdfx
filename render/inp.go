@@ -2,7 +2,6 @@ package render
 
 import (
 	"bufio"
-	"encoding/binary"
 	"fmt"
 	"os"
 	"sync"
@@ -72,31 +71,30 @@ func writeFE(wg *sync.WaitGroup, path string) (chan<- []*Tetrahedron, error) {
 		defer f.Close()
 
 		var nodeCount uint32 = 1 // Right, starts with 1
-		var node inpNode         // To avoid memory declaration inside the heavy loop.
 
 		// read tetrahedra from the channel and write them to the file
 		for ts := range c {
 			for _, t := range ts {
-				node = newInpNode(nodeCount, float32(t.V[0].X), float32(t.V[0].Y), float32(t.V[0].Z))
-				if err := binary.Write(buf, binary.LittleEndian, &node); err != nil {
+				_, err = f.WriteString(fmt.Sprintf("%d,%f,%f,%f\n", nodeCount, float32(t.V[0].X), float32(t.V[0].Y), float32(t.V[0].Z)))
+				if err != nil {
 					fmt.Printf("%s\n", err)
 					return
 				}
 				nodeCount++
-				node = newInpNode(nodeCount, float32(t.V[1].X), float32(t.V[1].Y), float32(t.V[1].Z))
-				if err := binary.Write(buf, binary.LittleEndian, &node); err != nil {
+				_, err = f.WriteString(fmt.Sprintf("%d,%f,%f,%f\n", nodeCount, float32(t.V[1].X), float32(t.V[1].Y), float32(t.V[1].Z)))
+				if err != nil {
 					fmt.Printf("%s\n", err)
 					return
 				}
 				nodeCount++
-				node = newInpNode(nodeCount, float32(t.V[2].X), float32(t.V[2].Y), float32(t.V[2].Z))
-				if err := binary.Write(buf, binary.LittleEndian, &node); err != nil {
+				_, err = f.WriteString(fmt.Sprintf("%d,%f,%f,%f\n", nodeCount, float32(t.V[2].X), float32(t.V[2].Y), float32(t.V[2].Z)))
+				if err != nil {
 					fmt.Printf("%s\n", err)
 					return
 				}
 				nodeCount++
-				node = newInpNode(nodeCount, float32(t.V[2].X), float32(t.V[2].Y), float32(t.V[2].Z))
-				if err := binary.Write(buf, binary.LittleEndian, &node); err != nil {
+				_, err = f.WriteString(fmt.Sprintf("%d,%f,%f,%f\n", nodeCount, float32(t.V[2].X), float32(t.V[2].Y), float32(t.V[2].Z)))
+				if err != nil {
 					fmt.Printf("%s\n", err)
 					return
 				}
