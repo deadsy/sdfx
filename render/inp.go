@@ -18,10 +18,10 @@ type InpComments struct {
 	Text [99]byte // Exact size of text.
 }
 
-func NewInpComments() *InpComments {
+func NewInpComments() InpComments {
 	cmnts := InpComments{}
 	copy(cmnts.Text[:], []byte(inpComments))
-	return &cmnts
+	return cmnts
 }
 
 // Don't modify the text. Its size matters.
@@ -63,14 +63,12 @@ func writeFE(wg *sync.WaitGroup, path string) (chan<- []*Tetrahedron, error) {
 	// The default buffer size doesn't appear to limit performance.
 	buf := bufio.NewWriter(f)
 
-	cmnts := NewInpComments()
-	err = binary.Write(buf, binary.LittleEndian, *cmnts)
+	err = binary.Write(buf, binary.LittleEndian, NewInpComments())
 	if err != nil {
 		return nil, err
 	}
 
-	hdng := NewInpHeading()
-	err = binary.Write(buf, binary.LittleEndian, &hdng)
+	err = binary.Write(buf, binary.LittleEndian, NewInpHeading())
 	if err != nil {
 		return nil, err
 	}
