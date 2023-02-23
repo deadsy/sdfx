@@ -26,9 +26,9 @@ func NewInpComments() *InpComments {
 }
 
 type InpHeading struct {
-	Title  [8]byte  //
+	Title  [8]byte  // Exact size of text.
 	Break0 [1]byte  // Line break.
-	Model  [15]byte //
+	Model  [15]byte // Exact size of text.
 	Tab    [1]byte  // Tab.
 	Date   [21]byte // Exact size of text.
 	Break1 [1]byte  // Line break.
