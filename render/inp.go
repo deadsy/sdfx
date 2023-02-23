@@ -2,29 +2,36 @@ package render
 
 import (
 	"bufio"
+	"encoding/binary"
+	"fmt"
 	"os"
 	"sync"
 )
 
 //-----------------------------------------------------------------------------
 
-// Define the ABAQUS or CalculiX inp file sections.
+// Define the ABAQUS or CalculiX inp file requirements.
 
-type Separator struct {
-	Comma byte
-	Space byte
+type inpNode struct {
+	Id     uint32  //
+	Comma0 byte    //
+	X      float32 //
+	Comma1 byte    //
+	Y      float32 //
+	Comma2 byte    //
+	Z      float32 //
 }
 
-func NewSep() Separator {
-	return Separator{
-		Comma: 0x2C, // Comma ASCII Character in hexadecimal.
-		Space: 0x20, // Space ASCII Character in hexadecimal.
+func newInpNode(id uint32, x, y, z float32) inpNode {
+	return inpNode{
+		Id:     id,
+		Comma0: 0x2C,
+		X:      x,
+		Comma1: 0x2C,
+		Y:      y,
+		Comma2: 0x2C,
+		Z:      z,
 	}
-}
-
-type InpNode struct {
-	Id  uint32    //
-	sep Separator //
 }
 
 //-----------------------------------------------------------------------------
@@ -64,11 +71,36 @@ func writeFE(wg *sync.WaitGroup, path string) (chan<- []*Tetrahedron, error) {
 		defer wg.Done()
 		defer f.Close()
 
+		var nodeCount uint32 = 1 // Right, starts with 1
+		var node inpNode         // To avoid memory declaration inside the heavy loop.
+
 		// read tetrahedra from the channel and write them to the file
 		for ts := range c {
 			for _, t := range ts {
-				_ = t
-				// TODO.
+				node = newInpNode(nodeCount, float32(t.V[0].X), float32(t.V[0].Y), float32(t.V[0].Z))
+				if err := binary.Write(buf, binary.LittleEndian, &node); err != nil {
+					fmt.Printf("%s\n", err)
+					return
+				}
+				nodeCount++
+				node = newInpNode(nodeCount, float32(t.V[1].X), float32(t.V[1].Y), float32(t.V[1].Z))
+				if err := binary.Write(buf, binary.LittleEndian, &node); err != nil {
+					fmt.Printf("%s\n", err)
+					return
+				}
+				nodeCount++
+				node = newInpNode(nodeCount, float32(t.V[2].X), float32(t.V[2].Y), float32(t.V[2].Z))
+				if err := binary.Write(buf, binary.LittleEndian, &node); err != nil {
+					fmt.Printf("%s\n", err)
+					return
+				}
+				nodeCount++
+				node = newInpNode(nodeCount, float32(t.V[2].X), float32(t.V[2].Y), float32(t.V[2].Z))
+				if err := binary.Write(buf, binary.LittleEndian, &node); err != nil {
+					fmt.Printf("%s\n", err)
+					return
+				}
+				nodeCount++
 			}
 		}
 
