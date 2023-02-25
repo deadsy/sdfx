@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"sync"
+	"time"
 )
 
 //-----------------------------------------------------------------------------
@@ -29,7 +30,7 @@ func writeFE(wg *sync.WaitGroup, path string) (chan<- []*Tetrahedron, error) {
 		return nil, err
 	}
 
-	_, err = f.WriteString("*HEADING\nModel: 3D model Date: N/A\n")
+	_, err = f.WriteString("*HEADING\nModel: 3D model Date: " + time.Now().UTC().Format("2006-Jan-02 MST") + "\n")
 	if err != nil {
 		return nil, err
 	}
