@@ -1,7 +1,8 @@
 //-----------------------------------------------------------------------------
 /*
 
-Finite elements - tetrahedra - from triangle mesh.
+Finite elements from triangle mesh.
+Output `inp` file is consumable by ABAQUS or CalculiX.
 
 */
 //-----------------------------------------------------------------------------
