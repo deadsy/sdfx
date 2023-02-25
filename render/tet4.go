@@ -46,12 +46,12 @@ func (m *MeshTet4) addVertex(vert v3.Vec) uint32 {
 
 	m.V = append(m.V, vert)
 
-	m.Lookup[[3]float64{vert.X, vert.Y, vert.Z}] = uint32(m.countVertex())
+	m.Lookup[[3]float64{vert.X, vert.Y, vert.Z}] = uint32(m.vertexCount())
 
-	return uint32(m.countVertex())
+	return uint32(m.vertexCount())
 }
 
-func (m *MeshTet4) countVertex() int {
+func (m *MeshTet4) vertexCount() int {
 	return len(m.V)
 }
 
@@ -63,7 +63,7 @@ func (t *MeshTet4) Finalize() {
 }
 
 // Number of tetrahedra on mesh.
-func (m *MeshTet4) CountTet4() int {
+func (m *MeshTet4) Tet4Count() int {
 	return len(m.T) / 4
 }
 
