@@ -36,26 +36,26 @@ func (m *MeshTet4) Allocate(tetCount uint32) {
 	m.Lookup = make(map[[3]float32]uint32, tetCount/4*2)
 }
 
-func (t *MeshTet4) AddTet(i uint32, a, b, c, d v3.Vec) {
+func (m *MeshTet4) AddTet(i uint32, a, b, c, d v3.Vec) {
 	// The node numbering should follow the convention of CalculiX.
 	// http://www.dhondt.de/ccx_2.20.pdf
-	t.T[i*4], t.T[i*4+1], t.T[i*4+2], t.T[i*4+3] = t.AddVertex(a), t.AddVertex(b), t.AddVertex(c), t.AddVertex(d)
+	m.T[i*4], m.T[i*4+1], m.T[i*4+2], m.T[i*4+3] = m.AddVertex(a), m.AddVertex(b), m.AddVertex(c), m.AddVertex(d)
 }
 
-func (t *MeshTet4) AddVertex(vert v3.Vec) uint32 {
+func (m *MeshTet4) AddVertex(vert v3.Vec) uint32 {
 	// TODO: Binary insertion sort and search to eliminate extra allocation
 	// TODO: Consider epsilon in comparison and use int (*100) for searching
-	if vertID, ok := t.Lookup[[3]float32{float32(vert.X), float32(vert.Y), float32(vert.Z)}]; ok {
+	if vertID, ok := m.Lookup[[3]float32{float32(vert.X), float32(vert.Y), float32(vert.Z)}]; ok {
 		return vertID
 	}
-	if t.VertexCount() <= int(t.vCount) {
-		t.V = append(t.V, vert)
+	if m.VertexCount() <= int(m.vCount) {
+		m.V = append(m.V, vert)
 	} else {
-		t.V[t.vCount] = vert
+		m.V[m.vCount] = vert
 	}
-	t.Lookup[[3]float32{float32(vert.X), float32(vert.Y), float32(vert.Z)}] = t.vCount
-	t.vCount++
-	return t.vCount - 1
+	m.Lookup[[3]float32{float32(vert.X), float32(vert.Y), float32(vert.Z)}] = m.vCount
+	m.vCount++
+	return m.vCount - 1
 }
 
 func (m *MeshTet4) VertexCount() int {
