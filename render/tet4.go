@@ -1,10 +1,14 @@
 package render
 
-import v3 "github.com/deadsy/sdfx/vec/v3"
+import (
+	"runtime"
+
+	v3 "github.com/deadsy/sdfx/vec/v3"
+)
 
 // Tet4 is a 3D tetrahedron consisting of 4 nodes.
 // It's a kind of finite element, FE.
-// https://en.wikipedia.org/wiki/Tet4
+// https://en.wikipedia.org/wiki/Tetrahedron
 type Tet4 struct {
 	V [4]v3.Vec
 }
@@ -62,4 +66,11 @@ func (m *MeshTet4) AddVertex(vert v3.Vec) uint32 {
 
 func (m *MeshTet4) VertexCount() int {
 	return len(m.V)
+}
+
+func (t *MeshTet4) Finalize() {
+	t.V = t.V[:t.vCount]
+	// Clear memory.
+	t.Lookup = nil
+	runtime.GC()
 }
