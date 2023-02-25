@@ -8,3 +8,7 @@ import v3 "github.com/deadsy/sdfx/vec/v3"
 type Tetrahedron struct {
 	V [4]v3.Vec
 }
+
+// A mesh of tetrahedra with 4 nodes.
+type MeshTet4 struct {
+}
