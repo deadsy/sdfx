@@ -90,8 +90,6 @@ func writeFE(wg *sync.WaitGroup, path string) (chan<- []*Tetrahedron, error) {
 			return
 		}
 
-		inc := func(i *uint32) uint32 { *i++; return *i }
-
 		var eleId uint32 = 1 // Right, start with 1
 		var nodeIdx uint32 = 0
 
@@ -109,4 +107,10 @@ func writeFE(wg *sync.WaitGroup, path string) (chan<- []*Tetrahedron, error) {
 	}()
 
 	return c, nil
+}
+
+// https://stackoverflow.com/a/56015749/3405291
+func inc(i *uint32) uint32 {
+	*i++
+	return *i
 }
