@@ -69,7 +69,7 @@ func writeFE(wg *sync.WaitGroup, path string) (chan<- []*Tetrahedron, error) {
 					return
 				}
 				nodeCount++
-				_, err = f.WriteString(fmt.Sprintf("%d,%f,%f,%f\n", nodeCount, float32(t.V[2].X), float32(t.V[2].Y), float32(t.V[2].Z)))
+				_, err = f.WriteString(fmt.Sprintf("%d,%f,%f,%f\n", nodeCount, float32(t.V[3].X), float32(t.V[3].Y), float32(t.V[3].Z)))
 				if err != nil {
 					fmt.Printf("%s\n", err)
 					return
