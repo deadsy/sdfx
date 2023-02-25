@@ -29,6 +29,8 @@ func writeInpTet4(wg *sync.WaitGroup, path string) (chan<- []*Tet4, error) {
 				m.AddTet4(t.V[0], t.V[1], t.V[2], t.V[3])
 			}
 		}
+
+		m.Finalize()
 	}()
 
 	return c, nil
