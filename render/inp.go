@@ -90,8 +90,8 @@ func writeFE(wg *sync.WaitGroup, path string) (chan<- []*Tetrahedron, error) {
 			return
 		}
 
-		var eleId uint32 = 1 // Right, start with 1
-		var nodeIdx uint32 = 0
+		var eleId uint32 = 1   // Right, start with 1
+		var nodeIdx uint32 = 0 // Will be incremented. So will be starting from 1.
 
 		for i := 0; i < int(tetCount); i++ {
 			_, err = f.WriteString(fmt.Sprintf("%d,%d,%d,%d,%d\n", eleId, inc(&nodeIdx), inc(&nodeIdx), inc(&nodeIdx), inc(&nodeIdx)))
