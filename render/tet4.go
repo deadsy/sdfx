@@ -21,7 +21,7 @@ type Tet4 struct {
 // The repeated nodes would be removed.
 // The element connectivity would be created with unique nodes.
 type MeshTet4 struct {
-	T      []uint32              // Index buffer. Every 4 indices would correspond to a tetrahedron.
+	T      []uint32              // Index buffer. Every 4 indices would correspond to a tetrahedron. Low-level for performance.
 	V      []v3.Vec              // Vertex buffer. All unique.
 	Lookup map[[3]float64]uint32 // Used to avoid repeating vertices when adding a new tetrahedron.
 }
