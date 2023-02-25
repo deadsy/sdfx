@@ -109,6 +109,7 @@ func writeFE(wg *sync.WaitGroup, path string) (chan<- []*Tetrahedron, error) {
 	return c, nil
 }
 
+// To be able to increment values in-place.
 // https://stackoverflow.com/a/56015749/3405291
 func inc(i *uint32) uint32 {
 	*i++
