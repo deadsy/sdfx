@@ -15,24 +15,24 @@ func marchingTetrahedra(s sdf.SDF3, box sdf.Box3, step float64) []*Tetrahedron {
 	var tetrahedra []*Tetrahedron
 
 	// Constant hard-coded tetrahedra vertices to develop and debug the output API.
-	// https://math.stackexchange.com/a/3311988/197913
+	// https://cs.stackexchange.com/a/90011/67985
 	tetrahedra = append(tetrahedra, &Tetrahedron{
-		V: [4]v3.Vec{{X: 0, Y: 0, Z: 0}, {X: 1, Y: 0, Z: 0}, {X: 1, Y: 1, Z: 0}, {X: 1, Y: 0, Z: 1}},
+		V: [4]v3.Vec{{X: 0, Y: 0, Z: 0}, {X: 0, Y: 0, Z: 1}, {X: 0, Y: 1, Z: 1}, {X: 1, Y: 1, Z: 1}},
 	})
 	tetrahedra = append(tetrahedra, &Tetrahedron{
-		V: [4]v3.Vec{{X: 0, Y: 0, Z: 0}, {X: 1, Y: 1, Z: 1}, {X: 1, Y: 1, Z: 0}, {X: 1, Y: 0, Z: 1}},
+		V: [4]v3.Vec{{X: 0, Y: 0, Z: 0}, {X: 0, Y: 1, Z: 0}, {X: 0, Y: 1, Z: 1}, {X: 1, Y: 1, Z: 1}},
 	})
 	tetrahedra = append(tetrahedra, &Tetrahedron{
-		V: [4]v3.Vec{{X: 0, Y: 0, Z: 0}, {X: 0, Y: 1, Z: 0}, {X: 1, Y: 1, Z: 0}, {X: 0, Y: 1, Z: 1}},
+		V: [4]v3.Vec{{X: 0, Y: 0, Z: 0}, {X: 0, Y: 0, Z: 1}, {X: 1, Y: 0, Z: 1}, {X: 1, Y: 1, Z: 1}},
 	})
 	tetrahedra = append(tetrahedra, &Tetrahedron{
-		V: [4]v3.Vec{{X: 0, Y: 0, Z: 0}, {X: 1, Y: 1, Z: 1}, {X: 1, Y: 1, Z: 0}, {X: 0, Y: 1, Z: 1}},
+		V: [4]v3.Vec{{X: 0, Y: 0, Z: 0}, {X: 1, Y: 0, Z: 0}, {X: 1, Y: 0, Z: 1}, {X: 1, Y: 1, Z: 1}},
 	})
 	tetrahedra = append(tetrahedra, &Tetrahedron{
-		V: [4]v3.Vec{{X: 0, Y: 0, Z: 0}, {X: 0, Y: 0, Z: 1}, {X: 0, Y: 1, Z: 1}, {X: 1, Y: 0, Z: 1}},
+		V: [4]v3.Vec{{X: 0, Y: 0, Z: 0}, {X: 0, Y: 1, Z: 0}, {X: 1, Y: 1, Z: 0}, {X: 1, Y: 1, Z: 1}},
 	})
 	tetrahedra = append(tetrahedra, &Tetrahedron{
-		V: [4]v3.Vec{{X: 0, Y: 0, Z: 0}, {X: 1, Y: 1, Z: 1}, {X: 0, Y: 1, Z: 1}, {X: 1, Y: 0, Z: 1}},
+		V: [4]v3.Vec{{X: 0, Y: 0, Z: 0}, {X: 1, Y: 0, Z: 0}, {X: 1, Y: 1, Z: 0}, {X: 1, Y: 1, Z: 1}},
 	})
 
 	// TODO: Logic.
