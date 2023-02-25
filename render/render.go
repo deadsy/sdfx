@@ -29,9 +29,9 @@ type Render2 interface {
 	Info(s sdf.SDF2) string
 }
 
-// RenderFE renders a finite element mesh over the bounding volume of an sdf3.
+// RenderTet4 renders a finite element mesh over the bounding volume of an sdf3.
 // Finite elements are in the shape of tetrahedra.
-type RenderFE interface {
+type RenderTet4 interface {
 	Render(sdf3 sdf.SDF3, output chan<- []*Tet4)
 	Info(sdf3 sdf.SDF3) string
 }
@@ -64,7 +64,7 @@ func ToTriangles(
 func ToInpTet4(
 	s sdf.SDF3, // sdf3 to render
 	path string, // path to filename
-	r RenderFE, // rendering method
+	r RenderTet4, // rendering method
 ) {
 	fmt.Printf("rendering %s (%s)\n", path, r.Info(s))
 	// write the tetrahedra to an ABAQUS or CalculiX `inp` file
