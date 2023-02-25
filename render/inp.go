@@ -14,7 +14,7 @@ import (
 //-----------------------------------------------------------------------------
 
 // writeFE writes a stream of finite elements in the shape of tetrahedra to an ABAQUS or CalculiX `inp` file.
-func writeFE(wg *sync.WaitGroup, path string) (chan<- []*Tetrahedron, error) {
+func writeFE(wg *sync.WaitGroup, path string) (chan<- []*Tet4, error) {
 	f, err := os.Create(path)
 	if err != nil {
 		return nil, err
@@ -32,7 +32,7 @@ func writeFE(wg *sync.WaitGroup, path string) (chan<- []*Tetrahedron, error) {
 
 	// External code writes tetrahedra to this channel.
 	// This goroutine reads the channel and writes tetrahedra to the file.
-	c := make(chan []*Tetrahedron)
+	c := make(chan []*Tet4)
 
 	wg.Add(1)
 	go func() {

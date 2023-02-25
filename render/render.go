@@ -32,7 +32,7 @@ type Render2 interface {
 // RenderFE renders a finite element mesh over the bounding volume of an sdf3.
 // Finite elements are in the shape of tetrahedra.
 type RenderFE interface {
-	Render(sdf3 sdf.SDF3, output chan<- []*Tetrahedron)
+	Render(sdf3 sdf.SDF3, output chan<- []*Tet4)
 	Info(sdf3 sdf.SDF3) string
 }
 

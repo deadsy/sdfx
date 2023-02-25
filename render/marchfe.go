@@ -10,28 +10,28 @@ import (
 
 //-----------------------------------------------------------------------------
 
-func marchingTetrahedra(s sdf.SDF3, box sdf.Box3, step float64) []*Tetrahedron {
+func marchingTetrahedra(s sdf.SDF3, box sdf.Box3, step float64) []*Tet4 {
 	fmt.Printf("marching tetrahedra, bbox center: %v , step: %v\n", s.BoundingBox().Center(), step)
-	var tetrahedra []*Tetrahedron
+	var tetrahedra []*Tet4
 
 	// Constant hard-coded tetrahedra vertices to develop and debug the output API.
 	// https://cs.stackexchange.com/a/90011/67985
-	tetrahedra = append(tetrahedra, &Tetrahedron{
+	tetrahedra = append(tetrahedra, &Tet4{
 		V: [4]v3.Vec{{X: 0, Y: 0, Z: 0}, {X: 0, Y: 0, Z: 1}, {X: 0, Y: 1, Z: 1}, {X: 1, Y: 1, Z: 1}},
 	})
-	tetrahedra = append(tetrahedra, &Tetrahedron{
+	tetrahedra = append(tetrahedra, &Tet4{
 		V: [4]v3.Vec{{X: 0, Y: 0, Z: 0}, {X: 0, Y: 1, Z: 0}, {X: 0, Y: 1, Z: 1}, {X: 1, Y: 1, Z: 1}},
 	})
-	tetrahedra = append(tetrahedra, &Tetrahedron{
+	tetrahedra = append(tetrahedra, &Tet4{
 		V: [4]v3.Vec{{X: 0, Y: 0, Z: 0}, {X: 0, Y: 0, Z: 1}, {X: 1, Y: 0, Z: 1}, {X: 1, Y: 1, Z: 1}},
 	})
-	tetrahedra = append(tetrahedra, &Tetrahedron{
+	tetrahedra = append(tetrahedra, &Tet4{
 		V: [4]v3.Vec{{X: 0, Y: 0, Z: 0}, {X: 1, Y: 0, Z: 0}, {X: 1, Y: 0, Z: 1}, {X: 1, Y: 1, Z: 1}},
 	})
-	tetrahedra = append(tetrahedra, &Tetrahedron{
+	tetrahedra = append(tetrahedra, &Tet4{
 		V: [4]v3.Vec{{X: 0, Y: 0, Z: 0}, {X: 0, Y: 1, Z: 0}, {X: 1, Y: 1, Z: 0}, {X: 1, Y: 1, Z: 1}},
 	})
-	tetrahedra = append(tetrahedra, &Tetrahedron{
+	tetrahedra = append(tetrahedra, &Tet4{
 		V: [4]v3.Vec{{X: 0, Y: 0, Z: 0}, {X: 1, Y: 0, Z: 0}, {X: 1, Y: 1, Z: 0}, {X: 1, Y: 1, Z: 1}},
 	})
 
@@ -67,7 +67,7 @@ func (r *MarchingTetrahedraUniform) Info(s sdf.SDF3) string {
 
 // Render produces a finite elements mesh over the bounding volume of an sdf3.
 // Finite elements are in the shape of tetrahedra.
-func (r *MarchingTetrahedraUniform) Render(s sdf.SDF3, output chan<- []*Tetrahedron) {
+func (r *MarchingTetrahedraUniform) Render(s sdf.SDF3, output chan<- []*Tet4) {
 	// work out the region we will sample
 	bb0 := s.BoundingBox()
 	bb0Size := bb0.Size()
