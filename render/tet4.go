@@ -44,14 +44,18 @@ func (m *MeshTet4) addVertex(vert v3.Vec) uint32 {
 	// TODO: Binary insertion sort and search to eliminate extra allocation
 	// TODO: Consider epsilon in comparison and use int (*100) for searching
 	if vertID, ok := m.Lookup[[3]float64{vert.X, vert.Y, vert.Z}]; ok {
+		// Vertex already exists. It's repeated.
 		return vertID
 	}
 
+	// Vertex is new, so append it.
 	m.V = append(m.V, vert)
 
-	m.Lookup[[3]float64{vert.X, vert.Y, vert.Z}] = uint32(m.vertexCount())
+	// Store index of the appended vertex.
+	m.Lookup[[3]float64{vert.X, vert.Y, vert.Z}] = uint32(m.vertexCount() - 1)
 
-	return uint32(m.vertexCount())
+	// Return index of the appended vertex.
+	return uint32(m.vertexCount() - 1)
 }
 
 func (m *MeshTet4) vertexCount() int {
