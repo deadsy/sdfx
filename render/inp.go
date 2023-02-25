@@ -84,7 +84,7 @@ func writeFE(wg *sync.WaitGroup, path string) (chan<- []*Tetrahedron, error) {
 			}
 		}
 
-		_, err = f.WriteString("*ELEMENT, TYPE=C3D4\n")
+		_, err = f.WriteString("*ELEMENT, TYPE=C3D4, ELSET=Eall\n")
 		if err != nil {
 			fmt.Printf("%s\n", err)
 			return
