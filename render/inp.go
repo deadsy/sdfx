@@ -13,8 +13,8 @@ import (
 
 //-----------------------------------------------------------------------------
 
-// writeFE writes a stream of finite elements in the shape of tetrahedra to an ABAQUS or CalculiX `inp` file.
-func writeFE(wg *sync.WaitGroup, path string) (chan<- []*Tet4, error) {
+// writeInpTet4 writes a stream of finite elements in the shape of tetrahedra to an ABAQUS or CalculiX `inp` file.
+func writeInpTet4(wg *sync.WaitGroup, path string) (chan<- []*Tet4, error) {
 	f, err := os.Create(path)
 	if err != nil {
 		return nil, err

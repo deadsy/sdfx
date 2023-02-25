@@ -33,5 +33,5 @@ func main() {
 
 	// Render SDF3 to finite elements.
 	// Output file can be used by ABAQUS or CalculiX.
-	render.ToFE(teapotSdf, "teapot.inp", render.NewMarchingTetrahedraUniform(200))
+	render.ToInpTet4(teapotSdf, "teapot.inp", render.NewMarchingTetrahedraUniform(200))
 }
