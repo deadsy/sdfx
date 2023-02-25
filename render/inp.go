@@ -35,11 +35,6 @@ func writeFE(wg *sync.WaitGroup, path string) (chan<- []*Tetrahedron, error) {
 		return nil, err
 	}
 
-	_, err = f.WriteString("*NODE\n")
-	if err != nil {
-		return nil, err
-	}
-
 	// External code writes tetrahedra to this channel.
 	// This goroutine reads the channel and writes tetrahedra to the file.
 	c := make(chan []*Tetrahedron)
@@ -48,6 +43,12 @@ func writeFE(wg *sync.WaitGroup, path string) (chan<- []*Tetrahedron, error) {
 	go func() {
 		defer wg.Done()
 		defer f.Close()
+
+		_, err = f.WriteString("*NODE\n")
+		if err != nil {
+			fmt.Printf("%s\n", err)
+			return
+		}
 
 		var nodeCount uint32 = 1 // Right, starts with 1
 
