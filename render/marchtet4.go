@@ -10,24 +10,34 @@ import (
 
 //-----------------------------------------------------------------------------
 
-func marchingTetrahedra(s sdf.SDF3, box sdf.Box3, step float64) *MeshTet4 {
+func marchingTetrahedra(s sdf.SDF3, box sdf.Box3, step float64) []*Tet4 {
 	fmt.Printf("marching tetrahedra, bbox center: %v , step: %v\n", s.BoundingBox().Center(), step)
-	m := NewMeshTet4()
+	var tetrahedra []*Tet4
 
 	// Constant hard-coded tetrahedra vertices to develop and debug the output API.
 	// https://cs.stackexchange.com/a/90011/67985
-
-	m.AddTet4(v3.Vec{X: 0, Y: 0, Z: 0}, v3.Vec{X: 0, Y: 0, Z: 1}, v3.Vec{X: 0, Y: 1, Z: 1}, v3.Vec{X: 1, Y: 1, Z: 1})
-	m.AddTet4(v3.Vec{X: 0, Y: 0, Z: 0}, v3.Vec{X: 0, Y: 1, Z: 0}, v3.Vec{X: 0, Y: 1, Z: 1}, v3.Vec{X: 1, Y: 1, Z: 1})
-	m.AddTet4(v3.Vec{X: 0, Y: 0, Z: 0}, v3.Vec{X: 0, Y: 0, Z: 1}, v3.Vec{X: 1, Y: 0, Z: 1}, v3.Vec{X: 1, Y: 1, Z: 1})
-	m.AddTet4(v3.Vec{X: 0, Y: 0, Z: 0}, v3.Vec{X: 1, Y: 0, Z: 0}, v3.Vec{X: 1, Y: 0, Z: 1}, v3.Vec{X: 1, Y: 1, Z: 1})
-	m.AddTet4(v3.Vec{X: 0, Y: 0, Z: 0}, v3.Vec{X: 0, Y: 1, Z: 0}, v3.Vec{X: 1, Y: 1, Z: 0}, v3.Vec{X: 1, Y: 1, Z: 1})
-	m.AddTet4(v3.Vec{X: 0, Y: 0, Z: 0}, v3.Vec{X: 1, Y: 0, Z: 0}, v3.Vec{X: 1, Y: 1, Z: 0}, v3.Vec{X: 1, Y: 1, Z: 1})
-	m.Finalize()
+	tetrahedra = append(tetrahedra, &Tet4{
+		V: [4]v3.Vec{{X: 0, Y: 0, Z: 0}, {X: 0, Y: 0, Z: 1}, {X: 0, Y: 1, Z: 1}, {X: 1, Y: 1, Z: 1}},
+	})
+	tetrahedra = append(tetrahedra, &Tet4{
+		V: [4]v3.Vec{{X: 0, Y: 0, Z: 0}, {X: 0, Y: 1, Z: 0}, {X: 0, Y: 1, Z: 1}, {X: 1, Y: 1, Z: 1}},
+	})
+	tetrahedra = append(tetrahedra, &Tet4{
+		V: [4]v3.Vec{{X: 0, Y: 0, Z: 0}, {X: 0, Y: 0, Z: 1}, {X: 1, Y: 0, Z: 1}, {X: 1, Y: 1, Z: 1}},
+	})
+	tetrahedra = append(tetrahedra, &Tet4{
+		V: [4]v3.Vec{{X: 0, Y: 0, Z: 0}, {X: 1, Y: 0, Z: 0}, {X: 1, Y: 0, Z: 1}, {X: 1, Y: 1, Z: 1}},
+	})
+	tetrahedra = append(tetrahedra, &Tet4{
+		V: [4]v3.Vec{{X: 0, Y: 0, Z: 0}, {X: 0, Y: 1, Z: 0}, {X: 1, Y: 1, Z: 0}, {X: 1, Y: 1, Z: 1}},
+	})
+	tetrahedra = append(tetrahedra, &Tet4{
+		V: [4]v3.Vec{{X: 0, Y: 0, Z: 0}, {X: 1, Y: 0, Z: 0}, {X: 1, Y: 1, Z: 0}, {X: 1, Y: 1, Z: 1}},
+	})
 
 	// TODO: Logic.
 
-	return m
+	return tetrahedra
 }
 
 //-----------------------------------------------------------------------------
