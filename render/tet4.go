@@ -16,7 +16,7 @@ type Tet4 struct {
 type MeshTet4 struct {
 	T      []uint32              // Index buffer. Every 4 indices would correspond to a tetrahedron.
 	V      []v3.Vec              // Vertex buffer. All unique.
-	Lookup map[[3]float32]uint32 // Used to avoid repeating vertices when adding a new tetrahedron.
+	Lookup map[[3]float64]uint32 // Used to avoid repeating vertices when adding a new tetrahedron.
 	vCount uint32                // TODO: Remove?
 }
 
@@ -24,7 +24,7 @@ func NewMeshTet4() *MeshTet4 {
 	return &MeshTet4{
 		T:      []uint32{},
 		V:      []v3.Vec{},
-		Lookup: map[[3]float32]uint32{},
+		Lookup: map[[3]float64]uint32{},
 	}
 }
 
@@ -35,7 +35,7 @@ func (m *MeshTet4) Allocate(tetCount uint32) {
 	// Affects the speed according to experiments.
 	m.V = make([]v3.Vec, tetCount/4*2)
 
-	m.Lookup = make(map[[3]float32]uint32, tetCount/4*2)
+	m.Lookup = make(map[[3]float64]uint32, tetCount/4*2)
 }
 
 func (m *MeshTet4) AddTet(i uint32, a, b, c, d v3.Vec) {
@@ -47,7 +47,7 @@ func (m *MeshTet4) AddTet(i uint32, a, b, c, d v3.Vec) {
 func (m *MeshTet4) AddVertex(vert v3.Vec) uint32 {
 	// TODO: Binary insertion sort and search to eliminate extra allocation
 	// TODO: Consider epsilon in comparison and use int (*100) for searching
-	if vertID, ok := m.Lookup[[3]float32{float32(vert.X), float32(vert.Y), float32(vert.Z)}]; ok {
+	if vertID, ok := m.Lookup[[3]float64{vert.X, vert.Y, vert.Z}]; ok {
 		return vertID
 	}
 	if m.VertexCount() <= int(m.vCount) {
@@ -55,7 +55,7 @@ func (m *MeshTet4) AddVertex(vert v3.Vec) uint32 {
 	} else {
 		m.V[m.vCount] = vert
 	}
-	m.Lookup[[3]float32{float32(vert.X), float32(vert.Y), float32(vert.Z)}] = m.vCount
+	m.Lookup[[3]float64{vert.X, vert.Y, vert.Z}] = m.vCount
 	m.vCount++
 	return m.vCount - 1
 }
