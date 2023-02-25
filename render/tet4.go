@@ -28,11 +28,13 @@ func NewMeshTet4() *MeshTet4 {
 	}
 }
 
-// Just an optimization, if there is an estimation of tetrahedra count.
-// Affects the speed according to experiments.
 func (m *MeshTet4) Allocate(tetCount uint32) {
 	m.T = make([]uint32, tetCount*4)
-	m.V = make([]v3.Vec, tetCount/4*2) // By experimenting.
+
+	// Just an optimization by experimenting.
+	// Affects the speed according to experiments.
+	m.V = make([]v3.Vec, tetCount/4*2)
+
 	m.Lookup = make(map[[3]float32]uint32, tetCount/4*2)
 }
 
