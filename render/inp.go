@@ -51,6 +51,7 @@ func writeFE(wg *sync.WaitGroup, path string) (chan<- []*Tetrahedron, error) {
 		}
 
 		var nodeCount uint32 = 1 // Right, starts with 1
+		var tetCount uint32 = 0  //
 
 		// read tetrahedra from the channel and write them to the file
 		for ts := range c {
@@ -79,7 +80,28 @@ func writeFE(wg *sync.WaitGroup, path string) (chan<- []*Tetrahedron, error) {
 					return
 				}
 				nodeCount++
+				tetCount++
 			}
+		}
+
+		_, err = f.WriteString("*ELEMENT, TYPE=C3D4\n")
+		if err != nil {
+			fmt.Printf("%s\n", err)
+			return
+		}
+
+		inc := func(i *uint32) uint32 { *i++; return *i }
+
+		var eleId uint32 = 1 // Right, start with 1
+		var nodeIdx uint32 = 0
+
+		for i := 0; i < int(tetCount); i++ {
+			_, err = f.WriteString(fmt.Sprintf("%d,%d,%d,%d,%d\n", eleId, inc(&nodeIdx), inc(&nodeIdx), inc(&nodeIdx), inc(&nodeIdx)))
+			if err != nil {
+				fmt.Printf("%s\n", err)
+				return
+			}
+			eleId++
 		}
 
 		// flush the tetrahedra
