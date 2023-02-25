@@ -67,7 +67,7 @@ func ToInpTet4(
 	r RenderFE, // rendering method
 ) {
 	fmt.Printf("rendering %s (%s)\n", path, r.Info(s))
-	// write the tetrahedra to an ABAQUS or CalculiX file
+	// write the tetrahedra to an ABAQUS or CalculiX `inp` file
 	var wg sync.WaitGroup
 	output, err := writeInpTet4(&wg, path)
 	if err != nil {
@@ -76,7 +76,7 @@ func ToInpTet4(
 	}
 	// run the renderer
 	r.Render(s, output)
-	// stop the FE writer reading on the channel
+	// stop the writer reading on the channel
 	close(output)
 	// wait for the file write to complete
 	wg.Wait()
