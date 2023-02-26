@@ -68,7 +68,7 @@ func ToTet4(
 	fmt.Printf("rendering %s\n", r.Info(s))
 
 	layerCountX, layerCountY, layerCountZ := r.LayerCounts(s)
-	fmt.Printf("layer counts of marching are: (%v x %v x %v)\n", layerCountX, layerCountY, layerCountZ)
+	fmt.Printf("layer counts of marching algorithm are: (%v x %v x %v)\n", layerCountX, layerCountY, layerCountZ)
 
 	// Will be filled by the rendering.
 	tet4s := make([]Tet4, 0)
