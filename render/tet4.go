@@ -101,14 +101,14 @@ func (m *MeshTet4) LayerCount() int {
 
 // Number of tetrahedra on a layer.
 func (m *MeshTet4) Tet4CountOnLayer(l int) int {
-	return len(m.T[l])
+	return len(m.T[l]) / 4
 }
 
 // Number of tetrahedra for all layers.
 func (m *MeshTet4) Tet4Count() int {
 	var count int
 	for _, t := range m.T {
-		count += len(t)
+		count += len(t) / 4
 	}
 	return count
 }
