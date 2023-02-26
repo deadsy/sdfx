@@ -33,6 +33,17 @@ func main() {
 	}
 
 	// Render SDF3 to finite elements.
-	// Output file can be used by ABAQUS or CalculiX.
-	render.ToInpTet4(teapotSdf, "teapot.inp", render.NewMarchingTet4Uniform(200))
+	r := render.NewMarchingTet4Uniform(200)
+	tet4s := render.ToTet4(teapotSdf, r)
+
+	// Create a mesh out of finite elements.
+	_, _, layerCountZ := r.LayerCounts(teapotSdf)
+	m := render.NewMeshTet4(layerCountZ, tet4s)
+
+	// Write mesh to a file.
+	// Written file can be used by ABAQUS or CalculiX.
+	err = m.WriteInp("teapot.inp")
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
 }

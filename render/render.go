@@ -60,29 +60,32 @@ func ToTriangles(
 
 //-----------------------------------------------------------------------------
 
-// ToInpTet4 renders an SDF3 to finite elements in the shape of tetrahedra.
-// Tetrahedra would then be written to an ABAQUS or CalculiX `inp` file.
-func ToInpTet4(
+// ToTet4 renders an SDF3 to finite elements in the shape of 4-node tetrahedra.
+func ToTet4(
 	s sdf.SDF3, // sdf3 to render
-	path string, // path to filename
 	r RenderTet4, // rendering method
-) {
-	fmt.Printf("rendering %s (%s)\n", path, r.Info(s))
-	// write the tetrahedra to an ABAQUS or CalculiX `inp` file
-	var wg sync.WaitGroup
+) []Tet4 {
+	fmt.Printf("rendering %s\n", r.Info(s))
+
 	layerCountX, layerCountY, layerCountZ := r.LayerCounts(s)
 	fmt.Printf("layer counts of marching are: (%v x %v x %v)\n", layerCountX, layerCountY, layerCountZ)
-	output, err := writeInpTet4(&wg, path, layerCountZ)
-	if err != nil {
-		fmt.Printf("%s", err)
-		return
-	}
+
+	// Will be filled by the rendering.
+	tet4s := make([]Tet4, 0)
+
+	var wg sync.WaitGroup
+
+	// Get the channel to be written to.
+	output := writeTet4(&wg, &tet4s)
+
 	// run the renderer
 	r.Render(s, output)
 	// stop the writer reading on the channel
 	close(output)
 	// wait for the file write to complete
 	wg.Wait()
+
+	return tet4s
 }
 
 //-----------------------------------------------------------------------------

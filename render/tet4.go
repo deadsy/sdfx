@@ -39,7 +39,18 @@ type MeshTet4 struct {
 	Lookup map[[3]float64]uint32
 }
 
-func NewMeshTet4(layerCount int) *MeshTet4 {
+func NewMeshTet4(layerCount int, tet4s []Tet4) *MeshTet4 {
+	m := newMeshTet4(layerCount)
+
+	// Fill out the mesh with finite elements.
+	for _, t := range tet4s {
+		m.AddTet4(t.layer, t.V[0], t.V[1], t.V[2], t.V[3])
+	}
+
+	return m
+}
+
+func newMeshTet4(layerCount int) *MeshTet4 {
 	t := &MeshTet4{
 		T:      nil,
 		V:      []v3.Vec{},
@@ -206,30 +217,24 @@ func (m *MeshTet4) WriteInpLayers(path string, layerStart, layerEnd int) error {
 
 //-----------------------------------------------------------------------------
 
-// writeInpTet4 writes a stream of finite elements in the shape of tetrahedra to an ABAQUS or CalculiX `inp` file.
-func writeInpTet4(wg *sync.WaitGroup, path string, layerCount int) (chan<- []*Tet4, error) {
+// writeTet4 writes a stream of finite elements, in the shape of 4-node tetrahedra, to an array.
+func writeTet4(wg *sync.WaitGroup, tet4s *[]Tet4) chan<- []*Tet4 {
 	// External code writes tetrahedra to this channel.
-	// This goroutine reads the channel and writes tetrahedra to the file.
+	// This goroutine reads the channel and stores tetrahedra.
 	c := make(chan []*Tet4)
 
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-
-		m := NewMeshTet4(layerCount)
-		defer m.WriteInp(path)
-
 		// read finite elements from the channel and handle them
 		for ts := range c {
 			for _, t := range ts {
-				m.AddTet4(t.layer, t.V[0], t.V[1], t.V[2], t.V[3])
+				*tet4s = append(*tet4s, *t)
 			}
 		}
-
-		m.Finalize()
 	}()
 
-	return c, nil
+	return c
 }
 
 //-----------------------------------------------------------------------------
