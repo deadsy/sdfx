@@ -63,7 +63,7 @@ type MarchingTet4Uniform struct {
 	meshCells int // number of cells on the longest axis of bounding box. e.g 200
 }
 
-// NewMarchingTet4Uniform returns a RenderFE object.
+// NewMarchingTet4Uniform returns a RenderTet4 object.
 func NewMarchingTet4Uniform(meshCells int) *MarchingTet4Uniform {
 	return &MarchingTet4Uniform{
 		meshCells: meshCells,
