@@ -44,7 +44,7 @@ func NewMeshTet4(layerCount int, tet4s []Tet4) *MeshTet4 {
 
 	// Fill out the mesh with finite elements.
 	for _, t := range tet4s {
-		m.AddTet4(t.layer, t.V[0], t.V[1], t.V[2], t.V[3])
+		m.addTet4(t.layer, t.V[0], t.V[1], t.V[2], t.V[3])
 	}
 
 	m.finalize()
@@ -71,7 +71,7 @@ func newMeshTet4(layerCount int) *MeshTet4 {
 // Layer number and 4 nodes are input.
 // The node numbering should follow the convention of CalculiX.
 // http://www.dhondt.de/ccx_2.20.pdf
-func (m *MeshTet4) AddTet4(l int, a, b, c, d v3.Vec) {
+func (m *MeshTet4) addTet4(l int, a, b, c, d v3.Vec) {
 	m.T[l] = append(m.T[l], m.addVertex(a), m.addVertex(b), m.addVertex(c), m.addVertex(d))
 }
 
@@ -109,17 +109,17 @@ func (t *MeshTet4) finalize() {
 }
 
 // Number of layers along the Z axis.
-func (m *MeshTet4) LayerCount() int {
+func (m *MeshTet4) layerCount() int {
 	return len(m.T)
 }
 
 // Number of tetrahedra on a layer.
-func (m *MeshTet4) Tet4CountOnLayer(l int) int {
+func (m *MeshTet4) tet4CountOnLayer(l int) int {
 	return len(m.T[l]) / 4
 }
 
 // Number of tetrahedra for all layers.
-func (m *MeshTet4) Tet4Count() int {
+func (m *MeshTet4) tet4Count() int {
 	var count int
 	for _, t := range m.T {
 		count += len(t) / 4
@@ -131,7 +131,7 @@ func (m *MeshTet4) Tet4Count() int {
 // Tetrahedron index on layer is input.
 // Tetrahedron index could be from 0 to number of tetrahedra on layer.
 // Don't return error to increase performance.
-func (m *MeshTet4) Tet4Indicies(l, i int) (uint32, uint32, uint32, uint32) {
+func (m *MeshTet4) tet4Indicies(l, i int) (uint32, uint32, uint32, uint32) {
 	return m.T[l][i*4], m.T[l][i*4+1], m.T[l][i*4+2], m.T[l][i*4+3]
 }
 
@@ -139,20 +139,20 @@ func (m *MeshTet4) Tet4Indicies(l, i int) (uint32, uint32, uint32, uint32) {
 // Tetrahedron index on layer is input.
 // Tetrahedron index could be from 0 to number of tetrahedra on layer.
 // Don't return error to increase performance.
-func (m *MeshTet4) Tet4Vertices(l, i int) (v3.Vec, v3.Vec, v3.Vec, v3.Vec) {
+func (m *MeshTet4) tet4Vertices(l, i int) (v3.Vec, v3.Vec, v3.Vec, v3.Vec) {
 	return m.V[m.T[l][i*4]], m.V[m.T[l][i*4+1]], m.V[m.T[l][i*4+2]], m.V[m.T[l][i*4+3]]
 }
 
 // Write mesh to ABAQUS or CalculiX `inp` file.
 func (m *MeshTet4) WriteInp(path string) error {
-	return m.WriteInpLayers(path, 0, m.LayerCount())
+	return m.WriteInpLayers(path, 0, m.layerCount())
 }
 
 // Write specific layers of mesh to ABAQUS or CalculiX `inp` file.
 // Result would include start layer.
 // Result would exclude end layer.
 func (m *MeshTet4) WriteInpLayers(path string, layerStart, layerEnd int) error {
-	if 0 <= layerStart && layerStart < layerEnd && layerEnd <= m.LayerCount() {
+	if 0 <= layerStart && layerStart < layerEnd && layerEnd <= m.layerCount() {
 		// Good.
 	} else {
 		return fmt.Errorf("start or end layer is beyond range")
@@ -203,8 +203,8 @@ func (m *MeshTet4) WriteInpLayers(path string, layerStart, layerEnd int) error {
 	var eleID uint32
 	var nodeID0, nodeID1, nodeID2, nodeID3 uint32
 	for l := layerStart; l < layerEnd; l++ {
-		for i := 0; i < m.Tet4CountOnLayer(l); i++ {
-			nodeID0, nodeID1, nodeID2, nodeID3 = m.Tet4Indicies(l, i)
+		for i := 0; i < m.tet4CountOnLayer(l); i++ {
+			nodeID0, nodeID1, nodeID2, nodeID3 = m.tet4Indicies(l, i)
 			// ID starts from one not zero.
 			_, err = f.WriteString(fmt.Sprintf("%d,%d,%d,%d,%d\n", eleID+1, nodeID0+1, nodeID1+1, nodeID2+1, nodeID3+1))
 			if err != nil {
