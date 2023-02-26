@@ -34,7 +34,7 @@ func main() {
 
 	// Render SDF3 to finite elements.
 	// Create a mesh out of finite elements.
-	m := render.NewMeshTet4(teapotSdf, render.NewMarchingTet4Uniform(200))
+	m, _ := render.NewMeshTet4(teapotSdf, render.NewMarchingTet4Uniform(200))
 
 	// Write mesh to a file.
 	// Written file can be used by ABAQUS or CalculiX.

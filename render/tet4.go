@@ -40,7 +40,8 @@ type MeshTet4 struct {
 	Lookup map[[3]float64]uint32
 }
 
-func NewMeshTet4(s sdf.SDF3, r RenderTet4) *MeshTet4 {
+// To get a new mesh and number of its layers along Z-axis.
+func NewMeshTet4(s sdf.SDF3, r RenderTet4) (*MeshTet4, int) {
 	tet4s := ToTet4(s, r)
 
 	_, _, layerCountZ := r.LayerCounts(s)
@@ -54,7 +55,7 @@ func NewMeshTet4(s sdf.SDF3, r RenderTet4) *MeshTet4 {
 
 	m.finalize()
 
-	return m
+	return m, layerCountZ
 }
 
 func newMeshTet4(layerCount int) *MeshTet4 {
