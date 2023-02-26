@@ -47,6 +47,8 @@ func NewMeshTet4(layerCount int, tet4s []Tet4) *MeshTet4 {
 		m.AddTet4(t.layer, t.V[0], t.V[1], t.V[2], t.V[3])
 	}
 
+	m.finalize()
+
 	return m
 }
 
@@ -100,7 +102,7 @@ func (m *MeshTet4) vertex(i int) v3.Vec {
 }
 
 // To be called after adding all tetrahedra to the mesh.
-func (t *MeshTet4) Finalize() {
+func (t *MeshTet4) finalize() {
 	// Clear memory.
 	t.Lookup = nil
 	runtime.GC()
