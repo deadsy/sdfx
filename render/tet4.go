@@ -173,15 +173,17 @@ func (m *MeshTet4) WriteInp(path string) error {
 		return err
 	}
 
+	var eleID uint32
 	var idx0, idx1, idx2, idx3 uint32
 	for l := 0; l < m.LayerCount(); l++ {
 		for i := 0; i < m.Tet4CountOnLayer(l); i++ {
 			idx0, idx1, idx2, idx3 = m.Tet4Indicies(l, i)
 			// ID starts from one not zero.
-			_, err = f.WriteString(fmt.Sprintf("%d,%d,%d,%d,%d\n", i+1, idx0+1, idx1+1, idx2+1, idx3+1))
+			_, err = f.WriteString(fmt.Sprintf("%d,%d,%d,%d,%d\n", eleID+1, idx0+1, idx1+1, idx2+1, idx3+1))
 			if err != nil {
 				return err
 			}
+			eleID++
 		}
 	}
 
