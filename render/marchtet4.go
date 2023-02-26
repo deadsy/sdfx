@@ -81,6 +81,7 @@ func (r *MarchingTet4Uniform) Info(s sdf.SDF3) string {
 	return fmt.Sprintf("%dx%dx%d", cells.X, cells.Y, cells.Z)
 }
 
+// To get the layer counts which are consistent with loops of marching algorithm.
 func (r *MarchingTet4Uniform) LayerCounts(s sdf.SDF3) (int, int, int) {
 	bb0 := s.BoundingBox()
 	bb0Size := bb0.Size()
