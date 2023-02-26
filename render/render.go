@@ -34,6 +34,7 @@ type Render2 interface {
 type RenderTet4 interface {
 	Render(sdf3 sdf.SDF3, output chan<- []*Tet4)
 	Info(sdf3 sdf.SDF3) string
+	Cells(sdf3 sdf.SDF3) (int, int, int)
 }
 
 //-----------------------------------------------------------------------------
@@ -69,7 +70,8 @@ func ToInpTet4(
 	fmt.Printf("rendering %s (%s)\n", path, r.Info(s))
 	// write the tetrahedra to an ABAQUS or CalculiX `inp` file
 	var wg sync.WaitGroup
-	output, err := writeInpTet4(&wg, path)
+	_, _, layerCount := r.Cells(s)
+	output, err := writeInpTet4(&wg, path, layerCount)
 	if err != nil {
 		fmt.Printf("%s", err)
 		return

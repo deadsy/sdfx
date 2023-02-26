@@ -13,7 +13,13 @@ import (
 // It's a kind of finite element, FE.
 // https://en.wikipedia.org/wiki/Tetrahedron
 type Tet4 struct {
+	// Coordinates of 4 corner nodes or vertices.
 	V [4]v3.Vec
+	// The layer to which tetrahedron belongs. Layers are along Z axis.
+	// For finite element analysis - FEA - of 3D printed objects, it's more efficient to store layer along Z axis.
+	// The 3D print is done along the Z axis. Likewise, FEA is done along the Z axis.
+	// Sampling/marching algorithm is expected to generate finite elements along the Z axis.
+	layer int
 }
 
 // A mesh of tetrahedra with 4 nodes.
@@ -21,23 +27,38 @@ type Tet4 struct {
 // The repeated nodes would be removed.
 // The element connectivity would be created with unique nodes.
 type MeshTet4 struct {
-	T      []uint32              // Index buffer. Every 4 indices would correspond to a tetrahedron. Low-level for performance.
-	V      []v3.Vec              // Vertex buffer. All unique.
-	Lookup map[[3]float64]uint32 // Used to avoid repeating vertices when adding a new tetrahedron.
+	// Index buffer.
+	// Every 4 indices would correspond to a tetrahedron. Low-level for performance.
+	// Tetrahedra are stored by their layer on Z axis.
+	T [][]uint32
+	// Vertex buffer.
+	// All coordinates are unique.
+	V []v3.Vec
+	// Used to avoid repeating vertices when adding a new tetrahedron.
+	Lookup map[[3]float64]uint32
 }
 
-func NewMeshTet4() *MeshTet4 {
-	return &MeshTet4{
-		T:      []uint32{},
+func NewMeshTet4(layerCount int) *MeshTet4 {
+	t := &MeshTet4{
+		T:      nil,
 		V:      []v3.Vec{},
 		Lookup: map[[3]float64]uint32{},
 	}
+
+	// Initialize.
+	t.T = make([][]uint32, layerCount)
+	for l := 0; l < layerCount; l++ {
+		t.T[l] = make([]uint32, 0)
+	}
+
+	return t
 }
 
+// Layer number and 4 nodes are input.
 // The node numbering should follow the convention of CalculiX.
 // http://www.dhondt.de/ccx_2.20.pdf
-func (m *MeshTet4) AddTet4(a, b, c, d v3.Vec) {
-	m.T = append(m.T, m.addVertex(a), m.addVertex(b), m.addVertex(c), m.addVertex(d))
+func (m *MeshTet4) AddTet4(l int, a, b, c, d v3.Vec) {
+	m.T[l] = append(m.T[l], m.addVertex(a), m.addVertex(b), m.addVertex(c), m.addVertex(d))
 }
 
 func (m *MeshTet4) addVertex(vert v3.Vec) uint32 {
@@ -73,21 +94,39 @@ func (t *MeshTet4) Finalize() {
 	runtime.GC()
 }
 
-// Number of tetrahedra on mesh.
+// Number of layers along the Z axis.
+func (m *MeshTet4) LayerCount() int {
+	return len(m.T)
+}
+
+// Number of tetrahedra on a layer.
+func (m *MeshTet4) Tet4CountOnLayer(l int) int {
+	return len(m.T[l])
+}
+
+// Number of tetrahedra for all layers.
 func (m *MeshTet4) Tet4Count() int {
-	return len(m.T) / 4
+	var count int
+	for _, t := range m.T {
+		count += len(t)
+	}
+	return count
 }
 
-// Input from 0 to number of tetrahedra on mesh.
+// Layer number is input.
+// Tetrahedron index on layer is input.
+// Tetrahedron index could be from 0 to number of tetrahedra on layer.
 // Don't return error to increase performance.
-func (m *MeshTet4) Tet4Indicies(i int) (uint32, uint32, uint32, uint32) {
-	return m.T[i*4], m.T[i*4+1], m.T[i*4+2], m.T[i*4+3]
+func (m *MeshTet4) Tet4Indicies(l, i int) (uint32, uint32, uint32, uint32) {
+	return m.T[l][i*4], m.T[l][i*4+1], m.T[l][i*4+2], m.T[l][i*4+3]
 }
 
-// Input from 0 to number of tetrahedra on mesh.
+// Layer number is input.
+// Tetrahedron index on layer is input.
+// Tetrahedron index could be from 0 to number of tetrahedra on layer.
 // Don't return error to increase performance.
-func (m *MeshTet4) Tet4Vertices(i int) (v3.Vec, v3.Vec, v3.Vec, v3.Vec) {
-	return m.V[m.T[i*4]], m.V[m.T[i*4+1]], m.V[m.T[i*4+2]], m.V[m.T[i*4+3]]
+func (m *MeshTet4) Tet4Vertices(l, i int) (v3.Vec, v3.Vec, v3.Vec, v3.Vec) {
+	return m.V[m.T[l][i*4]], m.V[m.T[l][i*4+1]], m.V[m.T[l][i*4+2]], m.V[m.T[l][i*4+3]]
 }
 
 // Write mesh to ABAQUS or CalculiX `inp` file.
@@ -135,12 +174,14 @@ func (m *MeshTet4) WriteInp(path string) error {
 	}
 
 	var idx0, idx1, idx2, idx3 uint32
-	for i := 0; i < m.Tet4Count(); i++ {
-		idx0, idx1, idx2, idx3 = m.Tet4Indicies(i)
-		// ID starts from one not zero.
-		_, err = f.WriteString(fmt.Sprintf("%d,%d,%d,%d,%d\n", i+1, idx0+1, idx1+1, idx2+1, idx3+1))
-		if err != nil {
-			return err
+	for l := 0; l < m.LayerCount(); l++ {
+		for i := 0; i < m.Tet4CountOnLayer(l); i++ {
+			idx0, idx1, idx2, idx3 = m.Tet4Indicies(l, i)
+			// ID starts from one not zero.
+			_, err = f.WriteString(fmt.Sprintf("%d,%d,%d,%d,%d\n", i+1, idx0+1, idx1+1, idx2+1, idx3+1))
+			if err != nil {
+				return err
+			}
 		}
 	}
 
