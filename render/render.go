@@ -70,7 +70,8 @@ func ToInpTet4(
 	fmt.Printf("rendering %s (%s)\n", path, r.Info(s))
 	// write the tetrahedra to an ABAQUS or CalculiX `inp` file
 	var wg sync.WaitGroup
-	_, _, layerCountZ := r.LayerCounts(s)
+	layerCountX, layerCountY, layerCountZ := r.LayerCounts(s)
+	fmt.Printf("layer counts of marching are: (%v x %v x %v)\n", layerCountX, layerCountY, layerCountZ)
 	output, err := writeInpTet4(&wg, path, layerCountZ)
 	if err != nil {
 		fmt.Printf("%s", err)
