@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/deadsy/sdfx/sdf"
 	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
@@ -39,8 +40,12 @@ type MeshTet4 struct {
 	Lookup map[[3]float64]uint32
 }
 
-func NewMeshTet4(layerCount int, tet4s []Tet4) *MeshTet4 {
-	m := newMeshTet4(layerCount)
+func NewMeshTet4(s sdf.SDF3, r RenderTet4) *MeshTet4 {
+	tet4s := ToTet4(s, r)
+
+	_, _, layerCountZ := r.LayerCounts(s)
+
+	m := newMeshTet4(layerCountZ)
 
 	// Fill out the mesh with finite elements.
 	for _, t := range tet4s {
