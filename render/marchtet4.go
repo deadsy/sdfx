@@ -59,7 +59,7 @@ func marchingCubesTet4(s sdf.SDF3, box sdf.Box3, step float64) []*Tet4 {
 					l.Get(1, y, z+1),
 					l.Get(1, y+1, z+1),
 					l.Get(0, y+1, z+1)}
-				tetrahedra = append(tetrahedra, mcToTet4(corners, values, 0)...)
+				tetrahedra = append(tetrahedra, mcToTet4(corners, values, 0, z)...)
 				p.Z += dz
 			}
 			p.Y += dy
@@ -72,7 +72,7 @@ func marchingCubesTet4(s sdf.SDF3, box sdf.Box3, step float64) []*Tet4 {
 
 //-----------------------------------------------------------------------------
 
-func mcToTet4(p [8]v3.Vec, v [8]float64, x float64) []*Tet4 {
+func mcToTet4(p [8]v3.Vec, v [8]float64, x float64, layerZ int) []*Tet4 {
 	// which of the 0..255 patterns do we have?
 	index := 0
 	for i := 0; i < 8; i++ {
@@ -97,15 +97,16 @@ func mcToTet4(p [8]v3.Vec, v [8]float64, x float64) []*Tet4 {
 	// create the triangles
 	table := mcTriangleTable[index]
 	count := len(table) / 3
-	result := make([]*Triangle3, 0, count)
+	result := make([]*Tet4, 0, count)
 	for i := 0; i < count; i++ {
-		t := Triangle3{}
+		t := Tet4{
+			V:     [4]v3.Vec{},
+			layer: layerZ,
+		}
 		t.V[2] = points[table[i*3+0]]
 		t.V[1] = points[table[i*3+1]]
 		t.V[0] = points[table[i*3+2]]
-		if !t.Degenerate(0) {
-			result = append(result, &t)
-		}
+		result = append(result, &t)
 	}
 	return result
 }
