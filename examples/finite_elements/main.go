@@ -44,7 +44,7 @@ func main() {
 	}
 
 	// Write just some layers of mesh to a file.
-	err = m.WriteInpLayers("teapot-some-layers.inp", 0, 10)
+	err = m.WriteInpLayers("teapot-some-layers.inp", 0, 32)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
