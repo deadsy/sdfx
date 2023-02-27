@@ -10,7 +10,7 @@ import (
 
 //-----------------------------------------------------------------------------
 
-func marchingTet4(s sdf.SDF3, box sdf.Box3, step float64) []*Tet4 {
+func marchingCubesTet4(s sdf.SDF3, box sdf.Box3, step float64) []*Tet4 {
 
 	var tetrahedra []*Tet4
 	size := box.Size()
@@ -160,7 +160,7 @@ func (r *MarchingTet4Uniform) Render(s sdf.SDF3, output chan<- []*Tet4) {
 	bb1Size = bb1Size.Ceil().AddScalar(1)
 	bb1Size = bb1Size.MulScalar(meshInc)
 	bb := sdf.NewBox3(bb0.Center(), bb1Size)
-	output <- marchingTet4(s, bb, meshInc)
+	output <- marchingCubesTet4(s, bb, meshInc)
 }
 
 //-----------------------------------------------------------------------------
