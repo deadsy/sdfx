@@ -13,47 +13,101 @@ import (
 func marchingTet4(s sdf.SDF3, box sdf.Box3, step float64) []*Tet4 {
 
 	var tetrahedra []*Tet4
-
 	size := box.Size()
+	base := box.Min
 	steps := conv.V3ToV3i(size.DivScalar(step).Ceil())
+	inc := size.Div(conv.V3iToV3(steps))
 
-	_, _, nz := steps.X, steps.Y, steps.Z
+	// start the evaluation routines
+	evalRoutines()
 
-	for z := 0; z < nz; z++ {
+	// create the SDF layer cache
+	l := newLayerYZ(base, inc, steps)
+	// evaluate the SDF for x = 0
+	l.Evaluate(s, 0)
 
-		h := float64(z)
+	nx, ny, nz := steps.X, steps.Y, steps.Z
+	dx, dy, dz := inc.X, inc.Y, inc.Z
 
-		// Constant hard-coded tetrahedra vertices to develop and debug the output API.
-		// https://cs.stackexchange.com/a/90011/67985
-		tetrahedra = append(tetrahedra, &Tet4{
-			V:     [4]v3.Vec{{X: 0, Y: 0, Z: h}, {X: 0, Y: 0, Z: h + 1}, {X: 0, Y: 1, Z: h + 1}, {X: 1, Y: 1, Z: h + 1}},
-			layer: z,
-		})
-		tetrahedra = append(tetrahedra, &Tet4{
-			V:     [4]v3.Vec{{X: 0, Y: 0, Z: h}, {X: 0, Y: 1, Z: h}, {X: 0, Y: 1, Z: h + 1}, {X: 1, Y: 1, Z: h + 1}},
-			layer: z,
-		})
-		tetrahedra = append(tetrahedra, &Tet4{
-			V:     [4]v3.Vec{{X: 0, Y: 0, Z: h}, {X: 0, Y: 0, Z: h + 1}, {X: 1, Y: 0, Z: h + 1}, {X: 1, Y: 1, Z: h + 1}},
-			layer: z,
-		})
-		tetrahedra = append(tetrahedra, &Tet4{
-			V:     [4]v3.Vec{{X: 0, Y: 0, Z: h}, {X: 1, Y: 0, Z: h}, {X: 1, Y: 0, Z: h + 1}, {X: 1, Y: 1, Z: h + 1}},
-			layer: z,
-		})
-		tetrahedra = append(tetrahedra, &Tet4{
-			V:     [4]v3.Vec{{X: 0, Y: 0, Z: h}, {X: 0, Y: 1, Z: h}, {X: 1, Y: 1, Z: h}, {X: 1, Y: 1, Z: h + 1}},
-			layer: z,
-		})
-		tetrahedra = append(tetrahedra, &Tet4{
-			V:     [4]v3.Vec{{X: 0, Y: 0, Z: h}, {X: 1, Y: 0, Z: h}, {X: 1, Y: 1, Z: h}, {X: 1, Y: 1, Z: h + 1}},
-			layer: z,
-		})
+	var p v3.Vec
+	p.X = base.X
+	for x := 0; x < nx; x++ {
+		// read the x + 1 layer
+		l.Evaluate(s, x+1)
+		// process all cubes in the x and x + 1 layers
+		p.Y = base.Y
+		for y := 0; y < ny; y++ {
+			p.Z = base.Z
+			for z := 0; z < nz; z++ {
+				x0, y0, z0 := p.X, p.Y, p.Z
+				x1, y1, z1 := x0+dx, y0+dy, z0+dz
+				corners := [8]v3.Vec{
+					{x0, y0, z0},
+					{x1, y0, z0},
+					{x1, y1, z0},
+					{x0, y1, z0},
+					{x0, y0, z1},
+					{x1, y0, z1},
+					{x1, y1, z1},
+					{x0, y1, z1}}
+				values := [8]float64{
+					l.Get(0, y, z),
+					l.Get(1, y, z),
+					l.Get(1, y+1, z),
+					l.Get(0, y+1, z),
+					l.Get(0, y, z+1),
+					l.Get(1, y, z+1),
+					l.Get(1, y+1, z+1),
+					l.Get(0, y+1, z+1)}
+				tetrahedra = append(tetrahedra, mcToTet4(corners, values, 0)...)
+				p.Z += dz
+			}
+			p.Y += dy
+		}
+		p.X += dx
 	}
 
-	// TODO: Logic.
-
 	return tetrahedra
+}
+
+//-----------------------------------------------------------------------------
+
+func mcToTet4(p [8]v3.Vec, v [8]float64, x float64) []*Tet4 {
+	// which of the 0..255 patterns do we have?
+	index := 0
+	for i := 0; i < 8; i++ {
+		if v[i] < x {
+			index |= 1 << uint(i)
+		}
+	}
+	// do we have any triangles to create?
+	if mcEdgeTable[index] == 0 {
+		return nil
+	}
+	// work out the interpolated points on the edges
+	var points [12]v3.Vec
+	for i := 0; i < 12; i++ {
+		bit := 1 << uint(i)
+		if mcEdgeTable[index]&bit != 0 {
+			a := mcPairTable[i][0]
+			b := mcPairTable[i][1]
+			points[i] = mcInterpolate(p[a], p[b], v[a], v[b], x)
+		}
+	}
+	// create the triangles
+	table := mcTriangleTable[index]
+	count := len(table) / 3
+	result := make([]*Triangle3, 0, count)
+	for i := 0; i < count; i++ {
+		t := Triangle3{}
+		t.V[2] = points[table[i*3+0]]
+		t.V[1] = points[table[i*3+1]]
+		t.V[0] = points[table[i*3+2]]
+		if !t.Degenerate(0) {
+			result = append(result, &t)
+		}
+	}
+	return result
 }
 
 //-----------------------------------------------------------------------------
