@@ -9,7 +9,6 @@ package sdf
 import (
 	"errors"
 	"math"
-	"math/rand"
 
 	"github.com/deadsy/sdfx/vec/conv"
 	v2 "github.com/deadsy/sdfx/vec/v2"
@@ -336,7 +335,7 @@ func (a Box3) MinMaxDist2(p v3.Vec) v2.Vec {
 
 // randomRange returns a random float64 [a,b)
 func randomRange(a, b float64) float64 {
-	return a + (b-a)*rand.Float64()
+	return a + (b-a)*sdfRand.Float64()
 }
 
 // Random returns a random point within a bounding box.
