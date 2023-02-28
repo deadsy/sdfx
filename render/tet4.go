@@ -3,7 +3,6 @@ package render
 import (
 	"fmt"
 	"os"
-	"runtime"
 	"sync"
 	"time"
 
@@ -37,7 +36,7 @@ type MeshTet4 struct {
 	// All coordinates are unique.
 	V []v3.Vec
 	// Used to avoid repeating vertices when adding a new tetrahedron.
-	Lookup map[[3]int32]uint32
+	Lookup *Lookup
 }
 
 // To get a new mesh and number of its layers along Z-axis.
@@ -53,7 +52,7 @@ func NewMeshTet4(s sdf.SDF3, r RenderTet4) (*MeshTet4, int) {
 		m.addTet4(t.layer, t.V[0], t.V[1], t.V[2], t.V[3])
 	}
 
-	m.finalize()
+	m.Lookup.Destroy()
 
 	return m, layerCountZ
 }
@@ -62,7 +61,7 @@ func newMeshTet4(layerCount int) *MeshTet4 {
 	t := &MeshTet4{
 		T:      nil,
 		V:      []v3.Vec{},
-		Lookup: map[[3]int32]uint32{},
+		Lookup: nil,
 	}
 
 	// Initialize.
@@ -70,6 +69,9 @@ func newMeshTet4(layerCount int) *MeshTet4 {
 	for l := 0; l < layerCount; l++ {
 		t.T[l] = make([]uint32, 0)
 	}
+
+	// Initialize
+	t.Lookup = NewLookup(&t.V)
 
 	return t
 }
@@ -82,22 +84,7 @@ func (m *MeshTet4) addTet4(l int, a, b, c, d v3.Vec) {
 }
 
 func (m *MeshTet4) addVertex(vert v3.Vec) uint32 {
-	// Deduplicate by removing small details and use of epsilon
-	epsilon := float64(0.0001)
-	key := [3]int32{int32((vert.X + epsilon) * 1000), int32((vert.Y + epsilon) * 1000), int32((vert.Z + epsilon) * 1000)}
-	if vertID, ok := m.Lookup[key]; ok {
-		// Vertex already exists. It's repeated.
-		return vertID
-	}
-
-	// Vertex is new, so append it.
-	m.V = append(m.V, vert)
-
-	// Store index of the appended vertex.
-	m.Lookup[key] = uint32(m.vertexCount() - 1)
-
-	// Return index of the appended vertex.
-	return uint32(m.vertexCount() - 1)
+	return m.Lookup.Id(vert)
 }
 
 func (m *MeshTet4) vertexCount() int {
@@ -106,13 +93,6 @@ func (m *MeshTet4) vertexCount() int {
 
 func (m *MeshTet4) vertex(i int) v3.Vec {
 	return m.V[i]
-}
-
-// To be called after adding all tetrahedra to the mesh.
-func (t *MeshTet4) finalize() {
-	// Clear memory.
-	t.Lookup = nil
-	runtime.GC()
 }
 
 // Number of layers along the Z axis.
