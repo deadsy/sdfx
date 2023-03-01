@@ -36,7 +36,7 @@ type MeshTet4 struct {
 	// All coordinates are unique.
 	V []v3.Vec
 	// Used to avoid repeating vertices when adding a new tetrahedron.
-	Lookup *Lookup
+	Lookup *VertexBuffer
 }
 
 // To get a new mesh and number of its layers along Z-axis.
@@ -71,7 +71,7 @@ func newMeshTet4(layerCount int) *MeshTet4 {
 	}
 
 	// Initialize
-	t.Lookup = NewLookup(&t.V)
+	t.Lookup = NewVertexBuffer(&t.V)
 
 	return t
 }
