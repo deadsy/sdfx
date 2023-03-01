@@ -48,7 +48,7 @@ func (b *VertexBuffer) vertexCount() int {
 }
 
 // To be called after adding all vertices to the vertex buffer.
-func (b *VertexBuffer) Destroy() {
+func (b *VertexBuffer) DestroyHashTable() {
 	// Clear memory.
 	b.hashTable = nil
 	runtime.GC()

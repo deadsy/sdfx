@@ -52,7 +52,7 @@ func NewMeshTet4(s sdf.SDF3, r RenderTet4) (*MeshTet4, int) {
 		m.addTet4(t.layer, t.V[0], t.V[1], t.V[2], t.V[3])
 	}
 
-	m.VBuff.Destroy()
+	m.VBuff.DestroyHashTable()
 
 	return m, layerCountZ
 }
@@ -173,7 +173,7 @@ func (m *MeshTet4) WriteInpLayers(path string, layerStart, layerEnd int) error {
 	// To write only required nodes to the file.
 	vs := []v3.Vec{}
 	vsBuff := NewVertexBuffer(&vs)
-	defer vsBuff.Destroy() // Clean up vertex buffer memory.
+	defer vsBuff.DestroyHashTable()
 
 	var node0, node1, node2, node3 v3.Vec
 	var id0, id1, id2, id3 uint32
