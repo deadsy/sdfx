@@ -36,7 +36,7 @@ type MeshTet4 struct {
 	// Vertex buffer.
 	// All coordinates are unique.
 	// Used to avoid repeating vertices when adding a new tetrahedron.
-	VBuff *buffer.VertexBuffer
+	VBuff *buffer.Tet4VertexBuffer
 }
 
 // To get a new mesh and number of its layers along Z-axis.
@@ -70,7 +70,7 @@ func newMeshTet4(layerCount int) *MeshTet4 {
 	}
 
 	// Initialize
-	t.VBuff = buffer.NewVertexBuffer()
+	t.VBuff = buffer.NewTet4VertexBuffer()
 
 	return t
 }
@@ -170,7 +170,7 @@ func (m *MeshTet4) WriteInpLayers(path string, layerStart, layerEnd int) error {
 	}
 
 	// To write only required nodes to the file.
-	vsBuff := buffer.NewVertexBuffer()
+	vsBuff := buffer.NewTet4VertexBuffer()
 	defer vsBuff.DestroyHashTable()
 
 	var node0, node1, node2, node3 v3.Vec

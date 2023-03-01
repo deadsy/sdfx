@@ -7,15 +7,15 @@ import (
 )
 
 // To avoid repeating vertices on vertex buffer.
-type VertexBuffer struct {
+type Tet4VertexBuffer struct {
 	// To store index of vertices. Repeated vertices would have the same index.
 	hashTable map[[3]int32]uint32
 	// To store coordinates of vertices.
 	V []v3.Vec
 }
 
-func NewVertexBuffer() *VertexBuffer {
-	b := VertexBuffer{
+func NewTet4VertexBuffer() *Tet4VertexBuffer {
+	b := Tet4VertexBuffer{
 		hashTable: map[[3]int32]uint32{},
 		V:         []v3.Vec{},
 	}
@@ -26,7 +26,7 @@ func NewVertexBuffer() *VertexBuffer {
 // Add vertex to buffer and get vertex ID.
 // If vertex is already available on the buffer, its ID is just returned.
 // All vertices would be unique. Not repeated.
-func (b *VertexBuffer) Id(v v3.Vec) uint32 {
+func (b *Tet4VertexBuffer) Id(v v3.Vec) uint32 {
 	// Deduplicate by removing small details and use of epsilon
 	epsilon := float64(0.0001)
 	key := [3]int32{int32((v.X + epsilon) * 1000), int32((v.Y + epsilon) * 1000), int32((v.Z + epsilon) * 1000)}
@@ -45,18 +45,18 @@ func (b *VertexBuffer) Id(v v3.Vec) uint32 {
 	return uint32(b.VertexCount() - 1)
 }
 
-func (b *VertexBuffer) VertexCount() int {
+func (b *Tet4VertexBuffer) VertexCount() int {
 	return len(b.V)
 }
 
 // To be called after adding all vertices to the vertex buffer.
 // Call if you are sure that no new vertex will be added to the vertex buffer.
-func (b *VertexBuffer) DestroyHashTable() {
+func (b *Tet4VertexBuffer) DestroyHashTable() {
 	// Clear memory.
 	b.hashTable = nil
 	runtime.GC()
 }
 
-func (b *VertexBuffer) Vertex(i uint32) v3.Vec {
+func (b *Tet4VertexBuffer) Vertex(i uint32) v3.Vec {
 	return b.V[i]
 }
