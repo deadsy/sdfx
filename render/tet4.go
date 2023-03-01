@@ -30,12 +30,8 @@ type Tet4 struct {
 // The element connectivity would be created with unique nodes.
 type MeshTet4 struct {
 	// Index buffer.
-	// Every 4 indices would correspond to a tetrahedron. Low-level for performance.
-	// Tetrahedra are stored by their layer on Z axis.
-	T [][]uint32
+	IBuff *buffer.Tet4IB
 	// Vertex buffer.
-	// All coordinates are unique.
-	// Used to avoid repeating vertices when adding a new tetrahedron.
 	VBuff *buffer.Tet4VB
 }
 
@@ -59,17 +55,12 @@ func NewMeshTet4(s sdf.SDF3, r RenderTet4) (*MeshTet4, int) {
 
 func newMeshTet4(layerCount int) *MeshTet4 {
 	t := &MeshTet4{
-		T:     nil,
+		IBuff: nil,
 		VBuff: nil,
 	}
 
 	// Initialize.
-	t.T = make([][]uint32, layerCount)
-	for l := 0; l < layerCount; l++ {
-		t.T[l] = make([]uint32, 0)
-	}
-
-	// Initialize
+	t.IBuff = buffer.NewTet4IB(layerCount)
 	t.VBuff = buffer.NewTet4VB()
 
 	return t
@@ -79,7 +70,7 @@ func newMeshTet4(layerCount int) *MeshTet4 {
 // The node numbering should follow the convention of CalculiX.
 // http://www.dhondt.de/ccx_2.20.pdf
 func (m *MeshTet4) addTet4(l int, a, b, c, d v3.Vec) {
-	m.T[l] = append(m.T[l], m.addVertex(a), m.addVertex(b), m.addVertex(c), m.addVertex(d))
+	m.IBuff.AddTet4(l, m.addVertex(a), m.addVertex(b), m.addVertex(c), m.addVertex(d))
 }
 
 func (m *MeshTet4) addVertex(vert v3.Vec) uint32 {
@@ -96,21 +87,17 @@ func (m *MeshTet4) vertex(i uint32) v3.Vec {
 
 // Number of layers along the Z axis.
 func (m *MeshTet4) layerCount() int {
-	return len(m.T)
+	return m.IBuff.LayerCount()
 }
 
 // Number of tetrahedra on a layer.
 func (m *MeshTet4) tet4CountOnLayer(l int) int {
-	return len(m.T[l]) / 4
+	return m.IBuff.Tet4CountOnLayer(l)
 }
 
 // Number of tetrahedra for all layers.
 func (m *MeshTet4) tet4Count() int {
-	var count int
-	for _, l := range m.T {
-		count += len(l) / 4
-	}
-	return count
+	return m.IBuff.Tet4Count()
 }
 
 // Layer number is input.
@@ -118,7 +105,7 @@ func (m *MeshTet4) tet4Count() int {
 // Tetrahedron index could be from 0 to number of tetrahedra on layer.
 // Don't return error to increase performance.
 func (m *MeshTet4) tet4Indicies(l, i int) (uint32, uint32, uint32, uint32) {
-	return m.T[l][i*4], m.T[l][i*4+1], m.T[l][i*4+2], m.T[l][i*4+3]
+	return m.IBuff.Tet4Indicies(l, i)
 }
 
 // Layer number is input.
@@ -126,7 +113,8 @@ func (m *MeshTet4) tet4Indicies(l, i int) (uint32, uint32, uint32, uint32) {
 // Tetrahedron index could be from 0 to number of tetrahedra on layer.
 // Don't return error to increase performance.
 func (m *MeshTet4) tet4Vertices(l, i int) (v3.Vec, v3.Vec, v3.Vec, v3.Vec) {
-	return m.VBuff.Vertex(m.T[l][i*4]), m.VBuff.Vertex(m.T[l][i*4+1]), m.VBuff.Vertex(m.T[l][i*4+2]), m.VBuff.Vertex(m.T[l][i*4+3])
+	idx0, idx1, idx2, idx3 := m.IBuff.Tet4Indicies(l, i)
+	return m.VBuff.Vertex(idx0), m.VBuff.Vertex(idx1), m.VBuff.Vertex(idx2), m.VBuff.Vertex(idx3)
 }
 
 // Write mesh to ABAQUS or CalculiX `inp` file.
