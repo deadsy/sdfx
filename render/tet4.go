@@ -34,7 +34,6 @@ type MeshTet4 struct {
 	T [][]uint32
 	// Vertex buffer.
 	// All coordinates are unique.
-	V []v3.Vec
 	// Used to avoid repeating vertices when adding a new tetrahedron.
 	VBuff *VertexBuffer
 }
@@ -52,7 +51,7 @@ func NewMeshTet4(s sdf.SDF3, r RenderTet4) (*MeshTet4, int) {
 		m.addTet4(t.layer, t.V[0], t.V[1], t.V[2], t.V[3])
 	}
 
-	m.VBuff.DestroyHashTable()
+	defer m.VBuff.DestroyHashTable()
 
 	return m, layerCountZ
 }
@@ -60,7 +59,6 @@ func NewMeshTet4(s sdf.SDF3, r RenderTet4) (*MeshTet4, int) {
 func newMeshTet4(layerCount int) *MeshTet4 {
 	t := &MeshTet4{
 		T:     nil,
-		V:     []v3.Vec{},
 		VBuff: nil,
 	}
 
@@ -71,7 +69,7 @@ func newMeshTet4(layerCount int) *MeshTet4 {
 	}
 
 	// Initialize
-	t.VBuff = NewVertexBuffer(&t.V)
+	t.VBuff = NewVertexBuffer()
 
 	return t
 }
@@ -88,11 +86,11 @@ func (m *MeshTet4) addVertex(vert v3.Vec) uint32 {
 }
 
 func (m *MeshTet4) vertexCount() int {
-	return len(m.V)
+	return m.VBuff.VertexCount()
 }
 
-func (m *MeshTet4) vertex(i int) v3.Vec {
-	return m.V[i]
+func (m *MeshTet4) vertex(i uint32) v3.Vec {
+	return m.VBuff.Vertex(i)
 }
 
 // Number of layers along the Z axis.
@@ -108,8 +106,8 @@ func (m *MeshTet4) tet4CountOnLayer(l int) int {
 // Number of tetrahedra for all layers.
 func (m *MeshTet4) tet4Count() int {
 	var count int
-	for _, t := range m.T {
-		count += len(t) / 4
+	for _, l := range m.T {
+		count += len(l) / 4
 	}
 	return count
 }
@@ -127,7 +125,7 @@ func (m *MeshTet4) tet4Indicies(l, i int) (uint32, uint32, uint32, uint32) {
 // Tetrahedron index could be from 0 to number of tetrahedra on layer.
 // Don't return error to increase performance.
 func (m *MeshTet4) tet4Vertices(l, i int) (v3.Vec, v3.Vec, v3.Vec, v3.Vec) {
-	return m.V[m.T[l][i*4]], m.V[m.T[l][i*4+1]], m.V[m.T[l][i*4+2]], m.V[m.T[l][i*4+3]]
+	return m.VBuff.Vertex(m.T[l][i*4]), m.VBuff.Vertex(m.T[l][i*4+1]), m.VBuff.Vertex(m.T[l][i*4+2]), m.VBuff.Vertex(m.T[l][i*4+3])
 }
 
 // Write mesh to ABAQUS or CalculiX `inp` file.
@@ -171,8 +169,7 @@ func (m *MeshTet4) WriteInpLayers(path string, layerStart, layerEnd int) error {
 	}
 
 	// To write only required nodes to the file.
-	vs := []v3.Vec{}
-	vsBuff := NewVertexBuffer(&vs)
+	vsBuff := NewVertexBuffer()
 	defer vsBuff.DestroyHashTable()
 
 	var node0, node1, node2, node3 v3.Vec
