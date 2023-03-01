@@ -36,7 +36,7 @@ type MeshTet4 struct {
 	// All coordinates are unique.
 	V []v3.Vec
 	// Used to avoid repeating vertices when adding a new tetrahedron.
-	Lookup *VertexBuffer
+	VBuff *VertexBuffer
 }
 
 // To get a new mesh and number of its layers along Z-axis.
@@ -52,16 +52,16 @@ func NewMeshTet4(s sdf.SDF3, r RenderTet4) (*MeshTet4, int) {
 		m.addTet4(t.layer, t.V[0], t.V[1], t.V[2], t.V[3])
 	}
 
-	m.Lookup.Destroy()
+	m.VBuff.Destroy()
 
 	return m, layerCountZ
 }
 
 func newMeshTet4(layerCount int) *MeshTet4 {
 	t := &MeshTet4{
-		T:      nil,
-		V:      []v3.Vec{},
-		Lookup: nil,
+		T:     nil,
+		V:     []v3.Vec{},
+		VBuff: nil,
 	}
 
 	// Initialize.
@@ -71,7 +71,7 @@ func newMeshTet4(layerCount int) *MeshTet4 {
 	}
 
 	// Initialize
-	t.Lookup = NewVertexBuffer(&t.V)
+	t.VBuff = NewVertexBuffer(&t.V)
 
 	return t
 }
@@ -84,7 +84,7 @@ func (m *MeshTet4) addTet4(l int, a, b, c, d v3.Vec) {
 }
 
 func (m *MeshTet4) addVertex(vert v3.Vec) uint32 {
-	return m.Lookup.Id(vert)
+	return m.VBuff.Id(vert)
 }
 
 func (m *MeshTet4) vertexCount() int {
