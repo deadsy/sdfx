@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/deadsy/sdfx/render/buffer"
 	"github.com/deadsy/sdfx/sdf"
 	v3 "github.com/deadsy/sdfx/vec/v3"
 )
@@ -35,7 +36,7 @@ type MeshTet4 struct {
 	// Vertex buffer.
 	// All coordinates are unique.
 	// Used to avoid repeating vertices when adding a new tetrahedron.
-	VBuff *VertexBuffer
+	VBuff *buffer.VertexBuffer
 }
 
 // To get a new mesh and number of its layers along Z-axis.
@@ -69,7 +70,7 @@ func newMeshTet4(layerCount int) *MeshTet4 {
 	}
 
 	// Initialize
-	t.VBuff = NewVertexBuffer()
+	t.VBuff = buffer.NewVertexBuffer()
 
 	return t
 }
@@ -169,7 +170,7 @@ func (m *MeshTet4) WriteInpLayers(path string, layerStart, layerEnd int) error {
 	}
 
 	// To write only required nodes to the file.
-	vsBuff := NewVertexBuffer()
+	vsBuff := buffer.NewVertexBuffer()
 	defer vsBuff.DestroyHashTable()
 
 	var node0, node1, node2, node3 v3.Vec
