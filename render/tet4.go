@@ -170,13 +170,39 @@ func (m *MeshTet4) WriteInpLayers(path string, layerStart, layerEnd int) error {
 		return err
 	}
 
-	var node v3.Vec
-	for i := 0; i < m.vertexCount(); i++ {
-		node = m.vertex(i)
-		// ID starts from one not zero.
-		_, err = f.WriteString(fmt.Sprintf("%d,%f,%f,%f\n", i+1, float32(node.X), float32(node.Y), float32(node.Z)))
-		if err != nil {
-			return err
+	// To write only required nodes to the file.
+	vs := []v3.Vec{}
+	vsBuff := NewVertexBuffer(&vs)
+
+	var node0, node1, node2, node3 v3.Vec
+	var id0, id1, id2, id3 uint32
+	for l := layerStart; l < layerEnd; l++ {
+		for i := 0; i < m.tet4CountOnLayer(l); i++ {
+			node0, node1, node2, node3 = m.tet4Vertices(l, i)
+			id0 = vsBuff.Id(node0)
+			id1 = vsBuff.Id(node1)
+			id2 = vsBuff.Id(node2)
+			id3 = vsBuff.Id(node3)
+			// ID starts from one not zero.
+			_, err = f.WriteString(fmt.Sprintf("%d,%f,%f,%f\n", id0+1, float32(node0.X), float32(node0.Y), float32(node0.Z)))
+			if err != nil {
+				return err
+			}
+			// ID starts from one not zero.
+			_, err = f.WriteString(fmt.Sprintf("%d,%f,%f,%f\n", id1+1, float32(node1.X), float32(node1.Y), float32(node1.Z)))
+			if err != nil {
+				return err
+			}
+			// ID starts from one not zero.
+			_, err = f.WriteString(fmt.Sprintf("%d,%f,%f,%f\n", id2+1, float32(node2.X), float32(node2.Y), float32(node2.Z)))
+			if err != nil {
+				return err
+			}
+			// ID starts from one not zero.
+			_, err = f.WriteString(fmt.Sprintf("%d,%f,%f,%f\n", id3+1, float32(node3.X), float32(node3.Y), float32(node3.Z)))
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -188,12 +214,15 @@ func (m *MeshTet4) WriteInpLayers(path string, layerStart, layerEnd int) error {
 	}
 
 	var eleID uint32
-	var nodeID0, nodeID1, nodeID2, nodeID3 uint32
 	for l := layerStart; l < layerEnd; l++ {
 		for i := 0; i < m.tet4CountOnLayer(l); i++ {
-			nodeID0, nodeID1, nodeID2, nodeID3 = m.tet4Indicies(l, i)
+			node0, node1, node2, node3 = m.tet4Vertices(l, i)
+			id0 = vsBuff.Id(node0)
+			id1 = vsBuff.Id(node1)
+			id2 = vsBuff.Id(node2)
+			id3 = vsBuff.Id(node3)
 			// ID starts from one not zero.
-			_, err = f.WriteString(fmt.Sprintf("%d,%d,%d,%d,%d\n", eleID+1, nodeID0+1, nodeID1+1, nodeID2+1, nodeID3+1))
+			_, err = f.WriteString(fmt.Sprintf("%d,%d,%d,%d,%d\n", eleID+1, id0+1, id1+1, id2+1, id3+1))
 			if err != nil {
 				return err
 			}

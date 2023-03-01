@@ -22,6 +22,7 @@ func NewVertexBuffer(V *[]v3.Vec) *VertexBuffer {
 }
 
 // Add vertex to buffer and get vertex ID.
+// If vertex is already available on the buffer, its ID is just returned.
 // All vertices would be unique. Not repeated.
 func (b VertexBuffer) Id(v v3.Vec) uint32 {
 	// Deduplicate by removing small details and use of epsilon
