@@ -54,16 +54,10 @@ func NewMeshTet4(s sdf.SDF3, r RenderTet4) (*MeshTet4, int) {
 }
 
 func newMeshTet4(layerCount int) *MeshTet4 {
-	t := &MeshTet4{
-		IBuff: nil,
-		VBuff: nil,
+	return &MeshTet4{
+		IBuff: buffer.NewTet4IB(layerCount),
+		VBuff: buffer.NewTet4VB(),
 	}
-
-	// Initialize.
-	t.IBuff = buffer.NewTet4IB(layerCount)
-	t.VBuff = buffer.NewTet4VB()
-
-	return t
 }
 
 // Layer number and 4 nodes are input.
