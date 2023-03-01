@@ -160,6 +160,7 @@ func (m *MeshTet4) WriteInpLayers(path string, layerStart, layerEnd int) error {
 	for l := layerStart; l < layerEnd; l++ {
 		for i := 0; i < m.tet4CountOnLayer(l); i++ {
 			node0, node1, node2, node3 = m.tet4Vertices(l, i)
+			// Get the node IDs.
 			id0 = tempVBuff.Id(node0)
 			id1 = tempVBuff.Id(node1)
 			id2 = tempVBuff.Id(node2)
