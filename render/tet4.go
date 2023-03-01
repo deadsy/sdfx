@@ -158,18 +158,18 @@ func (m *MeshTet4) WriteInpLayers(path string, layerStart, layerEnd int) error {
 	}
 
 	// To write only required nodes to the file.
-	vsBuff := buffer.NewTet4VB()
-	defer vsBuff.DestroyHashTable()
+	tempVBuff := buffer.NewTet4VB()
+	defer tempVBuff.DestroyHashTable()
 
 	var node0, node1, node2, node3 v3.Vec
 	var id0, id1, id2, id3 uint32
 	for l := layerStart; l < layerEnd; l++ {
 		for i := 0; i < m.tet4CountOnLayer(l); i++ {
 			node0, node1, node2, node3 = m.tet4Vertices(l, i)
-			id0 = vsBuff.Id(node0)
-			id1 = vsBuff.Id(node1)
-			id2 = vsBuff.Id(node2)
-			id3 = vsBuff.Id(node3)
+			id0 = tempVBuff.Id(node0)
+			id1 = tempVBuff.Id(node1)
+			id2 = tempVBuff.Id(node2)
+			id3 = tempVBuff.Id(node3)
 			// ID starts from one not zero.
 			_, err = f.WriteString(fmt.Sprintf("%d,%f,%f,%f\n", id0+1, float32(node0.X), float32(node0.Y), float32(node0.Z)))
 			if err != nil {
@@ -204,10 +204,10 @@ func (m *MeshTet4) WriteInpLayers(path string, layerStart, layerEnd int) error {
 	for l := layerStart; l < layerEnd; l++ {
 		for i := 0; i < m.tet4CountOnLayer(l); i++ {
 			node0, node1, node2, node3 = m.tet4Vertices(l, i)
-			id0 = vsBuff.Id(node0)
-			id1 = vsBuff.Id(node1)
-			id2 = vsBuff.Id(node2)
-			id3 = vsBuff.Id(node3)
+			id0 = tempVBuff.Id(node0)
+			id1 = tempVBuff.Id(node1)
+			id2 = tempVBuff.Id(node2)
+			id3 = tempVBuff.Id(node3)
 			// ID starts from one not zero.
 			_, err = f.WriteString(fmt.Sprintf("%d,%d,%d,%d,%d\n", eleID+1, id0+1, id1+1, id2+1, id3+1))
 			if err != nil {
