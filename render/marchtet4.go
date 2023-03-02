@@ -97,18 +97,32 @@ func mcToTet4(p [8]v3.Vec, v [8]float64, x float64, layerZ int) []*Tet4 {
 	// create the triangles
 	table := mcTriangleTable[index]
 	count := len(table) / 3
-	result := make([]*Tet4, 0, count)
+	result := make([]*Triangle3, 0, count)
 	for i := 0; i < count; i++ {
+		t := Triangle3{}
+		t.V[2] = points[table[i*3+0]]
+		t.V[1] = points[table[i*3+1]]
+		t.V[0] = points[table[i*3+2]]
+		if !t.Degenerate(0) {
+			result = append(result, &t)
+		}
+	}
+
+	// TODO: Create tetrahedra by composing proper tables.
+	resultTet4 := make([]*Tet4, 0, count)
+	for _, res := range result {
 		t := Tet4{
 			V:     [4]v3.Vec{},
 			layer: layerZ,
 		}
-		t.V[2] = points[table[i*3+0]]
-		t.V[1] = points[table[i*3+1]]
-		t.V[0] = points[table[i*3+2]]
-		result = append(result, &t)
+		t.V[3] = v3.Vec{X: 0, Y: 0, Z: 0}
+		t.V[2] = res.V[2]
+		t.V[1] = res.V[1]
+		t.V[0] = res.V[0]
+		resultTet4 = append(resultTet4, &t)
 	}
-	return result
+
+	return resultTet4
 }
 
 //-----------------------------------------------------------------------------
