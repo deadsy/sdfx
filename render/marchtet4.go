@@ -73,43 +73,11 @@ func marchingCubesTet4(s sdf.SDF3, box sdf.Box3, step float64) []*Tet4 {
 //-----------------------------------------------------------------------------
 
 func mcToTet4(p [8]v3.Vec, v [8]float64, x float64, layerZ int) []*Tet4 {
-	// which of the 0..255 patterns do we have?
-	index := 0
-	for i := 0; i < 8; i++ {
-		if v[i] < x {
-			index |= 1 << uint(i)
-		}
-	}
-	// do we have any triangles to create?
-	if mcEdgeTable[index] == 0 {
-		return nil
-	}
-	// work out the interpolated points on the edges
-	var points [12]v3.Vec
-	for i := 0; i < 12; i++ {
-		bit := 1 << uint(i)
-		if mcEdgeTable[index]&bit != 0 {
-			a := mcPairTable[i][0]
-			b := mcPairTable[i][1]
-			points[i] = mcInterpolate(p[a], p[b], v[a], v[b], x)
-		}
-	}
-	// create the triangles
-	table := mcTriangleTable[index]
-	count := len(table) / 3
-	result := make([]*Triangle3, 0, count)
-	for i := 0; i < count; i++ {
-		t := Triangle3{}
-		t.V[2] = points[table[i*3+0]]
-		t.V[1] = points[table[i*3+1]]
-		t.V[0] = points[table[i*3+2]]
-		if !t.Degenerate(0) {
-			result = append(result, &t)
-		}
-	}
+	result := mcToTriangles(p, v, x)
 
 	// TODO: Create tetrahedra by composing proper tables.
-	resultTet4 := make([]*Tet4, 0, count)
+
+	resultTet4 := make([]*Tet4, 0, len(result))
 	for _, res := range result {
 		t := Tet4{
 			V:     [4]v3.Vec{},
