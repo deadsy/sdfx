@@ -35,12 +35,12 @@ func (ib *Tet4IB) LayerCount() int {
 }
 
 // Number of tetrahedra on a layer.
-func (ib *Tet4IB) Tet4CountOnLayer(l int) int {
+func (ib *Tet4IB) FECountOnLayer(l int) int {
 	return len(ib.I[l]) / 4
 }
 
 // Number of tetrahedra for all layers.
-func (ib *Tet4IB) Tet4Count() int {
+func (ib *Tet4IB) FECount() int {
 	var count int
 	for _, l := range ib.I {
 		count += len(l) / 4
@@ -52,6 +52,6 @@ func (ib *Tet4IB) Tet4Count() int {
 // Tetrahedron index on layer is input.
 // Tetrahedron index could be from 0 to number of tetrahedra on layer.
 // Don't return error to increase performance.
-func (ib *Tet4IB) Tet4Indicies(l, i int) (uint32, uint32, uint32, uint32) {
+func (ib *Tet4IB) FEIndicies(l, i int) (uint32, uint32, uint32, uint32) {
 	return ib.I[l][i*4], ib.I[l][i*4+1], ib.I[l][i*4+2], ib.I[l][i*4+3]
 }

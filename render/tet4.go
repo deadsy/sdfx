@@ -47,7 +47,7 @@ func NewMeshTet4(s sdf.SDF3, r RenderTet4) (*MeshTet4, int) {
 
 	// Fill out the mesh with finite elements.
 	for _, t := range tet4s {
-		m.addTet4(t.layer, t.V[0], t.V[1], t.V[2], t.V[3])
+		m.addFE(t.layer, t.V[0], t.V[1], t.V[2], t.V[3])
 	}
 
 	defer m.VBuff.DestroyHashTable()
@@ -62,10 +62,11 @@ func newMeshTet4(layerCount int) *MeshTet4 {
 	}
 }
 
-// Layer number and 4 nodes are input.
+// Add a finite element.
+// Layer number and nodes are input.
 // The node numbering should follow the convention of CalculiX.
 // http://www.dhondt.de/ccx_2.20.pdf
-func (m *MeshTet4) addTet4(l int, a, b, c, d v3.Vec) {
+func (m *MeshTet4) addFE(l int, a, b, c, d v3.Vec) {
 	m.IBuff.AddTet4(l, m.addVertex(a), m.addVertex(b), m.addVertex(c), m.addVertex(d))
 }
 
@@ -87,29 +88,31 @@ func (m *MeshTet4) layerCount() int {
 }
 
 // Number of tetrahedra on a layer.
-func (m *MeshTet4) tet4CountOnLayer(l int) int {
-	return m.IBuff.Tet4CountOnLayer(l)
+func (m *MeshTet4) feCountOnLayer(l int) int {
+	return m.IBuff.FECountOnLayer(l)
 }
 
 // Number of tetrahedra for all layers.
-func (m *MeshTet4) tet4Count() int {
-	return m.IBuff.Tet4Count()
+func (m *MeshTet4) feCount() int {
+	return m.IBuff.FECount()
 }
 
+// Get a finite element.
 // Layer number is input.
 // Tetrahedron index on layer is input.
 // Tetrahedron index could be from 0 to number of tetrahedra on layer.
 // Don't return error to increase performance.
-func (m *MeshTet4) tet4Indicies(l, i int) (uint32, uint32, uint32, uint32) {
-	return m.IBuff.Tet4Indicies(l, i)
+func (m *MeshTet4) feIndicies(l, i int) (uint32, uint32, uint32, uint32) {
+	return m.IBuff.FEIndicies(l, i)
 }
 
+// Get a finite element.
 // Layer number is input.
 // Tetrahedron index on layer is input.
 // Tetrahedron index could be from 0 to number of tetrahedra on layer.
 // Don't return error to increase performance.
-func (m *MeshTet4) tet4Vertices(l, i int) (v3.Vec, v3.Vec, v3.Vec, v3.Vec) {
-	idx0, idx1, idx2, idx3 := m.IBuff.Tet4Indicies(l, i)
+func (m *MeshTet4) feVertices(l, i int) (v3.Vec, v3.Vec, v3.Vec, v3.Vec) {
+	idx0, idx1, idx2, idx3 := m.IBuff.FEIndicies(l, i)
 	return m.VBuff.Vertex(idx0), m.VBuff.Vertex(idx1), m.VBuff.Vertex(idx2), m.VBuff.Vertex(idx3)
 }
 
@@ -160,8 +163,8 @@ func (m *MeshTet4) WriteInpLayers(path string, layerStart, layerEnd int) error {
 	var node0, node1, node2, node3 v3.Vec
 	var id0, id1, id2, id3 uint32
 	for l := layerStart; l < layerEnd; l++ {
-		for i := 0; i < m.tet4CountOnLayer(l); i++ {
-			node0, node1, node2, node3 = m.tet4Vertices(l, i)
+		for i := 0; i < m.feCountOnLayer(l); i++ {
+			node0, node1, node2, node3 = m.feVertices(l, i)
 			// Get the node IDs.
 			id0 = tempVBuff.Id(node0)
 			id1 = tempVBuff.Id(node1)
@@ -199,8 +202,8 @@ func (m *MeshTet4) WriteInpLayers(path string, layerStart, layerEnd int) error {
 
 	var eleID uint32
 	for l := layerStart; l < layerEnd; l++ {
-		for i := 0; i < m.tet4CountOnLayer(l); i++ {
-			node0, node1, node2, node3 = m.tet4Vertices(l, i)
+		for i := 0; i < m.feCountOnLayer(l); i++ {
+			node0, node1, node2, node3 = m.feVertices(l, i)
 			id0 = tempVBuff.Id(node0)
 			id1 = tempVBuff.Id(node1)
 			id2 = tempVBuff.Id(node2)

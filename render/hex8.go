@@ -88,12 +88,12 @@ func (m *MeshHex8) layerCount() int {
 }
 
 // Number of finite elements on a layer.
-func (m *MeshHex8) FECountOnLayer(l int) int {
+func (m *MeshHex8) feCountOnLayer(l int) int {
 	return m.IBuff.FECountOnLayer(l)
 }
 
 // Number of finite elements for all layers.
-func (m *MeshHex8) FECount() int {
+func (m *MeshHex8) feCount() int {
 	return m.IBuff.FECount()
 }
 
@@ -102,7 +102,7 @@ func (m *MeshHex8) FECount() int {
 // FE index on layer is input.
 // FE index could be from 0 to number of tetrahedra on layer.
 // Don't return error to increase performance.
-func (m *MeshHex8) FEIndicies(l, i int) (uint32, uint32, uint32, uint32, uint32, uint32, uint32, uint32) {
+func (m *MeshHex8) feIndicies(l, i int) (uint32, uint32, uint32, uint32, uint32, uint32, uint32, uint32) {
 	return m.IBuff.FEIndicies(l, i)
 }
 
@@ -111,7 +111,7 @@ func (m *MeshHex8) FEIndicies(l, i int) (uint32, uint32, uint32, uint32, uint32,
 // FE index on layer is input.
 // FE index could be from 0 to number of tetrahedra on layer.
 // Don't return error to increase performance.
-func (m *MeshHex8) FEVertices(l, i int) (v3.Vec, v3.Vec, v3.Vec, v3.Vec, v3.Vec, v3.Vec, v3.Vec, v3.Vec) {
+func (m *MeshHex8) feVertices(l, i int) (v3.Vec, v3.Vec, v3.Vec, v3.Vec, v3.Vec, v3.Vec, v3.Vec, v3.Vec) {
 	idx0, idx1, idx2, idx3, idx4, idx5, idx6, idx7 := m.IBuff.FEIndicies(l, i)
 	return m.VBuff.Vertex(idx0), m.VBuff.Vertex(idx1), m.VBuff.Vertex(idx2), m.VBuff.Vertex(idx3),
 		m.VBuff.Vertex(idx4), m.VBuff.Vertex(idx5), m.VBuff.Vertex(idx6), m.VBuff.Vertex(idx7)
@@ -164,8 +164,8 @@ func (m *MeshHex8) WriteInpLayers(path string, layerStart, layerEnd int) error {
 	var node0, node1, node2, node3, node4, node5, node6, node7 v3.Vec
 	var id0, id1, id2, id3, id4, id5, id6, id7 uint32
 	for l := layerStart; l < layerEnd; l++ {
-		for i := 0; i < m.FECountOnLayer(l); i++ {
-			node0, node1, node2, node3, node4, node5, node6, node7 = m.FEVertices(l, i)
+		for i := 0; i < m.feCountOnLayer(l); i++ {
+			node0, node1, node2, node3, node4, node5, node6, node7 = m.feVertices(l, i)
 			// Get the node IDs.
 			id0 = tempVBuff.Id(node0)
 			id1 = tempVBuff.Id(node1)
@@ -227,8 +227,8 @@ func (m *MeshHex8) WriteInpLayers(path string, layerStart, layerEnd int) error {
 
 	var eleID uint32
 	for l := layerStart; l < layerEnd; l++ {
-		for i := 0; i < m.FECountOnLayer(l); i++ {
-			node0, node1, node2, node3, node4, node5, node6, node7 = m.FEVertices(l, i)
+		for i := 0; i < m.feCountOnLayer(l); i++ {
+			node0, node1, node2, node3, node4, node5, node6, node7 = m.feVertices(l, i)
 			id0 = tempVBuff.Id(node0)
 			id1 = tempVBuff.Id(node1)
 			id2 = tempVBuff.Id(node2)
