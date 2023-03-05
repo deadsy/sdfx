@@ -18,6 +18,8 @@ import (
 	"github.com/deadsy/sdfx/sdf"
 )
 
+// 4-node tetrahedral elements.
+//
 // Render SDF3 to finite elements.
 // Write finite elements to an `inp` file.
 // Written file can be used by ABAQUS or CalculiX.
@@ -39,6 +41,8 @@ func tet4FiniteElements(s sdf.SDF3, resolution int, pth string) error {
 	return nil
 }
 
+// 8-node hexahedral elements.
+//
 // Render SDF3 to finite elements.
 // Write finite elements to an `inp` file.
 // Written file can be used by ABAQUS or CalculiX.
