@@ -30,9 +30,17 @@ type Render2 interface {
 }
 
 // RenderTet4 renders a finite element mesh over the bounding volume of an sdf3.
-// Finite elements are in the shape of tetrahedra, each with 4 nodes.
+// Finite elements are in the shape of 4-node tetrahedra.
 type RenderTet4 interface {
 	Render(sdf3 sdf.SDF3, output chan<- []*Tet4)
+	Info(sdf3 sdf.SDF3) string
+	LayerCounts(sdf3 sdf.SDF3) (int, int, int)
+}
+
+// RenderHex8 renders a finite element mesh over the bounding volume of an sdf3.
+// Finite elements are in the shape of 8-node hexahedra.
+type RenderHex8 interface {
+	Render(sdf3 sdf.SDF3, output chan<- []*Hex8)
 	Info(sdf3 sdf.SDF3) string
 	LayerCounts(sdf3 sdf.SDF3) (int, int, int)
 }
@@ -86,6 +94,36 @@ func ToTet4(
 	wg.Wait()
 
 	return tet4s
+}
+
+//-----------------------------------------------------------------------------
+
+// ToHex8 renders an SDF3 to finite elements in the shape of 8-node hexahedra.
+func ToHex8(
+	s sdf.SDF3, // sdf3 to render
+	r RenderHex8, // rendering method
+) []Hex8 {
+	fmt.Printf("rendering %s\n", r.Info(s))
+
+	layerCountX, layerCountY, layerCountZ := r.LayerCounts(s)
+	fmt.Printf("layer counts of marching algorithm are: (%v x %v x %v)\n", layerCountX, layerCountY, layerCountZ)
+
+	// Will be filled by the rendering.
+	hex8s := make([]Hex8, 0)
+
+	var wg sync.WaitGroup
+
+	// Get the channel to be written to.
+	output := writeHex8(&wg, &hex8s)
+
+	// run the renderer
+	r.Render(s, output)
+	// stop the writer reading on the channel
+	close(output)
+	// wait for the file write to complete
+	wg.Wait()
+
+	return hex8s
 }
 
 //-----------------------------------------------------------------------------
