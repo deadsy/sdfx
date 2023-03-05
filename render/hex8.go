@@ -232,9 +232,9 @@ func writeHex8(wg *sync.WaitGroup, hex8s *[]Hex8) chan<- []*Hex8 {
 	go func() {
 		defer wg.Done()
 		// read finite elements from the channel and handle them
-		for ts := range c {
-			for _, t := range ts {
-				*hex8s = append(*hex8s, *t)
+		for fes := range c {
+			for _, fe := range fes {
+				*hex8s = append(*hex8s, *fe)
 			}
 		}
 	}()

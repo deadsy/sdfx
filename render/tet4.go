@@ -232,9 +232,9 @@ func writeTet4(wg *sync.WaitGroup, tet4s *[]Tet4) chan<- []*Tet4 {
 	go func() {
 		defer wg.Done()
 		// read finite elements from the channel and handle them
-		for ts := range c {
-			for _, t := range ts {
-				*tet4s = append(*tet4s, *t)
+		for fes := range c {
+			for _, fe := range fes {
+				*tet4s = append(*tet4s, *fe)
 			}
 		}
 	}()
