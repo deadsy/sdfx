@@ -47,7 +47,11 @@ func NewMeshHex8(s sdf.SDF3, r RenderHex8) (*MeshHex8, int) {
 
 	// Fill out the mesh with finite elements.
 	for _, fe := range fes {
-		m.addFE(fe.layer, fe.V[0], fe.V[1], fe.V[2], fe.V[3], fe.V[4], fe.V[5], fe.V[6], fe.V[7])
+		nodes := [8]v3.Vec{}
+		for n := 0; n < 8; n++ {
+			nodes[n] = fe.V[n]
+		}
+		m.addFE(fe.layer, nodes)
 	}
 
 	defer m.VBuff.DestroyHashTable()
@@ -66,8 +70,12 @@ func newMeshHex8(layerCount int) *MeshHex8 {
 // Layer number and nodes are input.
 // The node numbering should follow the convention of CalculiX.
 // http://www.dhondt.de/ccx_2.20.pdf
-func (m *MeshHex8) addFE(l int, n0, n1, n2, n3, n4, n5, n6, n7 v3.Vec) {
-	m.IBuff.AddFE(l, m.addVertex(n0), m.addVertex(n1), m.addVertex(n2), m.addVertex(n3), m.addVertex(n4), m.addVertex(n5), m.addVertex(n6), m.addVertex(n7))
+func (m *MeshHex8) addFE(l int, nodes [8]v3.Vec) {
+	indices := [8]uint32{}
+	for n := 0; n < 8; n++ {
+		indices[n] = m.addVertex(nodes[n])
+	}
+	m.IBuff.AddFE(l, indices)
 }
 
 func (m *MeshHex8) addVertex(vert v3.Vec) uint32 {
@@ -102,7 +110,7 @@ func (m *MeshHex8) feCount() int {
 // FE index on layer is input.
 // FE index could be from 0 to number of tetrahedra on layer.
 // Don't return error to increase performance.
-func (m *MeshHex8) feIndicies(l, i int) (uint32, uint32, uint32, uint32, uint32, uint32, uint32, uint32) {
+func (m *MeshHex8) feIndicies(l, i int) [8]uint32 {
 	return m.IBuff.FEIndicies(l, i)
 }
 
@@ -111,10 +119,13 @@ func (m *MeshHex8) feIndicies(l, i int) (uint32, uint32, uint32, uint32, uint32,
 // FE index on layer is input.
 // FE index could be from 0 to number of tetrahedra on layer.
 // Don't return error to increase performance.
-func (m *MeshHex8) feVertices(l, i int) (v3.Vec, v3.Vec, v3.Vec, v3.Vec, v3.Vec, v3.Vec, v3.Vec, v3.Vec) {
-	idx0, idx1, idx2, idx3, idx4, idx5, idx6, idx7 := m.IBuff.FEIndicies(l, i)
-	return m.VBuff.Vertex(idx0), m.VBuff.Vertex(idx1), m.VBuff.Vertex(idx2), m.VBuff.Vertex(idx3),
-		m.VBuff.Vertex(idx4), m.VBuff.Vertex(idx5), m.VBuff.Vertex(idx6), m.VBuff.Vertex(idx7)
+func (m *MeshHex8) feVertices(l, i int) [8]v3.Vec {
+	indices := m.IBuff.FEIndicies(l, i)
+	vertices := [8]v3.Vec{}
+	for n := 0; n < 8; n++ {
+		vertices[n] = m.VBuff.Vertex(indices[n])
+	}
+	return vertices
 }
 
 // Write mesh to ABAQUS or CalculiX `inp` file.
@@ -161,59 +172,23 @@ func (m *MeshHex8) WriteInpLayers(path string, layerStart, layerEnd int) error {
 	tempVBuff := buffer.NewVB()
 	defer tempVBuff.DestroyHashTable()
 
-	var node0, node1, node2, node3, node4, node5, node6, node7 v3.Vec
-	var id0, id1, id2, id3, id4, id5, id6, id7 uint32
+	nodes := [8]v3.Vec{}
+	ids := [8]uint32{}
 	for l := layerStart; l < layerEnd; l++ {
 		for i := 0; i < m.feCountOnLayer(l); i++ {
-			node0, node1, node2, node3, node4, node5, node6, node7 = m.feVertices(l, i)
 			// Get the node IDs.
-			id0 = tempVBuff.Id(node0)
-			id1 = tempVBuff.Id(node1)
-			id2 = tempVBuff.Id(node2)
-			id3 = tempVBuff.Id(node3)
-			id4 = tempVBuff.Id(node4)
-			id5 = tempVBuff.Id(node5)
-			id6 = tempVBuff.Id(node6)
-			id7 = tempVBuff.Id(node7)
-			// ID starts from one not zero.
-			_, err = f.WriteString(fmt.Sprintf("%d,%f,%f,%f\n", id0+1, float32(node0.X), float32(node0.Y), float32(node0.Z)))
-			if err != nil {
-				return err
+			nodes = m.feVertices(l, i)
+			for n := 0; n < 8; n++ {
+				ids[n] = tempVBuff.Id(nodes[n])
 			}
-			// ID starts from one not zero.
-			_, err = f.WriteString(fmt.Sprintf("%d,%f,%f,%f\n", id1+1, float32(node1.X), float32(node1.Y), float32(node1.Z)))
-			if err != nil {
-				return err
-			}
-			// ID starts from one not zero.
-			_, err = f.WriteString(fmt.Sprintf("%d,%f,%f,%f\n", id2+1, float32(node2.X), float32(node2.Y), float32(node2.Z)))
-			if err != nil {
-				return err
-			}
-			// ID starts from one not zero.
-			_, err = f.WriteString(fmt.Sprintf("%d,%f,%f,%f\n", id3+1, float32(node3.X), float32(node3.Y), float32(node3.Z)))
-			if err != nil {
-				return err
-			}
-			// ID starts from one not zero.
-			_, err = f.WriteString(fmt.Sprintf("%d,%f,%f,%f\n", id4+1, float32(node4.X), float32(node4.Y), float32(node4.Z)))
-			if err != nil {
-				return err
-			}
-			// ID starts from one not zero.
-			_, err = f.WriteString(fmt.Sprintf("%d,%f,%f,%f\n", id5+1, float32(node5.X), float32(node5.Y), float32(node5.Z)))
-			if err != nil {
-				return err
-			}
-			// ID starts from one not zero.
-			_, err = f.WriteString(fmt.Sprintf("%d,%f,%f,%f\n", id6+1, float32(node6.X), float32(node6.Y), float32(node6.Z)))
-			if err != nil {
-				return err
-			}
-			// ID starts from one not zero.
-			_, err = f.WriteString(fmt.Sprintf("%d,%f,%f,%f\n", id7+1, float32(node7.X), float32(node7.Y), float32(node7.Z)))
-			if err != nil {
-				return err
+
+			// Write the node IDs.
+			for n := 0; n < 8; n++ {
+				// ID starts from one not zero.
+				_, err = f.WriteString(fmt.Sprintf("%d,%f,%f,%f\n", ids[n]+1, float32(nodes[n].X), float32(nodes[n].Y), float32(nodes[n].Z)))
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -228,17 +203,13 @@ func (m *MeshHex8) WriteInpLayers(path string, layerStart, layerEnd int) error {
 	var eleID uint32
 	for l := layerStart; l < layerEnd; l++ {
 		for i := 0; i < m.feCountOnLayer(l); i++ {
-			node0, node1, node2, node3, node4, node5, node6, node7 = m.feVertices(l, i)
-			id0 = tempVBuff.Id(node0)
-			id1 = tempVBuff.Id(node1)
-			id2 = tempVBuff.Id(node2)
-			id3 = tempVBuff.Id(node3)
-			id4 = tempVBuff.Id(node4)
-			id5 = tempVBuff.Id(node5)
-			id6 = tempVBuff.Id(node6)
-			id7 = tempVBuff.Id(node7)
+			nodes = m.feVertices(l, i)
+			for n := 0; n < 8; n++ {
+				ids[n] = tempVBuff.Id(nodes[n])
+			}
+
 			// ID starts from one not zero.
-			_, err = f.WriteString(fmt.Sprintf("%d,%d,%d,%d,%d,%d,%d,%d,%d\n", eleID+1, id0+1, id1+1, id2+1, id3+1, id4+1, id5+1, id6+1, id7+1))
+			_, err = f.WriteString(fmt.Sprintf("%d,%d,%d,%d,%d,%d,%d,%d,%d\n", eleID+1, ids[0]+1, ids[1]+1, ids[2]+1, ids[3]+1, ids[4]+1, ids[5]+1, ids[6]+1, ids[7]+1))
 			if err != nil {
 				return err
 			}

@@ -26,8 +26,8 @@ func NewHex8IB(layerCount int) *Hex8IB {
 // Layer number and nodes are input.
 // The node numbering should follow the convention of CalculiX.
 // http://www.dhondt.de/ccx_2.20.pdf
-func (ib *Hex8IB) AddFE(l int, n0, n1, n2, n3, n4, n5, n6, n7 uint32) {
-	ib.I[l] = append(ib.I[l], n0, n1, n2, n3, n4, n5, n6, n7)
+func (ib *Hex8IB) AddFE(l int, nodes [8]uint32) {
+	ib.I[l] = append(ib.I[l], nodes[:]...)
 }
 
 // Number of layers along the Z axis.
@@ -53,6 +53,10 @@ func (ib *Hex8IB) FECount() int {
 // FE index on layer is input.
 // FE index could be from 0 to number of FE on layer.
 // Don't return error to increase performance.
-func (ib *Hex8IB) FEIndicies(l, i int) (uint32, uint32, uint32, uint32, uint32, uint32, uint32, uint32) {
-	return ib.I[l][i*8], ib.I[l][i*8+1], ib.I[l][i*8+2], ib.I[l][i*8+3], ib.I[l][i*8+4], ib.I[l][i*8+5], ib.I[l][i*8+6], ib.I[l][i*8+7]
+func (ib *Hex8IB) FEIndicies(l, i int) [8]uint32 {
+	indices := [8]uint32{}
+	for n := 0; n < 8; n++ {
+		indices[n] = ib.I[l][i*8+n]
+	}
+	return indices
 }
