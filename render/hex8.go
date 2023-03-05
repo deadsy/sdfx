@@ -34,7 +34,7 @@ type MeshHex8 struct {
 	// Index buffer.
 	IBuff *buffer.Hex8IB
 	// Vertex buffer.
-	VBuff *buffer.Tet4VB
+	VBuff *buffer.VB
 }
 
 // To get a new mesh and number of its layers along Z-axis.
@@ -58,7 +58,7 @@ func NewMeshHex8(s sdf.SDF3, r RenderHex8) (*MeshHex8, int) {
 func newMeshHex8(layerCount int) *MeshHex8 {
 	return &MeshHex8{
 		IBuff: buffer.NewHex8IB(layerCount),
-		VBuff: buffer.NewTet4VB(),
+		VBuff: buffer.NewVB(),
 	}
 }
 
@@ -158,7 +158,7 @@ func (m *MeshHex8) WriteInpLayers(path string, layerStart, layerEnd int) error {
 	}
 
 	// To write only required nodes to the file.
-	tempVBuff := buffer.NewTet4VB()
+	tempVBuff := buffer.NewVB()
 	defer tempVBuff.DestroyHashTable()
 
 	var node0, node1, node2, node3, node4, node5, node6, node7 v3.Vec

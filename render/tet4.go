@@ -34,7 +34,7 @@ type MeshTet4 struct {
 	// Index buffer.
 	IBuff *buffer.Tet4IB
 	// Vertex buffer.
-	VBuff *buffer.Tet4VB
+	VBuff *buffer.VB
 }
 
 // To get a new mesh and number of its layers along Z-axis.
@@ -58,7 +58,7 @@ func NewMeshTet4(s sdf.SDF3, r RenderTet4) (*MeshTet4, int) {
 func newMeshTet4(layerCount int) *MeshTet4 {
 	return &MeshTet4{
 		IBuff: buffer.NewTet4IB(layerCount),
-		VBuff: buffer.NewTet4VB(),
+		VBuff: buffer.NewVB(),
 	}
 }
 
@@ -154,7 +154,7 @@ func (m *MeshTet4) WriteInpLayers(path string, layerStart, layerEnd int) error {
 	}
 
 	// To write only required nodes to the file.
-	tempVBuff := buffer.NewTet4VB()
+	tempVBuff := buffer.NewVB()
 	defer tempVBuff.DestroyHashTable()
 
 	var node0, node1, node2, node3 v3.Vec
