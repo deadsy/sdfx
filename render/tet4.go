@@ -20,14 +20,14 @@ type Tet4 struct {
 	// The layer to which tetrahedron belongs. Layers are along Z axis.
 	// For finite element analysis - FEA - of 3D printed objects, it's more efficient to store layer along Z axis.
 	// The 3D print is done along the Z axis. Likewise, FEA is done along the Z axis.
-	// Sampling/marching algorithm is expected to generate finite elements along the Z axis.
+	// Sampling/marching algorithm is expected to return the layer to which a finite element belongs.
 	layer int
 }
 
 //-----------------------------------------------------------------------------
 
-// A mesh of tetrahedra with 4 nodes.
-// A sophisticated data structure for mesh is required to store tetrahedra.
+// A mesh of 4-node tetrahedra.
+// A sophisticated data structure for mesh is required.
 // The repeated nodes would be removed.
 // The element connectivity would be created with unique nodes.
 type MeshTet4 struct {
