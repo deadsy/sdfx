@@ -15,7 +15,29 @@ import (
 
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
+	"github.com/deadsy/sdfx/sdf"
 )
+
+// Render SDF3 to finite elements.
+// Write finite elements to an `inp` file.
+// Written file can be used by ABAQUS or CalculiX.
+func tet4FiniteElements(s sdf.SDF3, resolution int, pth string) error {
+	// Create a mesh out of finite elements.
+	m, _ := render.NewMeshTet4(s, render.NewMarchingTet4Uniform(200))
+
+	// Write mesh to file.
+	err := m.WriteInp(pth)
+	if err != nil {
+		return err
+	}
+
+	// Write just some layers of mesh to a file.
+	err = m.WriteInpLayers("some-layers-of-"+pth, 0, 32)
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
 func main() {
 	stl := "../../files/teapot.stl"
@@ -32,19 +54,7 @@ func main() {
 		log.Fatalf("error: %s", err)
 	}
 
-	// Render SDF3 to finite elements.
-	// Create a mesh out of finite elements.
-	m, _ := render.NewMeshTet4(teapotSdf, render.NewMarchingTet4Uniform(200))
-
-	// Write mesh to a file.
-	// Written file can be used by ABAQUS or CalculiX.
-	err = m.WriteInp("teapot.inp")
-	if err != nil {
-		log.Fatalf("error: %s", err)
-	}
-
-	// Write just some layers of mesh to a file.
-	err = m.WriteInpLayers("teapot-some-layers.inp", 0, 32)
+	err = tet4FiniteElements(teapotSdf, 200, "teapot.inp")
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
