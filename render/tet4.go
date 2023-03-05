@@ -24,6 +24,8 @@ type Tet4 struct {
 	layer int
 }
 
+//-----------------------------------------------------------------------------
+
 // A mesh of tetrahedra with 4 nodes.
 // A sophisticated data structure for mesh is required to store tetrahedra.
 // The repeated nodes would be removed.
