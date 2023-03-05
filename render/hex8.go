@@ -222,10 +222,10 @@ func (m *MeshHex8) WriteInpLayers(path string, layerStart, layerEnd int) error {
 
 //-----------------------------------------------------------------------------
 
-// writeHex8 writes a stream of finite elements, in the shape of 8-node hexahedra, to an array.
+// writeHex8 writes a stream of finite elements to an array.
 func writeHex8(wg *sync.WaitGroup, hex8s *[]Hex8) chan<- []*Hex8 {
-	// External code writes tetrahedra to this channel.
-	// This goroutine reads the channel and stores tetrahedra.
+	// External code writes to this channel.
+	// This goroutine reads the channel and stores finite elements.
 	c := make(chan []*Hex8)
 
 	wg.Add(1)

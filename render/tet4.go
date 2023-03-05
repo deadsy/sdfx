@@ -222,10 +222,10 @@ func (m *MeshTet4) WriteInpLayers(path string, layerStart, layerEnd int) error {
 
 //-----------------------------------------------------------------------------
 
-// writeTet4 writes a stream of finite elements, in the shape of 4-node tetrahedra, to an array.
+// writeTet4 writes a stream of finite elements to an array.
 func writeTet4(wg *sync.WaitGroup, tet4s *[]Tet4) chan<- []*Tet4 {
-	// External code writes tetrahedra to this channel.
-	// This goroutine reads the channel and stores tetrahedra.
+	// External code writes to this channel.
+	// This goroutine reads the channel and stores finite elements.
 	c := make(chan []*Tet4)
 
 	wg.Add(1)
