@@ -39,6 +39,27 @@ func tet4FiniteElements(s sdf.SDF3, resolution int, pth string) error {
 	return nil
 }
 
+// Render SDF3 to finite elements.
+// Write finite elements to an `inp` file.
+// Written file can be used by ABAQUS or CalculiX.
+func hex8FiniteElements(s sdf.SDF3, resolution int, pth string) error {
+	// Create a mesh out of finite elements.
+	m, _ := render.NewMeshHex8(s, render.NewMarchingHex8Uniform(200))
+
+	// Write mesh to file.
+	err := m.WriteInp(pth)
+	if err != nil {
+		return err
+	}
+
+	// Write just some layers of mesh to a file.
+	err = m.WriteInpLayers("some-layers-of-"+pth, 0, 32)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func main() {
 	stl := "../../files/teapot.stl"
 
@@ -54,7 +75,12 @@ func main() {
 		log.Fatalf("error: %s", err)
 	}
 
-	err = tet4FiniteElements(teapotSdf, 200, "teapot.inp")
+	err = tet4FiniteElements(teapotSdf, 200, "teapot-tet4.inp")
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+
+	err = hex8FiniteElements(teapotSdf, 200, "teapot-hex8.inp")
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
