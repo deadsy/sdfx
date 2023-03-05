@@ -39,15 +39,15 @@ type MeshHex8 struct {
 
 // To get a new mesh and number of its layers along Z-axis.
 func NewMeshHex8(s sdf.SDF3, r RenderHex8) (*MeshHex8, int) {
-	hex8s := ToHex8(s, r)
+	fes := ToHex8(s, r)
 
 	_, _, layerCountZ := r.LayerCounts(s)
 
 	m := newMeshHex8(layerCountZ)
 
 	// Fill out the mesh with finite elements.
-	for _, t := range hex8s {
-		m.addFE(t.layer, t.V[0], t.V[1], t.V[2], t.V[3], t.V[4], t.V[5], t.V[6], t.V[7])
+	for _, fe := range fes {
+		m.addFE(fe.layer, fe.V[0], fe.V[1], fe.V[2], fe.V[3], fe.V[4], fe.V[5], fe.V[6], fe.V[7])
 	}
 
 	defer m.VBuff.DestroyHashTable()

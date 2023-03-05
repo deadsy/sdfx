@@ -39,15 +39,15 @@ type MeshTet4 struct {
 
 // To get a new mesh and number of its layers along Z-axis.
 func NewMeshTet4(s sdf.SDF3, r RenderTet4) (*MeshTet4, int) {
-	tet4s := ToTet4(s, r)
+	fes := ToTet4(s, r)
 
 	_, _, layerCountZ := r.LayerCounts(s)
 
 	m := newMeshTet4(layerCountZ)
 
 	// Fill out the mesh with finite elements.
-	for _, t := range tet4s {
-		m.addFE(t.layer, t.V[0], t.V[1], t.V[2], t.V[3])
+	for _, fe := range fes {
+		m.addFE(fe.layer, fe.V[0], fe.V[1], fe.V[2], fe.V[3])
 	}
 
 	defer m.VBuff.DestroyHashTable()
