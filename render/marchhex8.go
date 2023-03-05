@@ -73,19 +73,35 @@ func marchingCubesHex8(s sdf.SDF3, box sdf.Box3, step float64) []*Hex8 {
 //-----------------------------------------------------------------------------
 
 func mcToHex8(p [8]v3.Vec, v [8]float64, x float64, layerZ int) []*Hex8 {
-	result := mcToTriangles(p, v, x)
+	// Create a finite element if all 8 values are negative.
+	// Finite element is inside the 3D model if all values are negative.
+	// Of course, some spaces are missed by this approach.
+	//
+	// TODO: Come up with a more sophisticated approach?
 
-	// TODO: Create finite elements properly.
+	resultFE := make([]*Hex8, 0)
 
-	resultFE := make([]*Hex8, 0, len(result))
-	for _, res := range result {
+	anyPositive := false
+	for i := 0; i < 8; i++ {
+		if v[i] > 0 {
+			anyPositive = true
+			break
+		}
+	}
+
+	if !anyPositive {
 		fe := Hex8{
 			V:     [8]v3.Vec{},
 			layer: layerZ,
 		}
-		fe.V[2] = res.V[2]
-		fe.V[1] = res.V[1]
-		fe.V[0] = res.V[0]
+		fe.V[7] = p[7]
+		fe.V[6] = p[6]
+		fe.V[5] = p[5]
+		fe.V[4] = p[4]
+		fe.V[3] = p[3]
+		fe.V[2] = p[2]
+		fe.V[1] = p[1]
+		fe.V[0] = p[0]
 		resultFE = append(resultFE, &fe)
 	}
 
