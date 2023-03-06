@@ -31,8 +31,16 @@ To run the `inp` files by FEA engines like CalculiX:
 ccx -i teapot-hex8
 ```
 
-The above `-i` flag expects a `teapot-hex8.inp` file. The above command creates `frd` files which can be viewed by CalculiX GraphiX:
+The above `-i` flag expects a `teapot-hex8.inp` file.
+
+The above command creates `frd` files containing the results. They can be viewed by CalculiX GraphiX:
 
 ```bash
 cgx teapot-hex8.frd
+```
+
+The boundary conditions and loads used in the calculation will be available together with the results if you run:
+
+```bash
+cgx teapot-hex8.frd teapot-hex8.inp
 ```
