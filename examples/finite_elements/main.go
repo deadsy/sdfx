@@ -79,12 +79,12 @@ func main() {
 		log.Fatalf("error: %s", err)
 	}
 
-	err = tet4FiniteElements(teapotSdf, 200, "teapot-tet4.inp")
+	err = tet4FiniteElements(teapotSdf, 100, "teapot-tet4.inp")
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
-	err = hex8FiniteElements(teapotSdf, 200, "teapot-hex8.inp")
+	err = hex8FiniteElements(teapotSdf, 100, "teapot-hex8.inp")
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
