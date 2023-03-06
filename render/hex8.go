@@ -217,6 +217,26 @@ func (m *MeshHex8) WriteInpLayers(path string, layerStart, layerEnd int) error {
 		}
 	}
 
+	// Write loads.
+
+	_, err = f.WriteString("*DLOAD\n")
+	if err != nil {
+		return err
+	}
+
+	// Assign gravity loading in the "positive" z-direction with magnitude 9810 to all elements.
+	//
+	// SLA 3D printing is done upside-down. 3D model is hanging from the print floor.
+	// That's why gravity is in "positive" z-direction.
+	// Here ”gravity” really stands for any acceleration vector.
+	//
+	// Refer to CalculiX solver documentation:
+	// http://www.dhondt.de/ccx_2.20.pdf
+	_, err = f.WriteString("*Eall,GRAV,9810.,0.,0.,+1.\n")
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
