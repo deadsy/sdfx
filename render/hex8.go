@@ -217,6 +217,37 @@ func (m *MeshHex8) WriteInpLayers(path string, layerStart, layerEnd int) error {
 		}
 	}
 
+	// Define material
+	// TODO: Correct resin specifications.
+
+	_, err = f.WriteString("*MATERIAL, name=resin\n")
+	if err != nil {
+		return err
+	}
+
+	_, err = f.WriteString("*ELASTIC,TYPE=ISO\n210000,0.333333333,0\n")
+	if err != nil {
+		return err
+	}
+
+	_, err = f.WriteString("*DENSITY\n7.8E-9\n")
+	if err != nil {
+		return err
+	}
+
+	// Assign material to all elements
+	_, err = f.WriteString("*SOLID SECTION,MATERIAL=resin,ELSET=Eall\n")
+	if err != nil {
+		return err
+	}
+
+	// Write analysis
+
+	_, err = f.WriteString("*STEP\n*STATIC\n")
+	if err != nil {
+		return err
+	}
+
 	// Write distributed loads.
 
 	_, err = f.WriteString("*DLOAD\n")
@@ -233,6 +264,37 @@ func (m *MeshHex8) WriteInpLayers(path string, layerStart, layerEnd int) error {
 	// Refer to CalculiX solver documentation:
 	// http://www.dhondt.de/ccx_2.20.pdf
 	_, err = f.WriteString("*Eall,GRAV,9810.,0.,0.,+1.\n")
+	if err != nil {
+		return err
+	}
+
+	// Pick element results.
+
+	_, err = f.WriteString("*EL FILE\n")
+	if err != nil {
+		return err
+	}
+
+	_, err = f.WriteString("S\n")
+	if err != nil {
+		return err
+	}
+
+	// Pick node results.
+
+	_, err = f.WriteString("*NODE FILE\n")
+	if err != nil {
+		return err
+	}
+
+	_, err = f.WriteString("U\n")
+	if err != nil {
+		return err
+	}
+
+	// Conclude.
+
+	_, err = f.WriteString("*END STEP\n")
 	if err != nil {
 		return err
 	}
