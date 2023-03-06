@@ -217,7 +217,7 @@ func (m *MeshHex8) WriteInpLayers(path string, layerStart, layerEnd int) error {
 		}
 	}
 
-	// Write loads.
+	// Write distributed loads.
 
 	_, err = f.WriteString("*DLOAD\n")
 	if err != nil {
