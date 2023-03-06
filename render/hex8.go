@@ -130,13 +130,13 @@ func (m *MeshHex8) feVertices(l, i int) [8]v3.Vec {
 
 // Write mesh to ABAQUS or CalculiX `inp` file.
 func (m *MeshHex8) WriteInp(path string) error {
-	return m.WriteInpLayers(path, 0, m.layerCount())
+	return m.WriteInpLayers(path, 0, m.layerCount(), []int{0})
 }
 
 // Write specific layers of mesh to ABAQUS or CalculiX `inp` file.
 // Result would include start layer.
 // Result would exclude end layer.
-func (m *MeshHex8) WriteInpLayers(path string, layerStart, layerEnd int) error {
+func (m *MeshHex8) WriteInpLayers(path string, layerStart, layerEnd int, layersFixed []int) error {
 	if 0 <= layerStart && layerStart < layerEnd && layerEnd <= m.layerCount() {
 		// Good.
 	} else {
@@ -214,6 +214,31 @@ func (m *MeshHex8) WriteInpLayers(path string, layerStart, layerEnd int) error {
 				return err
 			}
 			eleID++
+		}
+	}
+
+	// Fix the degrees of freedom one through three for all nodes on specific layers.
+
+	_, err = f.WriteString("*BOUNDARY\n")
+	if err != nil {
+		return err
+	}
+
+	for l := range layersFixed {
+		for i := 0; i < m.feCountOnLayer(l); i++ {
+			nodes = m.feVertices(l, i)
+			for n := 0; n < 8; n++ {
+				ids[n] = tempVBuff.Id(nodes[n])
+			}
+
+			// Write the node IDs.
+			for n := 0; n < 8; n++ {
+				// ID starts from one not zero.
+				_, err = f.WriteString(fmt.Sprintf("%d,1,3\n", ids[n]+1))
+				if err != nil {
+					return err
+				}
+			}
 		}
 	}
 

@@ -57,7 +57,7 @@ func hex8FiniteElements(s sdf.SDF3, resolution int, pth string) error {
 	}
 
 	// Write just some layers of mesh to a file.
-	err = m.WriteInpLayers("some-layers-of-"+pth, 0, 32)
+	err = m.WriteInpLayers("some-layers-of-"+pth, 0, 32, []int{0, 1, 2})
 	if err != nil {
 		return err
 	}
