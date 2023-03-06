@@ -288,7 +288,7 @@ func (m *MeshHex8) WriteInpLayers(path string, layerStart, layerEnd int, layersF
 	//
 	// Refer to CalculiX solver documentation:
 	// http://www.dhondt.de/ccx_2.20.pdf
-	_, err = f.WriteString("*Eall,GRAV,9810.,0.,0.,+1.\n")
+	_, err = f.WriteString("*Eall,GRAV,9810.,0.,0.,1.\n")
 	if err != nil {
 		return err
 	}
