@@ -129,8 +129,8 @@ func (m *MeshHex8) feVertices(l, i int) [8]v3.Vec {
 }
 
 // Write mesh to ABAQUS or CalculiX `inp` file.
-func (m *MeshHex8) WriteInp(path string) error {
-	return m.WriteInpLayers(path, 0, m.layerCount(), []int{0})
+func (m *MeshHex8) WriteInp(path string, layersFixed []int) error {
+	return m.WriteInpLayers(path, 0, m.layerCount(), layersFixed)
 }
 
 // Write specific layers of mesh to ABAQUS or CalculiX `inp` file.

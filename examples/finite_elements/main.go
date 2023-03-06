@@ -51,7 +51,7 @@ func hex8FiniteElements(s sdf.SDF3, resolution int, pth string) error {
 	m, _ := render.NewMeshHex8(s, render.NewMarchingHex8Uniform(resolution))
 
 	// Write mesh to file.
-	err := m.WriteInp(pth)
+	err := m.WriteInp(pth, []int{0, 1, 2})
 	if err != nil {
 		return err
 	}
