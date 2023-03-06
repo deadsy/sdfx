@@ -4,6 +4,8 @@ The example results can be consumed by ABAQUS or CalculiX.
 
 CalculiX and CalculiX GraphiX binaries are available for different platforms, like Linux distributions.
 
+## openSUSE
+
 openSUSE has [CCX](https://software.opensuse.org/package/ccx) package and also [CGX](https://software.opensuse.org/package/cgx) one.
 
 To install CCX and CGX on openSUSE Leap 15.4 you can run as root:
