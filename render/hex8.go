@@ -242,7 +242,10 @@ func (m *MeshHex8) WriteInpLayers(path string, layerStart, layerEnd int, layersF
 		}
 	}
 
-	// Define material
+	// Define material.
+	// Units of measurement are mm,N,s,K.
+	// Refer to:
+	// https://engineering.stackexchange.com/q/54454/15178
 	// TODO: Correct resin specifications.
 
 	_, err = f.WriteString("*MATERIAL, name=resin\n")
