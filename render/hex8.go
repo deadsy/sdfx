@@ -129,14 +129,31 @@ func (m *MeshHex8) feVertices(l, i int) [8]v3.Vec {
 }
 
 // Write mesh to ABAQUS or CalculiX `inp` file.
-func (m *MeshHex8) WriteInp(path string, layersFixed []int) error {
-	return m.WriteInpLayers(path, 0, m.layerCount(), layersFixed)
+// Units of measurement are mm,N,s,K.
+// Refer to https://engineering.stackexchange.com/q/54454/15178
+func (m *MeshHex8) WriteInp(
+	path string,
+	layersFixed []int,
+	massDensity float32,
+	youngModulus float32,
+	poissonRatio float32,
+) error {
+	return m.WriteInpLayers(path, 0, m.layerCount(), layersFixed, massDensity, youngModulus, poissonRatio)
 }
 
 // Write specific layers of mesh to ABAQUS or CalculiX `inp` file.
 // Result would include start layer.
 // Result would exclude end layer.
-func (m *MeshHex8) WriteInpLayers(path string, layerStart, layerEnd int, layersFixed []int) error {
+// Units of measurement are mm,N,s,K.
+// Refer to https://engineering.stackexchange.com/q/54454/15178
+func (m *MeshHex8) WriteInpLayers(
+	path string,
+	layerStart, layerEnd int,
+	layersFixed []int,
+	massDensity float32,
+	youngModulus float32,
+	poissonRatio float32,
+) error {
 	if 0 <= layerStart && layerStart < layerEnd && layerEnd <= m.layerCount() {
 		// Good.
 	} else {
@@ -253,12 +270,12 @@ func (m *MeshHex8) WriteInpLayers(path string, layerStart, layerEnd int, layersF
 		return err
 	}
 
-	_, err = f.WriteString("*ELASTIC,TYPE=ISO\n210000,0.333333333,0\n")
+	_, err = f.WriteString(fmt.Sprintf("*ELASTIC,TYPE=ISO\n%f,%f,0\n", youngModulus, poissonRatio))
 	if err != nil {
 		return err
 	}
 
-	_, err = f.WriteString("*DENSITY\n7.8E-9\n")
+	_, err = f.WriteString(fmt.Sprintf("*DENSITY\n%f\n", massDensity))
 	if err != nil {
 		return err
 	}
