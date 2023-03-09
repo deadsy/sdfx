@@ -59,7 +59,7 @@ func hex8FiniteElements(s sdf.SDF3, resolution int, pth string) error {
 	// http://www.dhondt.de/ccx_2.20.pdf
 	//
 	// Mechanical properties are based on typical SLA resins.
-	err := m.WriteInpLayers(pth, lyrStart, lyrEnd, []int{0, 1, 2}, 1120e-12, 1200, 0.3)
+	err := m.WriteInpLayers(pth, lyrStart, lyrEnd, []int{0, 1, 2}, 1.25e-9, 900, 0.3)
 	if err != nil {
 		return err
 	}
