@@ -1,5 +1,4 @@
-// To write different types of finite elements as ABAQUS or CalculiX `inp` file.
-package inp
+package render
 
 import (
 	"fmt"
