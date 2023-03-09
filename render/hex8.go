@@ -185,6 +185,20 @@ func (m *MeshHex8) WriteInpLayers(
 		return err
 	}
 
+	// Write to a separate file to avoid cluttering the `inp` file.
+	pathNodes := path + ".nodes"
+	fNodes, err := os.Create(pathNodes)
+	if err != nil {
+		return err
+	}
+	defer fNodes.Close()
+
+	// Write to a separate file to avoid cluttering the `inp` file.
+	_, err = f.WriteString(fmt.Sprintf("*INCLUDE,INPUT=%s\n", pathNodes))
+	if err != nil {
+		return err
+	}
+
 	// To write only required nodes to the file.
 	tempVBuff := buffer.NewVB()
 	defer tempVBuff.DestroyHashTable()
@@ -202,7 +216,7 @@ func (m *MeshHex8) WriteInpLayers(
 			// Write the node IDs.
 			for n := 0; n < 8; n++ {
 				// ID starts from one not zero.
-				_, err = f.WriteString(fmt.Sprintf("%d,%f,%f,%f\n", ids[n]+1, float32(nodes[n].X), float32(nodes[n].Y), float32(nodes[n].Z)))
+				_, err = fNodes.WriteString(fmt.Sprintf("%d,%f,%f,%f\n", ids[n]+1, float32(nodes[n].X), float32(nodes[n].Y), float32(nodes[n].Z)))
 				if err != nil {
 					return err
 				}
@@ -217,6 +231,20 @@ func (m *MeshHex8) WriteInpLayers(
 		return err
 	}
 
+	// Write to a separate file to avoid cluttering the `inp` file.
+	pathEls := path + ".elements"
+	fEls, err := os.Create(pathEls)
+	if err != nil {
+		return err
+	}
+	defer fEls.Close()
+
+	// Write to a separate file to avoid cluttering the `inp` file.
+	_, err = f.WriteString(fmt.Sprintf("*INCLUDE,INPUT=%s\n", pathEls))
+	if err != nil {
+		return err
+	}
+
 	var eleID uint32
 	for l := layerStart; l < layerEnd; l++ {
 		for i := 0; i < m.feCountOnLayer(l); i++ {
@@ -226,7 +254,7 @@ func (m *MeshHex8) WriteInpLayers(
 			}
 
 			// ID starts from one not zero.
-			_, err = f.WriteString(fmt.Sprintf("%d,%d,%d,%d,%d,%d,%d,%d,%d\n", eleID+1, ids[0]+1, ids[1]+1, ids[2]+1, ids[3]+1, ids[4]+1, ids[5]+1, ids[6]+1, ids[7]+1))
+			_, err = fEls.WriteString(fmt.Sprintf("%d,%d,%d,%d,%d,%d,%d,%d,%d\n", eleID+1, ids[0]+1, ids[1]+1, ids[2]+1, ids[3]+1, ids[4]+1, ids[5]+1, ids[6]+1, ids[7]+1))
 			if err != nil {
 				return err
 			}
