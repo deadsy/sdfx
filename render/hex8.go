@@ -270,12 +270,12 @@ func (m *MeshHex8) WriteInpLayers(
 		return err
 	}
 
-	_, err = f.WriteString(fmt.Sprintf("*ELASTIC,TYPE=ISO\n%f,%f,0\n", youngModulus, poissonRatio))
+	_, err = f.WriteString(fmt.Sprintf("*ELASTIC,TYPE=ISO\n%e,%e,0\n", youngModulus, poissonRatio))
 	if err != nil {
 		return err
 	}
 
-	_, err = f.WriteString(fmt.Sprintf("*DENSITY\n%f\n", massDensity))
+	_, err = f.WriteString(fmt.Sprintf("*DENSITY\n%e\n", massDensity))
 	if err != nil {
 		return err
 	}
