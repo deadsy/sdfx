@@ -269,6 +269,20 @@ func (m *MeshHex8) WriteInpLayers(
 		return err
 	}
 
+	// Write to a separate file to avoid cluttering the `inp` file.
+	pathBou := path + ".boundary"
+	fBou, err := os.Create(pathBou)
+	if err != nil {
+		return err
+	}
+	defer fBou.Close()
+
+	// Write to a separate file to avoid cluttering the `inp` file.
+	_, err = f.WriteString(fmt.Sprintf("*INCLUDE,INPUT=%s\n", pathBou))
+	if err != nil {
+		return err
+	}
+
 	for l := range layersFixed {
 		for i := 0; i < m.feCountOnLayer(l); i++ {
 			nodes = m.feVertices(l, i)
@@ -279,7 +293,7 @@ func (m *MeshHex8) WriteInpLayers(
 			// Write the node IDs.
 			for n := 0; n < 8; n++ {
 				// ID starts from one not zero.
-				_, err = f.WriteString(fmt.Sprintf("%d,1,3\n", ids[n]+1))
+				_, err = fBou.WriteString(fmt.Sprintf("%d,1,3\n", ids[n]+1))
 				if err != nil {
 					return err
 				}
