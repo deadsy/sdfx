@@ -51,7 +51,15 @@ func hex8FiniteElements(s sdf.SDF3, resolution int, pth string) error {
 	lyrEnd := 20
 
 	// Write just some layers of mesh to a file.
-	err := m.WriteInpLayers(pth, lyrStart, lyrEnd, []int{0, 1, 2}, 7.8e-9, 210000, 0.333333333)
+	//
+	// Units are mm,N,sec.
+	// Force per area = N/mm2 or MPa
+	// Mass density = Ns2/mm4
+	// Refer to the "Units" chapter of:
+	// http://www.dhondt.de/ccx_2.20.pdf
+	//
+	// Mechanical properties are based on typical SLA resins.
+	err := m.WriteInpLayers(pth, lyrStart, lyrEnd, []int{0, 1, 2}, 1120e-12, 1200, 0.3)
 	if err != nil {
 		return err
 	}
