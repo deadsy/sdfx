@@ -27,14 +27,11 @@ func tet4FiniteElements(s sdf.SDF3, resolution int, pth string) error {
 	// Create a mesh out of finite elements.
 	m, _ := render.NewMeshTet4(s, render.NewMarchingTet4Uniform(resolution))
 
-	// Write mesh to file.
-	err := m.WriteInp(pth)
-	if err != nil {
-		return err
-	}
+	lyrStart := 0
+	lyrEnd := 20
 
 	// Write just some layers of mesh to a file.
-	err = m.WriteInpLayers("some-layers-of-"+pth, 0, 32)
+	err := m.WriteInpLayers(pth, lyrStart, lyrEnd)
 	if err != nil {
 		return err
 	}
@@ -50,14 +47,11 @@ func hex8FiniteElements(s sdf.SDF3, resolution int, pth string) error {
 	// Create a mesh out of finite elements.
 	m, _ := render.NewMeshHex8(s, render.NewMarchingHex8Uniform(resolution))
 
-	// Write mesh to file.
-	err := m.WriteInp(pth, []int{0, 1, 2}, 7.8e-9, 210000, 0.333333333)
-	if err != nil {
-		return err
-	}
+	lyrStart := 0
+	lyrEnd := 20
 
 	// Write just some layers of mesh to a file.
-	err = m.WriteInpLayers("some-layers-of-"+pth, 0, 32, []int{0, 1, 2}, 7.8e-9, 210000, 0.333333333)
+	err := m.WriteInpLayers(pth, lyrStart, lyrEnd, []int{0, 1, 2}, 7.8e-9, 210000, 0.333333333)
 	if err != nil {
 		return err
 	}
@@ -79,12 +73,12 @@ func main() {
 		log.Fatalf("error: %s", err)
 	}
 
-	err = tet4FiniteElements(teapotSdf, 100, "teapot-tet4.inp")
+	err = tet4FiniteElements(teapotSdf, 80, "teapot-tet4.inp")
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
-	err = hex8FiniteElements(teapotSdf, 100, "teapot-hex8.inp")
+	err = hex8FiniteElements(teapotSdf, 80, "teapot-hex8.inp")
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
