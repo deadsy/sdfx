@@ -10,7 +10,7 @@ import (
 
 func marchingCubesHex8(s sdf.SDF3, box sdf.Box3, step float64) []*Hex8 {
 
-	var tetrahedra []*Hex8
+	var fes []*Hex8
 	size := box.Size()
 	base := box.Min
 	steps := conv.V3ToV3i(size.DivScalar(step).Ceil())
@@ -57,7 +57,7 @@ func marchingCubesHex8(s sdf.SDF3, box sdf.Box3, step float64) []*Hex8 {
 					l.Get(1, y, z+1),
 					l.Get(1, y+1, z+1),
 					l.Get(0, y+1, z+1)}
-				tetrahedra = append(tetrahedra, mcToHex8(corners, values, 0, z)...)
+				fes = append(fes, mcToHex8(corners, values, 0, z)...)
 				p.Z += dz
 			}
 			p.Y += dy
@@ -65,7 +65,7 @@ func marchingCubesHex8(s sdf.SDF3, box sdf.Box3, step float64) []*Hex8 {
 		p.X += dx
 	}
 
-	return tetrahedra
+	return fes
 }
 
 //-----------------------------------------------------------------------------

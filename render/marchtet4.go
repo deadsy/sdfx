@@ -10,7 +10,7 @@ import (
 
 func marchingCubesTet4(s sdf.SDF3, box sdf.Box3, step float64) []*Tet4 {
 
-	var tetrahedra []*Tet4
+	var fes []*Tet4
 	size := box.Size()
 	base := box.Min
 	steps := conv.V3ToV3i(size.DivScalar(step).Ceil())
@@ -57,7 +57,7 @@ func marchingCubesTet4(s sdf.SDF3, box sdf.Box3, step float64) []*Tet4 {
 					l.Get(1, y, z+1),
 					l.Get(1, y+1, z+1),
 					l.Get(0, y+1, z+1)}
-				tetrahedra = append(tetrahedra, mcToTet4(corners, values, 0, z)...)
+				fes = append(fes, mcToTet4(corners, values, 0, z)...)
 				p.Z += dz
 			}
 			p.Y += dy
@@ -65,7 +65,7 @@ func marchingCubesTet4(s sdf.SDF3, box sdf.Box3, step float64) []*Tet4 {
 		p.X += dx
 	}
 
-	return tetrahedra
+	return fes
 }
 
 //-----------------------------------------------------------------------------
