@@ -92,6 +92,11 @@ func mcToHex20(p [8]v3.Vec, v [8]float64, x float64, layerZ int) []*Hex20 {
 			V:     [20]v3.Vec{},
 			Layer: layerZ,
 		}
+
+		// Refer to CalculiX solver documentation:
+		// http://www.dhondt.de/ccx_2.20.pdf
+
+		// Points on cube corners:
 		fe.V[7] = p[7]
 		fe.V[6] = p[6]
 		fe.V[5] = p[5]
@@ -100,6 +105,23 @@ func mcToHex20(p [8]v3.Vec, v [8]float64, x float64, layerZ int) []*Hex20 {
 		fe.V[2] = p[2]
 		fe.V[1] = p[1]
 		fe.V[0] = p[0]
+
+		// Points on cube edges:
+		fe.V[8] = p[0].Add(p[1]).MulScalar(0.5)
+		fe.V[9] = p[1].Add(p[2]).MulScalar(0.5)
+		fe.V[10] = p[2].Add(p[3]).MulScalar(0.5)
+		fe.V[11] = p[3].Add(p[0]).MulScalar(0.5)
+
+		fe.V[12] = p[4].Add(p[5]).MulScalar(0.5)
+		fe.V[13] = p[5].Add(p[6]).MulScalar(0.5)
+		fe.V[14] = p[6].Add(p[7]).MulScalar(0.5)
+		fe.V[15] = p[7].Add(p[4]).MulScalar(0.5)
+
+		fe.V[16] = p[0].Add(p[4]).MulScalar(0.5)
+		fe.V[17] = p[1].Add(p[5]).MulScalar(0.5)
+		fe.V[18] = p[2].Add(p[6]).MulScalar(0.5)
+		fe.V[19] = p[3].Add(p[7]).MulScalar(0.5)
+
 		result = append(result, &fe)
 	}
 

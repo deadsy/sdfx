@@ -92,6 +92,10 @@ func mcToHex8(p [8]v3.Vec, v [8]float64, x float64, layerZ int) []*Hex8 {
 			V:     [8]v3.Vec{},
 			Layer: layerZ,
 		}
+
+		// Refer to CalculiX solver documentation:
+		// http://www.dhondt.de/ccx_2.20.pdf
+
 		fe.V[7] = p[7]
 		fe.V[6] = p[6]
 		fe.V[5] = p[5]
