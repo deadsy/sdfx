@@ -92,7 +92,7 @@ func mcToHex8(p [8]v3.Vec, v [8]float64, x float64, layerZ int) []*Hex8 {
 	if !anyPositive {
 		fe := Hex8{
 			V:     [8]v3.Vec{},
-			layer: layerZ,
+			Layer: layerZ,
 		}
 		fe.V[7] = p[7]
 		fe.V[6] = p[6]

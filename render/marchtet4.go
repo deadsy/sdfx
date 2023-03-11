@@ -81,7 +81,7 @@ func mcToTet4(p [8]v3.Vec, v [8]float64, x float64, layerZ int) []*Tet4 {
 	for _, res := range result {
 		t := Tet4{
 			V:     [4]v3.Vec{},
-			layer: layerZ,
+			Layer: layerZ,
 		}
 		t.V[3] = v3.Vec{X: 0, Y: 0, Z: 0}
 		t.V[2] = res.V[2]

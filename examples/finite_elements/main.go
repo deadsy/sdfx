@@ -15,6 +15,7 @@ import (
 
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
+	"github.com/deadsy/sdfx/render/finiteelements/mesh"
 	"github.com/deadsy/sdfx/sdf"
 )
 
@@ -25,13 +26,13 @@ import (
 // Written file can be used by ABAQUS or CalculiX.
 func tet4FiniteElements(s sdf.SDF3, resolution int, pth string) error {
 	// Create a mesh out of finite elements.
-	m, _ := render.NewMeshTet4(s, render.NewMarchingTet4Uniform(resolution))
+	m, _ := mesh.NewMeshTet4(s, render.NewMarchingTet4Uniform(resolution))
 
 	lyrStart := 0
 	lyrEnd := 20
 
 	// Write just some layers of mesh to a file.
-	err := m.WriteInpLayers(pth, lyrStart, lyrEnd)
+	err := m.WriteInpLayers(pth, lyrStart, lyrEnd, []int{0, 1, 2}, 1.25e-9, 900, 0.3)
 	if err != nil {
 		return err
 	}
@@ -45,7 +46,7 @@ func tet4FiniteElements(s sdf.SDF3, resolution int, pth string) error {
 // Written file can be used by ABAQUS or CalculiX.
 func hex8FiniteElements(s sdf.SDF3, resolution int, pth string) error {
 	// Create a mesh out of finite elements.
-	m, _ := render.NewMeshHex8(s, render.NewMarchingHex8Uniform(resolution))
+	m, _ := mesh.NewMeshHex8(s, render.NewMarchingHex8Uniform(resolution))
 
 	lyrStart := 0
 	lyrEnd := 20
