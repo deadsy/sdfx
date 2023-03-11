@@ -10,6 +10,10 @@ type IB struct {
 }
 
 func NewIB(layerCount, nodesPerElement int) *IB {
+	if nodesPerElement < 1 {
+		panic("nodes per finite element must be positive")
+	}
+
 	ib := IB{
 		I:               [][]uint32{},
 		NodesPerElement: nodesPerElement,
