@@ -19,7 +19,7 @@ type MeshHex8 struct {
 }
 
 // To get a new mesh and number of its layers along Z-axis.
-func NewMeshHex8(s sdf.SDF3, r render.RenderHex8) (*MeshHex8, int) {
+func NewMeshHex8(s sdf.SDF3, r render.RenderFE) (*MeshHex8, int) {
 	fes := render.ToHex8(s, r)
 
 	_, _, layerCountZ := r.LayerCounts(s)

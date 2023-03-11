@@ -19,7 +19,7 @@ type MeshTet4 struct {
 }
 
 // To get a new mesh and number of its layers along Z-axis.
-func NewMeshTet4(s sdf.SDF3, r render.RenderTet4) (*MeshTet4, int) {
+func NewMeshTet4(s sdf.SDF3, r render.RenderFE) (*MeshTet4, int) {
 	fes := render.ToTet4(s, r)
 
 	_, _, layerCountZ := r.LayerCounts(s)

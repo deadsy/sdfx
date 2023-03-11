@@ -1,8 +1,6 @@
 package render
 
 import (
-	"fmt"
-
 	"github.com/deadsy/sdfx/sdf"
 	"github.com/deadsy/sdfx/vec/conv"
 	v3 "github.com/deadsy/sdfx/vec/v3"
@@ -91,59 +89,6 @@ func mcToTet4(p [8]v3.Vec, v [8]float64, x float64, layerZ int) []*Tet4 {
 	}
 
 	return resultTet4
-}
-
-//-----------------------------------------------------------------------------
-
-// MarchingTet4Uniform renders using marching Tetrahedra with uniform space sampling.
-type MarchingTet4Uniform struct {
-	meshCells int // number of cells on the longest axis of bounding box. e.g 200
-}
-
-// NewMarchingTet4Uniform returns a RenderTet4 object.
-func NewMarchingTet4Uniform(meshCells int) *MarchingTet4Uniform {
-	return &MarchingTet4Uniform{
-		meshCells: meshCells,
-	}
-}
-
-// Info returns a string describing the rendered volume.
-func (r *MarchingTet4Uniform) Info(s sdf.SDF3) string {
-	bb0 := s.BoundingBox()
-	bb0Size := bb0.Size()
-	meshInc := bb0Size.MaxComponent() / float64(r.meshCells)
-	bb1Size := bb0Size.DivScalar(meshInc)
-	bb1Size = bb1Size.Ceil().AddScalar(1)
-	cells := conv.V3ToV3i(bb1Size)
-	return fmt.Sprintf("%dx%dx%d", cells.X, cells.Y, cells.Z)
-}
-
-// To get the layer counts which are consistent with loops of marching algorithm.
-func (r *MarchingTet4Uniform) LayerCounts(s sdf.SDF3) (int, int, int) {
-	bb0 := s.BoundingBox()
-	bb0Size := bb0.Size()
-	meshInc := bb0Size.MaxComponent() / float64(r.meshCells)
-	bb1Size := bb0Size.DivScalar(meshInc)
-	bb1Size = bb1Size.Ceil().AddScalar(1)
-	bb1Size = bb1Size.MulScalar(meshInc)
-	bb := sdf.NewBox3(bb0.Center(), bb1Size)
-	size := bb.Size()
-	steps := conv.V3ToV3i(size.DivScalar(meshInc).Ceil())
-	return steps.X, steps.Y, steps.Z
-}
-
-// Render produces a finite elements mesh over the bounding volume of an sdf3.
-// Finite elements are in the shape of tetrahedra.
-func (r *MarchingTet4Uniform) Render(s sdf.SDF3, output chan<- []*Tet4) {
-	// work out the region we will sample
-	bb0 := s.BoundingBox()
-	bb0Size := bb0.Size()
-	meshInc := bb0Size.MaxComponent() / float64(r.meshCells)
-	bb1Size := bb0Size.DivScalar(meshInc)
-	bb1Size = bb1Size.Ceil().AddScalar(1)
-	bb1Size = bb1Size.MulScalar(meshInc)
-	bb := sdf.NewBox3(bb0.Center(), bb1Size)
-	output <- marchingCubesTet4(s, bb, meshInc)
 }
 
 //-----------------------------------------------------------------------------

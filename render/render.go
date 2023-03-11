@@ -29,18 +29,10 @@ type Render2 interface {
 	Info(s sdf.SDF2) string
 }
 
-// RenderTet4 renders a finite element mesh over the bounding volume of an sdf3.
-// Finite elements are in the shape of 4-node tetrahedra.
-type RenderTet4 interface {
-	Render(sdf3 sdf.SDF3, output chan<- []*Tet4)
-	Info(sdf3 sdf.SDF3) string
-	LayerCounts(sdf3 sdf.SDF3) (int, int, int)
-}
-
-// RenderHex8 renders a finite element mesh over the bounding volume of an sdf3.
-// Finite elements are in the shape of 8-node hexahedra.
-type RenderHex8 interface {
-	Render(sdf3 sdf.SDF3, output chan<- []*Hex8)
+// RenderFE renders a finite element mesh over the bounding volume of an sdf3.
+type RenderFE interface {
+	RenderTet4(sdf3 sdf.SDF3, output chan<- []*Tet4)
+	RenderHex8(sdf3 sdf.SDF3, output chan<- []*Hex8)
 	Info(sdf3 sdf.SDF3) string
 	LayerCounts(sdf3 sdf.SDF3) (int, int, int)
 }
@@ -71,7 +63,7 @@ func ToTriangles(
 // ToTet4 renders an SDF3 to finite elements in the shape of 4-node tetrahedra.
 func ToTet4(
 	s sdf.SDF3, // sdf3 to render
-	r RenderTet4, // rendering method
+	r RenderFE, // rendering method
 ) []Tet4 {
 	fmt.Printf("rendering %s\n", r.Info(s))
 
@@ -87,7 +79,7 @@ func ToTet4(
 	output := writeTet4(&wg, &tet4s)
 
 	// run the renderer
-	r.Render(s, output)
+	r.RenderTet4(s, output)
 	// stop the writer reading on the channel
 	close(output)
 	// wait for the file write to complete
@@ -101,7 +93,7 @@ func ToTet4(
 // ToHex8 renders an SDF3 to finite elements in the shape of 8-node hexahedra.
 func ToHex8(
 	s sdf.SDF3, // sdf3 to render
-	r RenderHex8, // rendering method
+	r RenderFE, // rendering method
 ) []Hex8 {
 	fmt.Printf("rendering %s\n", r.Info(s))
 
@@ -117,7 +109,7 @@ func ToHex8(
 	output := writeHex8(&wg, &hex8s)
 
 	// run the renderer
-	r.Render(s, output)
+	r.RenderHex8(s, output)
 	// stop the writer reading on the channel
 	close(output)
 	// wait for the file write to complete
