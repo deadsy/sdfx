@@ -33,6 +33,7 @@ type Render2 interface {
 type RenderFE interface {
 	RenderTet4(sdf3 sdf.SDF3, output chan<- []*Tet4)
 	RenderHex8(sdf3 sdf.SDF3, output chan<- []*Hex8)
+	RenderHex20(sdf3 sdf.SDF3, output chan<- []*Hex20)
 	Info(sdf3 sdf.SDF3) string
 	LayerCounts(sdf3 sdf.SDF3) (int, int, int)
 }
@@ -116,6 +117,36 @@ func ToHex8(
 	wg.Wait()
 
 	return hex8s
+}
+
+//-----------------------------------------------------------------------------
+
+// ToHex20 renders an SDF3 to finite elements in the shape of 8-node hexahedra.
+func ToHex20(
+	s sdf.SDF3, // sdf3 to render
+	r RenderFE, // rendering method
+) []Hex20 {
+	fmt.Printf("rendering %s\n", r.Info(s))
+
+	layerCountX, layerCountY, layerCountZ := r.LayerCounts(s)
+	fmt.Printf("layer counts of marching algorithm are: (%v x %v x %v)\n", layerCountX, layerCountY, layerCountZ)
+
+	// Will be filled by the rendering.
+	hex20s := make([]Hex20, 0)
+
+	var wg sync.WaitGroup
+
+	// Get the channel to be written to.
+	output := writeHex20(&wg, &hex20s)
+
+	// run the renderer
+	r.RenderHex20(s, output)
+	// stop the writer reading on the channel
+	close(output)
+	// wait for the file write to complete
+	wg.Wait()
+
+	return hex20s
 }
 
 //-----------------------------------------------------------------------------
