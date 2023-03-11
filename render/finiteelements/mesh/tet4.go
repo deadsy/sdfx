@@ -13,7 +13,7 @@ import (
 // The element connectivity would be created with unique nodes.
 type MeshTet4 struct {
 	// Index buffer.
-	IBuff *buffer.Tet4IB
+	IBuff *buffer.IB
 	// Vertex buffer.
 	VBuff *buffer.VB
 }
@@ -28,7 +28,7 @@ func NewMeshTet4(s sdf.SDF3, r render.RenderTet4) (*MeshTet4, int) {
 
 	// Fill out the mesh with finite elements.
 	for _, fe := range fes {
-		m.addFE(fe.Layer, fe.V[0], fe.V[1], fe.V[2], fe.V[3])
+		m.addFE(fe.Layer, [4]v3.Vec{fe.V[0], fe.V[1], fe.V[2], fe.V[3]})
 	}
 
 	defer m.VBuff.DestroyHashTable()
@@ -38,7 +38,7 @@ func NewMeshTet4(s sdf.SDF3, r render.RenderTet4) (*MeshTet4, int) {
 
 func newMeshTet4(layerCount int) *MeshTet4 {
 	return &MeshTet4{
-		IBuff: buffer.NewTet4IB(layerCount),
+		IBuff: buffer.NewIB(layerCount, 4),
 		VBuff: buffer.NewVB(),
 	}
 }
@@ -51,8 +51,12 @@ func (m *MeshTet4) NodesPerElement() int {
 // Layer number and nodes are input.
 // The node numbering should follow the convention of CalculiX.
 // http://www.dhondt.de/ccx_2.20.pdf
-func (m *MeshTet4) addFE(l int, a, b, c, d v3.Vec) {
-	m.IBuff.AddTet4(l, m.addVertex(a), m.addVertex(b), m.addVertex(c), m.addVertex(d))
+func (m *MeshTet4) addFE(l int, nodes [4]v3.Vec) {
+	indices := [4]uint32{}
+	for n := 0; n < 4; n++ {
+		indices[n] = m.addVertex(nodes[n])
+	}
+	m.IBuff.AddFE(l, indices[:])
 }
 
 func (m *MeshTet4) addVertex(vert v3.Vec) uint32 {
@@ -87,7 +91,7 @@ func (m *MeshTet4) feCount() int {
 // Tetrahedron index on layer is input.
 // Tetrahedron index could be from 0 to number of tetrahedra on layer.
 // Don't return error to increase performance.
-func (m *MeshTet4) feIndicies(l, i int) (uint32, uint32, uint32, uint32) {
+func (m *MeshTet4) feIndicies(l, i int) []uint32 {
 	return m.IBuff.FEIndicies(l, i)
 }
 
@@ -97,14 +101,11 @@ func (m *MeshTet4) feIndicies(l, i int) (uint32, uint32, uint32, uint32) {
 // Tetrahedron index could be from 0 to number of tetrahedra on layer.
 // Don't return error to increase performance.
 func (m *MeshTet4) feVertices(l, i int) []v3.Vec {
-	idx0, idx1, idx2, idx3 := m.IBuff.FEIndicies(l, i)
+	indices := m.IBuff.FEIndicies(l, i)
 	vertices := make([]v3.Vec, 4)
-
-	vertices[0] = m.VBuff.Vertex(idx0)
-	vertices[1] = m.VBuff.Vertex(idx1)
-	vertices[2] = m.VBuff.Vertex(idx2)
-	vertices[3] = m.VBuff.Vertex(idx3)
-
+	for n := 0; n < 4; n++ {
+		vertices[n] = m.VBuff.Vertex(indices[n])
+	}
 	return vertices
 }
 

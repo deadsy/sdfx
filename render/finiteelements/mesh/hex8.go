@@ -13,7 +13,7 @@ import (
 // The element connectivity would be created with unique nodes.
 type MeshHex8 struct {
 	// Index buffer.
-	IBuff *buffer.Hex8IB
+	IBuff *buffer.IB
 	// Vertex buffer.
 	VBuff *buffer.VB
 }
@@ -42,7 +42,7 @@ func NewMeshHex8(s sdf.SDF3, r render.RenderHex8) (*MeshHex8, int) {
 
 func newMeshHex8(layerCount int) *MeshHex8 {
 	return &MeshHex8{
-		IBuff: buffer.NewHex8IB(layerCount),
+		IBuff: buffer.NewIB(layerCount, 8),
 		VBuff: buffer.NewVB(),
 	}
 }
@@ -60,7 +60,7 @@ func (m *MeshHex8) addFE(l int, nodes [8]v3.Vec) {
 	for n := 0; n < 8; n++ {
 		indices[n] = m.addVertex(nodes[n])
 	}
-	m.IBuff.AddFE(l, indices)
+	m.IBuff.AddFE(l, indices[:])
 }
 
 func (m *MeshHex8) addVertex(vert v3.Vec) uint32 {
@@ -95,7 +95,7 @@ func (m *MeshHex8) feCount() int {
 // FE index on layer is input.
 // FE index could be from 0 to number of tetrahedra on layer.
 // Don't return error to increase performance.
-func (m *MeshHex8) feIndicies(l, i int) [8]uint32 {
+func (m *MeshHex8) feIndicies(l, i int) []uint32 {
 	return m.IBuff.FEIndicies(l, i)
 }
 
