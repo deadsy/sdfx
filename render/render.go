@@ -72,12 +72,12 @@ func ToTet4(
 	fmt.Printf("layer counts of marching algorithm are: (%v x %v x %v)\n", layerCountX, layerCountY, layerCountZ)
 
 	// Will be filled by the rendering.
-	tet4s := make([]Tet4, 0)
+	fes := make([]Tet4, 0)
 
 	var wg sync.WaitGroup
 
 	// Get the channel to be written to.
-	output := writeTet4(&wg, &tet4s)
+	output := writeTet4(&wg, &fes)
 
 	// run the renderer
 	r.RenderTet4(s, output)
@@ -86,7 +86,7 @@ func ToTet4(
 	// wait for the file write to complete
 	wg.Wait()
 
-	return tet4s
+	return fes
 }
 
 //-----------------------------------------------------------------------------
@@ -102,12 +102,12 @@ func ToHex8(
 	fmt.Printf("layer counts of marching algorithm are: (%v x %v x %v)\n", layerCountX, layerCountY, layerCountZ)
 
 	// Will be filled by the rendering.
-	hex8s := make([]Hex8, 0)
+	fes := make([]Hex8, 0)
 
 	var wg sync.WaitGroup
 
 	// Get the channel to be written to.
-	output := writeHex8(&wg, &hex8s)
+	output := writeHex8(&wg, &fes)
 
 	// run the renderer
 	r.RenderHex8(s, output)
@@ -116,7 +116,7 @@ func ToHex8(
 	// wait for the file write to complete
 	wg.Wait()
 
-	return hex8s
+	return fes
 }
 
 //-----------------------------------------------------------------------------
@@ -132,12 +132,12 @@ func ToHex20(
 	fmt.Printf("layer counts of marching algorithm are: (%v x %v x %v)\n", layerCountX, layerCountY, layerCountZ)
 
 	// Will be filled by the rendering.
-	hex20s := make([]Hex20, 0)
+	fes := make([]Hex20, 0)
 
 	var wg sync.WaitGroup
 
 	// Get the channel to be written to.
-	output := writeHex20(&wg, &hex20s)
+	output := writeHex20(&wg, &fes)
 
 	// run the renderer
 	r.RenderHex20(s, output)
@@ -146,7 +146,7 @@ func ToHex20(
 	// wait for the file write to complete
 	wg.Wait()
 
-	return hex20s
+	return fes
 }
 
 //-----------------------------------------------------------------------------
