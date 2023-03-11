@@ -35,7 +35,7 @@ type Inp struct {
 	LayerStart int
 	// Output `inp` file would exclude end layer.
 	LayerEnd int
-	// Layers fixed to the 3D print floor i.e. bottom layers.
+	// Layers fixed to the 3D print floor i.e. bottom layers. The boundary conditions.
 	LayersFixed []int
 	// To write only required nodes to `inp` file.
 	TempVBuff *buffer.VB
