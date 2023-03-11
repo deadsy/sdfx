@@ -69,6 +69,36 @@ func hex8FiniteElements(s sdf.SDF3, resolution int, pth string) error {
 	return nil
 }
 
+// 20-node hexahedral elements.
+//
+// Render SDF3 to finite elements.
+// Write finite elements to an `inp` file.
+// Written file can be used by ABAQUS or CalculiX.
+func hex20FiniteElements(s sdf.SDF3, resolution int, pth string) error {
+	// Create a mesh out of finite elements.
+	m, _ := mesh.NewMeshHex20(s, render.NewMarchingCubesFEUniform(resolution))
+
+	lyrStart := 0
+	lyrEnd := 20
+
+	// Write just some layers of mesh to a file.
+	//
+	// Units are mm,N,sec.
+	// Force per area = N/mm2 or MPa
+	// Mass density = Ns2/mm4
+	// Refer to the "Units" chapter of:
+	// http://www.dhondt.de/ccx_2.20.pdf
+	//
+	// Mechanical properties are based on typical SLA resins.
+	//
+	// TODO: Correct resin specifications.
+	err := m.WriteInpLayers(pth, lyrStart, lyrEnd, []int{0, 1, 2}, 1.25e-9, 900, 0.3)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func main() {
 	stl := "../../files/teapot.stl"
 
@@ -90,6 +120,11 @@ func main() {
 	}
 
 	err = hex8FiniteElements(teapotSdf, 80, "teapot-hex8.inp")
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+
+	err = hex20FiniteElements(teapotSdf, 80, "teapot-hex20.inp")
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
