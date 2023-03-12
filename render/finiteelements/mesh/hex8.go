@@ -47,8 +47,8 @@ func newHex8(layerCount int) *Hex8 {
 	}
 }
 
-// NodesPerElement returns nodes per element.
-func (m *Hex8) NodesPerElement() int {
+// Npe returns number of nodes per element.
+func (m *Hex8) Npe() int {
 	return 8
 }
 

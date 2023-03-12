@@ -103,11 +103,11 @@ func (inp *Inp) Write() error {
 	// Write elements.
 
 	ElementType := ""
-	if inp.Mesh.NodesPerElement() == 4 {
+	if inp.Mesh.Npe() == 4 {
 		ElementType = "C3D4"
-	} else if inp.Mesh.NodesPerElement() == 8 {
+	} else if inp.Mesh.Npe() == 8 {
 		ElementType = "C3D8"
-	} else if inp.Mesh.NodesPerElement() == 20 {
+	} else if inp.Mesh.Npe() == 20 {
 		ElementType = "C3D20R"
 	}
 
@@ -185,18 +185,18 @@ func (inp *Inp) writeHeader(f *os.File) error {
 func (inp *Inp) writeNodes(f *os.File) error {
 	// Declare vars outside loop for efficiency.
 	var err error
-	nodes := make([]v3.Vec, 0, inp.Mesh.NodesPerElement())
-	ids := make([]uint32, inp.Mesh.NodesPerElement())
+	nodes := make([]v3.Vec, 0, inp.Mesh.Npe())
+	ids := make([]uint32, inp.Mesh.Npe())
 	for l := inp.LayerStart; l < inp.LayerEnd; l++ {
 		for i := 0; i < inp.Mesh.feCountOnLayer(l); i++ {
 			// Get the node IDs.
 			nodes = inp.Mesh.feVertices(l, i)
-			for n := 0; n < inp.Mesh.NodesPerElement(); n++ {
+			for n := 0; n < inp.Mesh.Npe(); n++ {
 				ids[n] = inp.TempVBuff.Id(nodes[n])
 			}
 
 			// Write the node IDs.
-			for n := 0; n < inp.Mesh.NodesPerElement(); n++ {
+			for n := 0; n < inp.Mesh.Npe(); n++ {
 				// ID starts from one not zero.
 				_, err = f.WriteString(fmt.Sprintf("%d,%f,%f,%f\n", ids[n]+1, float32(nodes[n].X), float32(nodes[n].Y), float32(nodes[n].Z)))
 				if err != nil {
@@ -212,23 +212,23 @@ func (inp *Inp) writeNodes(f *os.File) error {
 func (inp *Inp) writeElements(f *os.File) error {
 	// Declare vars outside loop for efficiency.
 	var err error
-	nodes := make([]v3.Vec, 0, inp.Mesh.NodesPerElement())
-	ids := make([]uint32, inp.Mesh.NodesPerElement())
+	nodes := make([]v3.Vec, 0, inp.Mesh.Npe())
+	ids := make([]uint32, inp.Mesh.Npe())
 	var eleID uint32
 	for l := inp.LayerStart; l < inp.LayerEnd; l++ {
 		for i := 0; i < inp.Mesh.feCountOnLayer(l); i++ {
 			nodes = inp.Mesh.feVertices(l, i)
-			for n := 0; n < inp.Mesh.NodesPerElement(); n++ {
+			for n := 0; n < inp.Mesh.Npe(); n++ {
 				ids[n] = inp.TempVBuff.Id(nodes[n])
 			}
 
 			// ID starts from one not zero.
 
-			if inp.Mesh.NodesPerElement() == 4 {
+			if inp.Mesh.Npe() == 4 {
 				_, err = f.WriteString(fmt.Sprintf("%d,%d,%d,%d,%d\n", eleID+1, ids[0]+1, ids[1]+1, ids[2]+1, ids[3]+1))
-			} else if inp.Mesh.NodesPerElement() == 8 {
+			} else if inp.Mesh.Npe() == 8 {
 				_, err = f.WriteString(fmt.Sprintf("%d,%d,%d,%d,%d,%d,%d,%d,%d\n", eleID+1, ids[0]+1, ids[1]+1, ids[2]+1, ids[3]+1, ids[4]+1, ids[5]+1, ids[6]+1, ids[7]+1))
-			} else if inp.Mesh.NodesPerElement() == 20 {
+			} else if inp.Mesh.Npe() == 20 {
 				// There should not be more than 16 entries in a line;
 				// That's why there is new line in the middle.
 				// Refer to CalculiX solver documentation:
@@ -249,17 +249,17 @@ func (inp *Inp) writeElements(f *os.File) error {
 func (inp *Inp) writeBoundary(f *os.File) error {
 	// Declare vars outside loop for efficiency.
 	var err error
-	nodes := make([]v3.Vec, 0, inp.Mesh.NodesPerElement())
-	ids := make([]uint32, inp.Mesh.NodesPerElement())
+	nodes := make([]v3.Vec, 0, inp.Mesh.Npe())
+	ids := make([]uint32, inp.Mesh.Npe())
 	for l := range inp.LayersFixed {
 		for i := 0; i < inp.Mesh.feCountOnLayer(l); i++ {
 			nodes = inp.Mesh.feVertices(l, i)
-			for n := 0; n < inp.Mesh.NodesPerElement(); n++ {
+			for n := 0; n < inp.Mesh.Npe(); n++ {
 				ids[n] = inp.TempVBuff.Id(nodes[n])
 			}
 
 			// Write the node IDs.
-			for n := 0; n < inp.Mesh.NodesPerElement(); n++ {
+			for n := 0; n < inp.Mesh.Npe(); n++ {
 				// ID starts from one not zero.
 				_, err = f.WriteString(fmt.Sprintf("%d,1,3\n", ids[n]+1))
 				if err != nil {

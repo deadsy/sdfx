@@ -43,8 +43,8 @@ func newTet4(layerCount int) *Tet4 {
 	}
 }
 
-// NodesPerElement returns nodes per element.
-func (m *Tet4) NodesPerElement() int {
+// Npe returns number of nodes per element.
+func (m *Tet4) Npe() int {
 	return 4
 }
 
