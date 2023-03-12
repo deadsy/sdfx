@@ -26,7 +26,7 @@ import (
 // Written file can be used by ABAQUS or CalculiX.
 func tet4FiniteElements(s sdf.SDF3, resolution int, pth string) error {
 	// Create a mesh out of finite elements.
-	m, _ := mesh.NewMeshTet4(s, render.NewMarchingCubesFEUniform(resolution))
+	m, _ := mesh.NewTet4(s, render.NewMarchingCubesFEUniform(resolution))
 
 	lyrStart := 0
 	lyrEnd := 20
@@ -46,7 +46,7 @@ func tet4FiniteElements(s sdf.SDF3, resolution int, pth string) error {
 // Written file can be used by ABAQUS or CalculiX.
 func hex8FiniteElements(s sdf.SDF3, resolution int, pth string) error {
 	// Create a mesh out of finite elements.
-	m, _ := mesh.NewMeshHex8(s, render.NewMarchingCubesFEUniform(resolution))
+	m, _ := mesh.NewHex8(s, render.NewMarchingCubesFEUniform(resolution))
 
 	lyrStart := 0
 	lyrEnd := 20
@@ -76,7 +76,7 @@ func hex8FiniteElements(s sdf.SDF3, resolution int, pth string) error {
 // Written file can be used by ABAQUS or CalculiX.
 func hex20FiniteElements(s sdf.SDF3, resolution int, pth string) error {
 	// Create a mesh out of finite elements.
-	m, _ := mesh.NewMeshHex20(s, render.NewMarchingCubesFEUniform(resolution))
+	m, _ := mesh.NewHex20(s, render.NewMarchingCubesFEUniform(resolution))
 
 	lyrStart := 0
 	lyrEnd := 20

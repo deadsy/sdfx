@@ -9,10 +9,10 @@ import (
 	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
-// To write different types of finite elements as ABAQUS or CalculiX `inp` file.
+// Inp writes different types of finite elements as ABAQUS or CalculiX `inp` file.
 type Inp struct {
 	// Finite elements mesh.
-	Mesh MeshFE
+	Mesh FE
 	// Output `inp` file path.
 	Path string
 	// For writing nodes to a separate file.
@@ -35,8 +35,9 @@ type Inp struct {
 	PoissonRatio float32
 }
 
+// NewInp sets up a new writer.
 func NewInp(
-	m MeshFE,
+	m FE,
 	path string,
 	layerStart, layerEnd int,
 	layersFixed []int,
@@ -58,6 +59,7 @@ func NewInp(
 	}
 }
 
+// Write starts writing to `inp` file.
 func (inp *Inp) Write() error {
 	f, err := os.Create(inp.Path)
 	if err != nil {
@@ -152,7 +154,7 @@ func (inp *Inp) Write() error {
 	}
 	defer fBou.Close()
 
-	err = inp.WriteBoundary(fBou)
+	err = inp.writeBoundary(fBou)
 	if err != nil {
 		return err
 	}
@@ -244,7 +246,7 @@ func (inp *Inp) writeElements(f *os.File) error {
 	return nil
 }
 
-func (inp *Inp) WriteBoundary(f *os.File) error {
+func (inp *Inp) writeBoundary(f *os.File) error {
 	// Declare vars outside loop for efficiency.
 	var err error
 	nodes := make([]v3.Vec, 0, inp.Mesh.NodesPerElement())
