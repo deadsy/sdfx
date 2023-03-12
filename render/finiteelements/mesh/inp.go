@@ -9,16 +9,6 @@ import (
 	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
-// A dynamic type for meshes of finite elements like MeshTet4, MeshHex8, MeshHex20, ...
-type MeshFE interface {
-	NodesPerElement() int
-	layerCount() int
-	feCountOnLayer(l int) int
-	feVertices(l, i int) []v3.Vec
-}
-
-//-----------------------------------------------------------------------------
-
 // To write different types of finite elements as ABAQUS or CalculiX `inp` file.
 type Inp struct {
 	// Finite elements mesh.
