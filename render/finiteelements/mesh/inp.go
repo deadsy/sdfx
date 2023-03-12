@@ -303,7 +303,7 @@ func (inp *Inp) writeFooter(f *os.File) error {
 
 	// Write analysis
 
-	_, err = f.WriteString("*STEP\n*STATIC,SOLVER=PaStiX\n")
+	_, err = f.WriteString("*STEP\n*STATIC\n")
 	if err != nil {
 		return err
 	}
