@@ -38,7 +38,7 @@ func tet4FiniteElements(s sdf.SDF3, resolution int, pth string) error {
 		return err
 	}
 
-	fmt.Println("tet4 FE is not implemented, there is TODO in function mcToTet4")
+	fmt.Println("Tet4 FE is not implemented, there is TODO in function mcToTet4")
 
 	return nil
 }
