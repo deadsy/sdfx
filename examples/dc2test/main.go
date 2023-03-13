@@ -19,7 +19,7 @@ import (
 
 func main() {
 
-	f, err := sdf.LoadFont("../text/cmr10.ttf")
+	f, err := sdf.LoadFont("../../files/cmr10.ttf")
 	//f, err := sdf.LoadFont("Times_New_Roman.ttf")
 	//f, err := sdf.LoadFont("wt064.ttf")
 

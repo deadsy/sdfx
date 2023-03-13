@@ -13,7 +13,6 @@ import (
 	"fmt"
 	"log"
 	"math"
-	"math/rand"
 
 	"github.com/deadsy/sdfx/vec/conv"
 	"github.com/deadsy/sdfx/vec/p2"
@@ -195,7 +194,7 @@ func (s *BezierSpline) Sample(p *Polygon, t0, t1 float64, p0, p1 v2.Vec, n int) 
 	if colinearSlow(pmid, p0, p1, s.tolerance) {
 		// the curve could be periodic so perturb the midpoint
 		// pick a t value in [0.45,0.55]
-		k := 0.45 + 0.1*rand.Float64()
+		k := 0.45 + 0.1*sdfRand.Float64()
 		t2 := t0 + k*(t1-t0)
 		p2 := s.f0(t2)
 		if colinearSlow(p2, p0, p1, s.tolerance) {

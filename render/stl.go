@@ -33,7 +33,7 @@ type STLTriangle struct {
 //-----------------------------------------------------------------------------
 
 // SaveSTL writes a triangle mesh to an STL file.
-func SaveSTL(path string, mesh []Triangle3) error {
+func SaveSTL(path string, mesh []*Triangle3) error {
 	file, err := os.Create(path)
 	if err != nil {
 		return err

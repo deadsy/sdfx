@@ -17,7 +17,7 @@ import (
 //-----------------------------------------------------------------------------
 
 // VoxelSDF3 is the SDF that represents a pre-computed voxel-based SDF3.
-//It can be used as a cache, or for smoothing.
+// It can be used as a cache, or for smoothing.
 //
 // CACHE:
 // It can be used to speed up all evaluations required by the surface mesher at the cost of scene setup time and accuracy.

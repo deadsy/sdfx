@@ -7,6 +7,7 @@ package sdf
 import (
 	"fmt"
 	"math"
+	"math/rand"
 	"runtime"
 
 	"github.com/deadsy/sdfx/vec/conv"
@@ -35,6 +36,15 @@ const Mil = MillimetresPerInch / 1000.0
 const sqrtHalf = 0.7071067811865476
 const tolerance = 1e-9
 const epsilon = 1e-12
+
+//-----------------------------------------------------------------------------
+
+// From go 1.20 the rand.* are initialized to a random seed.
+// Different results are generated every run. We want consistent
+// results from run to run for binary verification, so we have
+// our own local random source.
+
+var sdfRand = rand.New(rand.NewSource(1))
 
 //-----------------------------------------------------------------------------
 

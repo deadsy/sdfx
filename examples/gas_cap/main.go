@@ -25,9 +25,9 @@ const capThickness = 4.0
 const threadPitch = 6.0
 const holeRadius = 0.0 // 33.0 / 2.0
 
-//var threadDiameter = 48.0 // tight
+// var threadDiameter = 48.0 // tight
 const threadDiameter = 48.5 // just right
-//var threadDiameter = 49.0 // loose
+// var threadDiameter = 49.0 // loose
 const threadRadius = threadDiameter / 2.0
 
 //-----------------------------------------------------------------------------
