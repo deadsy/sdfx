@@ -46,3 +46,7 @@ The boundary conditions and loads used in the calculation will be available toge
 ```bash
 cgx teapot-hex8.frd teapot-hex8.inp
 ```
+
+## Math solver
+
+The default CCX math solver is `SPOOLES` which is slow. Apparently `PARDISO` is faster and `PaStiX` is the fastest. But it's needed to build the CCX with `PARDISO` or `PaStiX` math libraries.
