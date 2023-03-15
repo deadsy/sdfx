@@ -99,8 +99,33 @@ func (r *MarchingCubesFEOctree) Info(s sdf.SDF3) string {
 	return fmt.Sprintf("%dx%dx%d, resolution %.2f", cells.X, cells.Y, cells.Z, resolution)
 }
 
+// LayerCounts computes number of layes in X, Y, Z directions.
+// We are specifically interested in Z direction.
+func (r *MarchingCubesFEOctree) LayerCounts(s sdf.SDF3) (int, int, int) {
+	bbSize := s.BoundingBox().Size()
+	resolution := bbSize.MaxComponent() / float64(r.meshCells)
+	cells := conv.V3ToV3i(bbSize.MulScalar(1 / resolution))
+	return cells.X, cells.Y, cells.Z
+}
+
 // Render produces a 3d triangle mesh over the bounding volume of an sdf3.
-func (r *MarchingCubesFEOctree) Render(s sdf.SDF3, output chan<- []*Triangle3) {
+func (r *MarchingCubesFEOctree) RenderTet4(s sdf.SDF3, output chan<- []*Tet4) {
+	// work out the sampling resolution to use
+	bbSize := s.BoundingBox().Size()
+	resolution := bbSize.MaxComponent() / float64(r.meshCells)
+	marchingCubesFEOctree(s, resolution, output)
+}
+
+// Render produces a 3d triangle mesh over the bounding volume of an sdf3.
+func (r *MarchingCubesFEOctree) RenderHex8(s sdf.SDF3, output chan<- []*Hex8) {
+	// work out the sampling resolution to use
+	bbSize := s.BoundingBox().Size()
+	resolution := bbSize.MaxComponent() / float64(r.meshCells)
+	marchingCubesFEOctree(s, resolution, output)
+}
+
+// Render produces a 3d triangle mesh over the bounding volume of an sdf3.
+func (r *MarchingCubesFEOctree) RenderHex20(s sdf.SDF3, output chan<- []*Hex20) {
 	// work out the sampling resolution to use
 	bbSize := s.BoundingBox().Size()
 	resolution := bbSize.MaxComponent() / float64(r.meshCells)
