@@ -17,50 +17,12 @@ import (
 
 	"github.com/deadsy/sdfx/sdf"
 	"github.com/deadsy/sdfx/vec/conv"
-	v3 "github.com/deadsy/sdfx/vec/v3"
 	"github.com/deadsy/sdfx/vec/v3i"
 )
 
 //-----------------------------------------------------------------------------
 
-// Process a cube. Generate finite elements, or more cubes.
-func (dc *dcache3) processCubeHex8(c *cube, output chan<- []*Triangle3) {
-	if !dc.isEmpty(c) {
-		if c.n == 1 {
-			// this cube is at the required resolution
-			c0, d0 := dc.evaluate(c.v.Add(v3i.Vec{0, 0, 0}))
-			c1, d1 := dc.evaluate(c.v.Add(v3i.Vec{2, 0, 0}))
-			c2, d2 := dc.evaluate(c.v.Add(v3i.Vec{2, 2, 0}))
-			c3, d3 := dc.evaluate(c.v.Add(v3i.Vec{0, 2, 0}))
-			c4, d4 := dc.evaluate(c.v.Add(v3i.Vec{0, 0, 2}))
-			c5, d5 := dc.evaluate(c.v.Add(v3i.Vec{2, 0, 2}))
-			c6, d6 := dc.evaluate(c.v.Add(v3i.Vec{2, 2, 2}))
-			c7, d7 := dc.evaluate(c.v.Add(v3i.Vec{0, 2, 2}))
-			corners := [8]v3.Vec{c0, c1, c2, c3, c4, c5, c6, c7}
-			values := [8]float64{d0, d1, d2, d3, d4, d5, d6, d7}
-			// output the triangle(s) for this cube
-			output <- mcToTriangles(corners, values, 0)
-		} else {
-			// process the sub cubes
-			n := c.n - 1
-			s := 1 << n
-			// TODO - turn these into throttled go-routines
-			dc.processCube(&cube{c.v.Add(v3i.Vec{0, 0, 0}), n}, output)
-			dc.processCube(&cube{c.v.Add(v3i.Vec{s, 0, 0}), n}, output)
-			dc.processCube(&cube{c.v.Add(v3i.Vec{s, s, 0}), n}, output)
-			dc.processCube(&cube{c.v.Add(v3i.Vec{0, s, 0}), n}, output)
-			dc.processCube(&cube{c.v.Add(v3i.Vec{0, 0, s}), n}, output)
-			dc.processCube(&cube{c.v.Add(v3i.Vec{s, 0, s}), n}, output)
-			dc.processCube(&cube{c.v.Add(v3i.Vec{s, s, s}), n}, output)
-			dc.processCube(&cube{c.v.Add(v3i.Vec{0, s, s}), n}, output)
-		}
-	}
-}
-
-//-----------------------------------------------------------------------------
-
-// marchingCubesFEOctree generates a triangle mesh for an SDF3 using octree subdivision.
-func marchingCubesFEOctree(s sdf.SDF3, resolution float64, output chan<- []*Triangle3) {
+func distanceCache(s sdf.SDF3, resolution float64) (*dcache3, uint) {
 	// Scale the bounding box about the center to make sure the boundaries
 	// aren't on the object surface.
 	bb := s.BoundingBox()
@@ -73,8 +35,28 @@ func marchingCubesFEOctree(s sdf.SDF3, resolution float64, output chan<- []*Tria
 	levels := uint(math.Ceil(math.Log2(longAxis/resolution))) + 1
 	// create the distance cache
 	dc := newDcache3(s, bb.Min, resolution, levels)
+	return dc, levels
+}
+
+// marchingCubesTet4Octree generates finite elements for an SDF3 using octree subdivision.
+func marchingCubesTet4Octree(s sdf.SDF3, resolution float64, output chan<- []*Tet4) {
+	dc, levels := distanceCache(s, resolution)
+	// process the octree, start at the top level
+	dc.processCubeTet4(&cube{v3i.Vec{0, 0, 0}, levels - 1}, output)
+}
+
+// marchingCubesHex8Octree generates finite elements for an SDF3 using octree subdivision.
+func marchingCubesHex8Octree(s sdf.SDF3, resolution float64, output chan<- []*Hex8) {
+	dc, levels := distanceCache(s, resolution)
 	// process the octree, start at the top level
 	dc.processCubeHex8(&cube{v3i.Vec{0, 0, 0}, levels - 1}, output)
+}
+
+// marchingCubesHex20Octree generates finite elements for an SDF3 using octree subdivision.
+func marchingCubesHex20Octree(s sdf.SDF3, resolution float64, output chan<- []*Hex20) {
+	dc, levels := distanceCache(s, resolution)
+	// process the octree, start at the top level
+	dc.processCubeHex20(&cube{v3i.Vec{0, 0, 0}, levels - 1}, output)
 }
 
 //-----------------------------------------------------------------------------
@@ -108,28 +90,28 @@ func (r *MarchingCubesFEOctree) LayerCounts(s sdf.SDF3) (int, int, int) {
 	return cells.X, cells.Y, cells.Z
 }
 
-// Render produces a 3d triangle mesh over the bounding volume of an sdf3.
+// RenderTet4 produces finite elements over the bounding volume of an sdf3.
 func (r *MarchingCubesFEOctree) RenderTet4(s sdf.SDF3, output chan<- []*Tet4) {
 	// work out the sampling resolution to use
 	bbSize := s.BoundingBox().Size()
 	resolution := bbSize.MaxComponent() / float64(r.meshCells)
-	marchingCubesFEOctree(s, resolution, output)
+	marchingCubesTet4Octree(s, resolution, output)
 }
 
-// Render produces a 3d triangle mesh over the bounding volume of an sdf3.
+// RenderHex8 produces finite elements over the bounding volume of an sdf3.
 func (r *MarchingCubesFEOctree) RenderHex8(s sdf.SDF3, output chan<- []*Hex8) {
 	// work out the sampling resolution to use
 	bbSize := s.BoundingBox().Size()
 	resolution := bbSize.MaxComponent() / float64(r.meshCells)
-	marchingCubesFEOctree(s, resolution, output)
+	marchingCubesHex8Octree(s, resolution, output)
 }
 
-// Render produces a 3d triangle mesh over the bounding volume of an sdf3.
+// RenderHex20 produces finite elements over the bounding volume of an sdf3.
 func (r *MarchingCubesFEOctree) RenderHex20(s sdf.SDF3, output chan<- []*Hex20) {
 	// work out the sampling resolution to use
 	bbSize := s.BoundingBox().Size()
 	resolution := bbSize.MaxComponent() / float64(r.meshCells)
-	marchingCubesFEOctree(s, resolution, output)
+	marchingCubesHex20Octree(s, resolution, output)
 }
 
 //-----------------------------------------------------------------------------
