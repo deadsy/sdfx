@@ -25,7 +25,7 @@ import (
 // Render SDF3 to finite elements.
 // Write finite elements to an `inp` file.
 // Written file can be used by ABAQUS or CalculiX.
-func tet4FiniteElements(s sdf.SDF3, resolution int, pth string) error {
+func tet4(s sdf.SDF3, resolution int, pth string) error {
 	// Create a mesh out of finite elements.
 	m, _ := mesh.NewTet4(s, render.NewMarchingCubesFEUniform(resolution))
 
@@ -48,7 +48,7 @@ func tet4FiniteElements(s sdf.SDF3, resolution int, pth string) error {
 // Render SDF3 to finite elements.
 // Write finite elements to an `inp` file.
 // Written file can be used by ABAQUS or CalculiX.
-func hex8FiniteElements(s sdf.SDF3, resolution int, pth string) error {
+func hex8(s sdf.SDF3, resolution int, pth string) error {
 	// Create a mesh out of finite elements.
 	m, _ := mesh.NewHex8(s, render.NewMarchingCubesFEUniform(resolution))
 
@@ -78,7 +78,7 @@ func hex8FiniteElements(s sdf.SDF3, resolution int, pth string) error {
 // Render SDF3 to finite elements.
 // Write finite elements to an `inp` file.
 // Written file can be used by ABAQUS or CalculiX.
-func hex20FiniteElements(s sdf.SDF3, resolution int, pth string) error {
+func hex20(s sdf.SDF3, resolution int, pth string) error {
 	// Create a mesh out of finite elements.
 	m, _ := mesh.NewHex20(s, render.NewMarchingCubesFEUniform(resolution))
 
@@ -118,17 +118,17 @@ func main() {
 		log.Fatalf("error: %s", err)
 	}
 
-	err = tet4FiniteElements(teapotSdf, 80, "teapot-tet4.inp")
+	err = tet4(teapotSdf, 80, "teapot-tet4.inp")
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
-	err = hex8FiniteElements(teapotSdf, 80, "teapot-hex8.inp")
+	err = hex8(teapotSdf, 80, "teapot-hex8.inp")
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
-	err = hex20FiniteElements(teapotSdf, 80, "teapot-hex20.inp")
+	err = hex20(teapotSdf, 80, "teapot-hex20.inp")
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
