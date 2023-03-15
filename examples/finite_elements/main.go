@@ -21,10 +21,6 @@ import (
 )
 
 // 4-node tetrahedral elements.
-//
-// Render SDF3 to finite elements.
-// Write finite elements to an `inp` file.
-// Written file can be used by ABAQUS or CalculiX.
 func tet4(s sdf.SDF3, resolution int, pth string) error {
 	// Create a mesh out of finite elements.
 	m, _ := mesh.NewTet4(s, render.NewMarchingCubesFEUniform(resolution))
@@ -44,10 +40,6 @@ func tet4(s sdf.SDF3, resolution int, pth string) error {
 }
 
 // 8-node hexahedral elements.
-//
-// Render SDF3 to finite elements.
-// Write finite elements to an `inp` file.
-// Written file can be used by ABAQUS or CalculiX.
 func hex8(s sdf.SDF3, resolution int, pth string) error {
 	// Create a mesh out of finite elements.
 	m, _ := mesh.NewHex8(s, render.NewMarchingCubesFEUniform(resolution))
@@ -74,10 +66,6 @@ func hex8(s sdf.SDF3, resolution int, pth string) error {
 }
 
 // 20-node hexahedral elements.
-//
-// Render SDF3 to finite elements.
-// Write finite elements to an `inp` file.
-// Written file can be used by ABAQUS or CalculiX.
 func hex20(s sdf.SDF3, resolution int, pth string) error {
 	// Create a mesh out of finite elements.
 	m, _ := mesh.NewHex20(s, render.NewMarchingCubesFEUniform(resolution))
@@ -103,6 +91,9 @@ func hex20(s sdf.SDF3, resolution int, pth string) error {
 	return nil
 }
 
+// Render SDF3 to finite elements.
+// Write finite elements to an `inp` file.
+// Written file can be used by ABAQUS or CalculiX.
 func main() {
 	stl := "../../files/teapot.stl"
 
