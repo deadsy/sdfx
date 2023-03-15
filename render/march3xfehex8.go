@@ -23,7 +23,7 @@ func (dc *dcache3) processCubeHex8(c *cube, output chan<- []*Hex8) {
 			corners := [8]v3.Vec{c0, c1, c2, c3, c4, c5, c6, c7}
 			values := [8]float64{d0, d1, d2, d3, d4, d5, d6, d7}
 			// output the triangle(s) for this cube
-			output <- mcToHex8(corners, values, 0, -1)
+			output <- mcToHex8(corners, values, 0, 0)
 		} else {
 			// process the sub cubes
 			n := c.n - 1

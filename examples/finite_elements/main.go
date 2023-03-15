@@ -97,10 +97,7 @@ func hex8adaptive(s sdf.SDF3, resolution int, pth string) error {
 	// Create a mesh out of finite elements.
 	m, _ := mesh.NewHex8(s, render.NewMarchingCubesFEOctree(resolution))
 
-	lyrStart := 0
-	lyrEnd := 20
-
-	err := m.WriteInpLayers(pth, lyrStart, lyrEnd, []int{0, 1, 2}, 1.25e-9, 900, 0.3)
+	err := m.WriteInp(pth, []int{0}, 1.25e-9, 900, 0.3)
 	if err != nil {
 		return err
 	}
