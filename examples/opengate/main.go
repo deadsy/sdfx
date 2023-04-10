@@ -19,77 +19,95 @@ import (
 )
 
 //-----------------------------------------------------------------------------
-
-var baseThickness = 3.0
-var pillarHeight = 15.0
-
 // material shrinkage
-var shrink = 1.0 / 0.999 // PLA ~0.1%
-//var shrink = 1.0/0.995; // ABS ~0.5%
+
+const shrink = 1.0 / 0.999 // PLA ~0.1%
+//const shrink = 1.0/0.995; // ABS ~0.5%
+
+//-----------------------------------------------------------------------------
+
+const baseThickness = 3
+const pillarHeight = 8
+
+const pcbX = 116
+const pcbY = 61
+
+const baseX = pcbX + 30
+const baseY = pcbY + 20
 
 //-----------------------------------------------------------------------------
 
 func standoffs() (sdf.SDF3, error) {
 
-	zOfs := 0.5 * (pillarHeight + baseThickness)
-
 	// standoffs with screw holes
 	k := &obj.StandoffParms{
 		PillarHeight:   pillarHeight,
 		PillarDiameter: 6.0,
-		HoleDepth:      10.0,
+		HoleDepth:      pillarHeight,
 		HoleDiameter:   2.4, // #4 screw
 	}
-	positions0 := v3.VecSet{
-		{3.5, 3.5, zOfs},
-		{3.5 + 116.0, 3.5, zOfs},
-		{3.5 + 116.0, 3.5 + 61.0, zOfs},
-		{3.5, 3.5 + 61.0, zOfs},
-	}
+
 	s, err := obj.Standoff3D(k)
 	if err != nil {
 		return nil, err
 	}
 
-	return sdf.Multi3D(s, positions0), nil
+	positions0 := v3.VecSet{
+		{0, 0, 0},
+		{pcbX, 0, 0},
+		{pcbX, pcbY, 0},
+		{0, pcbY, 0},
+	}
+	s = sdf.Multi3D(s, positions0)
+
+	xOfs := -0.5 * pcbX
+	yOfs := -0.5 * pcbY
+	zOfs := 0.5 * (pillarHeight + baseThickness)
+	s = sdf.Transform3D(s, sdf.Translate3d(v3.Vec{xOfs, yOfs, zOfs}))
+
+	return s, nil
 }
 
 func mainBoard() (sdf.SDF3, error) {
 
-	baseX := 180.0
-	baseY := 80.0
-	pcbX := 123.0
-	pcbY := 68.0
-
 	// base
-	pp := &obj.PanelParms{
+	base := &obj.PanelParms{
 		Size:         v2.Vec{baseX, baseY},
 		CornerRadius: 5.0,
 		HoleDiameter: 3.5,
 		HoleMargin:   [4]float64{5.0, 5.0, 5.0, 5.0},
 		HolePattern:  [4]string{"x", "x", "x", "x"},
 	}
-	s0, err := obj.Panel2D(pp)
+	s0, err := obj.Panel2D(base)
 	if err != nil {
 		return nil, err
 	}
+
+	// cutout
+	cutout := &obj.PanelParms{
+		Size:         v2.Vec{baseX - 40, baseY - 40},
+		CornerRadius: 5.0,
+	}
+	s1, err := obj.Panel2D(cutout)
+	if err != nil {
+		return nil, err
+	}
+
+	s2 := sdf.Difference2D(s0, s1)
 
 	// extrude the base
-	s2 := sdf.Extrude3D(s0, baseThickness)
-	xOfs := 0.5 * pcbX
-	yOfs := pcbY - (0.5 * baseY)
-	s2 = sdf.Transform3D(s2, sdf.Translate3d(v3.Vec{xOfs, yOfs, 0}))
+	s3 := sdf.Extrude3D(s2, baseThickness)
 
 	// add the standoffs
-	s3, err := standoffs()
+	s4, err := standoffs()
 	if err != nil {
 		return nil, err
 	}
 
-	s4 := sdf.Union3D(s2, s3)
-	s4.(*sdf.UnionSDF3).SetMin(sdf.PolyMin(3.0))
+	s5 := sdf.Union3D(s3, s4)
+	s5.(*sdf.UnionSDF3).SetMin(sdf.PolyMin(3.0))
 
-	return s4, nil
+	return s5, nil
 }
 
 //-----------------------------------------------------------------------------
