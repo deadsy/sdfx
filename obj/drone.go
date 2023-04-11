@@ -38,7 +38,7 @@ func motorMountHeight(k *DroneArmParms) float64 {
 func droneArm(k *DroneArmParms, inner bool) (sdf.SDF3, error) {
 
 	h0 := motorMountHeight(k)
-	h1 := motorMountHeight(k) * 0.8
+	h1 := h0 * 0.9
 	zOfs := 0.5 * (h0 - h1)
 
 	if inner {
@@ -101,23 +101,35 @@ func droneMotorBase(k *DroneArmParms) (sdf.SDF3, error) {
 	v1 := sdf.Transform3D(v0, sdf.RotateZ(sdf.DtoR(90)))
 	v2 := sdf.Transform3D(v0, sdf.RotateZ(sdf.DtoR(-90)))
 
-	return sdf.Difference3D(base, sdf.Union3D(cavity, mountHoles, v0, v1, v2)), nil
+	s := sdf.Difference3D(base, sdf.Union3D(cavity, mountHoles, v0, v1, v2))
+
+	zOfs = -0.5 * (motorMountHeight(k) - k.WallThickness)
+	return sdf.Transform3D(s, sdf.Translate3d(v3.Vec{0, 0, zOfs})), nil
+}
+
+func droneMotorBody(k *DroneArmParms) (sdf.SDF3, error) {
+	r := (0.5 * k.MotorSize.X) + k.SideClearance + k.WallThickness
+	h := motorMountHeight(k)
+	round := k.WallThickness * 0.5
+	return sdf.Cylinder3D(h, r, round)
+}
+
+func droneMotorCavity(k *DroneArmParms) (sdf.SDF3, error) {
+	r := (0.5 * k.MotorSize.X) + k.SideClearance
+	h := motorMountHeight(k)
+	return sdf.Cylinder3D(h, r, 0)
 }
 
 func droneMotorMount(k *DroneArmParms) (sdf.SDF3, error) {
 
 	// outer body
-	r0 := (0.5 * k.MotorSize.X) + k.SideClearance + k.WallThickness
-	h0 := motorMountHeight(k)
-	round := k.WallThickness * 0.5
-	body, err := sdf.Cylinder3D(h0, r0, round)
+	body, err := droneMotorBody(k)
 	if err != nil {
 		return nil, err
 	}
 
 	// inner cavity
-	r1 := (0.5 * k.MotorSize.X) + k.SideClearance
-	cavity, err := sdf.Cylinder3D(h0, r1, 0)
+	cavity, err := droneMotorCavity(k)
 	if err != nil {
 		return nil, err
 	}
@@ -127,8 +139,6 @@ func droneMotorMount(k *DroneArmParms) (sdf.SDF3, error) {
 	if err != nil {
 		return nil, err
 	}
-	zOfs := -0.5 * (h0 - k.WallThickness)
-	base = sdf.Transform3D(base, sdf.Translate3d(v3.Vec{0, 0, zOfs}))
 
 	// outer arm
 	arm0, err := droneArm(k, false)
@@ -144,12 +154,19 @@ func droneMotorMount(k *DroneArmParms) (sdf.SDF3, error) {
 
 	// body + arm
 	s := sdf.Union3D(body, arm0)
+	s.(*sdf.UnionSDF3).SetMin(sdf.PolyMin(3.0))
+
 	// remove the motor cavity
 	s = sdf.Difference3D(s, cavity)
 	// remove the inner arm
 	s = sdf.Difference3D(s, arm1)
 	// add the motor mount base
 	s = sdf.Union3D(s, base)
+
+	// carve the top and bottom to remove bumps
+	h := motorMountHeight(k) * 0.5
+	s = sdf.Cut3D(s, v3.Vec{0, 0, h}, v3.Vec{0, 0, -1})
+	s = sdf.Cut3D(s, v3.Vec{0, 0, -h}, v3.Vec{0, 0, 1})
 
 	return s, nil
 }
