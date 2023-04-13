@@ -1,7 +1,7 @@
 //-----------------------------------------------------------------------------
 /*
 
-https://shop.sb-components.co.uk/products/raspberry-pi-pico-hat-expansion
+Drone Parts
 
 */
 //-----------------------------------------------------------------------------
@@ -30,13 +30,14 @@ func arm() (sdf.SDF3, error) {
 
 	// https://www.flashhobby.com/d2830-fixed-wing-motor.html
 	k := obj.DroneArmParms{
-		MotorSize:     v2.Vec{28, 30},    // motor diameter/height
-		MotorMount:    v3.Vec{16, 19, 3}, // motor mount l0, l1, diameter
-		RotorCavity:   v2.Vec{9, 1.5},    // cavity for bottom of rotor
-		WallThickness: 3.0,               // wall thickness
-		SideClearance: 1.5,               // wall to motor clearance
-		HeightFactor:  0.7,               // height of motor mount wrt motor height
-		ArmLength:     100.0,             // length of rotor arm
+		MotorSize:     v2.Vec{28, 30},      // motor diameter/height
+		MotorMount:    v3.Vec{16, 19, 3.4}, // motor mount l0, l1, diameter
+		RotorCavity:   v2.Vec{9, 1.5},      // cavity for bottom of rotor
+		WallThickness: 3.0,                 // wall thickness
+		SideClearance: 1.5,                 // wall to motor clearance
+		MountHeight:   0.7,                 // height of motor mount wrt motor height
+		ArmHeight:     0.9,                 // height of arm wrt motor mount height
+		ArmLength:     70.0,                // length of rotor arm
 	}
 
 	return obj.DroneMotorArm(&k)

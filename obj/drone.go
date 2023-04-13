@@ -25,20 +25,21 @@ type DroneArmParms struct {
 	RotorCavity   v2.Vec  // cavity for bottom of rotor
 	WallThickness float64 // wall thickness
 	SideClearance float64 // wall to motor clearance
-	HeightFactor  float64 // height of motor mount wrt motor height
+	MountHeight   float64 // height of motor mount wrt motor height
+	ArmHeight     float64 // height of arm wrt motor mount height
 	ArmLength     float64 // length of rotor arm
 }
 
 //-----------------------------------------------------------------------------
 
 func motorMountHeight(k *DroneArmParms) float64 {
-	return (k.HeightFactor * k.MotorSize.Y) + k.WallThickness
+	return (k.MountHeight * k.MotorSize.Y) + k.WallThickness
 }
 
 func droneArm(k *DroneArmParms, inner bool) (sdf.SDF3, error) {
 
 	h0 := motorMountHeight(k)
-	h1 := h0 * 0.9
+	h1 := h0 * k.ArmHeight
 	zOfs := 0.5 * (h0 - h1)
 
 	if inner {
@@ -83,10 +84,11 @@ func droneMotorBase(k *DroneArmParms) (sdf.SDF3, error) {
 	// mount holes
 	r2 := 0.5 * k.MotorMount.Z
 	h2 := k.WallThickness
-	mountHole, err := sdf.Cylinder3D(h2, r2, 0)
+	mountHole, err := CounterSunkHole3D(h2, r2)
 	if err != nil {
 		return nil, err
 	}
+	mountHole = sdf.Transform3D(mountHole, sdf.RotateX(sdf.DtoR(180)))
 	mountPositions := v3.VecSet{
 		{0.5 * k.MotorMount.X, 0, 0},
 		{-0.5 * k.MotorMount.X, 0, 0},
@@ -97,7 +99,7 @@ func droneMotorBase(k *DroneArmParms) (sdf.SDF3, error) {
 
 	// vent holes
 	vent := sdf.Extrude3D(sdf.Box2D(v2.Vec{r0, r0}, 0.2*r0), k.WallThickness)
-	v0 := sdf.Transform3D(vent, sdf.Translate3d(v3.Vec{0.75 * r0, 0.75 * r0, 0}))
+	v0 := sdf.Transform3D(vent, sdf.Translate3d(v3.Vec{0.8 * r0, 0.8 * r0, 0}))
 	v1 := sdf.Transform3D(v0, sdf.RotateZ(sdf.DtoR(90)))
 	v2 := sdf.Transform3D(v0, sdf.RotateZ(sdf.DtoR(-90)))
 
@@ -120,7 +122,8 @@ func droneMotorCavity(k *DroneArmParms) (sdf.SDF3, error) {
 	return sdf.Cylinder3D(h, r, 0)
 }
 
-func droneMotorMount(k *DroneArmParms) (sdf.SDF3, error) {
+// DroneMotorArm returns a drone motor arm.
+func DroneMotorArm(k *DroneArmParms) (sdf.SDF3, error) {
 
 	// outer body
 	body, err := droneMotorBody(k)
@@ -168,12 +171,10 @@ func droneMotorMount(k *DroneArmParms) (sdf.SDF3, error) {
 	s = sdf.Cut3D(s, v3.Vec{0, 0, h}, v3.Vec{0, 0, -1})
 	s = sdf.Cut3D(s, v3.Vec{0, 0, -h}, v3.Vec{0, 0, 1})
 
-	return s, nil
-}
+	// x-axis alignment
+	s = sdf.Transform3D(s, sdf.RotateZ(sdf.DtoR(-45)))
 
-// DroneMotorArm returns a drone motor arm.
-func DroneMotorArm(k *DroneArmParms) (sdf.SDF3, error) {
-	return droneMotorMount(k)
+	return s, nil
 }
 
 //-----------------------------------------------------------------------------
