@@ -222,18 +222,18 @@ func socketArmHole(k *DroneArmSocketParms) (sdf.SDF3, error) {
 
 func socketStop(k *DroneArmSocketParms) (sdf.SDF3, error) {
 
-  h0 := k.Size.Z
-	h1 := 0.5 * (h0 - socketHeight(k)) + k.Arm.WallThickness
+	h0 := k.Size.Z
+	h1 := 0.5*(h0-socketHeight(k)) + k.Arm.WallThickness
 
 	s, err := sdf.Box3D(v3.Vec{k.Arm.WallThickness, k.Size.Y, h1}, 0)
 	if err != nil {
 		return nil, err
 	}
 
-  zOfs := -0.5 * (h0 - h1)
-  xOfs := 0.5 * (k.Size.X - k.Arm.WallThickness) - k.Stop
+	zOfs := -0.5 * (h0 - h1)
+	xOfs := 0.5*(k.Size.X-k.Arm.WallThickness) - k.Stop
 
-	s = sdf.Transform3D(s, sdf.Translate3d(v3.Vec{xOfs,0,zOfs}))
+	s = sdf.Transform3D(s, sdf.Translate3d(v3.Vec{xOfs, 0, zOfs}))
 	return s, nil
 }
 

@@ -42,7 +42,7 @@ var kSocket = obj.DroneArmSocketParms{
 	Arm:       &kArm,              // drone arm parameters
 	Size:      v3.Vec{40, 30, 30}, // body size for socket
 	Clearance: 0.5,                // clearance between arm and socket
- 	Stop: 35,        // depth of arm stop
+	Stop:      35,                 // depth of arm stop
 }
 
 //-----------------------------------------------------------------------------

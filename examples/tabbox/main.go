@@ -1,7 +1,7 @@
 //-----------------------------------------------------------------------------
 /*
 
-Drone Parts
+Demonstrate tabs connecting a box and lid.
 
 */
 //-----------------------------------------------------------------------------
@@ -27,16 +27,13 @@ const shrink = 1.0 / 0.999 // PLA ~0.1%
 
 const wallThickness = 3.0
 
-func tab(upper bool) (sdf.SDF3, sdf.SDF3, error) {
-	k := obj.TabParms{
-		Size:      v3.Vec{4.0 * wallThickness, 0.7 * wallThickness, wallThickness}, // size of tab
-		Clearance: 0.1,                                                             // clearance between male and female elements
-		Angled:    false,                                                           // tab at 45 degrees (in x-direction)
-	}
-	return obj.Tab(&k, upper)
+func tab() (obj.Tab, error) {
+	tabSize := v3.Vec{3.0 * wallThickness, 0.5 * wallThickness, wallThickness}
+	const tabClearance = 0.1
+	return obj.NewStraightTab(tabSize, tabClearance)
 }
 
-func tabbox(mode bool) (sdf.SDF3, error) {
+func tabbox(upper bool) (sdf.SDF3, error) {
 
 	round := 0.5 * wallThickness
 	oSize := v3.Vec{40, 40, 30}
@@ -54,25 +51,30 @@ func tabbox(mode bool) (sdf.SDF3, error) {
 	box := sdf.Difference3D(outer, inner)
 	lidHeight := oSize.Z * 0.25
 
-	if mode == true {
-		// upper
-		s := sdf.Cut3D(box, v3.Vec{0, 0, lidHeight}, v3.Vec{0, 0, 1})
-		body, env, err := tab(true)
-		if err != nil {
-			return nil, err
-		}
-		s = sdf.Union3D(sdf.Difference3D(s, env), body)
-		return s, nil
-	}
-
-	// lower
-	s := sdf.Cut3D(box, v3.Vec{0, 0, lidHeight}, v3.Vec{0, 0, -1})
-	body, env, err := tab(false)
+	tab, err := tab()
 	if err != nil {
 		return nil, err
 	}
-	s = sdf.Union3D(sdf.Difference3D(s, env), body)
-	return s, nil
+
+	xOfs := 0.5 * (iSize.X + wallThickness)
+	yOfs := 0.5 * (iSize.Y + wallThickness)
+
+	mSet := []sdf.M44{
+		sdf.Translate3d(v3.Vec{xOfs, 0, lidHeight}).Mul(sdf.RotateZ(sdf.DtoR(90))),
+		sdf.Translate3d(v3.Vec{-xOfs, 0, lidHeight}).Mul(sdf.RotateZ(sdf.DtoR(90))),
+		sdf.Translate3d(v3.Vec{0, yOfs, lidHeight}),
+		sdf.Translate3d(v3.Vec{0, -yOfs, lidHeight}),
+	}
+
+	var s sdf.SDF3
+
+	if upper == true {
+		s = sdf.Cut3D(box, v3.Vec{0, 0, lidHeight}, v3.Vec{0, 0, 1})
+	} else {
+		s = sdf.Cut3D(box, v3.Vec{0, 0, lidHeight}, v3.Vec{0, 0, -1})
+	}
+
+	return obj.AddTabs(s, tab, upper, mSet), nil
 }
 
 //-----------------------------------------------------------------------------
