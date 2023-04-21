@@ -18,6 +18,11 @@ import (
 
 //-----------------------------------------------------------------------------
 
+const hexRoundFactor = 0.2
+
+//-----------------------------------------------------------------------------
+// motor mount arm
+
 // DroneArmParms are drone arm parameters.
 type DroneArmParms struct {
 	MotorSize     v2.Vec  // motor diameter/height
@@ -30,29 +35,32 @@ type DroneArmParms struct {
 	ArmLength     float64 // length of rotor arm
 }
 
-//-----------------------------------------------------------------------------
-
-func motorMountHeight(k *DroneArmParms) float64 {
+// motorMountHeight returns the height of the motor mount.
+func mountHeight(k *DroneArmParms) float64 {
 	return (k.MountHeight * k.MotorSize.Y) + k.WallThickness
+}
+
+// armHeight returns the height of the arm.
+func armHeight(k *DroneArmParms) float64 {
+	return mountHeight(k) * k.ArmHeight
 }
 
 func droneArm(k *DroneArmParms, inner bool) (sdf.SDF3, error) {
 
-	h0 := motorMountHeight(k)
-	h1 := h0 * k.ArmHeight
+	h0 := mountHeight(k)
+	h1 := armHeight(k)
 	zOfs := 0.5 * (h0 - h1)
 
 	if inner {
 		h1 -= 2 * k.WallThickness
 	}
 	r := h1 / math.Sqrt(3)
-	round := r * 0.2
+	round := r * hexRoundFactor
 
-	hex2d, err := Hex2D(r, round)
+	arm, err := Hex3D(r, k.ArmLength, round)
 	if err != nil {
 		return nil, err
 	}
-	arm := sdf.Extrude3D(hex2d, k.ArmLength)
 
 	arm = sdf.Transform3D(arm, sdf.RotateX(sdf.DtoR(90)))
 	arm = sdf.Transform3D(arm, sdf.Translate3d(v3.Vec{0, 0.5 * k.ArmLength, -zOfs}))
@@ -105,20 +113,20 @@ func droneMotorBase(k *DroneArmParms) (sdf.SDF3, error) {
 
 	s := sdf.Difference3D(base, sdf.Union3D(cavity, mountHoles, v0, v1, v2))
 
-	zOfs = -0.5 * (motorMountHeight(k) - k.WallThickness)
+	zOfs = -0.5 * (mountHeight(k) - k.WallThickness)
 	return sdf.Transform3D(s, sdf.Translate3d(v3.Vec{0, 0, zOfs})), nil
 }
 
 func droneMotorBody(k *DroneArmParms) (sdf.SDF3, error) {
 	r := (0.5 * k.MotorSize.X) + k.SideClearance + k.WallThickness
-	h := motorMountHeight(k)
+	h := mountHeight(k)
 	round := k.WallThickness * 0.5
 	return sdf.Cylinder3D(h, r, round)
 }
 
 func droneMotorCavity(k *DroneArmParms) (sdf.SDF3, error) {
 	r := (0.5 * k.MotorSize.X) + k.SideClearance
-	h := motorMountHeight(k)
+	h := mountHeight(k)
 	return sdf.Cylinder3D(h, r, 0)
 }
 
@@ -167,12 +175,94 @@ func DroneMotorArm(k *DroneArmParms) (sdf.SDF3, error) {
 	s = sdf.Union3D(s, base)
 
 	// carve the top and bottom to remove bumps
-	h := motorMountHeight(k) * 0.5
+	h := mountHeight(k) * 0.5
 	s = sdf.Cut3D(s, v3.Vec{0, 0, h}, v3.Vec{0, 0, -1})
 	s = sdf.Cut3D(s, v3.Vec{0, 0, -h}, v3.Vec{0, 0, 1})
 
 	// x-axis alignment
 	s = sdf.Transform3D(s, sdf.RotateZ(sdf.DtoR(-45)))
+
+	return s, nil
+}
+
+//-----------------------------------------------------------------------------
+// socket to fit the motor arm
+
+type DroneArmSocketParms struct {
+	Arm       *DroneArmParms // drone arm parameters
+	Size      v3.Vec         // body size for socket
+	Clearance float64        // clearance between arm and socket
+	Stop      float64        // depth of arm stop
+}
+
+func socketHeight(k *DroneArmSocketParms) float64 {
+	return armHeight(k.Arm) + (2 * k.Clearance)
+}
+
+func socketBody(k *DroneArmSocketParms) (sdf.SDF3, error) {
+	return sdf.Box3D(k.Size, 0)
+}
+
+func socketArmHole(k *DroneArmSocketParms) (sdf.SDF3, error) {
+
+	h := socketHeight(k)
+	r := h / math.Sqrt(3)
+	round := r * hexRoundFactor
+
+	s, err := Hex3D(r, k.Size.X, round)
+	if err != nil {
+		return nil, err
+	}
+
+	s = sdf.Transform3D(s, sdf.RotateY(sdf.DtoR(90)))
+	s = sdf.Transform3D(s, sdf.RotateX(sdf.DtoR(30)))
+
+	return s, nil
+}
+
+func socketStop(k *DroneArmSocketParms) (sdf.SDF3, error) {
+
+  h0 := k.Size.Z
+	h1 := 0.5 * (h0 - socketHeight(k)) + k.Arm.WallThickness
+
+	s, err := sdf.Box3D(v3.Vec{k.Arm.WallThickness, k.Size.Y, h1}, 0)
+	if err != nil {
+		return nil, err
+	}
+
+  zOfs := -0.5 * (h0 - h1)
+  xOfs := 0.5 * (k.Size.X - k.Arm.WallThickness) - k.Stop
+
+	s = sdf.Transform3D(s, sdf.Translate3d(v3.Vec{xOfs,0,zOfs}))
+	return s, nil
+}
+
+func DroneMotorArmSocket(k *DroneArmSocketParms) (sdf.SDF3, error) {
+	h := socketHeight(k)
+	if k.Size.Y <= h || k.Size.Z <= h {
+		return nil, sdf.ErrMsg("socket body is too small for arm")
+	}
+	if k.Stop >= (k.Size.X - k.Arm.WallThickness) {
+		return nil, sdf.ErrMsg("socket body is shorter than arm stop depth")
+	}
+
+	body, err := socketBody(k)
+	if err != nil {
+		return nil, err
+	}
+
+	hole, err := socketArmHole(k)
+	if err != nil {
+		return nil, err
+	}
+
+	stop, err := socketStop(k)
+	if err != nil {
+		return nil, err
+	}
+
+	s := sdf.Difference3D(body, hole)
+	s = sdf.Union3D(s, stop)
 
 	return s, nil
 }
