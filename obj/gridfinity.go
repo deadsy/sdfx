@@ -13,6 +13,7 @@ package obj
 import (
 	"github.com/deadsy/sdfx/sdf"
 	v2 "github.com/deadsy/sdfx/vec/v2"
+	"github.com/deadsy/sdfx/vec/v2i"
 	v3 "github.com/deadsy/sdfx/vec/v3"
 	"github.com/deadsy/sdfx/vec/v3i"
 )
@@ -58,6 +59,20 @@ func gfShape(size v2.Vec, h0, h1, h2, h3, round float64) sdf.SDF3 {
 	return sdf.Transform3D(sdf.Union3D(upper, middle, lower, ext), sdf.RotateX(sdf.Pi))
 }
 
+func gfGrid(x, y int, zOfs float64) []v3.Vec {
+	grid := make([]v3.Vec, x*y)
+	xOfs := -0.5 * float64(x-1) * gfFemaleSize
+	yOfs := -0.5 * float64(y-1) * gfFemaleSize
+	idx := 0
+	for i := 0; i < x; i++ {
+		for j := 0; j < y; j++ {
+			grid[idx] = v3.Vec{xOfs + float64(i)*gfFemaleSize, yOfs + float64(j)*gfFemaleSize, zOfs}
+			idx++
+		}
+	}
+	return grid
+}
+
 //-----------------------------------------------------------------------------
 
 const gfHoleOffset = 4.8
@@ -89,8 +104,8 @@ const gfFemaleH1 = 1.8
 const gfFemaleH2 = 0.7
 const gfFemaleHeight = gfFemaleH0 + gfFemaleH1 + gfFemaleH2
 
-func gfFemale() sdf.SDF3 {
-	return gfShape(v2.Vec{gfFemaleSize, gfFemaleSize}, gfFemaleH0, gfFemaleH1, gfFemaleH2, 0, gfFemaleRound)
+func gfFemale(ext float64) sdf.SDF3 {
+	return gfShape(v2.Vec{gfFemaleSize, gfFemaleSize}, gfFemaleH0, gfFemaleH1, gfFemaleH2, ext, gfFemaleRound)
 }
 
 const gfMaleSize = 41.5
@@ -116,46 +131,61 @@ func gfLip(x, y, empty float64) sdf.SDF3 {
 	return gfShape(v2.Vec{x, y}, gfLipH0, gfLipH1, gfLipH2, empty, gfLipRound)
 }
 
+const gfHeightSize = 7.0
+
+// values not in the specifications
+const gfFloor = 1.0      // floor thickness for an empty container
+const gfBaseHeight = 4.0 // extra base height (for magnet mounts, side attachments)
+
 //-----------------------------------------------------------------------------
 
 // GfBaseParms are the gridfinity base parameters.
 type GfBaseParms struct {
-	X, Y   int     // size of base in gridfinity units
-	Height float64 // height of base lattice
+	Size   v2i.Vec // size of base in gridfinity units
+	Magnet bool    // add magnet mounts
+	Hole   bool    // add mounting holes
 }
 
 // GfBase returns a Gridfinity base grid.
 func GfBase(k *GfBaseParms) sdf.SDF3 {
-	if k.X <= 0 {
-		k.X = 1
+	if k.Size.X <= 0 {
+		k.Size.X = 1
 	}
-	if k.Y <= 0 {
-		k.Y = 1
+	if k.Size.Y <= 0 {
+		k.Size.Y = 1
 	}
-	if k.Height < gfFemaleHeight {
-		k.Height = gfFemaleHeight
+
+	h := gfFemaleHeight
+	if k.Magnet || k.Hole {
+		h += gfBaseHeight
 	}
 
 	// base body
-	size := v2.Vec{float64(k.X), float64(k.Y)}.MulScalar(gfFemaleSize)
+	size := v2.Vec{float64(k.Size.X), float64(k.Size.Y)}.MulScalar(gfFemaleSize)
 	b2d := sdf.Box2D(size, gfFemaleRound)
-	base := sdf.Extrude3D(b2d, k.Height)
+	base := sdf.Extrude3D(b2d, h)
 
-	// female holes
-	posn := make([]v3.Vec, k.X*k.Y)
-	xOfs := -0.5 * float64(k.X-1) * gfFemaleSize
-	yOfs := -0.5 * float64(k.Y-1) * gfFemaleSize
-	zOfs := k.Height * 0.5
-	idx := 0
-	for i := 0; i < k.X; i++ {
-		for j := 0; j < k.Y; j++ {
-			posn[idx] = v3.Vec{xOfs + float64(i)*gfFemaleSize, yOfs + float64(j)*gfFemaleSize, zOfs}
-			idx++
-		}
+	// main holes
+	grid := gfGrid(k.Size.X, k.Size.Y, 0.5*h)
+	holes := sdf.Multi3D(gfFemale(h-gfFemaleHeight), grid)
+
+	// magnet mounts
+	var magnets sdf.SDF3
+	if k.Magnet || k.Hole {
+		const r = gfMaleH0 + gfMaleH2 + gfHoleOffset
+		magnets = sdf.Multi3D(gfHoles(r, gfBaseHeight, -h+0.5*gfBaseHeight), grid)
+		zOfs := -0.5*gfHoleHeight - h + gfBaseHeight
+		magnetHoles := sdf.Multi3D(gfHoles(gfHoleMajor, gfHoleHeight, zOfs), grid)
+		magnets = sdf.Difference3D(magnets, magnetHoles)
 	}
-	holes := sdf.Multi3D(gfFemale(), posn)
 
-	return sdf.Difference3D(base, holes)
+	// mounting holes
+	if k.Hole {
+		mountHoles := sdf.Multi3D(gfHoles(gfHoleMinor, h, -0.5*h), grid)
+		magnets = sdf.Difference3D(magnets, mountHoles)
+	}
+
+	return sdf.Union3D(sdf.Difference3D(base, holes), magnets)
 }
 
 //-----------------------------------------------------------------------------
@@ -166,9 +196,6 @@ type GfBodyParms struct {
 	Empty bool    // return an empty container
 	Hole  bool    // add through holes to the body
 }
-
-const gfHeightSize = 7.0
-const gfFloor = 1.0 // floor thickness for an empty container
 
 // GfBody returns a gridfinity body.
 func GfBody(k *GfBodyParms) sdf.SDF3 {
@@ -190,25 +217,15 @@ func GfBody(k *GfBodyParms) sdf.SDF3 {
 	body := sdf.Extrude3D(b2d, h)
 
 	// grid positions
-	posn := make([]v3.Vec, k.Size.X*k.Size.Y)
-	xOfs := -0.5 * float64(k.Size.X-1) * gfFemaleSize
-	yOfs := -0.5 * float64(k.Size.Y-1) * gfFemaleSize
-	zOfs := -0.5 * h
-	idx := 0
-	for i := 0; i < k.Size.X; i++ {
-		for j := 0; j < k.Size.Y; j++ {
-			posn[idx] = v3.Vec{xOfs + float64(i)*gfFemaleSize, yOfs + float64(j)*gfFemaleSize, zOfs}
-			idx++
-		}
-	}
+	grid := gfGrid(k.Size.X, k.Size.Y, -0.5*h)
 
 	// base plugs
-	plugs := sdf.Multi3D(gfMale(), posn)
+	plugs := sdf.Multi3D(gfMale(), grid)
 
 	// through holes
 	var holes sdf.SDF3
 	if k.Hole {
-		holes = sdf.Multi3D(gfThruHoles(h+gfMaleHeight-gfHoleHeight), posn)
+		holes = sdf.Multi3D(gfThruHoles(h+gfMaleHeight-gfHoleHeight), grid)
 	}
 
 	// stacking lip
