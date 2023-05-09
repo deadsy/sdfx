@@ -673,3 +673,74 @@ func (a *M44) Set(i, j int, val float64) {
 }
 
 //-----------------------------------------------------------------------------
+
+// Get a component of the matrix.
+func (a M33) Get(i, j int) float64 {
+	switch i {
+	case 0:
+		switch j {
+		case 0:
+			return a.x00
+		case 1:
+			return a.x01
+		case 2:
+			return a.x02
+		}
+	case 1:
+		switch j {
+		case 0:
+			return a.x10
+		case 1:
+			return a.x11
+		case 2:
+			return a.x12
+		}
+	case 2:
+		switch j {
+		case 0:
+			return a.x20
+		case 1:
+			return a.x21
+		case 2:
+			return a.x22
+		}
+	}
+	panic("bad component")
+}
+
+// Set a component of the matrix.
+func (a *M33) Set(i, j int, val float64) {
+	switch i {
+	case 0:
+		switch j {
+		case 0:
+			a.x00 = val
+		case 1:
+			a.x01 = val
+		case 2:
+			a.x02 = val
+		}
+	case 1:
+		switch j {
+		case 0:
+			a.x10 = val
+		case 1:
+			a.x11 = val
+		case 2:
+			a.x12 = val
+		}
+	case 2:
+		switch j {
+		case 0:
+			a.x20 = val
+		case 1:
+			a.x21 = val
+		case 2:
+			a.x22 = val
+		}
+	default:
+		panic("bad component")
+	}
+}
+
+//-----------------------------------------------------------------------------
