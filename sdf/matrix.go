@@ -569,223 +569,70 @@ func (a M22) Inverse() M22 {
 
 //-----------------------------------------------------------------------------
 
-// Get a component of the matrix.
-func (a M44) Get(i, j int) float64 {
-	switch i {
-	case 0:
-		switch j {
-		case 0:
-			return a.x00
-		case 1:
-			return a.x01
-		case 2:
-			return a.x02
-		case 3:
-			return a.x03
-		}
-	case 1:
-		switch j {
-		case 0:
-			return a.x10
-		case 1:
-			return a.x11
-		case 2:
-			return a.x12
-		case 3:
-			return a.x13
-		}
-	case 2:
-		switch j {
-		case 0:
-			return a.x20
-		case 1:
-			return a.x21
-		case 2:
-			return a.x22
-		case 3:
-			return a.x23
-		}
-	case 3:
-		switch j {
-		case 0:
-			return a.x30
-		case 1:
-			return a.x31
-		case 2:
-			return a.x32
-		case 3:
-			return a.x33
-		}
-	}
-	panic("bad component")
-}
+// NewM44 returns a new matrix.
+// Input is expected to be row-major.
+func NewM44(x [16]float64) M44 {
+	a := M44{}
 
-// Set a component of the matrix.
-func (a *M44) Set(i, j int, val float64) {
-	switch i {
-	case 0:
-		switch j {
-		case 0:
-			a.x00 = val
-		case 1:
-			a.x01 = val
-		case 2:
-			a.x02 = val
-		case 3:
-			a.x03 = val
-		}
-	case 1:
-		switch j {
-		case 0:
-			a.x10 = val
-		case 1:
-			a.x11 = val
-		case 2:
-			a.x12 = val
-		case 3:
-			a.x13 = val
-		}
-	case 2:
-		switch j {
-		case 0:
-			a.x20 = val
-		case 1:
-			a.x21 = val
-		case 2:
-			a.x22 = val
-		case 3:
-			a.x23 = val
-		}
-	case 3:
-		switch j {
-		case 0:
-			a.x30 = val
-		case 1:
-			a.x31 = val
-		case 2:
-			a.x32 = val
-		case 3:
-			a.x33 = val
-		}
-	default:
-		panic("bad component")
-	}
+	a.x00 = x[0]
+	a.x01 = x[1]
+	a.x02 = x[2]
+	a.x03 = x[3]
+
+	a.x10 = x[4]
+	a.x11 = x[5]
+	a.x12 = x[6]
+	a.x13 = x[7]
+
+	a.x20 = x[8]
+	a.x21 = x[9]
+	a.x22 = x[10]
+	a.x23 = x[11]
+
+	a.x30 = x[12]
+	a.x31 = x[13]
+	a.x32 = x[14]
+	a.x33 = x[15]
+
+	return a
 }
 
 //-----------------------------------------------------------------------------
 
-// Get a component of the matrix.
-func (a M33) Get(i, j int) float64 {
-	switch i {
-	case 0:
-		switch j {
-		case 0:
-			return a.x00
-		case 1:
-			return a.x01
-		case 2:
-			return a.x02
-		}
-	case 1:
-		switch j {
-		case 0:
-			return a.x10
-		case 1:
-			return a.x11
-		case 2:
-			return a.x12
-		}
-	case 2:
-		switch j {
-		case 0:
-			return a.x20
-		case 1:
-			return a.x21
-		case 2:
-			return a.x22
-		}
-	}
-	panic("bad component")
-}
+// NewM33 returns a new matrix.
+// Input is expected to be row-major.
+func NewM33(x [9]float64) M33 {
+	a := M33{}
 
-// Set a component of the matrix.
-func (a *M33) Set(i, j int, val float64) {
-	switch i {
-	case 0:
-		switch j {
-		case 0:
-			a.x00 = val
-		case 1:
-			a.x01 = val
-		case 2:
-			a.x02 = val
-		}
-	case 1:
-		switch j {
-		case 0:
-			a.x10 = val
-		case 1:
-			a.x11 = val
-		case 2:
-			a.x12 = val
-		}
-	case 2:
-		switch j {
-		case 0:
-			a.x20 = val
-		case 1:
-			a.x21 = val
-		case 2:
-			a.x22 = val
-		}
-	default:
-		panic("bad component")
-	}
+	a.x00 = x[0]
+	a.x01 = x[1]
+	a.x02 = x[2]
+
+	a.x10 = x[3]
+	a.x11 = x[4]
+	a.x12 = x[5]
+
+	a.x20 = x[6]
+	a.x21 = x[7]
+	a.x22 = x[8]
+
+	return a
 }
 
 //-----------------------------------------------------------------------------
 
-// Get a component of the matrix.
-func (a M22) Get(i, j int) float64 {
-	switch i {
-	case 0:
-		switch j {
-		case 0:
-			return a.x00
-		case 1:
-			return a.x01
-		}
-	case 1:
-		switch j {
-		case 0:
-			return a.x10
-		case 1:
-			return a.x11
-		}
-	}
-	panic("bad component")
-}
+// NewM22 returns a new matrix.
+// Input is expected to be row-major.
+func NewM22(x [4]float64) M22 {
+	a := M22{}
 
-// Set a component of the matrix.
-func (a *M22) Set(i, j int, val float64) {
-	switch i {
-	case 0:
-		switch j {
-		case 0:
-			a.x00 = val
-		case 1:
-			a.x01 = val
-		}
-	case 1:
-		switch j {
-		case 0:
-			a.x10 = val
-		case 1:
-			a.x11 = val
-		}
-	default:
-		panic("bad component")
-	}
+	a.x00 = x[0]
+	a.x01 = x[1]
+
+	a.x10 = x[2]
+	a.x11 = x[3]
+
+	return a
 }
 
 //-----------------------------------------------------------------------------
