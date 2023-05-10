@@ -33,20 +33,16 @@ type M33 struct {
 }
 
 // M22 is a 2x2 matrix.
-type M22 struct {
-	x00, x01 float64
-	x10, x11 float64
-}
+type M22 [4]float64
 
 //-----------------------------------------------------------------------------
 
 // RandomM22 returns a 2x2 matrix with random elements.
 func RandomM22(a, b float64) M22 {
-	m := M22{randomRange(a, b),
+	return M22{randomRange(a, b),
 		randomRange(a, b),
 		randomRange(a, b),
 		randomRange(a, b)}
-	return m
 }
 
 // RandomM33 returns a 3x3 matrix with random elements.
@@ -319,10 +315,10 @@ func (a M33) Equals(b M33, tolerance float64) bool {
 
 // Equals tests the equality of 2x2 matrices.
 func (a M22) Equals(b M22, tolerance float64) bool {
-	return (math.Abs(a.x00-b.x00) < tolerance &&
-		math.Abs(a.x01-b.x01) < tolerance &&
-		math.Abs(a.x10-b.x10) < tolerance &&
-		math.Abs(a.x11-b.x11) < tolerance)
+	return (math.Abs(a[0]-b[0]) < tolerance &&
+		math.Abs(a[1]-b[1]) < tolerance &&
+		math.Abs(a[2]-b[2]) < tolerance &&
+		math.Abs(a[3]-b[3]) < tolerance)
 }
 
 //-----------------------------------------------------------------------------
@@ -342,8 +338,7 @@ func (a M33) MulPosition(b v2.Vec) v2.Vec {
 
 // MulPosition multiplies a v2.Vec position with a rotate matrix.
 func (a M22) MulPosition(b v2.Vec) v2.Vec {
-	return v2.Vec{a.x00*b.X + a.x01*b.Y,
-		a.x10*b.X + a.x11*b.Y}
+	return v2.Vec{a[0]*b.X + a[1]*b.Y, a[2]*b.X + a[3]*b.Y}
 }
 
 //-----------------------------------------------------------------------------
@@ -403,12 +398,12 @@ func (a M33) Mul(b M33) M33 {
 
 // Mul multiplies 2x2 matrices.
 func (a M22) Mul(b M22) M22 {
-	m := M22{}
-	m.x00 = a.x00*b.x00 + a.x01*b.x10
-	m.x01 = a.x00*b.x01 + a.x01*b.x11
-	m.x10 = a.x10*b.x00 + a.x11*b.x10
-	m.x11 = a.x10*b.x01 + a.x11*b.x11
-	return m
+	return M22{
+		a[0]*b[0] + a[1]*b[2],
+		a[0]*b[1] + a[1]*b[3],
+		a[2]*b[0] + a[3]*b[2],
+		a[2]*b[1] + a[3]*b[3],
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -512,7 +507,7 @@ func (a M33) Determinant() float64 {
 
 // Determinant returns the determinant of a 2x2 matrix.
 func (a M22) Determinant() float64 {
-	return a.x00*a.x11 - a.x01*a.x10
+	return a[0]*a[3] - a[1]*a[2]
 }
 
 //-----------------------------------------------------------------------------
@@ -558,13 +553,13 @@ func (a M33) Inverse() M33 {
 
 // Inverse returns the inverse of a 2x2 matrix.
 func (a M22) Inverse() M22 {
-	m := M22{}
 	d := 1 / a.Determinant()
-	m.x00 = a.x11 * d
-	m.x01 = -a.x01 * d
-	m.x10 = -a.x10 * d
-	m.x11 = a.x00 * d
-	return m
+	return M22{
+		a[3] * d,
+		-a[1] * d,
+		-a[2] * d,
+		a[0] * d,
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -667,31 +662,14 @@ func (a M33) Values() [9]float64 {
 
 //-----------------------------------------------------------------------------
 
-// NewM22 returns a new matrix.
-// Input is expected to be row-major.
+// NewM22 returns a new matrix. Input is in row-major order.
 func NewM22(x [4]float64) M22 {
-	a := M22{}
-
-	a.x00 = x[0]
-	a.x01 = x[1]
-
-	a.x10 = x[2]
-	a.x11 = x[3]
-
-	return a
+	return M22{x[0], x[1], x[2], x[3]}
 }
 
-// Values returns the values in a row-major mode.
+// Values returns the matrix values in a row-major order.
 func (a M22) Values() [4]float64 {
-	x := [4]float64{}
-
-	x[0] = a.x00
-	x[1] = a.x01
-
-	x[2] = a.x10
-	x[3] = a.x11
-
-	return x
+	return [4]float64{a[0], a[1], a[2], a[3]}
 }
 
 //-----------------------------------------------------------------------------
