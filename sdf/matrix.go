@@ -597,6 +597,33 @@ func NewM44(x [16]float64) M44 {
 	return a
 }
 
+// GetValues returns the values in a row-major mode.
+func (a M44) GetValues() [16]float64 {
+	x := [16]float64{}
+
+	x[0] = a.x00
+	x[1] = a.x01
+	x[2] = a.x02
+	x[3] = a.x03
+
+	x[4] = a.x10
+	x[5] = a.x11
+	x[6] = a.x12
+	x[7] = a.x13
+
+	x[8] = a.x20
+	x[9] = a.x21
+	x[10] = a.x22
+	x[11] = a.x23
+
+	x[12] = a.x30
+	x[13] = a.x31
+	x[14] = a.x32
+	x[15] = a.x33
+
+	return x
+}
+
 //-----------------------------------------------------------------------------
 
 // NewM33 returns a new matrix.
@@ -619,6 +646,25 @@ func NewM33(x [9]float64) M33 {
 	return a
 }
 
+// GetValues returns the values in a row-major mode.
+func (a M33) GetValues() [9]float64 {
+	x := [9]float64{}
+
+	x[0] = a.x00
+	x[1] = a.x01
+	x[2] = a.x02
+
+	x[3] = a.x10
+	x[4] = a.x11
+	x[5] = a.x12
+
+	x[6] = a.x20
+	x[7] = a.x21
+	x[8] = a.x22
+
+	return x
+}
+
 //-----------------------------------------------------------------------------
 
 // NewM22 returns a new matrix.
@@ -633,6 +679,19 @@ func NewM22(x [4]float64) M22 {
 	a.x11 = x[3]
 
 	return a
+}
+
+// GetValues returns the values in a row-major mode.
+func (a M22) GetValues() [4]float64 {
+	x := [4]float64{}
+
+	x[0] = a.x00
+	x[1] = a.x01
+
+	x[2] = a.x10
+	x[3] = a.x11
+
+	return x
 }
 
 //-----------------------------------------------------------------------------
