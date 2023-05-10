@@ -568,3 +568,130 @@ func (a M22) Inverse() M22 {
 }
 
 //-----------------------------------------------------------------------------
+
+// NewM44 returns a new matrix.
+// Input is expected to be row-major.
+func NewM44(x [16]float64) M44 {
+	a := M44{}
+
+	a.x00 = x[0]
+	a.x01 = x[1]
+	a.x02 = x[2]
+	a.x03 = x[3]
+
+	a.x10 = x[4]
+	a.x11 = x[5]
+	a.x12 = x[6]
+	a.x13 = x[7]
+
+	a.x20 = x[8]
+	a.x21 = x[9]
+	a.x22 = x[10]
+	a.x23 = x[11]
+
+	a.x30 = x[12]
+	a.x31 = x[13]
+	a.x32 = x[14]
+	a.x33 = x[15]
+
+	return a
+}
+
+// Values returns the values in a row-major mode.
+func (a M44) Values() [16]float64 {
+	x := [16]float64{}
+
+	x[0] = a.x00
+	x[1] = a.x01
+	x[2] = a.x02
+	x[3] = a.x03
+
+	x[4] = a.x10
+	x[5] = a.x11
+	x[6] = a.x12
+	x[7] = a.x13
+
+	x[8] = a.x20
+	x[9] = a.x21
+	x[10] = a.x22
+	x[11] = a.x23
+
+	x[12] = a.x30
+	x[13] = a.x31
+	x[14] = a.x32
+	x[15] = a.x33
+
+	return x
+}
+
+//-----------------------------------------------------------------------------
+
+// NewM33 returns a new matrix.
+// Input is expected to be row-major.
+func NewM33(x [9]float64) M33 {
+	a := M33{}
+
+	a.x00 = x[0]
+	a.x01 = x[1]
+	a.x02 = x[2]
+
+	a.x10 = x[3]
+	a.x11 = x[4]
+	a.x12 = x[5]
+
+	a.x20 = x[6]
+	a.x21 = x[7]
+	a.x22 = x[8]
+
+	return a
+}
+
+// Values returns the values in a row-major mode.
+func (a M33) Values() [9]float64 {
+	x := [9]float64{}
+
+	x[0] = a.x00
+	x[1] = a.x01
+	x[2] = a.x02
+
+	x[3] = a.x10
+	x[4] = a.x11
+	x[5] = a.x12
+
+	x[6] = a.x20
+	x[7] = a.x21
+	x[8] = a.x22
+
+	return x
+}
+
+//-----------------------------------------------------------------------------
+
+// NewM22 returns a new matrix.
+// Input is expected to be row-major.
+func NewM22(x [4]float64) M22 {
+	a := M22{}
+
+	a.x00 = x[0]
+	a.x01 = x[1]
+
+	a.x10 = x[2]
+	a.x11 = x[3]
+
+	return a
+}
+
+// Values returns the values in a row-major mode.
+func (a M22) Values() [4]float64 {
+	x := [4]float64{}
+
+	x[0] = a.x00
+	x[1] = a.x01
+
+	x[2] = a.x10
+	x[3] = a.x11
+
+	return x
+}
+
+//-----------------------------------------------------------------------------
