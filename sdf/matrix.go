@@ -597,8 +597,8 @@ func NewM44(x [16]float64) M44 {
 	return a
 }
 
-// GetValues returns the values in a row-major mode.
-func (a M44) GetValues() [16]float64 {
+// Values returns the values in a row-major mode.
+func (a M44) Values() [16]float64 {
 	x := [16]float64{}
 
 	x[0] = a.x00
@@ -646,8 +646,8 @@ func NewM33(x [9]float64) M33 {
 	return a
 }
 
-// GetValues returns the values in a row-major mode.
-func (a M33) GetValues() [9]float64 {
+// Values returns the values in a row-major mode.
+func (a M33) Values() [9]float64 {
 	x := [9]float64{}
 
 	x[0] = a.x00
@@ -681,8 +681,8 @@ func NewM22(x [4]float64) M22 {
 	return a
 }
 
-// GetValues returns the values in a row-major mode.
-func (a M22) GetValues() [4]float64 {
+// Values returns the values in a row-major mode.
+func (a M22) Values() [4]float64 {
 	x := [4]float64{}
 
 	x[0] = a.x00
