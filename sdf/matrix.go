@@ -18,40 +18,27 @@ import (
 //-----------------------------------------------------------------------------
 
 // M44 is a 4x4 matrix.
-type M44 struct {
-	x00, x01, x02, x03 float64
-	x10, x11, x12, x13 float64
-	x20, x21, x22, x23 float64
-	x30, x31, x32, x33 float64
-}
+type M44 [16]float64
 
 // M33 is a 3x3 matrix.
-type M33 struct {
-	x00, x01, x02 float64
-	x10, x11, x12 float64
-	x20, x21, x22 float64
-}
+type M33 [9]float64
 
 // M22 is a 2x2 matrix.
-type M22 struct {
-	x00, x01 float64
-	x10, x11 float64
-}
+type M22 [4]float64
 
 //-----------------------------------------------------------------------------
 
 // RandomM22 returns a 2x2 matrix with random elements.
 func RandomM22(a, b float64) M22 {
-	m := M22{randomRange(a, b),
+	return M22{randomRange(a, b),
 		randomRange(a, b),
 		randomRange(a, b),
 		randomRange(a, b)}
-	return m
 }
 
 // RandomM33 returns a 3x3 matrix with random elements.
 func RandomM33(a, b float64) M33 {
-	m := M33{randomRange(a, b),
+	return M33{randomRange(a, b),
 		randomRange(a, b),
 		randomRange(a, b),
 		randomRange(a, b),
@@ -60,12 +47,11 @@ func RandomM33(a, b float64) M33 {
 		randomRange(a, b),
 		randomRange(a, b),
 		randomRange(a, b)}
-	return m
 }
 
 // RandomM44 returns a 4x4 matrix with random elements.
 func RandomM44(a, b float64) M44 {
-	m := M44{
+	return M44{
 		randomRange(a, b),
 		randomRange(a, b),
 		randomRange(a, b),
@@ -82,7 +68,6 @@ func RandomM44(a, b float64) M44 {
 		randomRange(a, b),
 		randomRange(a, b),
 		randomRange(a, b)}
-	return m
 }
 
 //-----------------------------------------------------------------------------
@@ -275,9 +260,9 @@ func RotateToVector(a, b v3.Vec) M44 {
 	vx := M33{0, -v.Z, v.Y, v.Z, 0, -v.X, -v.Y, v.X, 0}
 	r := Identity2d().Add(vx).Add(vx.Mul(vx).MulScalar(k))
 	return M44{
-		r.x00, r.x01, r.x02, 0,
-		r.x10, r.x11, r.x12, 0,
-		r.x20, r.x21, r.x22, 0,
+		r[0], r[1], r[2], 0,
+		r[3], r[4], r[5], 0,
+		r[6], r[7], r[8], 0,
 		0, 0, 0, 1,
 	}
 }
@@ -286,64 +271,62 @@ func RotateToVector(a, b v3.Vec) M44 {
 
 // Equals tests the equality of 4x4 matrices.
 func (a M44) Equals(b M44, tolerance float64) bool {
-	return (math.Abs(a.x00-b.x00) < tolerance &&
-		math.Abs(a.x01-b.x01) < tolerance &&
-		math.Abs(a.x02-b.x02) < tolerance &&
-		math.Abs(a.x03-b.x03) < tolerance &&
-		math.Abs(a.x10-b.x10) < tolerance &&
-		math.Abs(a.x11-b.x11) < tolerance &&
-		math.Abs(a.x12-b.x12) < tolerance &&
-		math.Abs(a.x13-b.x13) < tolerance &&
-		math.Abs(a.x20-b.x20) < tolerance &&
-		math.Abs(a.x21-b.x21) < tolerance &&
-		math.Abs(a.x22-b.x22) < tolerance &&
-		math.Abs(a.x23-b.x23) < tolerance &&
-		math.Abs(a.x30-b.x30) < tolerance &&
-		math.Abs(a.x31-b.x31) < tolerance &&
-		math.Abs(a.x32-b.x32) < tolerance &&
-		math.Abs(a.x33-b.x33) < tolerance)
+	return (math.Abs(a[0]-b[0]) < tolerance &&
+		math.Abs(a[1]-b[1]) < tolerance &&
+		math.Abs(a[2]-b[2]) < tolerance &&
+		math.Abs(a[3]-b[3]) < tolerance &&
+		math.Abs(a[4]-b[4]) < tolerance &&
+		math.Abs(a[5]-b[5]) < tolerance &&
+		math.Abs(a[6]-b[6]) < tolerance &&
+		math.Abs(a[7]-b[7]) < tolerance &&
+		math.Abs(a[8]-b[8]) < tolerance &&
+		math.Abs(a[9]-b[9]) < tolerance &&
+		math.Abs(a[10]-b[10]) < tolerance &&
+		math.Abs(a[11]-b[11]) < tolerance &&
+		math.Abs(a[12]-b[12]) < tolerance &&
+		math.Abs(a[13]-b[13]) < tolerance &&
+		math.Abs(a[14]-b[14]) < tolerance &&
+		math.Abs(a[15]-b[15]) < tolerance)
 }
 
 // Equals tests the equality of 3x3 matrices.
 func (a M33) Equals(b M33, tolerance float64) bool {
-	return (math.Abs(a.x00-b.x00) < tolerance &&
-		math.Abs(a.x01-b.x01) < tolerance &&
-		math.Abs(a.x02-b.x02) < tolerance &&
-		math.Abs(a.x10-b.x10) < tolerance &&
-		math.Abs(a.x11-b.x11) < tolerance &&
-		math.Abs(a.x12-b.x12) < tolerance &&
-		math.Abs(a.x20-b.x20) < tolerance &&
-		math.Abs(a.x21-b.x21) < tolerance &&
-		math.Abs(a.x22-b.x22) < tolerance)
+	return (math.Abs(a[0]-b[0]) < tolerance &&
+		math.Abs(a[1]-b[1]) < tolerance &&
+		math.Abs(a[2]-b[2]) < tolerance &&
+		math.Abs(a[3]-b[3]) < tolerance &&
+		math.Abs(a[4]-b[4]) < tolerance &&
+		math.Abs(a[5]-b[5]) < tolerance &&
+		math.Abs(a[6]-b[6]) < tolerance &&
+		math.Abs(a[7]-b[7]) < tolerance &&
+		math.Abs(a[8]-b[8]) < tolerance)
 }
 
 // Equals tests the equality of 2x2 matrices.
 func (a M22) Equals(b M22, tolerance float64) bool {
-	return (math.Abs(a.x00-b.x00) < tolerance &&
-		math.Abs(a.x01-b.x01) < tolerance &&
-		math.Abs(a.x10-b.x10) < tolerance &&
-		math.Abs(a.x11-b.x11) < tolerance)
+	return (math.Abs(a[0]-b[0]) < tolerance &&
+		math.Abs(a[1]-b[1]) < tolerance &&
+		math.Abs(a[2]-b[2]) < tolerance &&
+		math.Abs(a[3]-b[3]) < tolerance)
 }
 
 //-----------------------------------------------------------------------------
 
 // MulPosition multiplies a v3.Vec position with a rotate/translate matrix.
 func (a M44) MulPosition(b v3.Vec) v3.Vec {
-	return v3.Vec{a.x00*b.X + a.x01*b.Y + a.x02*b.Z + a.x03,
-		a.x10*b.X + a.x11*b.Y + a.x12*b.Z + a.x13,
-		a.x20*b.X + a.x21*b.Y + a.x22*b.Z + a.x23}
+	return v3.Vec{a[0]*b.X + a[1]*b.Y + a[2]*b.Z + a[3],
+		a[4]*b.X + a[5]*b.Y + a[6]*b.Z + a[7],
+		a[8]*b.X + a[9]*b.Y + a[10]*b.Z + a[11]}
 }
 
 // MulPosition multiplies a v2.Vec position with a rotate/translate matrix.
 func (a M33) MulPosition(b v2.Vec) v2.Vec {
-	return v2.Vec{a.x00*b.X + a.x01*b.Y + a.x02,
-		a.x10*b.X + a.x11*b.Y + a.x12}
+	return v2.Vec{a[0]*b.X + a[1]*b.Y + a[2], a[3]*b.X + a[4]*b.Y + a[5]}
 }
 
 // MulPosition multiplies a v2.Vec position with a rotate matrix.
 func (a M22) MulPosition(b v2.Vec) v2.Vec {
-	return v2.Vec{a.x00*b.X + a.x01*b.Y,
-		a.x10*b.X + a.x11*b.Y}
+	return v2.Vec{a[0]*b.X + a[1]*b.Y, a[2]*b.X + a[3]*b.Y}
 }
 
 //-----------------------------------------------------------------------------
@@ -366,49 +349,49 @@ func mulVertices3(v v3.VecSet, a M44) {
 
 // Mul multiplies 4x4 matrices.
 func (a M44) Mul(b M44) M44 {
-	m := M44{}
-	m.x00 = a.x00*b.x00 + a.x01*b.x10 + a.x02*b.x20 + a.x03*b.x30
-	m.x10 = a.x10*b.x00 + a.x11*b.x10 + a.x12*b.x20 + a.x13*b.x30
-	m.x20 = a.x20*b.x00 + a.x21*b.x10 + a.x22*b.x20 + a.x23*b.x30
-	m.x30 = a.x30*b.x00 + a.x31*b.x10 + a.x32*b.x20 + a.x33*b.x30
-	m.x01 = a.x00*b.x01 + a.x01*b.x11 + a.x02*b.x21 + a.x03*b.x31
-	m.x11 = a.x10*b.x01 + a.x11*b.x11 + a.x12*b.x21 + a.x13*b.x31
-	m.x21 = a.x20*b.x01 + a.x21*b.x11 + a.x22*b.x21 + a.x23*b.x31
-	m.x31 = a.x30*b.x01 + a.x31*b.x11 + a.x32*b.x21 + a.x33*b.x31
-	m.x02 = a.x00*b.x02 + a.x01*b.x12 + a.x02*b.x22 + a.x03*b.x32
-	m.x12 = a.x10*b.x02 + a.x11*b.x12 + a.x12*b.x22 + a.x13*b.x32
-	m.x22 = a.x20*b.x02 + a.x21*b.x12 + a.x22*b.x22 + a.x23*b.x32
-	m.x32 = a.x30*b.x02 + a.x31*b.x12 + a.x32*b.x22 + a.x33*b.x32
-	m.x03 = a.x00*b.x03 + a.x01*b.x13 + a.x02*b.x23 + a.x03*b.x33
-	m.x13 = a.x10*b.x03 + a.x11*b.x13 + a.x12*b.x23 + a.x13*b.x33
-	m.x23 = a.x20*b.x03 + a.x21*b.x13 + a.x22*b.x23 + a.x23*b.x33
-	m.x33 = a.x30*b.x03 + a.x31*b.x13 + a.x32*b.x23 + a.x33*b.x33
-	return m
+	return M44{
+		a[0]*b[0] + a[1]*b[4] + a[2]*b[8] + a[3]*b[12],
+		a[0]*b[1] + a[1]*b[5] + a[2]*b[9] + a[3]*b[13],
+		a[0]*b[2] + a[1]*b[6] + a[2]*b[10] + a[3]*b[14],
+		a[0]*b[3] + a[1]*b[7] + a[2]*b[11] + a[3]*b[15],
+		a[4]*b[0] + a[5]*b[4] + a[6]*b[8] + a[7]*b[12],
+		a[4]*b[1] + a[5]*b[5] + a[6]*b[9] + a[7]*b[13],
+		a[4]*b[2] + a[5]*b[6] + a[6]*b[10] + a[7]*b[14],
+		a[4]*b[3] + a[5]*b[7] + a[6]*b[11] + a[7]*b[15],
+		a[8]*b[0] + a[9]*b[4] + a[10]*b[8] + a[11]*b[12],
+		a[8]*b[1] + a[9]*b[5] + a[10]*b[9] + a[11]*b[13],
+		a[8]*b[2] + a[9]*b[6] + a[10]*b[10] + a[11]*b[14],
+		a[8]*b[3] + a[9]*b[7] + a[10]*b[11] + a[11]*b[15],
+		a[12]*b[0] + a[13]*b[4] + a[14]*b[8] + a[15]*b[12],
+		a[12]*b[1] + a[13]*b[5] + a[14]*b[9] + a[15]*b[13],
+		a[12]*b[2] + a[13]*b[6] + a[14]*b[10] + a[15]*b[14],
+		a[12]*b[3] + a[13]*b[7] + a[14]*b[11] + a[15]*b[15],
+	}
 }
 
 // Mul multiplies 3x3 matrices.
 func (a M33) Mul(b M33) M33 {
-	m := M33{}
-	m.x00 = a.x00*b.x00 + a.x01*b.x10 + a.x02*b.x20
-	m.x10 = a.x10*b.x00 + a.x11*b.x10 + a.x12*b.x20
-	m.x20 = a.x20*b.x00 + a.x21*b.x10 + a.x22*b.x20
-	m.x01 = a.x00*b.x01 + a.x01*b.x11 + a.x02*b.x21
-	m.x11 = a.x10*b.x01 + a.x11*b.x11 + a.x12*b.x21
-	m.x21 = a.x20*b.x01 + a.x21*b.x11 + a.x22*b.x21
-	m.x02 = a.x00*b.x02 + a.x01*b.x12 + a.x02*b.x22
-	m.x12 = a.x10*b.x02 + a.x11*b.x12 + a.x12*b.x22
-	m.x22 = a.x20*b.x02 + a.x21*b.x12 + a.x22*b.x22
-	return m
+	return M33{
+		a[0]*b[0] + a[1]*b[3] + a[2]*b[6],
+		a[0]*b[1] + a[1]*b[4] + a[2]*b[7],
+		a[0]*b[2] + a[1]*b[5] + a[2]*b[8],
+		a[3]*b[0] + a[4]*b[3] + a[5]*b[6],
+		a[3]*b[1] + a[4]*b[4] + a[5]*b[7],
+		a[3]*b[2] + a[4]*b[5] + a[5]*b[8],
+		a[6]*b[0] + a[7]*b[3] + a[8]*b[6],
+		a[6]*b[1] + a[7]*b[4] + a[8]*b[7],
+		a[6]*b[2] + a[7]*b[5] + a[8]*b[8],
+	}
 }
 
 // Mul multiplies 2x2 matrices.
 func (a M22) Mul(b M22) M22 {
-	m := M22{}
-	m.x00 = a.x00*b.x00 + a.x01*b.x10
-	m.x01 = a.x00*b.x01 + a.x01*b.x11
-	m.x10 = a.x10*b.x00 + a.x11*b.x10
-	m.x11 = a.x10*b.x01 + a.x11*b.x11
-	return m
+	return M22{
+		a[0]*b[0] + a[1]*b[2],
+		a[0]*b[1] + a[1]*b[3],
+		a[2]*b[0] + a[3]*b[2],
+		a[2]*b[1] + a[3]*b[3],
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -416,15 +399,15 @@ func (a M22) Mul(b M22) M22 {
 // Add two 3x3 matrices.
 func (a M33) Add(b M33) M33 {
 	return M33{
-		x00: a.x00 + b.x00,
-		x10: a.x10 + b.x10,
-		x20: a.x20 + b.x20,
-		x01: a.x01 + b.x01,
-		x11: a.x11 + b.x11,
-		x21: a.x21 + b.x21,
-		x02: a.x02 + b.x02,
-		x12: a.x12 + b.x12,
-		x22: a.x22 + b.x22,
+		a[0] + b[0],
+		a[1] + b[1],
+		a[2] + b[2],
+		a[3] + b[3],
+		a[4] + b[4],
+		a[5] + b[5],
+		a[6] + b[6],
+		a[7] + b[7],
+		a[8] + b[8],
 	}
 }
 
@@ -433,15 +416,9 @@ func (a M33) Add(b M33) M33 {
 // MulScalar multiplies each 3x3 matrix component by a scalar.
 func (a M33) MulScalar(k float64) M33 {
 	return M33{
-		x00: k * a.x00,
-		x10: k * a.x10,
-		x20: k * a.x20,
-		x01: k * a.x01,
-		x11: k * a.x11,
-		x21: k * a.x21,
-		x02: k * a.x02,
-		x12: k * a.x12,
-		x22: k * a.x22,
+		k * a[0], k * a[1], k * a[2],
+		k * a[3], k * a[4], k * a[5],
+		k * a[6], k * a[7], k * a[8],
 	}
 }
 
@@ -451,10 +428,10 @@ func (a M33) MulScalar(k float64) M33 {
 
 // MulBox rotates/translates a 3d bounding box and resizes for axis-alignment.
 func (a M44) MulBox(box Box3) Box3 {
-	r := v3.Vec{a.x00, a.x10, a.x20}
-	u := v3.Vec{a.x01, a.x11, a.x21}
-	b := v3.Vec{a.x02, a.x12, a.x22}
-	t := v3.Vec{a.x03, a.x13, a.x23}
+	r := v3.Vec{a[0], a[4], a[8]}
+	u := v3.Vec{a[1], a[5], a[9]}
+	b := v3.Vec{a[2], a[6], a[10]}
+	t := v3.Vec{a[3], a[7], a[11]}
 	xa := r.MulScalar(box.Min.X)
 	xb := r.MulScalar(box.Max.X)
 	ya := u.MulScalar(box.Min.Y)
@@ -471,9 +448,9 @@ func (a M44) MulBox(box Box3) Box3 {
 
 // MulBox rotates/translates a 2d bounding box and resizes for axis-alignment.
 func (a M33) MulBox(box Box2) Box2 {
-	r := v2.Vec{a.x00, a.x10}
-	u := v2.Vec{a.x01, a.x11}
-	t := v2.Vec{a.x02, a.x12}
+	r := v2.Vec{a[0], a[3]}
+	u := v2.Vec{a[1], a[4]}
+	t := v2.Vec{a[2], a[5]}
 	xa := r.MulScalar(box.Min.X)
 	xb := r.MulScalar(box.Max.X)
 	ya := u.MulScalar(box.Min.Y)
@@ -489,82 +466,140 @@ func (a M33) MulBox(box Box2) Box2 {
 
 // Determinant returns the determinant of a 4x4 matrix.
 func (a M44) Determinant() float64 {
-	return (a.x00*a.x11*a.x22*a.x33 - a.x00*a.x11*a.x23*a.x32 +
-		a.x00*a.x12*a.x23*a.x31 - a.x00*a.x12*a.x21*a.x33 +
-		a.x00*a.x13*a.x21*a.x32 - a.x00*a.x13*a.x22*a.x31 -
-		a.x01*a.x12*a.x23*a.x30 + a.x01*a.x12*a.x20*a.x33 -
-		a.x01*a.x13*a.x20*a.x32 + a.x01*a.x13*a.x22*a.x30 -
-		a.x01*a.x10*a.x22*a.x33 + a.x01*a.x10*a.x23*a.x32 +
-		a.x02*a.x13*a.x20*a.x31 - a.x02*a.x13*a.x21*a.x30 +
-		a.x02*a.x10*a.x21*a.x33 - a.x02*a.x10*a.x23*a.x31 +
-		a.x02*a.x11*a.x23*a.x30 - a.x02*a.x11*a.x20*a.x33 -
-		a.x03*a.x10*a.x21*a.x32 + a.x03*a.x10*a.x22*a.x31 -
-		a.x03*a.x11*a.x22*a.x30 + a.x03*a.x11*a.x20*a.x32 -
-		a.x03*a.x12*a.x20*a.x31 + a.x03*a.x12*a.x21*a.x30)
+	return (a[0]*a[5]*a[10]*a[15] - a[0]*a[5]*a[11]*a[14] +
+		a[0]*a[6]*a[11]*a[13] - a[0]*a[6]*a[9]*a[15] +
+		a[0]*a[7]*a[9]*a[14] - a[0]*a[7]*a[10]*a[13] -
+		a[1]*a[6]*a[11]*a[12] + a[1]*a[6]*a[8]*a[15] -
+		a[1]*a[7]*a[8]*a[14] + a[1]*a[7]*a[10]*a[12] -
+		a[1]*a[4]*a[10]*a[15] + a[1]*a[4]*a[11]*a[14] +
+		a[2]*a[7]*a[8]*a[13] - a[2]*a[7]*a[9]*a[12] +
+		a[2]*a[4]*a[9]*a[15] - a[2]*a[4]*a[11]*a[13] +
+		a[2]*a[5]*a[11]*a[12] - a[2]*a[5]*a[8]*a[15] -
+		a[3]*a[4]*a[9]*a[14] + a[3]*a[4]*a[10]*a[13] -
+		a[3]*a[5]*a[10]*a[12] + a[3]*a[5]*a[8]*a[14] -
+		a[3]*a[6]*a[8]*a[13] + a[3]*a[6]*a[9]*a[12])
 }
 
 // Determinant returns the determinant of a 3x3 matrix.
 func (a M33) Determinant() float64 {
-	return (a.x00*(a.x11*a.x22-a.x21*a.x12) -
-		a.x01*(a.x10*a.x22-a.x20*a.x12) +
-		a.x02*(a.x10*a.x21-a.x20*a.x11))
+	return (a[0]*(a[4]*a[8]-a[7]*a[5]) -
+		a[1]*(a[3]*a[8]-a[6]*a[5]) +
+		a[2]*(a[3]*a[7]-a[6]*a[4]))
 }
 
 // Determinant returns the determinant of a 2x2 matrix.
 func (a M22) Determinant() float64 {
-	return a.x00*a.x11 - a.x01*a.x10
+	return a[0]*a[3] - a[1]*a[2]
 }
 
 //-----------------------------------------------------------------------------
 
 // Inverse returns the inverse of a 4x4 matrix.
 func (a M44) Inverse() M44 {
-	m := M44{}
 	d := 1 / a.Determinant()
-	m.x00 = (a.x12*a.x23*a.x31 - a.x13*a.x22*a.x31 + a.x13*a.x21*a.x32 - a.x11*a.x23*a.x32 - a.x12*a.x21*a.x33 + a.x11*a.x22*a.x33) * d
-	m.x01 = (a.x03*a.x22*a.x31 - a.x02*a.x23*a.x31 - a.x03*a.x21*a.x32 + a.x01*a.x23*a.x32 + a.x02*a.x21*a.x33 - a.x01*a.x22*a.x33) * d
-	m.x02 = (a.x02*a.x13*a.x31 - a.x03*a.x12*a.x31 + a.x03*a.x11*a.x32 - a.x01*a.x13*a.x32 - a.x02*a.x11*a.x33 + a.x01*a.x12*a.x33) * d
-	m.x03 = (a.x03*a.x12*a.x21 - a.x02*a.x13*a.x21 - a.x03*a.x11*a.x22 + a.x01*a.x13*a.x22 + a.x02*a.x11*a.x23 - a.x01*a.x12*a.x23) * d
-	m.x10 = (a.x13*a.x22*a.x30 - a.x12*a.x23*a.x30 - a.x13*a.x20*a.x32 + a.x10*a.x23*a.x32 + a.x12*a.x20*a.x33 - a.x10*a.x22*a.x33) * d
-	m.x11 = (a.x02*a.x23*a.x30 - a.x03*a.x22*a.x30 + a.x03*a.x20*a.x32 - a.x00*a.x23*a.x32 - a.x02*a.x20*a.x33 + a.x00*a.x22*a.x33) * d
-	m.x12 = (a.x03*a.x12*a.x30 - a.x02*a.x13*a.x30 - a.x03*a.x10*a.x32 + a.x00*a.x13*a.x32 + a.x02*a.x10*a.x33 - a.x00*a.x12*a.x33) * d
-	m.x13 = (a.x02*a.x13*a.x20 - a.x03*a.x12*a.x20 + a.x03*a.x10*a.x22 - a.x00*a.x13*a.x22 - a.x02*a.x10*a.x23 + a.x00*a.x12*a.x23) * d
-	m.x20 = (a.x11*a.x23*a.x30 - a.x13*a.x21*a.x30 + a.x13*a.x20*a.x31 - a.x10*a.x23*a.x31 - a.x11*a.x20*a.x33 + a.x10*a.x21*a.x33) * d
-	m.x21 = (a.x03*a.x21*a.x30 - a.x01*a.x23*a.x30 - a.x03*a.x20*a.x31 + a.x00*a.x23*a.x31 + a.x01*a.x20*a.x33 - a.x00*a.x21*a.x33) * d
-	m.x22 = (a.x01*a.x13*a.x30 - a.x03*a.x11*a.x30 + a.x03*a.x10*a.x31 - a.x00*a.x13*a.x31 - a.x01*a.x10*a.x33 + a.x00*a.x11*a.x33) * d
-	m.x23 = (a.x03*a.x11*a.x20 - a.x01*a.x13*a.x20 - a.x03*a.x10*a.x21 + a.x00*a.x13*a.x21 + a.x01*a.x10*a.x23 - a.x00*a.x11*a.x23) * d
-	m.x30 = (a.x12*a.x21*a.x30 - a.x11*a.x22*a.x30 - a.x12*a.x20*a.x31 + a.x10*a.x22*a.x31 + a.x11*a.x20*a.x32 - a.x10*a.x21*a.x32) * d
-	m.x31 = (a.x01*a.x22*a.x30 - a.x02*a.x21*a.x30 + a.x02*a.x20*a.x31 - a.x00*a.x22*a.x31 - a.x01*a.x20*a.x32 + a.x00*a.x21*a.x32) * d
-	m.x32 = (a.x02*a.x11*a.x30 - a.x01*a.x12*a.x30 - a.x02*a.x10*a.x31 + a.x00*a.x12*a.x31 + a.x01*a.x10*a.x32 - a.x00*a.x11*a.x32) * d
-	m.x33 = (a.x01*a.x12*a.x20 - a.x02*a.x11*a.x20 + a.x02*a.x10*a.x21 - a.x00*a.x12*a.x21 - a.x01*a.x10*a.x22 + a.x00*a.x11*a.x22) * d
-	return m
+	return M44{
+		(a[6]*a[11]*a[13] - a[7]*a[10]*a[13] + a[7]*a[9]*a[14] - a[5]*a[11]*a[14] - a[6]*a[9]*a[15] + a[5]*a[10]*a[15]) * d,
+		(a[3]*a[10]*a[13] - a[2]*a[11]*a[13] - a[3]*a[9]*a[14] + a[1]*a[11]*a[14] + a[2]*a[9]*a[15] - a[1]*a[10]*a[15]) * d,
+		(a[2]*a[7]*a[13] - a[3]*a[6]*a[13] + a[3]*a[5]*a[14] - a[1]*a[7]*a[14] - a[2]*a[5]*a[15] + a[1]*a[6]*a[15]) * d,
+		(a[3]*a[6]*a[9] - a[2]*a[7]*a[9] - a[3]*a[5]*a[10] + a[1]*a[7]*a[10] + a[2]*a[5]*a[11] - a[1]*a[6]*a[11]) * d,
+		(a[7]*a[10]*a[12] - a[6]*a[11]*a[12] - a[7]*a[8]*a[14] + a[4]*a[11]*a[14] + a[6]*a[8]*a[15] - a[4]*a[10]*a[15]) * d,
+		(a[2]*a[11]*a[12] - a[3]*a[10]*a[12] + a[3]*a[8]*a[14] - a[0]*a[11]*a[14] - a[2]*a[8]*a[15] + a[0]*a[10]*a[15]) * d,
+		(a[3]*a[6]*a[12] - a[2]*a[7]*a[12] - a[3]*a[4]*a[14] + a[0]*a[7]*a[14] + a[2]*a[4]*a[15] - a[0]*a[6]*a[15]) * d,
+		(a[2]*a[7]*a[8] - a[3]*a[6]*a[8] + a[3]*a[4]*a[10] - a[0]*a[7]*a[10] - a[2]*a[4]*a[11] + a[0]*a[6]*a[11]) * d,
+		(a[5]*a[11]*a[12] - a[7]*a[9]*a[12] + a[7]*a[8]*a[13] - a[4]*a[11]*a[13] - a[5]*a[8]*a[15] + a[4]*a[9]*a[15]) * d,
+		(a[3]*a[9]*a[12] - a[1]*a[11]*a[12] - a[3]*a[8]*a[13] + a[0]*a[11]*a[13] + a[1]*a[8]*a[15] - a[0]*a[9]*a[15]) * d,
+		(a[1]*a[7]*a[12] - a[3]*a[5]*a[12] + a[3]*a[4]*a[13] - a[0]*a[7]*a[13] - a[1]*a[4]*a[15] + a[0]*a[5]*a[15]) * d,
+		(a[3]*a[5]*a[8] - a[1]*a[7]*a[8] - a[3]*a[4]*a[9] + a[0]*a[7]*a[9] + a[1]*a[4]*a[11] - a[0]*a[5]*a[11]) * d,
+		(a[6]*a[9]*a[12] - a[5]*a[10]*a[12] - a[6]*a[8]*a[13] + a[4]*a[10]*a[13] + a[5]*a[8]*a[14] - a[4]*a[9]*a[14]) * d,
+		(a[1]*a[10]*a[12] - a[2]*a[9]*a[12] + a[2]*a[8]*a[13] - a[0]*a[10]*a[13] - a[1]*a[8]*a[14] + a[0]*a[9]*a[14]) * d,
+		(a[2]*a[5]*a[12] - a[1]*a[6]*a[12] - a[2]*a[4]*a[13] + a[0]*a[6]*a[13] + a[1]*a[4]*a[14] - a[0]*a[5]*a[14]) * d,
+		(a[1]*a[6]*a[8] - a[2]*a[5]*a[8] + a[2]*a[4]*a[9] - a[0]*a[6]*a[9] - a[1]*a[4]*a[10] + a[0]*a[5]*a[10]) * d,
+	}
 }
 
 // Inverse returns the inverse of a 3x3 matrix.
 func (a M33) Inverse() M33 {
-	m := M33{}
 	d := 1 / a.Determinant()
-	m.x00 = (a.x11*a.x22 - a.x12*a.x21) * d
-	m.x01 = (a.x21*a.x02 - a.x01*a.x22) * d
-	m.x02 = (a.x01*a.x12 - a.x11*a.x02) * d
-	m.x10 = (a.x12*a.x20 - a.x22*a.x10) * d
-	m.x11 = (a.x22*a.x00 - a.x20*a.x02) * d
-	m.x12 = (a.x02*a.x10 - a.x12*a.x00) * d
-	m.x20 = (a.x10*a.x21 - a.x20*a.x11) * d
-	m.x21 = (a.x20*a.x01 - a.x00*a.x21) * d
-	m.x22 = (a.x00*a.x11 - a.x01*a.x10) * d
-	return m
+	return M33{
+		(a[4]*a[8] - a[5]*a[7]) * d,
+		(a[7]*a[2] - a[1]*a[8]) * d,
+		(a[1]*a[5] - a[4]*a[2]) * d,
+		(a[5]*a[6] - a[8]*a[3]) * d,
+		(a[8]*a[0] - a[6]*a[2]) * d,
+		(a[2]*a[3] - a[5]*a[0]) * d,
+		(a[3]*a[7] - a[6]*a[4]) * d,
+		(a[6]*a[1] - a[0]*a[7]) * d,
+		(a[0]*a[4] - a[1]*a[3]) * d,
+	}
 }
 
 // Inverse returns the inverse of a 2x2 matrix.
 func (a M22) Inverse() M22 {
-	m := M22{}
 	d := 1 / a.Determinant()
-	m.x00 = a.x11 * d
-	m.x01 = -a.x01 * d
-	m.x10 = -a.x10 * d
-	m.x11 = a.x00 * d
-	return m
+	return M22{
+		a[3] * d,
+		-a[1] * d,
+		-a[2] * d,
+		a[0] * d,
+	}
+}
+
+//-----------------------------------------------------------------------------
+
+// NewM44 returns a new matrix. Input is in row-major order.
+func NewM44(x [16]float64) M44 {
+	return M44{
+		x[0], x[1], x[2], x[3],
+		x[4], x[5], x[6], x[7],
+		x[8], x[9], x[10], x[11],
+		x[12], x[13], x[14], x[15],
+	}
+}
+
+// Values returns the matrix values in row-major order.
+func (a M44) Values() [16]float64 {
+	return [16]float64{
+		a[0], a[1], a[2], a[3],
+		a[4], a[5], a[6], a[7],
+		a[8], a[9], a[10], a[11],
+		a[12], a[13], a[14], a[15],
+	}
+}
+
+//-----------------------------------------------------------------------------
+
+// NewM33 returns a new matrix. Input is in row-major order.
+func NewM33(x [9]float64) M33 {
+	return M33{
+		x[0], x[1], x[2],
+		x[3], x[4], x[5],
+		x[6], x[7], x[8],
+	}
+}
+
+// Values returns the matrix values in row-major order.
+func (a M33) Values() [9]float64 {
+	return [9]float64{
+		a[0], a[1], a[2],
+		a[3], a[4], a[5],
+		a[6], a[7], a[8],
+	}
+}
+
+//-----------------------------------------------------------------------------
+
+// NewM22 returns a new matrix. Input is in row-major order.
+func NewM22(x [4]float64) M22 {
+	return M22{
+		x[0], x[1],
+		x[2], x[3]}
+}
+
+// Values returns the matrix values in row-major order.
+func (a M22) Values() [4]float64 {
+	return [4]float64{
+		a[0], a[1],
+		a[2], a[3]}
 }
 
 //-----------------------------------------------------------------------------
