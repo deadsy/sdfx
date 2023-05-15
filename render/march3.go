@@ -361,18 +361,19 @@ var mcEdgeTable = [256]int{
 var mcTriangleTable = [256][]int{
 	// Case 0
 	{},
-	// Case 2
+	// Case 1
 	{0, 8, 3},
-	// Case 3
+	// Case 2
 	{0, 1, 9},
-	// Case 4
+	// Case 3
 	{1, 8, 3, 9, 8, 1},
-	// Case 5
+	// Case 4
 	{1, 2, 10},
-	// Case 6
+	// Case 5
 	{0, 8, 3, 1, 2, 10},
-	// Case 7
+	// Case 6
 	{9, 2, 10, 0, 2, 9},
+	// Case 7
 	{2, 8, 3, 2, 10, 8, 10, 9, 8},
 	{3, 11, 2},
 	{0, 11, 2, 8, 11, 0},
