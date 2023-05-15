@@ -359,12 +359,19 @@ var mcEdgeTable = [256]int{
 
 // specify the edges used to create the triangle(s)
 var mcTriangleTable = [256][]int{
+	// Case 0
 	{},
+	// Case 2
 	{0, 8, 3},
+	// Case 3
 	{0, 1, 9},
+	// Case 4
 	{1, 8, 3, 9, 8, 1},
+	// Case 5
 	{1, 2, 10},
+	// Case 6
 	{0, 8, 3, 1, 2, 10},
+	// Case 7
 	{9, 2, 10, 0, 2, 9},
 	{2, 8, 3, 2, 10, 8, 10, 9, 8},
 	{3, 11, 2},
