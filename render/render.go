@@ -32,6 +32,7 @@ type Render2 interface {
 // RenderFE renders a finite element mesh over the bounding volume of an sdf3.
 type RenderFE interface {
 	RenderTet4(sdf3 sdf.SDF3, output chan<- []*Tet4)
+	RenderTet10(sdf3 sdf.SDF3, output chan<- []*Tet10)
 	RenderHex8(sdf3 sdf.SDF3, output chan<- []*Hex8)
 	RenderHex20(sdf3 sdf.SDF3, output chan<- []*Hex20)
 	Info(sdf3 sdf.SDF3) string
@@ -81,6 +82,36 @@ func ToTet4(
 
 	// run the renderer
 	r.RenderTet4(s, output)
+	// stop the writer reading on the channel
+	close(output)
+	// wait for the file write to complete
+	wg.Wait()
+
+	return fes
+}
+
+//-----------------------------------------------------------------------------
+
+// ToTet10 renders an SDF3 to finite elements in the shape of 10-node tetrahedra.
+func ToTet10(
+	s sdf.SDF3, // sdf3 to render
+	r RenderFE, // rendering method
+) []Tet10 {
+	fmt.Printf("rendering %s\n", r.Info(s))
+
+	layerCountX, layerCountY, layerCountZ := r.LayerCounts(s)
+	fmt.Printf("layer counts of marching algorithm are: (%v x %v x %v)\n", layerCountX, layerCountY, layerCountZ)
+
+	// Will be filled by the rendering.
+	fes := make([]Tet10, 0)
+
+	var wg sync.WaitGroup
+
+	// Get the channel to be written to.
+	output := writeTet10(&wg, &fes)
+
+	// run the renderer
+	r.RenderTet10(s, output)
 	// stop the writer reading on the channel
 	close(output)
 	// wait for the file write to complete

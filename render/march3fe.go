@@ -61,6 +61,20 @@ func (r *MarchingCubesFEUniform) RenderTet4(s sdf.SDF3, output chan<- []*Tet4) {
 }
 
 // Render produces a finite elements mesh over the bounding volume of an sdf3.
+// Finite elements are in the shape of tetrahedra.
+func (r *MarchingCubesFEUniform) RenderTet10(s sdf.SDF3, output chan<- []*Tet10) {
+	// work out the region we will sample
+	bb0 := s.BoundingBox()
+	bb0Size := bb0.Size()
+	meshInc := bb0Size.MaxComponent() / float64(r.meshCells)
+	bb1Size := bb0Size.DivScalar(meshInc)
+	bb1Size = bb1Size.Ceil().AddScalar(1)
+	bb1Size = bb1Size.MulScalar(meshInc)
+	bb := sdf.NewBox3(bb0.Center(), bb1Size)
+	output <- marchingCubesTet10(s, bb, meshInc)
+}
+
+// Render produces a finite elements mesh over the bounding volume of an sdf3.
 // Finite elements are in the shape of hexahedra.
 func (r *MarchingCubesFEUniform) RenderHex8(s sdf.SDF3, output chan<- []*Hex8) {
 	// work out the region we will sample

@@ -36,6 +36,23 @@ func tet4(s sdf.SDF3, resolution int, pth string) error {
 	return nil
 }
 
+// 10-node tetrahedral elements.
+func tet10(s sdf.SDF3, resolution int, pth string) error {
+	// Create a mesh out of finite elements.
+	m, _ := mesh.NewTet10(s, render.NewMarchingCubesFEUniform(resolution))
+
+	lyrStart := 0
+	lyrEnd := 20
+
+	// Write just some layers of mesh to a file.
+	err := m.WriteInpLayers(pth, lyrStart, lyrEnd, []int{0, 1, 2}, 1.25e-9, 900, 0.3)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // 8-node hexahedral elements.
 func hex8(s sdf.SDF3, resolution int, pth string) error {
 	// Create a mesh out of finite elements.
@@ -120,6 +137,11 @@ func main() {
 	}
 
 	err = tet4(teapotSdf, 80, "teapot-tet4.inp")
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+
+	err = tet10(teapotSdf, 80, "teapot-tet10.inp")
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
