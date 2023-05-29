@@ -105,6 +105,8 @@ func (inp *Inp) Write() error {
 	ElementType := ""
 	if inp.Mesh.Npe() == 4 {
 		ElementType = "C3D4"
+	} else if inp.Mesh.Npe() == 10 {
+		ElementType = "C3D10"
 	} else if inp.Mesh.Npe() == 8 {
 		ElementType = "C3D8"
 	} else if inp.Mesh.Npe() == 20 {
@@ -226,6 +228,8 @@ func (inp *Inp) writeElements(f *os.File) error {
 
 			if inp.Mesh.Npe() == 4 {
 				_, err = f.WriteString(fmt.Sprintf("%d,%d,%d,%d,%d\n", eleID+1, ids[0]+1, ids[1]+1, ids[2]+1, ids[3]+1))
+			} else if inp.Mesh.Npe() == 10 {
+				_, err = f.WriteString(fmt.Sprintf("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n", eleID+1, ids[0]+1, ids[1]+1, ids[2]+1, ids[3]+1, ids[4]+1, ids[5]+1, ids[6]+1, ids[7]+1, ids[8]+1, ids[9]+1))
 			} else if inp.Mesh.Npe() == 8 {
 				_, err = f.WriteString(fmt.Sprintf("%d,%d,%d,%d,%d,%d,%d,%d,%d\n", eleID+1, ids[0]+1, ids[1]+1, ids[2]+1, ids[3]+1, ids[4]+1, ids[5]+1, ids[6]+1, ids[7]+1))
 			} else if inp.Mesh.Npe() == 20 {
