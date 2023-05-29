@@ -99,17 +99,19 @@ func mcToTet10(p [8]v3.Vec, v [8]float64, x float64, layerZ int) []*Tet10 {
 			V:     [10]v3.Vec{},
 			Layer: layerZ,
 		}
-		// TODO: Fill out vertices correctly.
+		// Points on tetrahedron corners.
 		t.V[0] = point(points, p, table[i*4+0])
 		t.V[1] = point(points, p, table[i*4+1])
 		t.V[2] = point(points, p, table[i*4+2])
 		t.V[3] = point(points, p, table[i*4+3])
-		t.V[4] = v3.Vec{}
-		t.V[5] = v3.Vec{}
-		t.V[6] = v3.Vec{}
-		t.V[7] = v3.Vec{}
-		t.V[8] = v3.Vec{}
-		t.V[9] = v3.Vec{}
+		// Points on tetrahedron edges.
+		// Followoing CalculiX node numbering.
+		t.V[5-1] = t.V[1-1].Add(t.V[2-1]).MulScalar(0.5)
+		t.V[6-1] = t.V[2-1].Add(t.V[3-1]).MulScalar(0.5)
+		t.V[7-1] = t.V[1-1].Add(t.V[3-1]).MulScalar(0.5)
+		t.V[8-1] = t.V[1-1].Add(t.V[4-1]).MulScalar(0.5)
+		t.V[9-1] = t.V[2-1].Add(t.V[4-1]).MulScalar(0.5)
+		t.V[10-1] = t.V[3-1].Add(t.V[4-1]).MulScalar(0.5)
 		result = append(result, &t)
 	}
 
