@@ -105,19 +105,6 @@ func hex20(s sdf.SDF3, resolution int, pth string) error {
 	return nil
 }
 
-// 8-node hexahedral elements.
-// With adaptive mesh refinement.
-func hex8adaptive(s sdf.SDF3, resolution int, pth string) error {
-	// Create a mesh out of finite elements.
-	m, _ := mesh.NewHex8(s, render.NewMarchingCubesFEOctree(resolution))
-
-	err := m.WriteInp(pth, []int{0}, 1.25e-9, 900, 0.3)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 // Render SDF3 to finite elements.
 // Write finite elements to an `inp` file.
 // Written file can be used by ABAQUS or CalculiX.
@@ -152,11 +139,6 @@ func main() {
 	}
 
 	err = hex20(teapotSdf, 80, "teapot-hex20.inp")
-	if err != nil {
-		log.Fatalf("error: %s", err)
-	}
-
-	err = hex8adaptive(teapotSdf, 80, "teapot-hex20-adaptive.inp")
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
