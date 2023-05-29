@@ -303,6 +303,13 @@ func (inp *Inp) writeFooter(f *os.File) error {
 		return err
 	}
 
+	// Just trying to be able to check for bad elements.
+	// TODO: Does it work?
+	_, err = f.WriteString(fmt.Sprintf("*ELSET, ELSET=ECheck, GENERATE\n1, %d\n", inp.Mesh.feCount()))
+	if err != nil {
+		return err
+	}
+
 	// Write analysis
 
 	_, err = f.WriteString("*STEP\n*STATIC\n")

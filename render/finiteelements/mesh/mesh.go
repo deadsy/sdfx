@@ -12,6 +12,8 @@ type FE interface {
 	layerCount() int
 	// Number of finite elements on a layer.
 	feCountOnLayer(l int) int
+	// Total number of elements for all layers.
+	feCount() int
 	// Get a finite element.
 	// FE vertices are returned.
 	// Layer index is input.
