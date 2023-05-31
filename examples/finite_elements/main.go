@@ -42,7 +42,7 @@ func tet10(s sdf.SDF3, resolution int, pth string) error {
 	m, _ := mesh.NewTet10(s, render.NewMarchingCubesFEUniform(resolution))
 
 	lyrStart := 0
-	lyrEnd := 20
+	lyrEnd := 5
 
 	// Write just some layers of mesh to a file.
 	err := m.WriteInpLayers(pth, lyrStart, lyrEnd, []int{0, 1, 2}, 1.25e-9, 900, 0.3)
@@ -128,7 +128,7 @@ func main() {
 		log.Fatalf("error: %s", err)
 	}
 
-	err = tet10(teapotSdf, 80, "teapot-tet10.inp")
+	err = tet10(teapotSdf, 10, "teapot-tet10.inp")
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
