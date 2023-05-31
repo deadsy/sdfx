@@ -2,9 +2,12 @@ package render
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/deadsy/sdfx/sdf"
 	"github.com/deadsy/sdfx/vec/conv"
+	v3 "github.com/deadsy/sdfx/vec/v3"
+	"github.com/deadsy/sdfx/vec/v3i"
 )
 
 //-----------------------------------------------------------------------------
@@ -100,6 +103,85 @@ func (r *MarchingCubesFEUniform) RenderHex20(s sdf.SDF3, output chan<- []*Hex20)
 	bb1Size = bb1Size.MulScalar(meshInc)
 	bb := sdf.NewBox3(bb0.Center(), bb1Size)
 	output <- marchingCubesHex20(s, bb, meshInc)
+}
+
+//-----------------------------------------------------------------------------
+
+type layerXY struct {
+	base  v3.Vec    // base coordinate of layer
+	inc   v3.Vec    // dx, dy, dz for each step
+	steps v3i.Vec   // number of x,y,z steps
+	val0  []float64 // SDF values for z layer
+	val1  []float64 // SDF values for z + dz layer
+}
+
+func newLayerXY(base, inc v3.Vec, steps v3i.Vec) *layerXY {
+	return &layerXY{base, inc, steps, nil, nil}
+}
+
+// Evaluate the SDF for a given XY layer
+func (l *layerXY) Evaluate(s sdf.SDF3, z int) {
+
+	// Swap the layers
+	l.val0, l.val1 = l.val1, l.val0
+
+	nx, ny := l.steps.X, l.steps.Y
+	dx, dy, dz := l.inc.X, l.inc.Y, l.inc.Z
+
+	// allocate storage
+	if l.val1 == nil {
+		l.val1 = make([]float64, (nx+1)*(ny+1))
+	}
+
+	// setup the loop variables
+	var p v3.Vec
+	p.Z = l.base.Z + float64(z)*dz
+
+	// define the base struct for requesting evaluation
+	eReq := evalReq{
+		wg:  new(sync.WaitGroup),
+		fn:  s.Evaluate,
+		out: l.val1,
+	}
+
+	// evaluate the layer
+	p.X = l.base.X
+
+	// Performance doesn't seem to improve past 100.
+	const batchSize = 100
+
+	eReq.p = make([]v3.Vec, 0, batchSize)
+	for x := 0; x < nx+1; x++ {
+		p.Y = l.base.Y
+		for y := 0; y < ny+1; y++ {
+			eReq.p = append(eReq.p, p)
+			if len(eReq.p) == batchSize {
+				eReq.wg.Add(1)
+				evalProcessCh <- eReq
+				eReq.out = eReq.out[batchSize:]       // shift the output slice for processing
+				eReq.p = make([]v3.Vec, 0, batchSize) // create a new slice for the next batch
+			}
+			p.Y += dy
+		}
+		p.X += dx
+	}
+
+	// send any remaining points for processing
+	if len(eReq.p) > 0 {
+		eReq.wg.Add(1)
+		evalProcessCh <- eReq
+	}
+
+	// Wait for all processing to complete before returning
+	eReq.wg.Wait()
+}
+
+func (l *layerXY) Get(x, y, z int) float64 {
+	idz := x*(l.steps.Y+1) + y
+	if z == 0 {
+		return l.val0[idz]
+	}
+	return l.val1[idz]
 }
 
 //-----------------------------------------------------------------------------
