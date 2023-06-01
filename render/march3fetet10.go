@@ -106,7 +106,7 @@ func mcToTet10(p [8]v3.Vec, v [8]float64, x float64, layerZ int) []*Tet10 {
 		}
 
 		eleCount++
-		if eleCount == 587 {
+		if eleCount == 5641 {
 			fmt.Println("Bad element.")
 		}
 
@@ -123,7 +123,15 @@ func mcToTet10(p [8]v3.Vec, v [8]float64, x float64, layerZ int) []*Tet10 {
 		t.V[8-1] = t.V[1-1].Add(t.V[4-1]).MulScalar(0.5)
 		t.V[9-1] = t.V[2-1].Add(t.V[4-1]).MulScalar(0.5)
 		t.V[10-1] = t.V[3-1].Add(t.V[4-1]).MulScalar(0.5)
-		result = append(result, &t)
+		// In the case of marching cubes algorithm to generate triangle, it's avoiding zero-area triangles by `!t.Degenerate(0)` check.
+		// In our case of marching cubes algorithm to generate tetrahedron, we can avoid zero-volume elements by this check:
+		bad, volume := isZeroVolume(t.V[0], t.V[1], t.V[2], t.V[3])
+		if !bad {
+			result = append(result, &t)
+		} else {
+			fmt.Printf("Bad element. Zero volume. Element number: %v, element volume: %v\n", eleCount, volume)
+			fmt.Printf("Bad element vertices: %v, %v, %v, %v\n", t.V[0], t.V[1], t.V[2], t.V[3])
+		}
 	}
 
 	return result

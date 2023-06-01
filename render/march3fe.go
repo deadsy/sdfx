@@ -185,3 +185,32 @@ func (l *layerXY) Get(x, y, z int) float64 {
 }
 
 //-----------------------------------------------------------------------------
+
+// MATHEMATICA script is available here:
+// https://math.stackexchange.com/a/4709610/197913
+func isZeroVolume(a, b, c, d v3.Vec) (bool, float64) {
+	ab := b.Sub(a)
+	ac := c.Sub(a)
+	ad := d.Sub(a)
+
+	// Note that the `Norm` function of MATHEMATICA is equivalent to our `Length()` function.
+	nab := ab.Length()
+	ncd := ac.Sub(ad).Length()
+	nbd := ab.Sub(ad).Length()
+	nbc := ab.Sub(ac).Length()
+	nac := ac.Length()
+	nad := ad.Length()
+
+	volume := 1.0 / 6.0 * ab.Cross(ac).Dot(ad)
+	denom := (nab + ncd) * (nac + nbd) * (nad + nbc)
+
+	// Tolerance derived from here:
+	// https://math.stackexchange.com/a/4709610/197913
+	tolerance := 480.0
+
+	rho := tolerance * volume / denom
+
+	return rho < 1, volume
+}
+
+//-----------------------------------------------------------------------------
