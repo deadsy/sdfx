@@ -194,6 +194,13 @@ func isZeroVolume(a, b, c, d v3.Vec) (bool, float64) {
 	ac := c.Sub(a)
 	ad := d.Sub(a)
 
+	// Check for 0 edge lengths
+	if ab.Length() == 0 || ac.Sub(ad).Length() == 0 ||
+		ab.Sub(ad).Length() == 0 || ab.Sub(ac).Length() == 0 ||
+		ac.Length() == 0 || ad.Length() == 0 {
+		return true, 0
+	}
+
 	// Note that the `Norm` function of MATHEMATICA is equivalent to our `Length()` function.
 	nab := ab.Length()
 	ncd := ac.Sub(ad).Length()
