@@ -73,6 +73,7 @@ func marchingCubesTet10(s sdf.SDF3, box sdf.Box3, step float64) []*Tet10 {
 
 //-----------------------------------------------------------------------------
 
+// Just for debugging purposes.
 var eleCount int
 
 func mcToTet10(p [8]v3.Vec, v [8]float64, x float64, layerZ int) []*Tet10 {
@@ -105,10 +106,8 @@ func mcToTet10(p [8]v3.Vec, v [8]float64, x float64, layerZ int) []*Tet10 {
 			Layer: layerZ,
 		}
 
+		// Just for debugging purposes.
 		eleCount++
-		if eleCount == 5641 {
-			fmt.Println("Bad element.")
-		}
 
 		// Points on tetrahedron corners.
 		t.V[0] = point(points, p, table[i*4+0])
