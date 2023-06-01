@@ -1,8 +1,6 @@
 package render
 
 import (
-	"fmt"
-
 	"github.com/deadsy/sdfx/sdf"
 	"github.com/deadsy/sdfx/vec/conv"
 	v3 "github.com/deadsy/sdfx/vec/v3"
@@ -124,12 +122,12 @@ func mcToTet10(p [8]v3.Vec, v [8]float64, x float64, layerZ int) []*Tet10 {
 		t.V[10-1] = t.V[3-1].Add(t.V[4-1]).MulScalar(0.5)
 		// In the case of marching cubes algorithm to generate triangle, it's avoiding zero-area triangles by `!t.Degenerate(0)` check.
 		// In our case of marching cubes algorithm to generate tetrahedron, we can avoid zero-volume elements by this check:
-		bad, volume := isZeroVolume(t.V[0], t.V[1], t.V[2], t.V[3])
+		bad, _ := isZeroVolume(t.V[0], t.V[1], t.V[2], t.V[3])
 		if !bad {
 			result = append(result, &t)
 		} else {
-			fmt.Printf("Bad element. Zero volume. Element number: %v, element volume: %v\n", eleCount, volume)
-			fmt.Printf("Bad element vertices: %v, %v, %v, %v\n", t.V[0], t.V[1], t.V[2], t.V[3])
+			// fmt.Printf("Bad element. Zero volume. Element number: %v, element volume: %v\n", eleCount, volume)
+			// fmt.Printf("Bad element vertices: %v, %v, %v, %v\n", t.V[0], t.V[1], t.V[2], t.V[3])
 		}
 	}
 
