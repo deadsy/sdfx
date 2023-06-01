@@ -1,6 +1,8 @@
 package render
 
 import (
+	"fmt"
+
 	"github.com/deadsy/sdfx/sdf"
 	"github.com/deadsy/sdfx/vec/conv"
 	v3 "github.com/deadsy/sdfx/vec/v3"
@@ -106,6 +108,9 @@ func mcToTet10(p [8]v3.Vec, v [8]float64, x float64, layerZ int) []*Tet10 {
 
 		// Just for debugging purposes.
 		eleCount++
+		if eleCount == 5781 {
+			fmt.Println("Bad element.")
+		}
 
 		// Points on tetrahedron corners.
 		t.V[0] = point(points, p, table[i*4+0])
