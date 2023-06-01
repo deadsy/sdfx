@@ -2,6 +2,7 @@ package render
 
 import (
 	"fmt"
+	"math"
 	"sync"
 
 	"github.com/deadsy/sdfx/sdf"
@@ -201,7 +202,7 @@ func isZeroVolume(a, b, c, d v3.Vec) (bool, float64) {
 	nac := ac.Length()
 	nad := ad.Length()
 
-	volume := 1.0 / 6.0 * ab.Cross(ac).Dot(ad)
+	volume := 1.0 / 6.0 * math.Abs(ab.Cross(ac).Dot(ad))
 	denom := (nab + ncd) * (nac + nbd) * (nad + nbc)
 
 	// Tolerance derived from here:
