@@ -196,9 +196,9 @@ func isZeroVolume(a, b, c, d v3.Vec) (bool, float64) {
 
 	// Note that the `Norm` function of MATHEMATICA is equivalent to our `Length()` function.
 	nab := ab.Length()
-	ncd := ac.Sub(ad).Length()
-	nbd := ab.Sub(ad).Length()
-	nbc := ab.Sub(ac).Length()
+	ncd := d.Sub(c).Length()
+	nbd := d.Sub(b).Length()
+	nbc := c.Sub(b).Length()
 	nac := ac.Length()
 	nad := ad.Length()
 
