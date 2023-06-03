@@ -1,6 +1,8 @@
 package render
 
 import (
+	"fmt"
+
 	"github.com/deadsy/sdfx/sdf"
 	"github.com/deadsy/sdfx/vec/conv"
 	v3 "github.com/deadsy/sdfx/vec/v3"
@@ -99,11 +101,27 @@ func mcToTet4(p [8]v3.Vec, v [8]float64, x float64, layerZ int) []*Tet4 {
 			V:     [4]v3.Vec{},
 			Layer: layerZ,
 		}
+
+		// Just for debugging purposes.
+		eleCount++
+		if eleCount == 5781 {
+			fmt.Println("Bad element.")
+		}
+
 		t.V[0] = point(points, p, table[i*4+0])
 		t.V[1] = point(points, p, table[i*4+1])
 		t.V[2] = point(points, p, table[i*4+2])
 		t.V[3] = point(points, p, table[i*4+3])
-		result = append(result, &t)
+
+		// In the case of marching cubes algorithm to generate triangle, it's avoiding zero-area triangles by `!t.Degenerate(0)` check.
+		// In our case of marching cubes algorithm to generate tetrahedron, we can do a check too:
+		bad, jacobianDeterminant := isBad(t.V[0], t.V[1], t.V[2], t.V[3])
+		if !bad {
+			result = append(result, &t)
+		} else {
+			fmt.Println("Bad element:", eleCount)
+			fmt.Println("Jacobian determinant:", jacobianDeterminant)
+		}
 	}
 
 	return result

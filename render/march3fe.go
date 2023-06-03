@@ -222,3 +222,86 @@ func isZeroVolume(a, b, c, d v3.Vec) (bool, float64) {
 }
 
 //-----------------------------------------------------------------------------
+
+// Check by four corner nodes of a 4-node or a 10-node tetrahedral element.
+// A more complex method could be separately used for 10-node tetrahedral element.
+// But let's keep things simple for now.
+func isBad(a, b, c, d v3.Vec) (bool, float64) {
+	// Coordinates of the nodes.
+	var xl [3][4]float64
+
+	xl[0][0] = a.X
+	xl[1][0] = a.Y
+	xl[2][0] = a.Z
+
+	xl[0][1] = b.X
+	xl[1][1] = b.Y
+	xl[2][1] = b.Z
+
+	xl[0][2] = c.X
+	xl[1][2] = c.Y
+	xl[2][2] = c.Z
+
+	xl[0][3] = d.X
+	xl[1][3] = d.Y
+	xl[2][3] = d.Z
+
+	// xi, et, and ze are the coordinates of the Gauss point
+	// in the integration scheme for the 4-node tetrahedral element.
+	// For this element type, there is typically only 1 Gauss point used,
+	// which is located at the centroid of the tetrahedron.
+	// The coordinates of this Gauss point are (xi, et, ze) = (1/4, 1/4, 1/4).
+	var xi float64 = 0.25
+	var et float64 = 0.25
+	var ze float64 = 0.25
+
+	// Shape functions.
+	var shp [4][4]float64
+
+	shp[3][0] = 1.0 - xi - et - ze
+	shp[3][1] = xi
+	shp[3][2] = et
+	shp[3][3] = ze
+
+	// local derivatives of the shape functions: xi-derivative
+
+	shp[0][0] = -1.0
+	shp[0][1] = 1.0
+	shp[0][2] = 0.0
+	shp[0][3] = 0.0
+
+	// local derivatives of the shape functions: eta-derivative
+
+	shp[1][0] = -1.0
+	shp[1][1] = 0.0
+	shp[1][2] = 1.0
+	shp[1][3] = 0.0
+
+	// local derivatives of the shape functions: zeta-derivative
+
+	shp[2][0] = -1.0
+	shp[2][1] = 0.0
+	shp[2][2] = 0.0
+	shp[2][3] = 1.0
+
+	// computation of the local derivative of the global coordinates (xs)
+	xs := [3][3]float64{}
+	for i := 0; i < 3; i++ {
+		for j := 0; j < 3; j++ {
+			xs[i][j] = 0.0
+			for k := 0; k < 4; k++ {
+				xs[i][j] += xl[i][k] * shp[j][k]
+			}
+		}
+	}
+
+	// computation of the jacobian determinant
+	xsj := xs[0][0]*(xs[1][1]*xs[2][2]-xs[1][2]*xs[2][1]) -
+		xs[0][1]*(xs[1][0]*xs[2][2]-xs[1][2]*xs[2][0]) +
+		xs[0][2]*(xs[1][0]*xs[2][1]-xs[1][1]*xs[2][0])
+
+	// According to CCX source code to detect nonpositive jacobian determinant in element
+	return xsj < 1e-20, xsj
+}
+
+//-----------------------------------------------------------------------------
