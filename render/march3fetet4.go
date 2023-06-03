@@ -11,6 +11,9 @@ import (
 //-----------------------------------------------------------------------------
 
 func marchingCubesTet4(s sdf.SDF3, box sdf.Box3, step float64) []*Tet4 {
+	// Just for debugging purposes.
+	// Reset element count.
+	eleCount = 0
 
 	var fes []*Tet4
 	size := box.Size()
@@ -105,7 +108,7 @@ func mcToTet4(p [8]v3.Vec, v [8]float64, x float64, layerZ int) []*Tet4 {
 		// Just for debugging purposes.
 		eleCount++
 		if eleCount == 5781 {
-			fmt.Println("Bad element.")
+			fmt.Println("Debug element.")
 		}
 
 		t.V[0] = point(points, p, table[i*4+0])

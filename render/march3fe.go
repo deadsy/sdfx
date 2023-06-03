@@ -223,9 +223,6 @@ func isZeroVolume(a, b, c, d v3.Vec) (bool, float64) {
 
 //-----------------------------------------------------------------------------
 
-// Check by four corner nodes of a 4-node or a 10-node tetrahedral element.
-// A more complex method could be separately used for 10-node tetrahedral element.
-// But let's keep things simple for now.
 func isBadGaussTet4(coords [4]v3.Vec, xi, et, ze float64) (bool, float64) {
 	// Coordinates of the nodes.
 	var xl [3][4]float64
@@ -285,6 +282,10 @@ func isBadGaussTet4(coords [4]v3.Vec, xi, et, ze float64) (bool, float64) {
 	return xsj < 1e-20, xsj
 }
 
+func isBadGaussTet10(coords [10]v3.Vec, xi, et, ze float64) (bool, float64) {
+	return false, 0
+}
+
 //-----------------------------------------------------------------------------
 
 func isBadTet4(coords [4]v3.Vec) (bool, float64) {
@@ -301,8 +302,30 @@ func isBadTet4(coords [4]v3.Vec) (bool, float64) {
 	return isBadGaussTet4(coords, xi, et, ze)
 }
 
-func isBadTet10(a, b, c, d v3.Vec) bool {
-	return false
+func isBadTet10(coords [10]v3.Vec) (bool, float64) {
+	// Gause points are according to CCX source code.
+	var gaussPoints [4]v3.Vec
+	gaussPoints[0] = v3.Vec{0.138196601125011, 0.138196601125011, 0.138196601125011}
+	gaussPoints[1] = v3.Vec{0.585410196624968, 0.138196601125011, 0.138196601125011}
+	gaussPoints[2] = v3.Vec{0.138196601125011, 0.585410196624968, 0.138196601125011}
+	gaussPoints[3] = v3.Vec{0.138196601125011, 0.138196601125011, 0.585410196624968}
+
+	var bad bool
+	var jacobianDeterminant float64
+
+	for i := 0; i < 4; i++ {
+		bad, jacobianDeterminant = isBadGaussTet10(coords, gaussPoints[i].X, gaussPoints[i].Y, gaussPoints[i].Z)
+		if bad {
+			return true, jacobianDeterminant
+		}
+	}
+
+	return false, jacobianDeterminant
 }
+
+//-----------------------------------------------------------------------------
+
+// Just for debugging purposes.
+var eleCount int
 
 //-----------------------------------------------------------------------------

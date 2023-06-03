@@ -11,6 +11,9 @@ import (
 //-----------------------------------------------------------------------------
 
 func marchingCubesTet10(s sdf.SDF3, box sdf.Box3, step float64) []*Tet10 {
+	// Just for debugging purposes.
+	// Reset element count.
+	eleCount = 0
 
 	var fes []*Tet10
 	size := box.Size()
@@ -73,9 +76,6 @@ func marchingCubesTet10(s sdf.SDF3, box sdf.Box3, step float64) []*Tet10 {
 
 //-----------------------------------------------------------------------------
 
-// Just for debugging purposes.
-var eleCount int
-
 func mcToTet10(p [8]v3.Vec, v [8]float64, x float64, layerZ int) []*Tet10 {
 	// which of the 0..255 patterns do we have?
 	index := 0
@@ -109,7 +109,7 @@ func mcToTet10(p [8]v3.Vec, v [8]float64, x float64, layerZ int) []*Tet10 {
 		// Just for debugging purposes.
 		eleCount++
 		if eleCount == 5781 {
-			fmt.Println("Bad element.")
+			fmt.Println("Debug element.")
 		}
 
 		// Points on tetrahedron corners.
@@ -127,12 +127,12 @@ func mcToTet10(p [8]v3.Vec, v [8]float64, x float64, layerZ int) []*Tet10 {
 		t.V[10-1] = t.V[3-1].Add(t.V[4-1]).MulScalar(0.5)
 		// In the case of marching cubes algorithm to generate triangle, it's avoiding zero-area triangles by `!t.Degenerate(0)` check.
 		// In our case of marching cubes algorithm to generate tetrahedron, we can do a check too:
-		bad, volume := isZeroVolume(t.V[0], t.V[1], t.V[2], t.V[3])
+		bad, jacobianDeterminant := isBadTet10([10]v3.Vec{t.V[0], t.V[1], t.V[2], t.V[3], t.V[4], t.V[5], t.V[6], t.V[7], t.V[8], t.V[9]})
 		if !bad {
 			result = append(result, &t)
 		} else {
 			fmt.Println("Bad element: tet10:", eleCount)
-			fmt.Println("Volume:", volume)
+			fmt.Println("Jacobian determinant:", jacobianDeterminant)
 		}
 	}
 
