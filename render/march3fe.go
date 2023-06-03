@@ -226,34 +226,15 @@ func isZeroVolume(a, b, c, d v3.Vec) (bool, float64) {
 // Check by four corner nodes of a 4-node or a 10-node tetrahedral element.
 // A more complex method could be separately used for 10-node tetrahedral element.
 // But let's keep things simple for now.
-func isBad(a, b, c, d v3.Vec) (bool, float64) {
+func isBadGaussTet4(coords [4]v3.Vec, xi, et, ze float64) (bool, float64) {
 	// Coordinates of the nodes.
 	var xl [3][4]float64
 
-	xl[0][0] = a.X
-	xl[1][0] = a.Y
-	xl[2][0] = a.Z
-
-	xl[0][1] = b.X
-	xl[1][1] = b.Y
-	xl[2][1] = b.Z
-
-	xl[0][2] = c.X
-	xl[1][2] = c.Y
-	xl[2][2] = c.Z
-
-	xl[0][3] = d.X
-	xl[1][3] = d.Y
-	xl[2][3] = d.Z
-
-	// xi, et, and ze are the coordinates of the Gauss point
-	// in the integration scheme for the 4-node tetrahedral element.
-	// For this element type, there is typically only 1 Gauss point used,
-	// which is located at the centroid of the tetrahedron.
-	// The coordinates of this Gauss point are (xi, et, ze) = (1/4, 1/4, 1/4).
-	var xi float64 = 0.25
-	var et float64 = 0.25
-	var ze float64 = 0.25
+	for i := 0; i < 4; i++ {
+		xl[0][i] = coords[i].X
+		xl[1][i] = coords[i].Y
+		xl[2][i] = coords[i].Z
+	}
 
 	// Shape functions.
 	var shp [4][4]float64
@@ -302,6 +283,26 @@ func isBad(a, b, c, d v3.Vec) (bool, float64) {
 
 	// According to CCX source code to detect nonpositive jacobian determinant in element
 	return xsj < 1e-20, xsj
+}
+
+//-----------------------------------------------------------------------------
+
+func isBadTet4(coords [4]v3.Vec) (bool, float64) {
+
+	// xi, et, and ze are the coordinates of the Gauss point
+	// in the integration scheme for the 4-node tetrahedral element.
+	// For this element type, there is typically only 1 Gauss point used,
+	// which is located at the centroid of the tetrahedron.
+	// The coordinates of this Gauss point are (xi, et, ze) = (1/4, 1/4, 1/4).
+	var xi float64 = 0.25
+	var et float64 = 0.25
+	var ze float64 = 0.25
+
+	return isBadGaussTet4(coords, xi, et, ze)
+}
+
+func isBadTet10(a, b, c, d v3.Vec) bool {
+	return false
 }
 
 //-----------------------------------------------------------------------------
