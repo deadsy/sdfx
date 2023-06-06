@@ -379,6 +379,8 @@ func isBadTet4(coords [4]v3.Vec) (bool, float64) {
 	// For this element type, there is typically only 1 Gauss point used,
 	// which is located at the centroid of the tetrahedron.
 	// The coordinates of this Gauss point are (xi, et, ze) = (1/4, 1/4, 1/4).
+	// Reference:
+	// ccx_2.20/src/gauss.f
 	var xi float64 = 0.25
 	var et float64 = 0.25
 	var ze float64 = 0.25
@@ -388,6 +390,8 @@ func isBadTet4(coords [4]v3.Vec) (bool, float64) {
 
 func isBadTet10(coords [10]v3.Vec) (bool, float64) {
 	// Gause points are according to CCX source code.
+	// Reference:
+	// ccx_2.20/src/gauss.f
 	var gaussPoints [4]v3.Vec
 	gaussPoints[0] = v3.Vec{0.138196601125011, 0.138196601125011, 0.138196601125011}
 	gaussPoints[1] = v3.Vec{0.585410196624968, 0.138196601125011, 0.138196601125011}
