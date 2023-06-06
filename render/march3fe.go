@@ -423,6 +423,31 @@ func isBadTet10(coords [10]v3.Vec) (bool, float64) {
 
 //-----------------------------------------------------------------------------
 
+// If triangles are degenerate, then tetrahedra will be bad.
+// TODO: Can this be used to filter bad tetrahedra?
+func degenerateTriangles(index int, points [12]v3.Vec) bool {
+	// create the triangles
+	table := mcTriangleTable[index]
+	if len(table) < 1 {
+		// There are no triangles.
+		return false
+	}
+	count := len(table) / 3
+	for i := 0; i < count; i++ {
+		t := Triangle3{}
+		t.V[2] = points[table[i*3+0]]
+		t.V[1] = points[table[i*3+1]]
+		t.V[0] = points[table[i*3+2]]
+		// Use the epsilon value of `vertexbuffer.go`
+		if t.Degenerate(0.0001) {
+			return true
+		}
+	}
+	return false
+}
+
+//-----------------------------------------------------------------------------
+
 // Just for debugging purposes.
 var eleCount int
 
