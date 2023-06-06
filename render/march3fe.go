@@ -283,7 +283,85 @@ func isBadGaussTet4(coords [4]v3.Vec, xi, et, ze float64) (bool, float64) {
 }
 
 func isBadGaussTet10(coords [10]v3.Vec, xi, et, ze float64) (bool, float64) {
-	return false, 0
+	// Coordinates of the nodes.
+	var xl [3][10]float64
+
+	for i := 0; i < 10; i++ {
+		xl[0][i] = coords[i].X
+		xl[1][i] = coords[i].Y
+		xl[2][i] = coords[i].Z
+	}
+
+	// Shape functions.
+	var shp [4][10]float64
+
+	// Shape functions
+	a := 1.0 - xi - et - ze
+	shp[3][0] = (2.0*a - 1.0) * a
+	shp[3][1] = xi * (2.0*xi - 1.0)
+	shp[3][2] = et * (2.0*et - 1.0)
+	shp[3][3] = ze * (2.0*ze - 1.0)
+	shp[3][4] = 4.0 * xi * a
+	shp[3][5] = 4.0 * xi * et
+	shp[3][6] = 4.0 * et * a
+	shp[3][7] = 4.0 * ze * a
+	shp[3][8] = 4.0 * xi * ze
+	shp[3][9] = 4.0 * et * ze
+
+	// Local derivatives of the shape functions: xi-derivative
+	shp[0][0] = 1.0 - 4.0*a
+	shp[0][1] = 4.0*xi - 1.0
+	shp[0][2] = 0.0
+	shp[0][3] = 0.0
+	shp[0][4] = 4.0 * (a - xi)
+	shp[0][5] = 4.0 * et
+	shp[0][6] = -4.0 * et
+	shp[0][7] = -4.0 * ze
+	shp[0][8] = 4.0 * ze
+	shp[0][9] = 0.0
+
+	// Local derivatives of the shape functions: eta-derivative
+	shp[1][0] = 1.0 - 4.0*a
+	shp[1][1] = 0.0
+	shp[1][2] = 4.0*et - 1.0
+	shp[1][3] = 0.0
+	shp[1][4] = -4.0 * xi
+	shp[1][5] = 4.0 * xi
+	shp[1][6] = 4.0 * (a - et)
+	shp[1][7] = -4.0 * ze
+	shp[1][8] = 0.0
+	shp[1][9] = 4.0 * ze
+
+	// Local derivatives of the shape functions: zeta-derivative
+	shp[2][0] = 1.0 - 4.0*a
+	shp[2][1] = 0.0
+	shp[2][2] = 0.0
+	shp[2][3] = 4.0*ze - 1.0
+	shp[2][4] = -4.0 * xi
+	shp[2][5] = 0.0
+	shp[2][6] = -4.0 * et
+	shp[2][7] = 4.0 * (a - ze)
+	shp[2][8] = 4.0 * xi
+	shp[2][9] = 4.0 * et
+
+	// Computation of the local derivative of the global coordinates (xs)
+	var xs [3][3]float64
+	for i := 0; i < 3; i++ {
+		for j := 0; j < 3; j++ {
+			xs[i][j] = 0.0
+			for k := 0; k < 10; k++ {
+				xs[i][j] = xs[i][j] + xl[i][k]*shp[j][k]
+			}
+		}
+	}
+
+	// computation of the jacobian determinant
+	xsj := xs[0][0]*(xs[1][1]*xs[2][2]-xs[1][2]*xs[2][1]) -
+		xs[0][1]*(xs[1][0]*xs[2][2]-xs[1][2]*xs[2][0]) +
+		xs[0][2]*(xs[1][0]*xs[2][1]-xs[1][1]*xs[2][0])
+
+	// According to CCX source code to detect nonpositive jacobian determinant in element
+	return xsj < 1e-20, xsj
 }
 
 //-----------------------------------------------------------------------------
