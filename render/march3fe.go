@@ -223,6 +223,9 @@ func isZeroVolume(a, b, c, d v3.Vec) (bool, float64) {
 
 //-----------------------------------------------------------------------------
 
+// Reference:
+// CCX source code:
+// ccx_2.20/src/shape4tet.f
 func isBadGaussTet4(coords [4]v3.Vec, xi, et, ze float64) (bool, float64) {
 	// Coordinates of the nodes.
 	var xl [3][4]float64
@@ -282,6 +285,9 @@ func isBadGaussTet4(coords [4]v3.Vec, xi, et, ze float64) (bool, float64) {
 	return xsj < 1e-20, xsj
 }
 
+// Reference:
+// CCX source code:
+// ccx_2.20/src/shape10tet.f
 func isBadGaussTet10(coords [10]v3.Vec, xi, et, ze float64) (bool, float64) {
 	// Coordinates of the nodes.
 	var xl [3][10]float64
