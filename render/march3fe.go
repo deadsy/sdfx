@@ -424,26 +424,37 @@ func isBadTet10(coords [10]v3.Vec) (bool, float64) {
 //-----------------------------------------------------------------------------
 
 // If triangles are degenerate, then tetrahedra will be bad.
-// TODO: Can this be used to filter bad tetrahedra?
-func degenerateTriangles(index int, points [12]v3.Vec) bool {
-	// create the triangles
-	table := mcTriangleTable[index]
-	if len(table) < 1 {
-		// There are no triangles.
-		return false
+// To filter bad tetrahedra.
+func degenerateTriangles(a, b, c, d v3.Vec) bool {
+	// 4 triangles are possible.
+	// Each triangle is a tetrahedron side.
+	t := Triangle3{}
+	t.V[0] = a
+	t.V[1] = b
+	t.V[2] = c
+	// Use the epsilon value of `vertexbuffer.go`
+	if t.Degenerate(0.0001) {
+		return true
 	}
-	count := len(table) / 3
-	for i := 0; i < count; i++ {
-		t := Triangle3{}
-		t.V[2] = points[table[i*3+0]]
-		t.V[1] = points[table[i*3+1]]
-		t.V[0] = points[table[i*3+2]]
-		// Use the epsilon value of `vertexbuffer.go`
-		if t.Degenerate(0.0001) {
-			return true
-		}
+	t.V[0] = a
+	t.V[1] = b
+	t.V[2] = d
+	// Use the epsilon value of `vertexbuffer.go`
+	if t.Degenerate(0.0001) {
+		return true
 	}
-	return false
+	t.V[0] = a
+	t.V[1] = c
+	t.V[2] = d
+	// Use the epsilon value of `vertexbuffer.go`
+	if t.Degenerate(0.0001) {
+		return true
+	}
+	t.V[0] = b
+	t.V[1] = c
+	t.V[2] = d
+	// Use the epsilon value of `vertexbuffer.go`
+	return t.Degenerate(0.0001)
 }
 
 //-----------------------------------------------------------------------------

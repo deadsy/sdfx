@@ -117,6 +117,7 @@ func mcToTet10(p [8]v3.Vec, v [8]float64, x float64, layerZ int) []*Tet10 {
 		t.V[1] = point(points, p, table[i*4+1])
 		t.V[2] = point(points, p, table[i*4+2])
 		t.V[3] = point(points, p, table[i*4+3])
+		degenerated := degenerateTriangles(t.V[0], t.V[1], t.V[2], t.V[3])
 		// Points on tetrahedron edges.
 		// Followoing CalculiX node numbering.
 		t.V[5-1] = t.V[1-1].Add(t.V[2-1]).MulScalar(0.5)
@@ -128,7 +129,7 @@ func mcToTet10(p [8]v3.Vec, v [8]float64, x float64, layerZ int) []*Tet10 {
 		// In the case of marching cubes algorithm to generate triangle, it's avoiding zero-area triangles by `!t.Degenerate(0)` check.
 		// In our case of marching cubes algorithm to generate tetrahedron, we can do a check too:
 		bad, jacobianDeterminant := isBadTet10([10]v3.Vec{t.V[0], t.V[1], t.V[2], t.V[3], t.V[4], t.V[5], t.V[6], t.V[7], t.V[8], t.V[9]})
-		if !bad {
+		if !degenerated && !bad {
 			result = append(result, &t)
 		} else {
 			fmt.Println("Bad element: tet10:", eleCount)

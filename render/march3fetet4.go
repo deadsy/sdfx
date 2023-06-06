@@ -115,11 +115,12 @@ func mcToTet4(p [8]v3.Vec, v [8]float64, x float64, layerZ int) []*Tet4 {
 		t.V[1] = point(points, p, table[i*4+1])
 		t.V[2] = point(points, p, table[i*4+2])
 		t.V[3] = point(points, p, table[i*4+3])
+		degenerated := degenerateTriangles(t.V[0], t.V[1], t.V[2], t.V[3])
 
 		// In the case of marching cubes algorithm to generate triangle, it's avoiding zero-area triangles by `!t.Degenerate(0)` check.
 		// In our case of marching cubes algorithm to generate tetrahedron, we can do a check too:
 		bad, jacobianDeterminant := isBadTet4([4]v3.Vec{t.V[0], t.V[1], t.V[2], t.V[3]})
-		if !bad {
+		if !degenerated && !bad {
 			result = append(result, &t)
 		} else {
 			fmt.Println("Bad element: tet4:", eleCount)
