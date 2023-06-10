@@ -189,7 +189,7 @@ func (l *layerXY) Get(x, y, z int) float64 {
 
 // MATHEMATICA script is available here:
 // https://math.stackexchange.com/a/4709610/197913
-func isZeroVolume(a, b, c, d v3.Vec) (bool, float64) {
+func almostFlat(a, b, c, d v3.Vec) (bool, float64) {
 	ab := b.Sub(a)
 	ac := c.Sub(a)
 	ad := d.Sub(a)
