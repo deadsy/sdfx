@@ -120,7 +120,7 @@ func mcToTet4(p [8]v3.Vec, v [8]float64, x float64, layerZ int) []*Tet4 {
 
 			// Just for debugging purposes.
 			eleCount++
-			if eleCount == 39028 {
+			if eleCount == 39028 || eleCount == 39261 || eleCount == 80983 || eleCount == 81013 || eleCount == 145748 {
 				fmt.Println("Debug element.")
 			}
 
