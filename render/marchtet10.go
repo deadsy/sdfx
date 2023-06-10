@@ -135,7 +135,9 @@ func mcToTet10(p [8]v3.Vec, v [8]float64, x float64, layerZ int) []*Tet10 {
 
 		} else {
 			fmt.Println("Bad element: tet10: last good element was: ", eleCount)
+			fmt.Println("Non-positive Jacobian determinant?", bad)
 			fmt.Println("Jacobian determinant:", jacobianDeterminant)
+			fmt.Println("Almost flat?", flat)
 			fmt.Println("Volume: ", volume)
 			fmt.Println("Degenerated?", degenerated)
 		}
