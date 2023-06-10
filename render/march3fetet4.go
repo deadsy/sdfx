@@ -105,12 +105,6 @@ func mcToTet4(p [8]v3.Vec, v [8]float64, x float64, layerZ int) []*Tet4 {
 			Layer: layerZ,
 		}
 
-		// Just for debugging purposes.
-		eleCount++
-		if eleCount == 40535 {
-			fmt.Println("Debug element.")
-		}
-
 		t.V[0] = point(points, p, table[i*4+0])
 		t.V[1] = point(points, p, table[i*4+1])
 		t.V[2] = point(points, p, table[i*4+2])
@@ -122,8 +116,15 @@ func mcToTet4(p [8]v3.Vec, v [8]float64, x float64, layerZ int) []*Tet4 {
 		bad, jacobianDeterminant := isBadTet4([4]v3.Vec{t.V[0], t.V[1], t.V[2], t.V[3]})
 		if !degenerated && !bad {
 			result = append(result, &t)
+
+			// Just for debugging purposes.
+			eleCount++
+			if eleCount == 40535 {
+				fmt.Println("Debug element.")
+			}
+
 		} else {
-			fmt.Println("Bad element: tet4:", eleCount)
+			fmt.Println("Bad element: tet4: last good element was: ", eleCount)
 			fmt.Println("Jacobian determinant:", jacobianDeterminant)
 		}
 	}

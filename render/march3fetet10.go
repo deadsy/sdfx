@@ -106,12 +106,6 @@ func mcToTet10(p [8]v3.Vec, v [8]float64, x float64, layerZ int) []*Tet10 {
 			Layer: layerZ,
 		}
 
-		// Just for debugging purposes.
-		eleCount++
-		if eleCount == 207589 {
-			fmt.Println("Debug element.")
-		}
-
 		// Points on tetrahedron corners.
 		t.V[0] = point(points, p, table[i*4+0])
 		t.V[1] = point(points, p, table[i*4+1])
@@ -131,8 +125,15 @@ func mcToTet10(p [8]v3.Vec, v [8]float64, x float64, layerZ int) []*Tet10 {
 		bad, jacobianDeterminant := isBadTet10([10]v3.Vec{t.V[0], t.V[1], t.V[2], t.V[3], t.V[4], t.V[5], t.V[6], t.V[7], t.V[8], t.V[9]})
 		if !degenerated && !bad {
 			result = append(result, &t)
+
+			// Just for debugging purposes.
+			eleCount++
+			if eleCount == 207589 {
+				fmt.Println("Debug element.")
+			}
+
 		} else {
-			fmt.Println("Bad element: tet10:", eleCount)
+			fmt.Println("Bad element: tet10: last good element was: ", eleCount)
 			fmt.Println("Jacobian determinant:", jacobianDeterminant)
 		}
 	}
