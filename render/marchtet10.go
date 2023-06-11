@@ -11,10 +11,6 @@ import (
 //-----------------------------------------------------------------------------
 
 func marchingCubesTet10(s sdf.SDF3, box sdf.Box3, step float64) []*Tet10 {
-	// Just for debugging purposes.
-	// Reset element count.
-	eleCount = 0
-
 	var fes []*Tet10
 	size := box.Size()
 	base := box.Min
@@ -126,15 +122,8 @@ func mcToTet10(p [8]v3.Vec, v [8]float64, x float64, layerZ int) []*Tet10 {
 		bad, jacobianDeterminant := isBadTet10([10]v3.Vec{t.V[0], t.V[1], t.V[2], t.V[3], t.V[4], t.V[5], t.V[6], t.V[7], t.V[8], t.V[9]})
 		if !degenerated && !bad && !flat {
 			result = append(result, &t)
-
-			// Just for debugging purposes.
-			eleCount++
-			if eleCount == 207589 {
-				fmt.Println("Debug element.")
-			}
-
 		} else {
-			fmt.Println("Bad element: tet10: last good element was: ", eleCount)
+			fmt.Println("Bad element: tet10")
 			fmt.Println("Non-positive Jacobian determinant? ", bad)
 			fmt.Println("Jacobian determinant: ", jacobianDeterminant)
 			fmt.Println("Almost flat? ", flat)
