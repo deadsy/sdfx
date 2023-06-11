@@ -219,6 +219,10 @@ func (inp *Inp) writeElements(f *os.File) error {
 	var eleID uint32
 	for l := inp.LayerStart; l < inp.LayerEnd; l++ {
 		for i := 0; i < inp.Mesh.feCountOnLayer(l); i++ {
+			if eleID+1 == 39028 {
+				fmt.Println("Debug element.")
+			}
+
 			nodes = inp.Mesh.feVertices(l, i)
 			for n := 0; n < inp.Mesh.Npe(); n++ {
 				ids[n] = inp.TempVBuff.Id(nodes[n])
@@ -227,6 +231,9 @@ func (inp *Inp) writeElements(f *os.File) error {
 			// ID starts from one not zero.
 
 			if inp.Mesh.Npe() == 4 {
+				if eleID+1 == 39028 {
+					fmt.Println("Debug element.")
+				}
 				_, err = f.WriteString(fmt.Sprintf("%d,%d,%d,%d,%d\n", eleID+1, ids[0]+1, ids[1]+1, ids[2]+1, ids[3]+1))
 			} else if inp.Mesh.Npe() == 10 {
 				_, err = f.WriteString(fmt.Sprintf("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n", eleID+1, ids[0]+1, ids[1]+1, ids[2]+1, ids[3]+1, ids[4]+1, ids[5]+1, ids[6]+1, ids[7]+1, ids[8]+1, ids[9]+1))

@@ -1,5 +1,7 @@
 package buffer
 
+import "fmt"
+
 // Index buffer for a mesh of finite elements.
 type IB struct {
 	// Every NodesPerElement indices would correspond to a finite element.
@@ -28,6 +30,19 @@ func NewIB(layerCount, nodesPerElement int) *IB {
 	return &ib
 }
 
+func hasRepeatedValues(slice []uint32) bool {
+	valueMap := make(map[uint32]bool)
+
+	for _, value := range slice {
+		if valueMap[value] {
+			return true
+		}
+		valueMap[value] = true
+	}
+
+	return false
+}
+
 // Add a finite element to buffer.
 // Layer number and nodes are input.
 // The node numbering should follow the convention of CalculiX.
@@ -40,6 +55,9 @@ func (ib *IB) AddFE(l int, nodes []uint32) {
 		panic("bad sizes: nodes of finite element")
 	}
 	ib.I[l] = append(ib.I[l], nodes...)
+	if hasRepeatedValues(nodes) {
+		fmt.Println("Bad element?")
+	}
 }
 
 // Number of layers along the Z axis.
