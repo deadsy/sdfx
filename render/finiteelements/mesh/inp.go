@@ -189,6 +189,7 @@ func (inp *Inp) writeNodes(f *os.File) error {
 	var err error
 	nodes := make([]v3.Vec, 0, inp.Mesh.Npe())
 	ids := make([]uint32, inp.Mesh.Npe())
+	var nextNode uint32 = 1 // ID starts from one not zero.
 	for l := inp.LayerStart; l < inp.LayerEnd; l++ {
 		for i := 0; i < inp.Mesh.feCountOnLayer(l); i++ {
 			// Get the node IDs.
@@ -199,11 +200,16 @@ func (inp *Inp) writeNodes(f *os.File) error {
 
 			// Write the node IDs.
 			for n := 0; n < inp.Mesh.Npe(); n++ {
-				// ID starts from one not zero.
-				_, err = f.WriteString(fmt.Sprintf("%d,%f,%f,%f\n", ids[n]+1, float32(nodes[n].X), float32(nodes[n].Y), float32(nodes[n].Z)))
-				if err != nil {
-					return err
+				// Only write node if it's not already written to file.
+				if ids[n]+1 == nextNode {
+					// ID starts from one not zero.
+					_, err = f.WriteString(fmt.Sprintf("%d,%f,%f,%f\n", ids[n]+1, float32(nodes[n].X), float32(nodes[n].Y), float32(nodes[n].Z)))
+					if err != nil {
+						return err
+					}
+					nextNode++
 				}
+
 			}
 		}
 	}
