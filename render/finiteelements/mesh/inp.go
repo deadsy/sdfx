@@ -261,6 +261,7 @@ func (inp *Inp) writeBoundary(f *os.File) error {
 	var err error
 	nodes := make([]v3.Vec, 0, inp.Mesh.Npe())
 	ids := make([]uint32, inp.Mesh.Npe())
+	var nextNode uint32 = 1 // ID starts from one not zero.
 	for l := range inp.LayersFixed {
 		for i := 0; i < inp.Mesh.feCountOnLayer(l); i++ {
 			nodes = inp.Mesh.feVertices(l, i)
@@ -270,10 +271,14 @@ func (inp *Inp) writeBoundary(f *os.File) error {
 
 			// Write the node IDs.
 			for n := 0; n < inp.Mesh.Npe(); n++ {
-				// ID starts from one not zero.
-				_, err = f.WriteString(fmt.Sprintf("%d,1,3\n", ids[n]+1))
-				if err != nil {
-					return err
+				// Only write node if it's not already written to file.
+				if ids[n]+1 == nextNode {
+					// ID starts from one not zero.
+					_, err = f.WriteString(fmt.Sprintf("%d,1,3\n", ids[n]+1))
+					if err != nil {
+						return err
+					}
+					nextNode++
 				}
 			}
 		}
