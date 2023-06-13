@@ -44,12 +44,12 @@ func (vg *VoxelGrid) Append(x, y, z int, value *Element) {
 }
 
 // To iterate over all voxels and get elements inside each voxel and do stuff with them.
-func (t *VoxelGrid) Iterate(f func(x, y, z int, value []*Element)) {
+func (t *VoxelGrid) Iterate(f func(value []*Element)) {
 	for z := 0; z < t.lenZ; z++ {
 		for y := 0; y < t.lenY; y++ {
 			for x := 0; x < t.lenX; x++ {
 				value := t.Get(x, y, z)
-				f(x, y, z, value)
+				f(value)
 			}
 		}
 	}
