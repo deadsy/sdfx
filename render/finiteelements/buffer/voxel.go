@@ -4,6 +4,21 @@ type Element struct {
 	Nodes []uint32 // Node indices
 }
 
+func (e *Element) Type() string {
+	el := ""
+	count := len(e.Nodes)
+	if count == 4 {
+		el = "C3D4"
+	} else if count == 10 {
+		el = "C3D10"
+	} else if count == 8 {
+		el = "C3D8"
+	} else if count == 20 {
+		el = "C3D20R"
+	}
+	return el
+}
+
 func NewElement(nodes []uint32) *Element {
 	e := Element{
 		Nodes: nodes,
