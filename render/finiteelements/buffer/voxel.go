@@ -42,3 +42,15 @@ func (vg *VoxelGrid) Set(x, y, z int, value []*Element) {
 func (vg *VoxelGrid) Append(x, y, z int, value *Element) {
 	vg.data[x*vg.lenY*vg.lenZ+y*vg.lenZ+z] = append(vg.data[x*vg.lenY*vg.lenZ+y*vg.lenZ+z], value)
 }
+
+// To iterate over all voxels and do stuff with them.
+func (t *VoxelGrid) Iterate(f func(x, y, z int, value []*Element)) {
+	for z := 0; z < t.lenZ; z++ {
+		for y := 0; y < t.lenY; y++ {
+			for x := 0; x < t.lenX; x++ {
+				value := t.Get(x, y, z)
+				f(x, y, z, value)
+			}
+		}
+	}
+}
