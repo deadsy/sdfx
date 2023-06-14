@@ -37,7 +37,7 @@ func fe(s sdf.SDF3, resolution int, order render.Order, shape render.Shape, pth 
 // Write finite elements to an `inp` file.
 // Written file can be used by ABAQUS or CalculiX.
 func main() {
-	stl := "../../files/hinge.stl"
+	stl := "../../files/teapot.stl"
 
 	// read the stl file.
 	file, err := os.OpenFile(stl, os.O_RDONLY, 0400)
@@ -46,43 +46,43 @@ func main() {
 	}
 
 	// create the SDF from the STL mesh
-	hingeSdf, err := obj.ImportSTL(file, 20, 3, 5)
+	teapotSdf, err := obj.ImportSTL(file, 20, 3, 5)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
 	// tet4 i.e. 4-node tetrahedron
-	err = fe(hingeSdf, 80, render.Linear, render.Tetrahedral, "hinge-tet4.inp", 0, 10)
+	err = fe(teapotSdf, 80, render.Linear, render.Tetrahedral, "teapot-tet4.inp", 0, 20)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
 	// tet10 i.e. 10-node tetrahedron
-	err = fe(hingeSdf, 80, render.Quadratic, render.Tetrahedral, "hinge-tet10.inp", 0, 10)
+	err = fe(teapotSdf, 80, render.Quadratic, render.Tetrahedral, "teapot-tet10.inp", 0, 20)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
 	// hex8 i.e. 8-node hexahedron
-	err = fe(hingeSdf, 80, render.Linear, render.Hexahedral, "hinge-hex8.inp", 0, 10)
+	err = fe(teapotSdf, 80, render.Linear, render.Hexahedral, "teapot-hex8.inp", 0, 20)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
 	// hex20 i.e. 20-node hexahedron
-	err = fe(hingeSdf, 80, render.Quadratic, render.Hexahedral, "hinge-hex20.inp", 0, 10)
+	err = fe(teapotSdf, 80, render.Quadratic, render.Hexahedral, "teapot-hex20.inp", 0, 20)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
 	// hex8 and tet4
-	err = fe(hingeSdf, 80, render.Linear, render.Both, "hinge-hex8tet4.inp", 0, 10)
+	err = fe(teapotSdf, 80, render.Linear, render.Both, "teapot-hex8tet4.inp", 0, 20)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
 	// hex20 and tet10
-	err = fe(hingeSdf, 80, render.Quadratic, render.Both, "hinge-hex20tet10.inp", 0, 10)
+	err = fe(teapotSdf, 80, render.Quadratic, render.Both, "teapot-hex20tet10.inp", 0, 20)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
