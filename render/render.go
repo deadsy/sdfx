@@ -31,10 +31,7 @@ type Render2 interface {
 
 // RenderFE renders a finite element mesh over the bounding volume of an sdf3.
 type RenderFE interface {
-	RenderTet4(sdf3 sdf.SDF3, output chan<- []*Tet4)
-	RenderTet10(sdf3 sdf.SDF3, output chan<- []*Tet10)
-	RenderHex8(sdf3 sdf.SDF3, output chan<- []*Hex8)
-	RenderHex20(sdf3 sdf.SDF3, output chan<- []*Hex20)
+	RenderFE(sdf3 sdf.SDF3, output chan<- []*Fe)
 	Info(sdf3 sdf.SDF3) string
 	LayerCounts(sdf3 sdf.SDF3) (int, int, int)
 }
@@ -62,116 +59,26 @@ func ToTriangles(
 
 //-----------------------------------------------------------------------------
 
-// ToTet4 renders an SDF3 to finite elements in the shape of 4-node tetrahedra.
-func ToTet4(
+// ToFem renders an SDF3 to finite elements in the shape of 4-node tetrahedra.
+func ToFem(
 	s sdf.SDF3, // sdf3 to render
 	r RenderFE, // rendering method
-) []Tet4 {
+) []Fe {
 	fmt.Printf("rendering %s\n", r.Info(s))
 
 	layerCountX, layerCountY, layerCountZ := r.LayerCounts(s)
 	fmt.Printf("layer counts of marching algorithm are: (%v x %v x %v)\n", layerCountX, layerCountY, layerCountZ)
 
 	// Will be filled by the rendering.
-	fes := make([]Tet4, 0)
+	fes := make([]Fe, 0)
 
 	var wg sync.WaitGroup
 
 	// Get the channel to be written to.
-	output := writeTet4(&wg, &fes)
+	output := writeFe(&wg, &fes)
 
 	// run the renderer
-	r.RenderTet4(s, output)
-	// stop the writer reading on the channel
-	close(output)
-	// wait for the file write to complete
-	wg.Wait()
-
-	return fes
-}
-
-//-----------------------------------------------------------------------------
-
-// ToTet10 renders an SDF3 to finite elements in the shape of 10-node tetrahedra.
-func ToTet10(
-	s sdf.SDF3, // sdf3 to render
-	r RenderFE, // rendering method
-) []Tet10 {
-	fmt.Printf("rendering %s\n", r.Info(s))
-
-	layerCountX, layerCountY, layerCountZ := r.LayerCounts(s)
-	fmt.Printf("layer counts of marching algorithm are: (%v x %v x %v)\n", layerCountX, layerCountY, layerCountZ)
-
-	// Will be filled by the rendering.
-	fes := make([]Tet10, 0)
-
-	var wg sync.WaitGroup
-
-	// Get the channel to be written to.
-	output := writeTet10(&wg, &fes)
-
-	// run the renderer
-	r.RenderTet10(s, output)
-	// stop the writer reading on the channel
-	close(output)
-	// wait for the file write to complete
-	wg.Wait()
-
-	return fes
-}
-
-//-----------------------------------------------------------------------------
-
-// ToHex8 renders an SDF3 to finite elements in the shape of 8-node hexahedra.
-func ToHex8(
-	s sdf.SDF3, // sdf3 to render
-	r RenderFE, // rendering method
-) []Hex8 {
-	fmt.Printf("rendering %s\n", r.Info(s))
-
-	layerCountX, layerCountY, layerCountZ := r.LayerCounts(s)
-	fmt.Printf("layer counts of marching algorithm are: (%v x %v x %v)\n", layerCountX, layerCountY, layerCountZ)
-
-	// Will be filled by the rendering.
-	fes := make([]Hex8, 0)
-
-	var wg sync.WaitGroup
-
-	// Get the channel to be written to.
-	output := writeHex8(&wg, &fes)
-
-	// run the renderer
-	r.RenderHex8(s, output)
-	// stop the writer reading on the channel
-	close(output)
-	// wait for the file write to complete
-	wg.Wait()
-
-	return fes
-}
-
-//-----------------------------------------------------------------------------
-
-// ToHex20 renders an SDF3 to finite elements in the shape of 8-node hexahedra.
-func ToHex20(
-	s sdf.SDF3, // sdf3 to render
-	r RenderFE, // rendering method
-) []Hex20 {
-	fmt.Printf("rendering %s\n", r.Info(s))
-
-	layerCountX, layerCountY, layerCountZ := r.LayerCounts(s)
-	fmt.Printf("layer counts of marching algorithm are: (%v x %v x %v)\n", layerCountX, layerCountY, layerCountZ)
-
-	// Will be filled by the rendering.
-	fes := make([]Hex20, 0)
-
-	var wg sync.WaitGroup
-
-	// Get the channel to be written to.
-	output := writeHex20(&wg, &fes)
-
-	// run the renderer
-	r.RenderHex20(s, output)
+	r.RenderFE(s, output)
 	// stop the writer reading on the channel
 	close(output)
 	// wait for the file write to complete

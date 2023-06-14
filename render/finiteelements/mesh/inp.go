@@ -12,13 +12,19 @@ import (
 // Inp writes different types of finite elements as ABAQUS or CalculiX `inp` file.
 type Inp struct {
 	// Finite elements mesh.
-	Mesh FE
+	Mesh *Fem
 	// Output `inp` file path.
 	Path string
 	// For writing nodes to a separate file.
 	PathNodes string
 	// For writing elements to a separate file.
-	PathEls string
+	PathElsC3D4 string
+	// For writing elements to a separate file.
+	PathElsC3D10 string
+	// For writing elements to a separate file.
+	PathElsC3D8 string
+	// For writing elements to a separate file.
+	PathElsC3D20R string
 	// For writing boundary conditions to a separate file.
 	PathBou string
 	// Output `inp` file would include start layer.
@@ -33,29 +39,38 @@ type Inp struct {
 	MassDensity  float32
 	YoungModulus float32
 	PoissonRatio float32
+	// Just a counter to keep track of written elements
+	eleID uint32
+	// Just a counter to keep track of written nodes
+	nextNode uint32
+	// Just a counter to keep track of written boundaries
+	nextNodeBou uint32
 }
 
 // NewInp sets up a new writer.
 func NewInp(
-	m FE,
+	m *Fem,
 	path string,
 	layerStart, layerEnd int,
 	layersFixed []int,
 	massDensity float32, youngModulus float32, poissonRatio float32,
 ) *Inp {
 	return &Inp{
-		Mesh:         m,
-		Path:         path,
-		PathNodes:    path + ".nodes",
-		PathEls:      path + ".elements",
-		PathBou:      path + ".boundary",
-		LayerStart:   layerStart,
-		LayerEnd:     layerEnd,
-		LayersFixed:  layersFixed,
-		TempVBuff:    buffer.NewVB(),
-		MassDensity:  massDensity,
-		YoungModulus: youngModulus,
-		PoissonRatio: poissonRatio,
+		Mesh:          m,
+		Path:          path,
+		PathNodes:     path + ".nodes",
+		PathElsC3D4:   path + ".elements_C3D4",
+		PathElsC3D10:  path + ".elements_C3D10",
+		PathElsC3D8:   path + ".elements_C3D8",
+		PathElsC3D20R: path + ".elements_C3D20R",
+		PathBou:       path + ".boundary",
+		LayerStart:    layerStart,
+		LayerEnd:      layerEnd,
+		LayersFixed:   layersFixed,
+		TempVBuff:     buffer.NewVB(),
+		MassDensity:   massDensity,
+		YoungModulus:  youngModulus,
+		PoissonRatio:  poissonRatio,
 	}
 }
 
@@ -74,74 +89,49 @@ func (inp *Inp) Write() error {
 
 	// Write nodes.
 
-	_, err = f.WriteString("*NODE\n")
-	if err != nil {
-		return err
-	}
-
 	// Include a separate file to avoid cluttering the `inp` file.
 	_, err = f.WriteString(fmt.Sprintf("*INCLUDE,INPUT=%s\n", inp.PathNodes))
 	if err != nil {
 		return err
 	}
 
-	// Write to a separate file to avoid cluttering the `inp` file.
-	fNodes, err := os.Create(inp.PathNodes)
-	if err != nil {
-		return err
-	}
-	defer fNodes.Close()
-
 	// Temp buffer is just to avoid writing repeated nodes into the `inpt` file.
 	defer inp.TempVBuff.DestroyHashTable()
 
-	err = inp.writeNodes(fNodes)
+	err = inp.writeNodes()
 	if err != nil {
 		return err
 	}
 
 	// Write elements.
 
-	ElementType := ""
-	if inp.Mesh.Npe() == 4 {
-		ElementType = "C3D4"
-	} else if inp.Mesh.Npe() == 10 {
-		ElementType = "C3D10"
-	} else if inp.Mesh.Npe() == 8 {
-		ElementType = "C3D8"
-	} else if inp.Mesh.Npe() == 20 {
-		ElementType = "C3D20R"
-	}
-
-	_, err = f.WriteString(fmt.Sprintf("*ELEMENT, TYPE=%s, ELSET=Eall\n", ElementType))
-	if err != nil {
-		return err
-	}
-
 	// Include a separate file to avoid cluttering the `inp` file.
-	_, err = f.WriteString(fmt.Sprintf("*INCLUDE,INPUT=%s\n", inp.PathEls))
+	_, err = f.WriteString(fmt.Sprintf("*INCLUDE,INPUT=%s\n", inp.PathElsC3D4))
+	if err != nil {
+		return err
+	}
+	// Include a separate file to avoid cluttering the `inp` file.
+	_, err = f.WriteString(fmt.Sprintf("*INCLUDE,INPUT=%s\n", inp.PathElsC3D10))
+	if err != nil {
+		return err
+	}
+	// Include a separate file to avoid cluttering the `inp` file.
+	_, err = f.WriteString(fmt.Sprintf("*INCLUDE,INPUT=%s\n", inp.PathElsC3D8))
+	if err != nil {
+		return err
+	}
+	// Include a separate file to avoid cluttering the `inp` file.
+	_, err = f.WriteString(fmt.Sprintf("*INCLUDE,INPUT=%s\n", inp.PathElsC3D20R))
 	if err != nil {
 		return err
 	}
 
-	// Write to a separate file to avoid cluttering the `inp` file.
-	fEls, err := os.Create(inp.PathEls)
-	if err != nil {
-		return err
-	}
-	defer fEls.Close()
-
-	err = inp.writeElements(fEls)
+	err = inp.writeElements()
 	if err != nil {
 		return err
 	}
 
 	// Fix the degrees of freedom one through three for all nodes on specific layers.
-
-	_, err = f.WriteString("*BOUNDARY\n")
-	if err != nil {
-		return err
-	}
 
 	// Include a separate file to avoid cluttering the `inp` file.
 	_, err = f.WriteString(fmt.Sprintf("*INCLUDE,INPUT=%s\n", inp.PathBou))
@@ -149,14 +139,7 @@ func (inp *Inp) Write() error {
 		return err
 	}
 
-	// Write to a separate file to avoid cluttering the `inp` file.
-	fBou, err := os.Create(inp.PathBou)
-	if err != nil {
-		return err
-	}
-	defer fBou.Close()
-
-	err = inp.writeBoundary(fBou)
+	err = inp.writeBoundary()
 	if err != nil {
 		return err
 	}
@@ -165,7 +148,8 @@ func (inp *Inp) Write() error {
 }
 
 func (inp *Inp) writeHeader(f *os.File) error {
-	if 0 <= inp.LayerStart && inp.LayerStart < inp.LayerEnd && inp.LayerEnd <= inp.Mesh.layerCount() {
+	_, _, layersZ := inp.Mesh.Size()
+	if 0 <= inp.LayerStart && inp.LayerStart < inp.LayerEnd && inp.LayerEnd <= layersZ {
 		// Good.
 	} else {
 		return fmt.Errorf("start or end layer is beyond range")
@@ -184,105 +168,219 @@ func (inp *Inp) writeHeader(f *os.File) error {
 	return nil
 }
 
-func (inp *Inp) writeNodes(f *os.File) error {
-	// Declare vars outside loop for efficiency.
-	var err error
-	nodes := make([]v3.Vec, 0, inp.Mesh.Npe())
-	ids := make([]uint32, inp.Mesh.Npe())
-	var nextNode uint32 = 1 // ID starts from one not zero.
-	for l := inp.LayerStart; l < inp.LayerEnd; l++ {
-		for i := 0; i < inp.Mesh.feCountOnLayer(l); i++ {
-			// Get the node IDs.
-			nodes = inp.Mesh.feVertices(l, i)
-			for n := 0; n < inp.Mesh.Npe(); n++ {
-				ids[n] = inp.TempVBuff.Id(nodes[n])
+func (inp *Inp) writeNodes() error {
+	// Write to a separate file to avoid cluttering the `inp` file.
+	f, err := os.Create(inp.PathNodes)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	_, err = f.WriteString("*NODE\n")
+	if err != nil {
+		return err
+	}
+
+	var process func(int, int, int, []*buffer.Element)
+
+	inp.nextNode = 1 // ID starts from one not zero.
+
+	process = func(x, y, z int, els []*buffer.Element) {
+		if z >= inp.LayerStart && z < inp.LayerEnd {
+			// Good.
+		} else {
+			return
+		}
+
+		for _, el := range els {
+			vertices := make([]v3.Vec, len(el.Nodes))
+			ids := make([]uint32, len(el.Nodes))
+			for n := 0; n < len(el.Nodes); n++ {
+				vertices[n] = inp.Mesh.vertex(el.Nodes[n])
+				ids[n] = inp.TempVBuff.Id(vertices[n])
 			}
 
 			// Write the node IDs.
-			for n := 0; n < inp.Mesh.Npe(); n++ {
+			for n := 0; n < len(el.Nodes); n++ {
 				// Only write node if it's not already written to file.
-				if ids[n]+1 == nextNode {
+				if ids[n]+1 == inp.nextNode {
 					// ID starts from one not zero.
-					_, err = f.WriteString(fmt.Sprintf("%d,%f,%f,%f\n", ids[n]+1, float32(nodes[n].X), float32(nodes[n].Y), float32(nodes[n].Z)))
+					_, err = f.WriteString(fmt.Sprintf("%d,%f,%f,%f\n", ids[n]+1, float32(vertices[n].X), float32(vertices[n].Y), float32(vertices[n].Z)))
 					if err != nil {
-						return err
+						panic("Couldn't write node to file: " + err.Error())
 					}
-					nextNode++
+					inp.nextNode++
 				}
 
 			}
 		}
 	}
 
+	inp.Mesh.iterate(process)
+
 	return nil
 }
 
-func (inp *Inp) writeElements(f *os.File) error {
-	// Declare vars outside loop for efficiency.
-	var err error
-	nodes := make([]v3.Vec, 0, inp.Mesh.Npe())
-	ids := make([]uint32, inp.Mesh.Npe())
-	var eleID uint32
-	for l := inp.LayerStart; l < inp.LayerEnd; l++ {
-		for i := 0; i < inp.Mesh.feCountOnLayer(l); i++ {
-			nodes = inp.Mesh.feVertices(l, i)
-			for n := 0; n < inp.Mesh.Npe(); n++ {
-				ids[n] = inp.TempVBuff.Id(nodes[n])
+func (inp *Inp) writeElements() error {
+	// Write to a separate file to avoid cluttering the `inp` file.
+	fC3D4, err := os.Create(inp.PathElsC3D4)
+	if err != nil {
+		return err
+	}
+	defer fC3D4.Close()
+
+	// Write to a separate file to avoid cluttering the `inp` file.
+	fC3D10, err := os.Create(inp.PathElsC3D10)
+	if err != nil {
+		return err
+	}
+	defer fC3D10.Close()
+
+	// Write to a separate file to avoid cluttering the `inp` file.
+	fC3D8, err := os.Create(inp.PathElsC3D8)
+	if err != nil {
+		return err
+	}
+	defer fC3D8.Close()
+
+	// Write to a separate file to avoid cluttering the `inp` file.
+	fC3D20R, err := os.Create(inp.PathElsC3D20R)
+	if err != nil {
+		return err
+	}
+	defer fC3D20R.Close()
+
+	_, err = fC3D4.WriteString(fmt.Sprintf("*ELEMENT, TYPE=%s, ELSET=eC3D4\n", "C3D4"))
+	if err != nil {
+		return err
+	}
+
+	_, err = fC3D10.WriteString(fmt.Sprintf("*ELEMENT, TYPE=%s, ELSET=e3D10\n", "C3D10"))
+	if err != nil {
+		return err
+	}
+
+	_, err = fC3D8.WriteString(fmt.Sprintf("*ELEMENT, TYPE=%s, ELSET=eC3D8\n", "C3D8"))
+	if err != nil {
+		return err
+	}
+
+	_, err = fC3D20R.WriteString(fmt.Sprintf("*ELEMENT, TYPE=%s, ELSET=eC3D20R\n", "C3D20R"))
+	if err != nil {
+		return err
+	}
+
+	// Define a function variable with the signature
+	var process func(int, int, int, []*buffer.Element)
+	// Assign a function literal to the variable
+	process = func(x, y, z int, els []*buffer.Element) {
+		if z >= inp.LayerStart && z < inp.LayerEnd {
+			// Good.
+		} else {
+			return
+		}
+		for _, el := range els {
+			ids := make([]uint32, len(el.Nodes))
+			for n := 0; n < len(el.Nodes); n++ {
+				vertex := inp.Mesh.vertex(el.Nodes[n])
+				ids[n] = inp.TempVBuff.Id(vertex)
 			}
 
 			// ID starts from one not zero.
 
-			if inp.Mesh.Npe() == 4 {
-				_, err = f.WriteString(fmt.Sprintf("%d,%d,%d,%d,%d\n", eleID+1, ids[0]+1, ids[1]+1, ids[2]+1, ids[3]+1))
-			} else if inp.Mesh.Npe() == 10 {
-				_, err = f.WriteString(fmt.Sprintf("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n", eleID+1, ids[0]+1, ids[1]+1, ids[2]+1, ids[3]+1, ids[4]+1, ids[5]+1, ids[6]+1, ids[7]+1, ids[8]+1, ids[9]+1))
-			} else if inp.Mesh.Npe() == 8 {
-				_, err = f.WriteString(fmt.Sprintf("%d,%d,%d,%d,%d,%d,%d,%d,%d\n", eleID+1, ids[0]+1, ids[1]+1, ids[2]+1, ids[3]+1, ids[4]+1, ids[5]+1, ids[6]+1, ids[7]+1))
-			} else if inp.Mesh.Npe() == 20 {
-				// There should not be more than 16 entries in a line;
-				// That's why there is new line in the middle.
-				// Refer to CalculiX solver documentation:
-				// http://www.dhondt.de/ccx_2.20.pdf
-				_, err = f.WriteString(fmt.Sprintf("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,\n%d,%d,%d,%d,%d\n", eleID+1, ids[0]+1, ids[1]+1, ids[2]+1, ids[3]+1, ids[4]+1, ids[5]+1, ids[6]+1, ids[7]+1, ids[8]+1, ids[9]+1, ids[10]+1, ids[11]+1, ids[12]+1, ids[13]+1, ids[14]+1, ids[15]+1, ids[16]+1, ids[17]+1, ids[18]+1, ids[19]+1))
+			switch el.Type() {
+			case buffer.C3D4:
+				{
+					_, err = fC3D4.WriteString(fmt.Sprintf("%d,%d,%d,%d,%d\n", inp.eleID+1, ids[0]+1, ids[1]+1, ids[2]+1, ids[3]+1))
+				}
+			case buffer.C3D10:
+				{
+					_, err = fC3D10.WriteString(fmt.Sprintf("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n", inp.eleID+1, ids[0]+1, ids[1]+1, ids[2]+1, ids[3]+1, ids[4]+1, ids[5]+1, ids[6]+1, ids[7]+1, ids[8]+1, ids[9]+1))
+				}
+			case buffer.C3D8:
+				{
+					_, err = fC3D8.WriteString(fmt.Sprintf("%d,%d,%d,%d,%d,%d,%d,%d,%d\n", inp.eleID+1, ids[0]+1, ids[1]+1, ids[2]+1, ids[3]+1, ids[4]+1, ids[5]+1, ids[6]+1, ids[7]+1))
+				}
+			case buffer.C3D20R:
+				{
+					// There should not be more than 16 entries in a line;
+					// That's why there is new line in the middle.
+					// Refer to CalculiX solver documentation:
+					// http://www.dhondt.de/ccx_2.20.pdf
+					_, err = fC3D20R.WriteString(fmt.Sprintf("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,\n%d,%d,%d,%d,%d\n", inp.eleID+1, ids[0]+1, ids[1]+1, ids[2]+1, ids[3]+1, ids[4]+1, ids[5]+1, ids[6]+1, ids[7]+1, ids[8]+1, ids[9]+1, ids[10]+1, ids[11]+1, ids[12]+1, ids[13]+1, ids[14]+1, ids[15]+1, ids[16]+1, ids[17]+1, ids[18]+1, ids[19]+1))
+				}
+			case buffer.Unknown:
+				{
+					fmt.Println("Element has unknown type :(")
+				}
 			}
 
 			if err != nil {
-				return err
+				panic("Couldn't write finite element to file: " + err.Error())
 			}
-			eleID++
+
+			inp.eleID++
 		}
 	}
+
+	inp.Mesh.iterate(process)
 
 	return nil
 }
 
-func (inp *Inp) writeBoundary(f *os.File) error {
-	// Declare vars outside loop for efficiency.
-	var err error
-	nodes := make([]v3.Vec, 0, inp.Mesh.Npe())
-	ids := make([]uint32, inp.Mesh.Npe())
-	var nextNode uint32 = 1 // ID starts from one not zero.
-	for l := range inp.LayersFixed {
-		for i := 0; i < inp.Mesh.feCountOnLayer(l); i++ {
-			nodes = inp.Mesh.feVertices(l, i)
-			for n := 0; n < inp.Mesh.Npe(); n++ {
-				ids[n] = inp.TempVBuff.Id(nodes[n])
+func (inp *Inp) writeBoundary() error {
+	// Write to a separate file to avoid cluttering the `inp` file.
+	f, err := os.Create(inp.PathBou)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	_, err = f.WriteString("*BOUNDARY\n")
+	if err != nil {
+		return err
+	}
+
+	var process func(int, int, int, []*buffer.Element)
+
+	inp.nextNodeBou = 1 // ID starts from one not zero.
+
+	process = func(x, y, z int, els []*buffer.Element) {
+		var isLayerFixed bool
+		for _, l := range inp.LayersFixed {
+			if l == z {
+				isLayerFixed = true
+			}
+		}
+
+		if !isLayerFixed {
+			return
+		}
+
+		for _, el := range els {
+			vertices := make([]v3.Vec, len(el.Nodes))
+			ids := make([]uint32, len(el.Nodes))
+			for n := 0; n < len(el.Nodes); n++ {
+				vertices[n] = inp.Mesh.vertex(el.Nodes[n])
+				ids[n] = inp.TempVBuff.Id(vertices[n])
 			}
 
 			// Write the node IDs.
-			for n := 0; n < inp.Mesh.Npe(); n++ {
+			for n := 0; n < len(el.Nodes); n++ {
 				// Only write node if it's not already written to file.
-				if ids[n]+1 == nextNode {
+				if ids[n]+1 == inp.nextNodeBou {
 					// ID starts from one not zero.
 					_, err = f.WriteString(fmt.Sprintf("%d,1,3\n", ids[n]+1))
 					if err != nil {
-						return err
+						panic("Couldn't write boundary to file: " + err.Error())
 					}
-					nextNode++
+					inp.nextNodeBou++
 				}
 			}
 		}
 	}
+
+	inp.Mesh.iterate(process)
 
 	return nil
 }
@@ -313,7 +411,25 @@ func (inp *Inp) writeFooter(f *os.File) error {
 	}
 
 	// Assign material to all elements
-	_, err = f.WriteString("*SOLID SECTION,MATERIAL=resin,ELSET=Eall\n")
+	_, err = f.WriteString("*SOLID SECTION,MATERIAL=resin,ELSET=eC3D4\n")
+	if err != nil {
+		return err
+	}
+
+	// Assign material to all elements
+	_, err = f.WriteString("*SOLID SECTION,MATERIAL=resin,ELSET=e3D10\n")
+	if err != nil {
+		return err
+	}
+
+	// Assign material to all elements
+	_, err = f.WriteString("*SOLID SECTION,MATERIAL=resin,ELSET=eC3D8\n")
+	if err != nil {
+		return err
+	}
+
+	// Assign material to all elements
+	_, err = f.WriteString("*SOLID SECTION,MATERIAL=resin,ELSET=eC3D20R\n")
 	if err != nil {
 		return err
 	}
@@ -340,7 +456,19 @@ func (inp *Inp) writeFooter(f *os.File) error {
 	//
 	// Refer to CalculiX solver documentation:
 	// http://www.dhondt.de/ccx_2.20.pdf
-	_, err = f.WriteString("Eall,GRAV,9810.,0.,0.,1.\n")
+	_, err = f.WriteString("eC3D4,GRAV,9810.,0.,0.,1.\n")
+	if err != nil {
+		return err
+	}
+	_, err = f.WriteString("e3D10,GRAV,9810.,0.,0.,1.\n")
+	if err != nil {
+		return err
+	}
+	_, err = f.WriteString("eC3D8,GRAV,9810.,0.,0.,1.\n")
+	if err != nil {
+		return err
+	}
+	_, err = f.WriteString("eC3D20R,GRAV,9810.,0.,0.,1.\n")
 	if err != nil {
 		return err
 	}

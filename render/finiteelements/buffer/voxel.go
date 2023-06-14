@@ -4,19 +4,28 @@ type Element struct {
 	Nodes []uint32 // Node indices
 }
 
-func (e *Element) Type() string {
-	el := ""
-	count := len(e.Nodes)
-	if count == 4 {
-		el = "C3D4"
-	} else if count == 10 {
-		el = "C3D10"
-	} else if count == 8 {
-		el = "C3D8"
-	} else if count == 20 {
-		el = "C3D20R"
+// Declare the enum using iota and const
+type ElementType int
+
+const (
+	C3D4 ElementType = iota + 1
+	C3D10
+	C3D8
+	C3D20R
+	Unknown
+)
+
+func (e *Element) Type() ElementType {
+	if len(e.Nodes) == 4 {
+		return C3D4
+	} else if len(e.Nodes) == 10 {
+		return C3D10
+	} else if len(e.Nodes) == 8 {
+		return C3D8
+	} else if len(e.Nodes) == 20 {
+		return C3D20R
 	}
-	return el
+	return Unknown
 }
 
 func NewElement(nodes []uint32) *Element {
@@ -43,6 +52,10 @@ func NewVoxelGrid(x, y, z int) *VoxelGrid {
 	}
 }
 
+func (vg *VoxelGrid) Size() (int, int, int) {
+	return vg.lenX, vg.lenY, vg.lenZ
+}
+
 // To get all the elements inside a voxel.
 func (vg *VoxelGrid) Get(x, y, z int) []*Element {
 	return vg.data[x*vg.lenY*vg.lenZ+y*vg.lenZ+z]
@@ -59,12 +72,12 @@ func (vg *VoxelGrid) Append(x, y, z int, value *Element) {
 }
 
 // To iterate over all voxels and get elements inside each voxel and do stuff with them.
-func (vg *VoxelGrid) Iterate(f func([]*Element)) {
+func (vg *VoxelGrid) Iterate(f func(int, int, int, []*Element)) {
 	for z := 0; z < vg.lenZ; z++ {
 		for y := 0; y < vg.lenY; y++ {
 			for x := 0; x < vg.lenX; x++ {
 				value := vg.Get(x, y, z)
-				f(value)
+				f(x, y, z, value)
 			}
 		}
 	}

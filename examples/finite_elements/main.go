@@ -19,89 +19,17 @@ import (
 	"github.com/deadsy/sdfx/sdf"
 )
 
-// 4-node tetrahedral elements.
-func tet4(s sdf.SDF3, resolution int, pth string) error {
+// Generate finite elements.
+func fe(s sdf.SDF3, resolution int, order render.Order, shape render.Shape, pth string, layerStart, layerEnd int) error {
 	// Create a mesh out of finite elements.
-	m, _ := mesh.NewTet4(s, render.NewMarchingCubesFEUniform(resolution))
-
-	lyrStart := 0
-	lyrEnd := 20
+	m, _ := mesh.NewFem(s, render.NewMarchingCubesFEUniform(resolution, order, shape))
 
 	// Write just some layers of mesh to a file.
-	err := m.WriteInpLayers(pth, lyrStart, lyrEnd, []int{0, 1, 2}, 1.25e-9, 900, 0.3)
+	err := m.WriteInpLayers(pth, layerStart, layerEnd, []int{0, 1, 2}, 1.25e-9, 900, 0.3)
 	if err != nil {
 		return err
 	}
 
-	return nil
-}
-
-// 10-node tetrahedral elements.
-func tet10(s sdf.SDF3, resolution int, pth string) error {
-	// Create a mesh out of finite elements.
-	m, _ := mesh.NewTet10(s, render.NewMarchingCubesFEUniform(resolution))
-
-	lyrStart := 0
-	lyrEnd := 20
-
-	// Write just some layers of mesh to a file.
-	err := m.WriteInpLayers(pth, lyrStart, lyrEnd, []int{0, 1, 2}, 1.25e-9, 900, 0.3)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// 8-node hexahedral elements.
-func hex8(s sdf.SDF3, resolution int, pth string) error {
-	// Create a mesh out of finite elements.
-	m, _ := mesh.NewHex8(s, render.NewMarchingCubesFEUniform(resolution))
-
-	lyrStart := 0
-	lyrEnd := 20
-
-	// Write just some layers of mesh to a file.
-	//
-	// Units are mm,N,sec.
-	// Force per area = N/mm2 or MPa
-	// Mass density = Ns2/mm4
-	// Refer to the "Units" chapter of:
-	// http://www.dhondt.de/ccx_2.20.pdf
-	//
-	// Mechanical properties are based on typical SLA resins.
-	//
-	// TODO: Correct resin specifications.
-	err := m.WriteInpLayers(pth, lyrStart, lyrEnd, []int{0, 1, 2}, 1.25e-9, 900, 0.3)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// 20-node hexahedral elements.
-func hex20(s sdf.SDF3, resolution int, pth string) error {
-	// Create a mesh out of finite elements.
-	m, _ := mesh.NewHex20(s, render.NewMarchingCubesFEUniform(resolution))
-
-	lyrStart := 0
-	lyrEnd := 20
-
-	// Write just some layers of mesh to a file.
-	//
-	// Units are mm,N,sec.
-	// Force per area = N/mm2 or MPa
-	// Mass density = Ns2/mm4
-	// Refer to the "Units" chapter of:
-	// http://www.dhondt.de/ccx_2.20.pdf
-	//
-	// Mechanical properties are based on typical SLA resins.
-	//
-	// TODO: Correct resin specifications.
-	err := m.WriteInpLayers(pth, lyrStart, lyrEnd, []int{0, 1, 2}, 1.25e-9, 900, 0.3)
-	if err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -123,22 +51,38 @@ func main() {
 		log.Fatalf("error: %s", err)
 	}
 
-	err = tet4(teapotSdf, 80, "teapot-tet4.inp")
+	// tet4 i.e. 4-node tetrahedron
+	err = fe(teapotSdf, 80, render.Linear, render.Tetrahedral, "teapot-tet4.inp", 0, 20)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
-	err = tet10(teapotSdf, 80, "teapot-tet10.inp")
+	// tet10 i.e. 10-node tetrahedron
+	err = fe(teapotSdf, 80, render.Quadratic, render.Tetrahedral, "teapot-tet10.inp", 0, 20)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
-	err = hex8(teapotSdf, 80, "teapot-hex8.inp")
+	// hex8 i.e. 8-node hexahedron
+	err = fe(teapotSdf, 80, render.Linear, render.Hexahedral, "teapot-hex8.inp", 0, 20)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
-	err = hex20(teapotSdf, 80, "teapot-hex20.inp")
+	// hex20 i.e. 20-node hexahedron
+	err = fe(teapotSdf, 80, render.Quadratic, render.Hexahedral, "teapot-hex20.inp", 0, 20)
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+
+	// hex8 and tet4
+	err = fe(teapotSdf, 80, render.Linear, render.Both, "teapot-hex8tet4.inp", 0, 20)
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+
+	// hex20 and tet10
+	err = fe(teapotSdf, 80, render.Quadratic, render.Both, "teapot-hex20tet10.inp", 0, 20)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}

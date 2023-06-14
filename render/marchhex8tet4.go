@@ -8,8 +8,7 @@ import (
 
 //-----------------------------------------------------------------------------
 
-func marchingCubesHex20(s sdf.SDF3, box sdf.Box3, step float64) []*Fe {
-
+func marchingCubesHex8Tet4(s sdf.SDF3, box sdf.Box3, step float64) []*Fe {
 	var fes []*Fe
 	size := box.Size()
 	base := box.Min
@@ -57,7 +56,7 @@ func marchingCubesHex20(s sdf.SDF3, box sdf.Box3, step float64) []*Fe {
 					l.Get(1, y, z+1),
 					l.Get(1, y+1, z+1),
 					l.Get(0, y+1, z+1)}
-				fes = append(fes, mcToHex20(corners, values, 0, x, y, z)...)
+				fes = append(fes, mcToHex8Tet4(corners, values, 0, x, y, z)...)
 				p.Z += dz
 			}
 			p.Y += dy
@@ -70,61 +69,11 @@ func marchingCubesHex20(s sdf.SDF3, box sdf.Box3, step float64) []*Fe {
 
 //-----------------------------------------------------------------------------
 
-func mcToHex20(p [8]v3.Vec, v [8]float64, x float64, layerX, layerY, layerZ int) []*Fe {
-	result := make([]*Fe, 0)
+func mcToHex8Tet4(p [8]v3.Vec, v [8]float64, x float64, layerX, layerY, layerZ int) []*Fe {
+	result := mcToHex8(p, v, x, layerX, layerY, layerZ)
 
-	anyPositive := false
-	for i := 0; i < 8; i++ {
-		if v[i] > 0 {
-			anyPositive = true
-			break
-		}
-	}
-
-	// Create a finite element if all 8 values are non-positive.
-	// Finite element is inside the 3D model if all values are non-positive.
-	// Of course, some spaces are missed by this approach.
-	//
-	// TODO: Come up with a more sophisticated approach?
-
-	if !anyPositive {
-		fe := Fe{
-			V: make([]v3.Vec, 20),
-			X: layerX,
-			Y: layerY,
-			Z: layerZ,
-		}
-
-		// Refer to CalculiX solver documentation:
-		// http://www.dhondt.de/ccx_2.20.pdf
-
-		// Points on cube corners:
-		fe.V[7] = p[7]
-		fe.V[6] = p[6]
-		fe.V[5] = p[5]
-		fe.V[4] = p[4]
-		fe.V[3] = p[3]
-		fe.V[2] = p[2]
-		fe.V[1] = p[1]
-		fe.V[0] = p[0]
-
-		// Points on cube edges:
-		fe.V[8] = p[0].Add(p[1]).MulScalar(0.5)
-		fe.V[9] = p[1].Add(p[2]).MulScalar(0.5)
-		fe.V[10] = p[2].Add(p[3]).MulScalar(0.5)
-		fe.V[11] = p[3].Add(p[0]).MulScalar(0.5)
-
-		fe.V[12] = p[4].Add(p[5]).MulScalar(0.5)
-		fe.V[13] = p[5].Add(p[6]).MulScalar(0.5)
-		fe.V[14] = p[6].Add(p[7]).MulScalar(0.5)
-		fe.V[15] = p[7].Add(p[4]).MulScalar(0.5)
-
-		fe.V[16] = p[0].Add(p[4]).MulScalar(0.5)
-		fe.V[17] = p[1].Add(p[5]).MulScalar(0.5)
-		fe.V[18] = p[2].Add(p[6]).MulScalar(0.5)
-		fe.V[19] = p[3].Add(p[7]).MulScalar(0.5)
-
-		result = append(result, &fe)
+	if len(result) < 1 {
+		result = mcToTet4(p, v, x, layerX, layerY, layerZ)
 	}
 
 	return result

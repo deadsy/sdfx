@@ -8,9 +8,9 @@ import (
 
 //-----------------------------------------------------------------------------
 
-func marchingCubesHex8(s sdf.SDF3, box sdf.Box3, step float64) []*Hex8 {
+func marchingCubesHex8(s sdf.SDF3, box sdf.Box3, step float64) []*Fe {
 
-	var fes []*Hex8
+	var fes []*Fe
 	size := box.Size()
 	base := box.Min
 	steps := conv.V3ToV3i(size.DivScalar(step).Ceil())
@@ -57,7 +57,7 @@ func marchingCubesHex8(s sdf.SDF3, box sdf.Box3, step float64) []*Hex8 {
 					l.Get(1, y, z+1),
 					l.Get(1, y+1, z+1),
 					l.Get(0, y+1, z+1)}
-				fes = append(fes, mcToHex8(corners, values, 0, z)...)
+				fes = append(fes, mcToHex8(corners, values, 0, x, y, z)...)
 				p.Z += dz
 			}
 			p.Y += dy
@@ -70,8 +70,8 @@ func marchingCubesHex8(s sdf.SDF3, box sdf.Box3, step float64) []*Hex8 {
 
 //-----------------------------------------------------------------------------
 
-func mcToHex8(p [8]v3.Vec, v [8]float64, x float64, layerZ int) []*Hex8 {
-	result := make([]*Hex8, 0)
+func mcToHex8(p [8]v3.Vec, v [8]float64, x float64, layerX, layerY, layerZ int) []*Fe {
+	result := make([]*Fe, 0)
 
 	anyPositive := false
 	for i := 0; i < 8; i++ {
@@ -88,9 +88,11 @@ func mcToHex8(p [8]v3.Vec, v [8]float64, x float64, layerZ int) []*Hex8 {
 	// TODO: Come up with a more sophisticated approach?
 
 	if !anyPositive {
-		fe := Hex8{
-			V:     [8]v3.Vec{},
-			Layer: layerZ,
+		fe := Fe{
+			V: make([]v3.Vec, 8),
+			X: layerX,
+			Y: layerY,
+			Z: layerZ,
 		}
 
 		// Refer to CalculiX solver documentation:

@@ -10,8 +10,8 @@ import (
 
 //-----------------------------------------------------------------------------
 
-func marchingCubesTet10(s sdf.SDF3, box sdf.Box3, step float64) []*Tet10 {
-	var fes []*Tet10
+func marchingCubesTet10(s sdf.SDF3, box sdf.Box3, step float64) []*Fe {
+	var fes []*Fe
 	size := box.Size()
 	base := box.Min
 	steps := conv.V3ToV3i(size.DivScalar(step).Ceil())
@@ -59,7 +59,7 @@ func marchingCubesTet10(s sdf.SDF3, box sdf.Box3, step float64) []*Tet10 {
 					l.Get(x+1, y+1, 1),
 					l.Get(x, y+1, 1),
 				}
-				fes = append(fes, mcToTet10(corners, values, 0, z)...)
+				fes = append(fes, mcToTet10(corners, values, 0, x, y, z)...)
 				p.Y += dy
 			}
 			p.X += dx
@@ -72,7 +72,7 @@ func marchingCubesTet10(s sdf.SDF3, box sdf.Box3, step float64) []*Tet10 {
 
 //-----------------------------------------------------------------------------
 
-func mcToTet10(p [8]v3.Vec, v [8]float64, x float64, layerZ int) []*Tet10 {
+func mcToTet10(p [8]v3.Vec, v [8]float64, x float64, layerX, layerY, layerZ int) []*Fe {
 	// which of the 0..255 patterns do we have?
 	index := 0
 	for i := 0; i < 8; i++ {
@@ -95,11 +95,13 @@ func mcToTet10(p [8]v3.Vec, v [8]float64, x float64, layerZ int) []*Tet10 {
 	// Create the tetrahedra.
 	table := mcTetrahedronTable[index]
 	count := len(table) / 4
-	result := make([]*Tet10, 0, count)
+	result := make([]*Fe, 0, count)
 	for i := 0; i < count; i++ {
-		t := Tet10{
-			V:     [10]v3.Vec{},
-			Layer: layerZ,
+		t := Fe{
+			V: make([]v3.Vec, 10),
+			X: layerX,
+			Y: layerY,
+			Z: layerZ,
 		}
 
 		// Points on tetrahedron corners.
