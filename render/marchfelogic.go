@@ -135,9 +135,6 @@ func mcToHex8(p [8]v3.Vec, v [8]float64, x float64, layerX, layerY, layerZ int) 
 
 	// Create a finite element if all 8 values are non-positive.
 	// Finite element is inside the 3D model if all values are non-positive.
-	// Of course, some spaces are missed by this approach.
-	//
-	// TODO: Come up with a more sophisticated approach?
 
 	if !anyPositive {
 		fe := Fe{
@@ -179,9 +176,6 @@ func mcToHex20(p [8]v3.Vec, v [8]float64, x float64, layerX, layerY, layerZ int)
 
 	// Create a finite element if all 8 values are non-positive.
 	// Finite element is inside the 3D model if all values are non-positive.
-	// Of course, some spaces are missed by this approach.
-	//
-	// TODO: Come up with a more sophisticated approach?
 
 	if !anyPositive {
 		fe := Fe{
