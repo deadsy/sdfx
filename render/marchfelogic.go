@@ -10,7 +10,6 @@ import (
 
 func marchingCubesFE(s sdf.SDF3, box sdf.Box3, step float64, order Order, shape Shape) []*Fe {
 	var fes []*Fe
-	var tmp []*Fe // Declare here to avoid redeclaring inside each loop iteration.
 	size := box.Size()
 	base := box.Min
 	steps := conv.V3ToV3i(size.DivScalar(step).Ceil())
@@ -58,58 +57,64 @@ func marchingCubesFE(s sdf.SDF3, box sdf.Box3, step float64, order Order, shape 
 					l.Get(x+1, y+1, 1),
 					l.Get(x, y+1, 1),
 				}
-
-				switch order {
-				case Linear:
-					{
-						switch shape {
-						case Hexahedral:
-							{
-								fes = append(fes, mcToHex8(corners, values, 0, x, y, z)...)
-							}
-						case Tetrahedral:
-							{
-								fes = append(fes, mcToTet4(corners, values, 0, x, y, z)...)
-							}
-						case Both:
-							{
-								tmp = mcToHex8(corners, values, 0, x, y, z)
-								if len(tmp) < 1 {
-									tmp = mcToTet4(corners, values, 0, x, y, z)
-								}
-								fes = append(fes, tmp...)
-
-							}
-						}
-					}
-				case Quadratic:
-					{
-						switch shape {
-						case Hexahedral:
-							{
-								fes = append(fes, mcToHex20(corners, values, 0, x, y, z)...)
-							}
-						case Tetrahedral:
-							{
-								fes = append(fes, mcToTet10(corners, values, 0, x, y, z)...)
-							}
-						case Both:
-							{
-								tmp = mcToHex20(corners, values, 0, x, y, z)
-								if len(tmp) < 1 {
-									tmp = mcToTet10(corners, values, 0, x, y, z)
-								}
-								fes = append(fes, tmp...)
-
-							}
-						}
-					}
-				}
+				fes = append(fes, mcToFE(corners, values, 0, x, y, z, order, shape)...)
 				p.Y += dy
 			}
 			p.X += dx
 		}
 		p.Z += dz
+	}
+
+	return fes
+}
+
+//-----------------------------------------------------------------------------
+
+func mcToFE(corners [8]v3.Vec, values [8]float64, zero float64, x, y, z int, order Order, shape Shape) []*Fe {
+	var fes []*Fe
+	switch order {
+	case Linear:
+		{
+			switch shape {
+			case Hexahedral:
+				{
+					fes = append(fes, mcToHex8(corners, values, 0, x, y, z)...)
+				}
+			case Tetrahedral:
+				{
+					fes = append(fes, mcToTet4(corners, values, 0, x, y, z)...)
+				}
+			case Both:
+				{
+					tmp := mcToHex8(corners, values, 0, x, y, z)
+					if len(tmp) < 1 {
+						tmp = mcToTet4(corners, values, 0, x, y, z)
+					}
+					fes = append(fes, tmp...)
+				}
+			}
+		}
+	case Quadratic:
+		{
+			switch shape {
+			case Hexahedral:
+				{
+					fes = append(fes, mcToHex20(corners, values, 0, x, y, z)...)
+				}
+			case Tetrahedral:
+				{
+					fes = append(fes, mcToTet10(corners, values, 0, x, y, z)...)
+				}
+			case Both:
+				{
+					tmp := mcToHex20(corners, values, 0, x, y, z)
+					if len(tmp) < 1 {
+						tmp = mcToTet10(corners, values, 0, x, y, z)
+					}
+					fes = append(fes, tmp...)
+				}
+			}
+		}
 	}
 
 	return fes
