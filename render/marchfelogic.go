@@ -322,12 +322,12 @@ func mcToTet10(p [8]v3.Vec, v [8]float64, x float64, layerX, layerY, layerZ int)
 		flat, volume := almostFlat(t.V[0], t.V[1], t.V[2], t.V[3])
 		// Points on tetrahedron edges.
 		// Followoing CalculiX node numbering.
-		t.V[5-1] = t.V[1-1].Add(t.V[2-1]).MulScalar(0.5)
-		t.V[6-1] = t.V[2-1].Add(t.V[3-1]).MulScalar(0.5)
-		t.V[7-1] = t.V[1-1].Add(t.V[3-1]).MulScalar(0.5)
-		t.V[8-1] = t.V[1-1].Add(t.V[4-1]).MulScalar(0.5)
-		t.V[9-1] = t.V[2-1].Add(t.V[4-1]).MulScalar(0.5)
-		t.V[10-1] = t.V[3-1].Add(t.V[4-1]).MulScalar(0.5)
+		t.V[4] = t.V[0].Add(t.V[1]).MulScalar(0.5)
+		t.V[5] = t.V[1].Add(t.V[2]).MulScalar(0.5)
+		t.V[6] = t.V[0].Add(t.V[2]).MulScalar(0.5)
+		t.V[7] = t.V[0].Add(t.V[3]).MulScalar(0.5)
+		t.V[8] = t.V[1].Add(t.V[3]).MulScalar(0.5)
+		t.V[9] = t.V[2].Add(t.V[3]).MulScalar(0.5)
 		// In the case of marching cubes algorithm to generate triangle, it's avoiding zero-area triangles by `!t.Degenerate(0)` check.
 		// In our case of marching cubes algorithm to generate tetrahedron, we can do a check too:
 		bad, jacobianDeterminant := isBadTet10([10]v3.Vec{t.V[0], t.V[1], t.V[2], t.V[3], t.V[4], t.V[5], t.V[6], t.V[7], t.V[8], t.V[9]})
