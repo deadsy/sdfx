@@ -1,8 +1,6 @@
 package render
 
 import (
-	"fmt"
-
 	"github.com/deadsy/sdfx/sdf"
 	"github.com/deadsy/sdfx/vec/conv"
 	v3 "github.com/deadsy/sdfx/vec/v3"
@@ -259,20 +257,16 @@ func mcToTet4(p [8]v3.Vec, v [8]float64, x float64, layerX, layerY, layerZ int) 
 		t.V[2] = point(points, p, table[i*4+2])
 		t.V[3] = point(points, p, table[i*4+3])
 		degenerated := degenerateTriangles(t.V[0], t.V[1], t.V[2], t.V[3])
-		flat, volume := almostFlat(t.V[0], t.V[1], t.V[2], t.V[3])
+		flat, _ := almostFlat(t.V[0], t.V[1], t.V[2], t.V[3])
 
 		// In the case of marching cubes algorithm to generate triangle, it's avoiding zero-area triangles by `!t.Degenerate(0)` check.
 		// In our case of marching cubes algorithm to generate tetrahedron, we can do a check too:
-		bad, jacobianDeterminant := isBadTet4([4]v3.Vec{t.V[0], t.V[1], t.V[2], t.V[3]})
+		bad, _ := isBadTet4([4]v3.Vec{t.V[0], t.V[1], t.V[2], t.V[3]})
 		if !degenerated && !bad && !flat {
 			result = append(result, &t)
 		} else {
-			fmt.Println("Bad element: tet4")
-			fmt.Println("Non-positive Jacobian determinant? ", bad)
-			fmt.Println("Jacobian determinant: ", jacobianDeterminant)
-			fmt.Println("Almost flat? ", flat)
-			fmt.Println("Volume: ", volume)
-			fmt.Println("Degenerated? ", degenerated)
+			// CCX solver may throw error for this element. So, skip it.
+			// *ERROR in e_c3d: nonpositive jacobian determinant in element
 		}
 	}
 
@@ -319,7 +313,7 @@ func mcToTet10(p [8]v3.Vec, v [8]float64, x float64, layerX, layerY, layerZ int)
 		t.V[2] = point(points, p, table[i*4+2])
 		t.V[3] = point(points, p, table[i*4+3])
 		degenerated := degenerateTriangles(t.V[0], t.V[1], t.V[2], t.V[3])
-		flat, volume := almostFlat(t.V[0], t.V[1], t.V[2], t.V[3])
+		flat, _ := almostFlat(t.V[0], t.V[1], t.V[2], t.V[3])
 		// Points on tetrahedron edges.
 		// Followoing CalculiX node numbering.
 		t.V[4] = t.V[0].Add(t.V[1]).MulScalar(0.5)
@@ -330,16 +324,12 @@ func mcToTet10(p [8]v3.Vec, v [8]float64, x float64, layerX, layerY, layerZ int)
 		t.V[9] = t.V[2].Add(t.V[3]).MulScalar(0.5)
 		// In the case of marching cubes algorithm to generate triangle, it's avoiding zero-area triangles by `!t.Degenerate(0)` check.
 		// In our case of marching cubes algorithm to generate tetrahedron, we can do a check too:
-		bad, jacobianDeterminant := isBadTet10([10]v3.Vec{t.V[0], t.V[1], t.V[2], t.V[3], t.V[4], t.V[5], t.V[6], t.V[7], t.V[8], t.V[9]})
+		bad, _ := isBadTet10([10]v3.Vec{t.V[0], t.V[1], t.V[2], t.V[3], t.V[4], t.V[5], t.V[6], t.V[7], t.V[8], t.V[9]})
 		if !degenerated && !bad && !flat {
 			result = append(result, &t)
 		} else {
-			fmt.Println("Bad element: tet10")
-			fmt.Println("Non-positive Jacobian determinant? ", bad)
-			fmt.Println("Jacobian determinant: ", jacobianDeterminant)
-			fmt.Println("Almost flat? ", flat)
-			fmt.Println("Volume: ", volume)
-			fmt.Println("Degenerated? ", degenerated)
+			// CCX solver may throw error for this element. So, skip it.
+			// *ERROR in e_c3d: nonpositive jacobian determinant in element
 		}
 	}
 
