@@ -57,7 +57,7 @@ func marchingCubesFE(s sdf.SDF3, box sdf.Box3, step float64, order Order, shape 
 					l.Get(x+1, y+1, 1),
 					l.Get(x, y+1, 1),
 				}
-				fes = append(fes, mcToFE(corners, values, 0, x, y, z, order, shape)...)
+				fes = append(fes, mcToFE(corners, values, x, y, z, order, shape)...)
 				p.Y += dy
 			}
 			p.X += dx
@@ -70,7 +70,7 @@ func marchingCubesFE(s sdf.SDF3, box sdf.Box3, step float64, order Order, shape 
 
 //-----------------------------------------------------------------------------
 
-func mcToFE(corners [8]v3.Vec, values [8]float64, zero float64, x, y, z int, order Order, shape Shape) []*Fe {
+func mcToFE(corners [8]v3.Vec, values [8]float64, x, y, z int, order Order, shape Shape) []*Fe {
 	var fes []*Fe
 	switch order {
 	case Linear:
