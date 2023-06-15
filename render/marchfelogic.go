@@ -84,6 +84,9 @@ func mcToFE(corners [8]v3.Vec, values [8]float64, x, y, z int, order Order, shap
 				}
 			case Both:
 				{
+					// If all cube corners are inside surface mesh, a single hexahedral element is generated.
+					// If all cube corners are outside surface mesh, no element is generated.
+					// If cube is colliding with surface mesh, one or more tetrahedral elements are generated.
 					tmp := mcToHex8(corners, values, 0, x, y, z)
 					if len(tmp) < 1 {
 						tmp = mcToTet4(corners, values, 0, x, y, z)
@@ -105,6 +108,9 @@ func mcToFE(corners [8]v3.Vec, values [8]float64, x, y, z int, order Order, shap
 				}
 			case Both:
 				{
+					// If all cube corners are inside surface mesh, a single hexahedral element is generated.
+					// If all cube corners are outside surface mesh, no element is generated.
+					// If cube is colliding with surface mesh, one or more tetrahedral elements are generated.
 					tmp := mcToHex20(corners, values, 0, x, y, z)
 					if len(tmp) < 1 {
 						tmp = mcToTet10(corners, values, 0, x, y, z)
