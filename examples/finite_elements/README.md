@@ -50,3 +50,9 @@ cgx teapot-hex8.frd teapot-hex8.inp
 ## Math solver
 
 The default CCX math solver is `SPOOLES` which is slow. Apparently `PARDISO` is faster and `PaStiX` is the fastest. But it's needed to build the CCX with `PARDISO` or `PaStiX` math libraries.
+
+### PARDISO
+
+#### Linux executable with the Intel Pardiso Solver
+
+You can download [here](https://www.dropbox.com/s/x8axi53l9dk9w4g/ccx_2.19_MT?dl=1) an executable with the Intel Pardiso solver for x86_64 Linux systems. The executable has all the libraries statically linked into it. So it should run by itself without any dependency. Thanks to [these guys](https://www.feacluster.com/calculix.php).
