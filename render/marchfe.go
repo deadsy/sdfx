@@ -33,8 +33,8 @@ const (
 // MarchingCubesFEUniform renders using marching cubes with uniform space sampling.
 type MarchingCubesFEUniform struct {
 	meshCells int   // number of cells on the longest axis of bounding box. e.g 200
-	order     Order //
-	shape     Shape //
+	order     Order // Linear or quadratic.
+	shape     Shape // Hexahedral, tetrahedral, or both.
 }
 
 // NewMarchingCubesFEUniform returns a RenderHex8 object.
