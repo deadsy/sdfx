@@ -11,6 +11,7 @@ package main
 
 import (
 	"log"
+	"math"
 	"os"
 
 	"github.com/deadsy/sdfx/obj"
@@ -21,11 +22,22 @@ import (
 
 // Generate finite elements.
 func fe(s sdf.SDF3, resolution int, order render.Order, shape render.Shape, pth string, layerStart, layerEnd int) error {
+	min := s.BoundingBox().Min
+	max := s.BoundingBox().Max
+
+	kX := (max.X - min.X) / float64(100)
+	kY := (max.Y - min.Y) / float64(100)
+	kZ := (max.Z - min.Z) / float64(100)
+
+	// By dilating SDF a little bit we may actually get rid of bad elements like disconnected or improperly connected elements.
+	dilation := sdf.Offset3D(s, math.Min(kX, math.Min(kY, kZ)))
+
 	// Create a mesh out of finite elements.
-	m, _ := mesh.NewFem(s, render.NewMarchingCubesFEUniform(resolution, order, shape))
+	m, _ := mesh.NewFem(dilation, render.NewMarchingCubesFEUniform(resolution, order, shape))
 
 	// Write just some layers of mesh to a file.
 	err := m.WriteInpLayers(pth, layerStart, layerEnd, []int{0, 1, 2}, 1.25e-9, 900, 0.3)
+	//err := m.WriteInp(pth, []int{0, 1, 2}, 1.25e-9, 900, 0.3)
 	if err != nil {
 		return err
 	}
