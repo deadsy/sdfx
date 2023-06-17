@@ -138,9 +138,10 @@ func almostFlat(a, b, c, d v3.Vec) (bool, float64) {
 	volume := 1.0 / 6.0 * math.Abs(ab.Cross(ac).Dot(ad))
 	denom := (nab + ncd) * (nac + nbd) * (nad + nbc)
 
-	// Tolerance derived from here:
+	// Tolerance derived from here would be `480.0`:
 	// https://math.stackexchange.com/a/4709610/197913
-	tolerance := 480.0
+	// We choose a different value according to observations.
+	tolerance := 1000.0
 
 	rho := tolerance * volume / denom
 
