@@ -208,11 +208,7 @@ func isBadGaussTet4(coords [4]v3.Vec, xi, et, ze float64) (bool, float64) {
 		xs[0][2]*(xs[1][0]*xs[2][1]-xs[1][1]*xs[2][0])
 
 	// According to CCX source code to detect nonpositive jacobian determinant in element
-	//
 	// Fortran threshold for non-positive Jacobian determinant is 1e-20.
-	// But, for example a bad element with non-positive Jacobian determinant
-	// of 0.0025717779019105687 is escaping the 1e-20 threshold.
-	// Seems like we need to make the threshold safer.
 	return xsj < 1e-20, xsj
 }
 
@@ -298,11 +294,7 @@ func isBadGaussTet10(coords [10]v3.Vec, xi, et, ze float64) (bool, float64) {
 		xs[0][2]*(xs[1][0]*xs[2][1]-xs[1][1]*xs[2][0])
 
 	// According to CCX source code to detect nonpositive jacobian determinant in element
-	//
 	// Fortran threshold for non-positive Jacobian determinant is 1e-20.
-	// But, for example a bad element with non-positive Jacobian determinant
-	// of 0.0025717779019105687 is escaping the 1e-20 threshold.
-	// Seems like we need to make the threshold safer.
 	return xsj < 1e-20, xsj
 }
 
