@@ -140,7 +140,8 @@ func almostFlat(a, b, c, d v3.Vec) (bool, float64) {
 
 	// Tolerance derived from here would be `480.0`:
 	// https://math.stackexchange.com/a/4709610/197913
-	// We choose a different value according to observations.
+	// A different value is calibrated according to observations.
+	// TODO: Could be further calibrated.
 	tolerance := 1000.0
 
 	rho := tolerance * volume / denom
