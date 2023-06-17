@@ -308,6 +308,8 @@ func isBadGaussTet10(coords [10]v3.Vec, xi, et, ze float64) (bool, float64) {
 
 //-----------------------------------------------------------------------------
 
+// Exactly follow CCX source code leading to this error:
+// *ERROR in e_c3d: nonpositive jacobian determinant in element
 func isBadTet4(coords [4]v3.Vec) (bool, float64) {
 
 	// xi, et, and ze are the coordinates of the Gauss point
@@ -324,6 +326,8 @@ func isBadTet4(coords [4]v3.Vec) (bool, float64) {
 	return isBadGaussTet4(coords, xi, et, ze)
 }
 
+// Exactly follow CCX source code leading to this error:
+// *ERROR in e_c3d: nonpositive jacobian determinant in element
 func isBadTet10(coords [10]v3.Vec) (bool, float64) {
 	// Gause points are according to CCX source code.
 	// Reference:
