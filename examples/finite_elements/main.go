@@ -25,9 +25,10 @@ func fe(s sdf.SDF3, resolution int, order render.Order, shape render.Shape, pth 
 	min := s.BoundingBox().Min
 	max := s.BoundingBox().Max
 
-	kX := (max.X - min.X) / float64(100)
-	kY := (max.Y - min.Y) / float64(100)
-	kZ := (max.Z - min.Z) / float64(100)
+	dilationFactor := float64(0.02)
+	kX := (max.X - min.X) * dilationFactor
+	kY := (max.Y - min.Y) * dilationFactor
+	kZ := (max.Z - min.Z) * dilationFactor
 
 	// By dilating SDF a little bit we may actually get rid of bad elements like disconnected or improperly connected elements.
 	dilation := sdf.Offset3D(s, math.Min(kX, math.Min(kY, kZ)))
