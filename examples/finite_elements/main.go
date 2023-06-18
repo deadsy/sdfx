@@ -25,16 +25,18 @@ func fe(s sdf.SDF3, resolution int, order render.Order, shape render.Shape, pth 
 	min := s.BoundingBox().Min
 	max := s.BoundingBox().Max
 
-	dilationFactor := float64(0.02)
-	kX := (max.X - min.X) * dilationFactor
-	kY := (max.Y - min.Y) * dilationFactor
-	kZ := (max.Z - min.Z) * dilationFactor
+	dimX := (max.X - min.X)
+	dimY := (max.Y - min.Y)
+	dimZ := (max.Z - min.Z)
+	factor := math.Min(dimX, math.Min(dimY, dimZ)) * float64(0.02)
 
 	// By dilating SDF a little bit we may actually get rid of bad elements like disconnected or improperly connected elements.
-	dilation := sdf.Offset3D(s, math.Min(kX, math.Min(kY, kZ)))
+	dilation := sdf.Offset3D(s, factor)
+
+	erosion := sdf.Offset3D(dilation, -factor)
 
 	// Create a mesh out of finite elements.
-	m, _ := mesh.NewFem(dilation, render.NewMarchingCubesFEUniform(resolution, order, shape))
+	m, _ := mesh.NewFem(erosion, render.NewMarchingCubesFEUniform(resolution, order, shape))
 
 	// Write just some layers of mesh to a file.
 	err := m.WriteInpLayers(pth, layerStart, layerEnd, []int{0, 1, 2}, 1.25e-9, 900, 0.3)
