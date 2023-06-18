@@ -40,13 +40,9 @@ func fe(s sdf.SDF3, resolution int, order render.Order, shape render.Shape, pth 
 	m, _ := mesh.NewFem(erosion, render.NewMarchingCubesFEUniform(resolution, order, shape))
 
 	// Write just some layers of mesh to a file.
-	//err := m.WriteInpLayers(pth, layerStart, layerEnd, []int{0, 1, 2}, 1.25e-9, 900, 0.3)
-	err := m.WriteInp(pth, []int{0, 1, 2}, 1.25e-9, 900, 0.3)
-	if err != nil {
-		return err
-	}
+	//return m.WriteInpLayers(pth, layerStart, layerEnd, []int{0, 1, 2}, 1.25e-9, 900, 0.3)
 
-	return nil
+	return m.WriteInp(pth, []int{0, 1, 2}, 1.25e-9, 900, 0.3)
 }
 
 // Render SDF3 to finite elements.
