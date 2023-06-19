@@ -20,29 +20,48 @@ import (
 	"github.com/deadsy/sdfx/sdf"
 )
 
-// Generate finite elements.
-func fe(s sdf.SDF3, resolution int, order render.Order, shape render.Shape, pth string, layerStart, layerEnd int) error {
+// By dilating SDF a little bit we may actually get rid of
+// bad elements like disconnected or improperly connected elements.
+// Erode so that SDF returns to its original size, well almost.
+func dilationErosion(s sdf.SDF3) sdf.SDF3 {
 	min := s.BoundingBox().Min
 	max := s.BoundingBox().Max
 
 	dimX := (max.X - min.X)
 	dimY := (max.Y - min.Y)
 	dimZ := (max.Z - min.Z)
-	factor := math.Min(dimX, math.Min(dimY, dimZ)) * float64(0.05)
 
-	// By dilating SDF a little bit we may actually get rid of bad elements like disconnected or improperly connected elements.
+	// What percent is preferred? Calibration is done a bit.
+	factor := math.Min(dimX, math.Min(dimY, dimZ)) * float64(0.02)
+
 	dilation := sdf.Offset3D(s, factor)
-
-	// Erode so that SDF returns to its original size, well almost.
 	erosion := sdf.Offset3D(dilation, -factor)
 
+	return erosion
+}
+
+// Generate finite elements.
+func fe(s sdf.SDF3, resolution int, order render.Order, shape render.Shape, pth string) error {
+	s = dilationErosion(s)
+
 	// Create a mesh out of finite elements.
-	m, _ := mesh.NewFem(erosion, render.NewMarchingCubesFEUniform(resolution, order, shape))
+	m, _ := mesh.NewFem(s, render.NewMarchingCubesFEUniform(resolution, order, shape))
 
-	// Write just some layers of mesh to a file.
-	//return m.WriteInpLayers(pth, layerStart, layerEnd, []int{0, 1, 2}, 1.25e-9, 900, 0.3)
-
+	// Write all layers of mesh to file.
 	return m.WriteInp(pth, []int{0, 1, 2}, 1.25e-9, 900, 0.3)
+}
+
+// Generate finite elements.
+// Only from a start layer to an end layer along the Z axis.
+// Applicable to 3D print analysis that is done layer-by-layer.
+func fePartial(s sdf.SDF3, resolution int, order render.Order, shape render.Shape, pth string, layerStart, layerEnd int) error {
+	s = dilationErosion(s)
+
+	// Create a mesh out of finite elements.
+	m, _ := mesh.NewFem(s, render.NewMarchingCubesFEUniform(resolution, order, shape))
+
+	// Write just some layers of mesh to file.
+	return m.WriteInpLayers(pth, layerStart, layerEnd, []int{0, 1, 2}, 1.25e-9, 900, 0.3)
 }
 
 // Render SDF3 to finite elements.
@@ -64,37 +83,73 @@ func main() {
 	}
 
 	// tet4 i.e. 4-node tetrahedron
-	err = fe(teapotSdf, 50, render.Linear, render.Tetrahedral, "teapot-tet4.inp", 0, 20)
+	err = fe(teapotSdf, 50, render.Linear, render.Tetrahedral, "teapot-tet4.inp")
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+
+	// tet4 i.e. 4-node tetrahedron
+	err = fePartial(teapotSdf, 50, render.Linear, render.Tetrahedral, "teapot-partial-tet4.inp", 0, 20)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
 	// tet10 i.e. 10-node tetrahedron
-	err = fe(teapotSdf, 50, render.Quadratic, render.Tetrahedral, "teapot-tet10.inp", 0, 20)
+	err = fe(teapotSdf, 50, render.Quadratic, render.Tetrahedral, "teapot-tet10.inp")
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+
+	// tet10 i.e. 10-node tetrahedron
+	err = fePartial(teapotSdf, 50, render.Quadratic, render.Tetrahedral, "teapot-partial-tet10.inp", 0, 20)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
 	// hex8 i.e. 8-node hexahedron
-	err = fe(teapotSdf, 50, render.Linear, render.Hexahedral, "teapot-hex8.inp", 0, 20)
+	err = fe(teapotSdf, 50, render.Linear, render.Hexahedral, "teapot-hex8.inp")
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+
+	// hex8 i.e. 8-node hexahedron
+	err = fePartial(teapotSdf, 50, render.Linear, render.Hexahedral, "teapot-partial-hex8.inp", 0, 20)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
 	// hex20 i.e. 20-node hexahedron
-	err = fe(teapotSdf, 50, render.Quadratic, render.Hexahedral, "teapot-hex20.inp", 0, 20)
+	err = fe(teapotSdf, 50, render.Quadratic, render.Hexahedral, "teapot-hex20.inp")
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+
+	// hex20 i.e. 20-node hexahedron
+	err = fePartial(teapotSdf, 50, render.Quadratic, render.Hexahedral, "teapot-partial-hex20.inp", 0, 20)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
 	// hex8 and tet4
-	err = fe(teapotSdf, 50, render.Linear, render.Both, "teapot-hex8tet4.inp", 0, 20)
+	err = fe(teapotSdf, 50, render.Linear, render.Both, "teapot-hex8tet4.inp")
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+
+	// hex8 and tet4
+	err = fePartial(teapotSdf, 50, render.Linear, render.Both, "teapot-partial-hex8tet4.inp", 0, 20)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
 	// hex20 and tet10
-	err = fe(teapotSdf, 50, render.Quadratic, render.Both, "teapot-hex20tet10.inp", 0, 20)
+	err = fe(teapotSdf, 50, render.Quadratic, render.Both, "teapot-hex20tet10.inp")
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+
+	// hex20 and tet10
+	err = fePartial(teapotSdf, 50, render.Quadratic, render.Both, "teapot-partial-hex20tet10.inp", 0, 20)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
