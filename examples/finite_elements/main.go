@@ -89,7 +89,7 @@ func main() {
 	}
 
 	// tet4 i.e. 4-node tetrahedron
-	err = fePartial(teapotSdf, 50, render.Linear, render.Tetrahedral, "teapot-partial-tet4.inp", 0, 20)
+	err = fePartial(teapotSdf, 50, render.Linear, render.Tetrahedral, "teapot-partial-tet4.inp", 0, 15)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
@@ -101,7 +101,7 @@ func main() {
 	}
 
 	// tet10 i.e. 10-node tetrahedron
-	err = fePartial(teapotSdf, 50, render.Quadratic, render.Tetrahedral, "teapot-partial-tet10.inp", 0, 20)
+	err = fePartial(teapotSdf, 50, render.Quadratic, render.Tetrahedral, "teapot-partial-tet10.inp", 0, 15)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
@@ -113,7 +113,7 @@ func main() {
 	}
 
 	// hex8 i.e. 8-node hexahedron
-	err = fePartial(teapotSdf, 50, render.Linear, render.Hexahedral, "teapot-partial-hex8.inp", 0, 20)
+	err = fePartial(teapotSdf, 50, render.Linear, render.Hexahedral, "teapot-partial-hex8.inp", 0, 15)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
@@ -125,7 +125,7 @@ func main() {
 	}
 
 	// hex20 i.e. 20-node hexahedron
-	err = fePartial(teapotSdf, 50, render.Quadratic, render.Hexahedral, "teapot-partial-hex20.inp", 0, 20)
+	err = fePartial(teapotSdf, 50, render.Quadratic, render.Hexahedral, "teapot-partial-hex20.inp", 0, 15)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
@@ -137,7 +137,7 @@ func main() {
 	}
 
 	// hex8 and tet4
-	err = fePartial(teapotSdf, 50, render.Linear, render.Both, "teapot-partial-hex8tet4.inp", 0, 20)
+	err = fePartial(teapotSdf, 50, render.Linear, render.Both, "teapot-partial-hex8tet4.inp", 0, 15)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
@@ -149,7 +149,7 @@ func main() {
 	}
 
 	// hex20 and tet10
-	err = fePartial(teapotSdf, 50, render.Quadratic, render.Both, "teapot-partial-hex20tet10.inp", 0, 20)
+	err = fePartial(teapotSdf, 50, render.Quadratic, render.Both, "teapot-partial-hex20tet10.inp", 0, 15)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
