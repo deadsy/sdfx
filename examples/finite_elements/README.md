@@ -1,6 +1,24 @@
+# Output
+
+## Nodes and elements
+
+Output is generated as `inp` files for ABAQUS or CalculiX. Nodes and elements are saved in separate files, which are then included inside a single, final `inp` file. This final `inp` file can be opened and viewed using [FreeCAD](https://en.wikipedia.org/wiki/FreeCAD).
+
+## Loading
+
+The final `inp` file applies a distributed *weight* load to all elements. This load is calculated according to the material density. This load is in `+Z` direction. Assuming the 3D model will be 3D printed upside-down by SLA technology.
+
+## Boundary
+
+In the final `inp` file, the boundary is defined by the first few layers at the bottom of the 3D model. Assuming the 3D model will be 3D printed upside-down by SLA technology.
+
+## Modification
+
+Currently, no convenient ways are provided here for adjusting loading and boundary conditions. However, they may be developed and offered in the future.
+
 # CCX and CGX
 
-The example results can be consumed by ABAQUS or CalculiX.
+The results can be consumed by ABAQUS or CalculiX.
 
 CalculiX and CalculiX GraphiX binaries are available for different platforms, like Linux distributions.
 
