@@ -68,7 +68,7 @@ func fePartial(s sdf.SDF3, resolution int, order render.Order, shape render.Shap
 // Write finite elements to an `inp` file.
 // Written file can be used by ABAQUS or CalculiX.
 func main() {
-	stl := "../../files/teapot.stl"
+	stl := "../../files/hinge.stl"
 
 	// read the stl file.
 	file, err := os.OpenFile(stl, os.O_RDONLY, 0400)
@@ -77,79 +77,79 @@ func main() {
 	}
 
 	// create the SDF from the STL mesh
-	teapotSdf, err := obj.ImportSTL(file, 20, 3, 5)
+	hingeSdf, err := obj.ImportSTL(file, 20, 3, 5)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
 	// tet4 i.e. 4-node tetrahedron
-	err = fe(teapotSdf, 50, render.Linear, render.Tetrahedral, "teapot-tet4.inp")
+	err = fe(hingeSdf, 50, render.Linear, render.Tetrahedral, "hinge-tet4.inp")
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
 	// tet4 i.e. 4-node tetrahedron
-	err = fePartial(teapotSdf, 50, render.Linear, render.Tetrahedral, "teapot-partial-tet4.inp", 0, 15)
+	err = fePartial(hingeSdf, 50, render.Linear, render.Tetrahedral, "hinge-partial-tet4.inp", 0, 5)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
 	// tet10 i.e. 10-node tetrahedron
-	err = fe(teapotSdf, 50, render.Quadratic, render.Tetrahedral, "teapot-tet10.inp")
+	err = fe(hingeSdf, 50, render.Quadratic, render.Tetrahedral, "hinge-tet10.inp")
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
 	// tet10 i.e. 10-node tetrahedron
-	err = fePartial(teapotSdf, 50, render.Quadratic, render.Tetrahedral, "teapot-partial-tet10.inp", 0, 15)
+	err = fePartial(hingeSdf, 50, render.Quadratic, render.Tetrahedral, "hinge-partial-tet10.inp", 0, 5)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
 	// hex8 i.e. 8-node hexahedron
-	err = fe(teapotSdf, 50, render.Linear, render.Hexahedral, "teapot-hex8.inp")
+	err = fe(hingeSdf, 50, render.Linear, render.Hexahedral, "hinge-hex8.inp")
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
 	// hex8 i.e. 8-node hexahedron
-	err = fePartial(teapotSdf, 50, render.Linear, render.Hexahedral, "teapot-partial-hex8.inp", 0, 15)
+	err = fePartial(hingeSdf, 50, render.Linear, render.Hexahedral, "hinge-partial-hex8.inp", 0, 5)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
 	// hex20 i.e. 20-node hexahedron
-	err = fe(teapotSdf, 50, render.Quadratic, render.Hexahedral, "teapot-hex20.inp")
+	err = fe(hingeSdf, 50, render.Quadratic, render.Hexahedral, "hinge-hex20.inp")
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
 	// hex20 i.e. 20-node hexahedron
-	err = fePartial(teapotSdf, 50, render.Quadratic, render.Hexahedral, "teapot-partial-hex20.inp", 0, 15)
+	err = fePartial(hingeSdf, 50, render.Quadratic, render.Hexahedral, "hinge-partial-hex20.inp", 0, 5)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
 	// hex8 and tet4
-	err = fe(teapotSdf, 50, render.Linear, render.Both, "teapot-hex8tet4.inp")
+	err = fe(hingeSdf, 50, render.Linear, render.Both, "hinge-hex8tet4.inp")
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
 	// hex8 and tet4
-	err = fePartial(teapotSdf, 50, render.Linear, render.Both, "teapot-partial-hex8tet4.inp", 0, 15)
+	err = fePartial(hingeSdf, 50, render.Linear, render.Both, "hinge-partial-hex8tet4.inp", 0, 5)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
 	// hex20 and tet10
-	err = fe(teapotSdf, 50, render.Quadratic, render.Both, "teapot-hex20tet10.inp")
+	err = fe(hingeSdf, 50, render.Quadratic, render.Both, "hinge-hex20tet10.inp")
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
 	// hex20 and tet10
-	err = fePartial(teapotSdf, 50, render.Quadratic, render.Both, "teapot-partial-hex20tet10.inp", 0, 15)
+	err = fePartial(hingeSdf, 50, render.Quadratic, render.Both, "hinge-partial-hex20tet10.inp", 0, 5)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
