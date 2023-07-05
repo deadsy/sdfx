@@ -77,79 +77,79 @@ func main() {
 	}
 
 	// create the SDF from the STL mesh
-	hingeSdf, err := obj.ImportSTL(file, 20, 3, 5)
+	inSdf, err := obj.ImportSTL(file, 20, 3, 5)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
 	// tet4 i.e. 4-node tetrahedron
-	err = fe(hingeSdf, 50, render.Linear, render.Tetrahedral, "hinge-tet4.inp")
+	err = fe(inSdf, 50, render.Linear, render.Tetrahedral, "tet4.inp")
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
 	// tet4 i.e. 4-node tetrahedron
-	err = fePartial(hingeSdf, 50, render.Linear, render.Tetrahedral, "hinge-partial-tet4.inp", 0, 5)
+	err = fePartial(inSdf, 50, render.Linear, render.Tetrahedral, "partial-tet4.inp", 0, 5)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
 	// tet10 i.e. 10-node tetrahedron
-	err = fe(hingeSdf, 50, render.Quadratic, render.Tetrahedral, "hinge-tet10.inp")
+	err = fe(inSdf, 50, render.Quadratic, render.Tetrahedral, "tet10.inp")
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
 	// tet10 i.e. 10-node tetrahedron
-	err = fePartial(hingeSdf, 50, render.Quadratic, render.Tetrahedral, "hinge-partial-tet10.inp", 0, 5)
+	err = fePartial(inSdf, 50, render.Quadratic, render.Tetrahedral, "partial-tet10.inp", 0, 5)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
 	// hex8 i.e. 8-node hexahedron
-	err = fe(hingeSdf, 50, render.Linear, render.Hexahedral, "hinge-hex8.inp")
+	err = fe(inSdf, 50, render.Linear, render.Hexahedral, "hex8.inp")
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
 	// hex8 i.e. 8-node hexahedron
-	err = fePartial(hingeSdf, 50, render.Linear, render.Hexahedral, "hinge-partial-hex8.inp", 0, 5)
+	err = fePartial(inSdf, 50, render.Linear, render.Hexahedral, "partial-hex8.inp", 0, 5)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
 	// hex20 i.e. 20-node hexahedron
-	err = fe(hingeSdf, 50, render.Quadratic, render.Hexahedral, "hinge-hex20.inp")
+	err = fe(inSdf, 50, render.Quadratic, render.Hexahedral, "hex20.inp")
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
 	// hex20 i.e. 20-node hexahedron
-	err = fePartial(hingeSdf, 50, render.Quadratic, render.Hexahedral, "hinge-partial-hex20.inp", 0, 5)
+	err = fePartial(inSdf, 50, render.Quadratic, render.Hexahedral, "partial-hex20.inp", 0, 5)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
 	// hex8 and tet4
-	err = fe(hingeSdf, 50, render.Linear, render.Both, "hinge-hex8tet4.inp")
+	err = fe(inSdf, 50, render.Linear, render.Both, "hex8tet4.inp")
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
 	// hex8 and tet4
-	err = fePartial(hingeSdf, 50, render.Linear, render.Both, "hinge-partial-hex8tet4.inp", 0, 5)
+	err = fePartial(inSdf, 50, render.Linear, render.Both, "partial-hex8tet4.inp", 0, 5)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
 	// hex20 and tet10
-	err = fe(hingeSdf, 50, render.Quadratic, render.Both, "hinge-hex20tet10.inp")
+	err = fe(inSdf, 50, render.Quadratic, render.Both, "hex20tet10.inp")
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
 	// hex20 and tet10
-	err = fePartial(hingeSdf, 50, render.Quadratic, render.Both, "hinge-partial-hex20tet10.inp", 0, 5)
+	err = fePartial(inSdf, 50, render.Quadratic, render.Both, "partial-hex20tet10.inp", 0, 5)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
