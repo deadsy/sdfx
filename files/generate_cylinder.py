@@ -1,8 +1,9 @@
 import math
 
+
 # Cylinder is shifted by {+radius} along the Z axis to be above the XY plane.
 def generate_cylinder_stl(radius, length, num_triangles, output_file):
-    with open(output_file, 'w') as stl_file:
+    with open(output_file, "w") as stl_file:
         stl_file.write("solid cylinder\n")
 
         angle_step = 2 * math.pi / num_triangles
@@ -58,4 +59,4 @@ output_filename = "cylinder.stl"
 radius = 12
 length = 100
 num_triangles = 36
-generate_cylinder_stl(radius, length, num_triangles,output_filename)
+generate_cylinder_stl(radius, length, num_triangles, output_filename)
