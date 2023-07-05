@@ -1,5 +1,6 @@
 import math
 
+# Cylinder is shifted by {+radius} along the Z axis to be above the XY plane.
 def generate_cylinder_stl(radius, length, num_triangles, output_file):
     with open(output_file, 'w') as stl_file:
         stl_file.write("solid cylinder\n")
@@ -16,18 +17,18 @@ def generate_cylinder_stl(radius, length, num_triangles, output_file):
             # Base triangle
             stl_file.write("facet normal -1.0 0.0 0.0\n")
             stl_file.write("outer loop\n")
-            stl_file.write(f"vertex 0.0 0.0 0.0\n")
-            stl_file.write(f"vertex 0.0 {y2} {z2}\n")
-            stl_file.write(f"vertex 0.0 {y1} {z1}\n")
+            stl_file.write(f"vertex 0.0 0.0 {0.0+radius}\n")
+            stl_file.write(f"vertex 0.0 {y2} {z2+radius}\n")
+            stl_file.write(f"vertex 0.0 {y1} {z1+radius}\n")
             stl_file.write("endloop\n")
             stl_file.write("endfacet\n")
 
             # Top triangle
             stl_file.write("facet normal 1.0 0.0 0.0\n")
             stl_file.write("outer loop\n")
-            stl_file.write(f"vertex {length} 0.0 0.0\n")
-            stl_file.write(f"vertex {length} {y1} {z1}\n")
-            stl_file.write(f"vertex {length} {y2} {z2}\n")
+            stl_file.write(f"vertex {length} 0.0 {0.0+radius}\n")
+            stl_file.write(f"vertex {length} {y1} {z1+radius}\n")
+            stl_file.write(f"vertex {length} {y2} {z2+radius}\n")
             stl_file.write("endloop\n")
             stl_file.write("endfacet\n")
 
@@ -35,18 +36,18 @@ def generate_cylinder_stl(radius, length, num_triangles, output_file):
             normal = f"0.0 {math.cos(angle1)} {math.sin(angle1)}"
             stl_file.write(f"facet normal {normal}\n")
             stl_file.write("outer loop\n")
-            stl_file.write(f"vertex 0.0 {y1} {z1}\n")
-            stl_file.write(f"vertex 0.0 {y2} {z2}\n")
-            stl_file.write(f"vertex {length} {y1} {z1}\n")
+            stl_file.write(f"vertex 0.0 {y1} {z1+radius}\n")
+            stl_file.write(f"vertex 0.0 {y2} {z2+radius}\n")
+            stl_file.write(f"vertex {length} {y1} {z1+radius}\n")
             stl_file.write("endloop\n")
             stl_file.write("endfacet\n")
 
             normal = f"0.0 {math.cos(angle2)} {math.sin(angle2)}"
             stl_file.write(f"facet normal {normal}\n")
             stl_file.write("outer loop\n")
-            stl_file.write(f"vertex 0.0 {y2} {z2}\n")
-            stl_file.write(f"vertex {length} {y2} {z2}\n")
-            stl_file.write(f"vertex {length} {y1} {z1}\n")
+            stl_file.write(f"vertex 0.0 {y2} {z2+radius}\n")
+            stl_file.write(f"vertex {length} {y2} {z2+radius}\n")
+            stl_file.write(f"vertex {length} {y1} {z1+radius}\n")
             stl_file.write("endloop\n")
             stl_file.write("endfacet\n")
 
