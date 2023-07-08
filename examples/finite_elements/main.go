@@ -68,7 +68,7 @@ func fePartial(s sdf.SDF3, resolution int, order render.Order, shape render.Shap
 // Write finite elements to an `inp` file.
 // Written file can be used by ABAQUS or CalculiX.
 func main() {
-	stl := "../../files/teapot.stl"
+	stl := "../../files/beam-pipe.stl"
 
 	// read the stl file.
 	file, err := os.OpenFile(stl, os.O_RDONLY, 0400)
@@ -89,7 +89,7 @@ func main() {
 	}
 
 	// tet4 i.e. 4-node tetrahedron
-	err = fePartial(inSdf, 50, render.Linear, render.Tetrahedral, "partial-tet4.inp", 0, 15)
+	err = fePartial(inSdf, 50, render.Linear, render.Tetrahedral, "partial-tet4.inp", 0, 3)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
@@ -101,7 +101,7 @@ func main() {
 	}
 
 	// tet10 i.e. 10-node tetrahedron
-	err = fePartial(inSdf, 50, render.Quadratic, render.Tetrahedral, "partial-tet10.inp", 0, 15)
+	err = fePartial(inSdf, 50, render.Quadratic, render.Tetrahedral, "partial-tet10.inp", 0, 3)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
@@ -113,7 +113,7 @@ func main() {
 	}
 
 	// hex8 i.e. 8-node hexahedron
-	err = fePartial(inSdf, 50, render.Linear, render.Hexahedral, "partial-hex8.inp", 0, 15)
+	err = fePartial(inSdf, 50, render.Linear, render.Hexahedral, "partial-hex8.inp", 0, 3)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
@@ -125,7 +125,7 @@ func main() {
 	}
 
 	// hex20 i.e. 20-node hexahedron
-	err = fePartial(inSdf, 50, render.Quadratic, render.Hexahedral, "partial-hex20.inp", 0, 15)
+	err = fePartial(inSdf, 50, render.Quadratic, render.Hexahedral, "partial-hex20.inp", 0, 3)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
@@ -137,7 +137,7 @@ func main() {
 	}
 
 	// hex8 and tet4
-	err = fePartial(inSdf, 50, render.Linear, render.Both, "partial-hex8tet4.inp", 0, 15)
+	err = fePartial(inSdf, 50, render.Linear, render.Both, "partial-hex8tet4.inp", 0, 3)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
@@ -149,7 +149,7 @@ func main() {
 	}
 
 	// hex20 and tet10
-	err = fePartial(inSdf, 50, render.Quadratic, render.Both, "partial-hex20tet10.inp", 0, 15)
+	err = fePartial(inSdf, 50, render.Quadratic, render.Both, "partial-hex20tet10.inp", 0, 3)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
