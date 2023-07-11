@@ -68,9 +68,29 @@ func fePartial(s sdf.SDF3, resolution int, order render.Order, shape render.Shap
 	return m.WriteInpLayers(pth, layerStart, layerEnd, []int{0, 1, 2}, 1.25e-9, 900, 0.3, restraint, load)
 }
 
+// Declare the enum using iota and const
+type Benchmark int
+
+const (
+	Square Benchmark = iota + 1
+	Circle
+	Pipe
+	I
+	Unknown
+)
+
 // Render SDF3 to finite elements.
 // Write finite elements to an `inp` file.
 // Written file can be used by ABAQUS or CalculiX.
 func main() {
-	benchmarkSquare()
+	benchmark := Square
+
+	switch benchmark {
+	case Square:
+		benchmarkSquare()
+	case Circle:
+	case Pipe:
+	case I:
+	default:
+	}
 }
