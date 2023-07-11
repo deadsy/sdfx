@@ -26,10 +26,10 @@ CalculiX and CalculiX GraphiX binaries are available for different platforms, li
 
 openSUSE has [CCX](https://software.opensuse.org/package/ccx) package and also [CGX](https://software.opensuse.org/package/cgx) one.
 
-To install CCX and CGX on openSUSE Leap 15.4 you can run as root:
+To install CCX and CGX on openSUSE Leap 15.5 you can run as root:
 
 ```bash
-zypper addrepo https://download.opensuse.org/repositories/science/15.4/science.repo
+zypper addrepo https://download.opensuse.org/repositories/science/15.5/science.repo
 zypper refresh
 zypper install ccx
 zypper install cgx
