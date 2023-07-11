@@ -17,6 +17,33 @@ import (
 	"github.com/deadsy/sdfx/sdf"
 )
 
+// Declare the enum using iota and const
+type Benchmark int
+
+const (
+	Square Benchmark = iota + 1
+	Circle
+	Pipe
+	I
+	Unknown
+)
+
+// Render SDF3 to finite elements.
+// Write finite elements to an `inp` file.
+// Written file can be used by ABAQUS or CalculiX.
+func main() {
+	benchmark := Square
+
+	switch benchmark {
+	case Square:
+		benchmarkSquare()
+	case Circle:
+	case Pipe:
+	case I:
+	default:
+	}
+}
+
 // By dilating SDF a little bit we may actually get rid of
 // bad elements like disconnected or improperly connected elements.
 // Erode so that SDF returns to its original size, well almost.
@@ -66,31 +93,4 @@ func fePartial(s sdf.SDF3, resolution int, order render.Order, shape render.Shap
 
 	// Write just some layers of mesh to file.
 	return m.WriteInpLayers(pth, layerStart, layerEnd, []int{0, 1, 2}, 1.25e-9, 900, 0.3, restraint, load)
-}
-
-// Declare the enum using iota and const
-type Benchmark int
-
-const (
-	Square Benchmark = iota + 1
-	Circle
-	Pipe
-	I
-	Unknown
-)
-
-// Render SDF3 to finite elements.
-// Write finite elements to an `inp` file.
-// Written file can be used by ABAQUS or CalculiX.
-func main() {
-	benchmark := Square
-
-	switch benchmark {
-	case Square:
-		benchmarkSquare()
-	case Circle:
-	case Pipe:
-	case I:
-	default:
-	}
 }
