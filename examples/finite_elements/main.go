@@ -44,26 +44,6 @@ func main() {
 	}
 }
 
-// By dilating SDF a little bit we may actually get rid of
-// bad elements like disconnected or improperly connected elements.
-// Erode so that SDF returns to its original size, well almost.
-func dilationErosion(s sdf.SDF3) sdf.SDF3 {
-	min := s.BoundingBox().Min
-	max := s.BoundingBox().Max
-
-	dimX := (max.X - min.X)
-	dimY := (max.Y - min.Y)
-	dimZ := (max.Z - min.Z)
-
-	// What percent is preferred? Calibration is done a bit.
-	factor := math.Min(dimX, math.Min(dimY, dimZ)) * float64(0.02)
-
-	dilation := sdf.Offset3D(s, factor)
-	erosion := sdf.Offset3D(dilation, -factor)
-
-	return erosion
-}
-
 // Generate finite elements.
 func fe(s sdf.SDF3, resolution int, order render.Order, shape render.Shape, pth string,
 	restraint func(x, y, z float64) (bool, bool, bool),
@@ -93,4 +73,24 @@ func fePartial(s sdf.SDF3, resolution int, order render.Order, shape render.Shap
 
 	// Write just some layers of mesh to file.
 	return m.WriteInpLayers(pth, layerStart, layerEnd, []int{0, 1, 2}, 1.25e-9, 900, 0.3, restraint, load)
+}
+
+// By dilating SDF a little bit we may actually get rid of
+// bad elements like disconnected or improperly connected elements.
+// Erode so that SDF returns to its original size, well almost.
+func dilationErosion(s sdf.SDF3) sdf.SDF3 {
+	min := s.BoundingBox().Min
+	max := s.BoundingBox().Max
+
+	dimX := (max.X - min.X)
+	dimY := (max.Y - min.Y)
+	dimZ := (max.Z - min.Z)
+
+	// What percent is preferred? Calibration is done a bit.
+	factor := math.Min(dimX, math.Min(dimY, dimZ)) * float64(0.02)
+
+	dilation := sdf.Offset3D(s, factor)
+	erosion := sdf.Offset3D(dilation, -factor)
+
+	return erosion
 }
