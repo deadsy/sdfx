@@ -31,6 +31,8 @@ const (
 // Render SDF3 to finite elements.
 // Write finite elements to an `inp` file.
 // Written file can be used by ABAQUS or CalculiX.
+//
+// OpenSCAD must be installed and be available on PATH as `openscad`
 func main() {
 	benchmark := Square
 
