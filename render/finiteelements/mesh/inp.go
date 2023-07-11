@@ -45,6 +45,10 @@ type Inp struct {
 	nextNode uint32
 	// Just a counter to keep track of written boundaries
 	nextNodeBou uint32
+	// Inside the function, according to the x, y, z, the caller decides on restraint.
+	Restraint func(x, y, z float64) (bool, bool, bool)
+	// Inside the function, according to the x, y, z, the caller decides on load.
+	Load func(x, y, z float64) (float64, float64, float64)
 }
 
 // NewInp sets up a new writer.
@@ -54,6 +58,8 @@ func NewInp(
 	layerStart, layerEnd int,
 	layersFixed []int,
 	massDensity float32, youngModulus float32, poissonRatio float32,
+	restraint func(x, y, z float64) (bool, bool, bool),
+	load func(x, y, z float64) (float64, float64, float64),
 ) *Inp {
 	return &Inp{
 		Mesh:          m,
@@ -71,6 +77,8 @@ func NewInp(
 		MassDensity:   massDensity,
 		YoungModulus:  youngModulus,
 		PoissonRatio:  poissonRatio,
+		Restraint:     restraint,
+		Load:          load,
 	}
 }
 

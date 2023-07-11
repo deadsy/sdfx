@@ -10,11 +10,8 @@ Output `inp` file is consumable by ABAQUS or CalculiX.
 package main
 
 import (
-	"log"
 	"math"
-	"os"
 
-	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/render/finiteelements/mesh"
 	"github.com/deadsy/sdfx/sdf"
@@ -41,116 +38,39 @@ func dilationErosion(s sdf.SDF3) sdf.SDF3 {
 }
 
 // Generate finite elements.
-func fe(s sdf.SDF3, resolution int, order render.Order, shape render.Shape, pth string) error {
+func fe(s sdf.SDF3, resolution int, order render.Order, shape render.Shape, pth string,
+	restraint func(x, y, z float64) (bool, bool, bool),
+	load func(x, y, z float64) (float64, float64, float64),
+) error {
 	s = dilationErosion(s)
 
 	// Create a mesh out of finite elements.
 	m, _ := mesh.NewFem(s, render.NewMarchingCubesFEUniform(resolution, order, shape))
 
 	// Write all layers of mesh to file.
-	return m.WriteInp(pth, []int{0, 1, 2}, 1.25e-9, 900, 0.3)
+	return m.WriteInp(pth, []int{0, 1, 2}, 1.25e-9, 900, 0.3, restraint, load)
 }
 
 // Generate finite elements.
 // Only from a start layer to an end layer along the Z axis.
 // Applicable to 3D print analysis that is done layer-by-layer.
-func fePartial(s sdf.SDF3, resolution int, order render.Order, shape render.Shape, pth string, layerStart, layerEnd int) error {
+func fePartial(s sdf.SDF3, resolution int, order render.Order, shape render.Shape, pth string,
+	restraint func(x, y, z float64) (bool, bool, bool),
+	load func(x, y, z float64) (float64, float64, float64),
+	layerStart, layerEnd int,
+) error {
 	s = dilationErosion(s)
 
 	// Create a mesh out of finite elements.
 	m, _ := mesh.NewFem(s, render.NewMarchingCubesFEUniform(resolution, order, shape))
 
 	// Write just some layers of mesh to file.
-	return m.WriteInpLayers(pth, layerStart, layerEnd, []int{0, 1, 2}, 1.25e-9, 900, 0.3)
+	return m.WriteInpLayers(pth, layerStart, layerEnd, []int{0, 1, 2}, 1.25e-9, 900, 0.3, restraint, load)
 }
 
 // Render SDF3 to finite elements.
 // Write finite elements to an `inp` file.
 // Written file can be used by ABAQUS or CalculiX.
 func main() {
-	stl := "../../files/beam-pipe.stl"
-
-	// read the stl file.
-	file, err := os.OpenFile(stl, os.O_RDONLY, 0400)
-	if err != nil {
-		log.Fatalf("error: %s", err)
-	}
-
-	// create the SDF from the STL mesh
-	inSdf, err := obj.ImportSTL(file, 20, 3, 5)
-	if err != nil {
-		log.Fatalf("error: %s", err)
-	}
-
-	// tet4 i.e. 4-node tetrahedron
-	err = fe(inSdf, 50, render.Linear, render.Tetrahedral, "tet4.inp")
-	if err != nil {
-		log.Fatalf("error: %s", err)
-	}
-
-	// tet4 i.e. 4-node tetrahedron
-	err = fePartial(inSdf, 50, render.Linear, render.Tetrahedral, "partial-tet4.inp", 0, 3)
-	if err != nil {
-		log.Fatalf("error: %s", err)
-	}
-
-	// tet10 i.e. 10-node tetrahedron
-	err = fe(inSdf, 50, render.Quadratic, render.Tetrahedral, "tet10.inp")
-	if err != nil {
-		log.Fatalf("error: %s", err)
-	}
-
-	// tet10 i.e. 10-node tetrahedron
-	err = fePartial(inSdf, 50, render.Quadratic, render.Tetrahedral, "partial-tet10.inp", 0, 3)
-	if err != nil {
-		log.Fatalf("error: %s", err)
-	}
-
-	// hex8 i.e. 8-node hexahedron
-	err = fe(inSdf, 50, render.Linear, render.Hexahedral, "hex8.inp")
-	if err != nil {
-		log.Fatalf("error: %s", err)
-	}
-
-	// hex8 i.e. 8-node hexahedron
-	err = fePartial(inSdf, 50, render.Linear, render.Hexahedral, "partial-hex8.inp", 0, 3)
-	if err != nil {
-		log.Fatalf("error: %s", err)
-	}
-
-	// hex20 i.e. 20-node hexahedron
-	err = fe(inSdf, 50, render.Quadratic, render.Hexahedral, "hex20.inp")
-	if err != nil {
-		log.Fatalf("error: %s", err)
-	}
-
-	// hex20 i.e. 20-node hexahedron
-	err = fePartial(inSdf, 50, render.Quadratic, render.Hexahedral, "partial-hex20.inp", 0, 3)
-	if err != nil {
-		log.Fatalf("error: %s", err)
-	}
-
-	// hex8 and tet4
-	err = fe(inSdf, 50, render.Linear, render.Both, "hex8tet4.inp")
-	if err != nil {
-		log.Fatalf("error: %s", err)
-	}
-
-	// hex8 and tet4
-	err = fePartial(inSdf, 50, render.Linear, render.Both, "partial-hex8tet4.inp", 0, 3)
-	if err != nil {
-		log.Fatalf("error: %s", err)
-	}
-
-	// hex20 and tet10
-	err = fe(inSdf, 50, render.Quadratic, render.Both, "hex20tet10.inp")
-	if err != nil {
-		log.Fatalf("error: %s", err)
-	}
-
-	// hex20 and tet10
-	err = fePartial(inSdf, 50, render.Quadratic, render.Both, "partial-hex20tet10.inp", 0, 3)
-	if err != nil {
-		log.Fatalf("error: %s", err)
-	}
+	benchmarkSquare()
 }
