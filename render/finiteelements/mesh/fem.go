@@ -84,9 +84,11 @@ func (m *Fem) WriteInp(
 	poissonRatio float32,
 	restraint func(x, y, z float64) (bool, bool, bool),
 	load func(x, y, z float64) (float64, float64, float64),
+	gravityDirection v3.Vec,
+	gravityMagnitude float64,
 ) error {
 	_, _, layersZ := m.IBuff.Size()
-	return m.WriteInpLayers(path, 0, layersZ, massDensity, youngModulus, poissonRatio, restraint, load)
+	return m.WriteInpLayers(path, 0, layersZ, massDensity, youngModulus, poissonRatio, restraint, load, gravityDirection, gravityMagnitude)
 }
 
 // WriteInpLayers writes specific layers of mesh to ABAQUS or CalculiX `inp` file.
@@ -100,8 +102,10 @@ func (m *Fem) WriteInpLayers(
 	poissonRatio float32,
 	restraint func(x, y, z float64) (bool, bool, bool),
 	load func(x, y, z float64) (float64, float64, float64),
+	gravityDirection v3.Vec,
+	gravityMagnitude float64,
 ) error {
-	inp := NewInp(m, path, layerStart, layerEnd, massDensity, youngModulus, poissonRatio, restraint, load)
+	inp := NewInp(m, path, layerStart, layerEnd, massDensity, youngModulus, poissonRatio, restraint, load, gravityDirection, gravityMagnitude)
 	return inp.Write()
 }
 

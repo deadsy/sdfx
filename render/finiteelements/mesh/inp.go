@@ -47,6 +47,10 @@ type Inp struct {
 	Restraint func(x, y, z float64) (bool, bool, bool)
 	// Inside the function, according to the x, y, z, the caller decides on load.
 	Load func(x, y, z float64) (float64, float64, float64)
+	// Assigns gravity loading in this direction to all elements.
+	GravityDirection v3.Vec
+	// Assigns gravity loading with magnitude to all elements.
+	GravityMagnitude float64
 }
 
 // NewInp sets up a new writer.
@@ -57,24 +61,28 @@ func NewInp(
 	massDensity float32, youngModulus float32, poissonRatio float32,
 	restraint func(x, y, z float64) (bool, bool, bool),
 	load func(x, y, z float64) (float64, float64, float64),
+	gravityDirection v3.Vec,
+	gravityMagnitude float64,
 ) *Inp {
 	return &Inp{
-		Mesh:          m,
-		Path:          path,
-		PathNodes:     path + ".nodes",
-		PathElsC3D4:   path + ".elements_C3D4",
-		PathElsC3D10:  path + ".elements_C3D10",
-		PathElsC3D8:   path + ".elements_C3D8",
-		PathElsC3D20R: path + ".elements_C3D20R",
-		PathBou:       path + ".boundary",
-		LayerStart:    layerStart,
-		LayerEnd:      layerEnd,
-		TempVBuff:     buffer.NewVB(),
-		MassDensity:   massDensity,
-		YoungModulus:  youngModulus,
-		PoissonRatio:  poissonRatio,
-		Restraint:     restraint,
-		Load:          load,
+		Mesh:             m,
+		Path:             path,
+		PathNodes:        path + ".nodes",
+		PathElsC3D4:      path + ".elements_C3D4",
+		PathElsC3D10:     path + ".elements_C3D10",
+		PathElsC3D8:      path + ".elements_C3D8",
+		PathElsC3D20R:    path + ".elements_C3D20R",
+		PathBou:          path + ".boundary",
+		LayerStart:       layerStart,
+		LayerEnd:         layerEnd,
+		TempVBuff:        buffer.NewVB(),
+		MassDensity:      massDensity,
+		YoungModulus:     youngModulus,
+		PoissonRatio:     poissonRatio,
+		Restraint:        restraint,
+		Load:             load,
+		GravityDirection: gravityDirection,
+		GravityMagnitude: gravityMagnitude,
 	}
 }
 
@@ -492,27 +500,53 @@ func (inp *Inp) writeFooter(f *os.File) error {
 		return err
 	}
 
-	// Assign gravity loading in the "positive" z-direction with magnitude 9810 to all elements.
+	// Assign gravity loading in any direction with any magnitude to all elements.
+	//
+	// 9810 could be gravity magnitude in mm/sec^2 units.
 	//
 	// SLA 3D printing is done upside-down. 3D model is hanging from the print floor.
-	// That's why gravity is in "positive" z-direction.
+	// That's why gravity could be in "positive" z-direction.
 	// Here ”gravity” really stands for any acceleration vector.
 	//
 	// Refer to CalculiX solver documentation:
 	// http://www.dhondt.de/ccx_2.20.pdf
-	_, err = f.WriteString("eC3D4,GRAV,9810.,0.,0.,1.\n")
+	_, err = f.WriteString(
+		fmt.Sprintf(
+			"eC3D4,GRAV,%v,%v,%v,%v\n",
+			inp.GravityMagnitude,
+			inp.GravityDirection.X, inp.GravityDirection.Y, inp.GravityDirection.Z,
+		),
+	)
 	if err != nil {
 		return err
 	}
-	_, err = f.WriteString("e3D10,GRAV,9810.,0.,0.,1.\n")
+	_, err = f.WriteString(
+		fmt.Sprintf(
+			"e3D10,GRAV,%v,%v,%v,%v\n",
+			inp.GravityMagnitude,
+			inp.GravityDirection.X, inp.GravityDirection.Y, inp.GravityDirection.Z,
+		),
+	)
 	if err != nil {
 		return err
 	}
-	_, err = f.WriteString("eC3D8,GRAV,9810.,0.,0.,1.\n")
+	_, err = f.WriteString(
+		fmt.Sprintf(
+			"eC3D8,GRAV,%v,%v,%v,%v\n",
+			inp.GravityMagnitude,
+			inp.GravityDirection.X, inp.GravityDirection.Y, inp.GravityDirection.Z,
+		),
+	)
 	if err != nil {
 		return err
 	}
-	_, err = f.WriteString("eC3D20R,GRAV,9810.,0.,0.,1.\n")
+	_, err = f.WriteString(
+		fmt.Sprintf(
+			"eC3D20R,GRAV,%v,%v,%v,%v\n",
+			inp.GravityMagnitude,
+			inp.GravityDirection.X, inp.GravityDirection.Y, inp.GravityDirection.Z,
+		),
+	)
 	if err != nil {
 		return err
 	}
