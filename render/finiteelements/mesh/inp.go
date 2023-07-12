@@ -31,8 +31,6 @@ type Inp struct {
 	LayerStart int
 	// Output `inp` file would exclude end layer.
 	LayerEnd int
-	// Layers fixed to the 3D print floor i.e. bottom layers. The boundary conditions.
-	LayersFixed []int
 	// To write only required nodes to `inp` file.
 	TempVBuff *buffer.VB
 	// Mechanical properties of 3D print resin.
@@ -56,7 +54,6 @@ func NewInp(
 	m *Fem,
 	path string,
 	layerStart, layerEnd int,
-	layersFixed []int,
 	massDensity float32, youngModulus float32, poissonRatio float32,
 	restraint func(x, y, z float64) (bool, bool, bool),
 	load func(x, y, z float64) (float64, float64, float64),
@@ -72,7 +69,6 @@ func NewInp(
 		PathBou:       path + ".boundary",
 		LayerStart:    layerStart,
 		LayerEnd:      layerEnd,
-		LayersFixed:   layersFixed,
 		TempVBuff:     buffer.NewVB(),
 		MassDensity:   massDensity,
 		YoungModulus:  youngModulus,

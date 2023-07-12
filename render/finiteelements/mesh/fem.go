@@ -79,7 +79,6 @@ func (m *Fem) iterate(f func(int, int, int, []*buffer.Element)) {
 // WriteInp writes mesh to ABAQUS or CalculiX `inp` file.
 func (m *Fem) WriteInp(
 	path string,
-	layersFixed []int,
 	massDensity float32,
 	youngModulus float32,
 	poissonRatio float32,
@@ -87,7 +86,7 @@ func (m *Fem) WriteInp(
 	load func(x, y, z float64) (float64, float64, float64),
 ) error {
 	_, _, layersZ := m.IBuff.Size()
-	return m.WriteInpLayers(path, 0, layersZ, layersFixed, massDensity, youngModulus, poissonRatio, restraint, load)
+	return m.WriteInpLayers(path, 0, layersZ, massDensity, youngModulus, poissonRatio, restraint, load)
 }
 
 // WriteInpLayers writes specific layers of mesh to ABAQUS or CalculiX `inp` file.
@@ -96,14 +95,13 @@ func (m *Fem) WriteInp(
 func (m *Fem) WriteInpLayers(
 	path string,
 	layerStart, layerEnd int,
-	layersFixed []int,
 	massDensity float32,
 	youngModulus float32,
 	poissonRatio float32,
 	restraint func(x, y, z float64) (bool, bool, bool),
 	load func(x, y, z float64) (float64, float64, float64),
 ) error {
-	inp := NewInp(m, path, layerStart, layerEnd, layersFixed, massDensity, youngModulus, poissonRatio, restraint, load)
+	inp := NewInp(m, path, layerStart, layerEnd, massDensity, youngModulus, poissonRatio, restraint, load)
 	return inp.Write()
 }
 

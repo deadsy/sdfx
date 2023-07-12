@@ -197,7 +197,7 @@ func fe(s sdf.SDF3, resolution int, order render.Order, shape render.Shape, pth 
 	m, _ := mesh.NewFem(s, render.NewMarchingCubesFEUniform(resolution, order, shape))
 
 	// Write all layers of mesh to file.
-	return m.WriteInp(pth, []int{0, 1, 2}, 1.25e-9, 900, 0.3, restraint, load)
+	return m.WriteInp(pth, 1.25e-9, 900, 0.3, restraint, load)
 }
 
 // Generate finite elements.
@@ -214,7 +214,7 @@ func fePartial(s sdf.SDF3, resolution int, order render.Order, shape render.Shap
 	m, _ := mesh.NewFem(s, render.NewMarchingCubesFEUniform(resolution, order, shape))
 
 	// Write just some layers of mesh to file.
-	return m.WriteInpLayers(pth, layerStart, layerEnd, []int{0, 1, 2}, 1.25e-9, 900, 0.3, restraint, load)
+	return m.WriteInpLayers(pth, layerStart, layerEnd, 1.25e-9, 900, 0.3, restraint, load)
 }
 
 // By dilating SDF a little bit we may actually get rid of
