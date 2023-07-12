@@ -40,7 +40,7 @@ zypper install cgx
 To visualize the `inp` file by CalculiX GraphiX:
 
 ```bash
-cgx -c teapot-hex8.inp
+cgx -c hex8.inp
 ```
 
 # Analyze `inp` file
@@ -48,21 +48,21 @@ cgx -c teapot-hex8.inp
 To run the `inp` files by FEA engines like CalculiX:
 
 ```bash
-ccx -i teapot-hex8
+ccx -i hex8
 ```
 
-The above `-i` flag expects a `teapot-hex8.inp` file.
+The above `-i` flag expects a `hex8.inp` file.
 
 The above command creates `frd` files containing the results. They can be viewed by CalculiX GraphiX:
 
 ```bash
-cgx teapot-hex8.frd
+cgx hex8.frd
 ```
 
 The boundary conditions and loads used in the calculation will be available together with the results if you run:
 
 ```bash
-cgx teapot-hex8.frd teapot-hex8.inp
+cgx hex8.frd hex8.inp
 ```
 
 ## Math solver
