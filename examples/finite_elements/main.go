@@ -40,6 +40,7 @@ const (
 // Written file can be used by ABAQUS or CalculiX.
 //
 // OpenSCAD must be installed and be available on PATH as `openscad`
+// https://openscad.org/downloads.html
 func main() {
 	benchmark := Square
 
@@ -64,6 +65,8 @@ func main() {
 
 // Benchmark reference:
 // https://github.com/calculix/CalculiX-Examples/tree/master/NonLinear/Sections
+//
+// OpenSCAD must be installed on your system: https://openscad.org/downloads.html
 func benchmarkRun(
 	cad string,
 	resolution int,
