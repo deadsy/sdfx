@@ -100,7 +100,7 @@ func benchmarkRun(
 	}
 
 	// tet4 i.e. 4-node tetrahedron
-	err = fePartial(
+	err = feLayers(
 		inSdf, resolution, render.Linear, render.Tetrahedral,
 		fmt.Sprintf("tet4--layers-%v-to-%v.inp", layerStart, layerEnd),
 		restraint, load, layerStart, layerEnd,
@@ -116,7 +116,7 @@ func benchmarkRun(
 	}
 
 	// tet10 i.e. 10-node tetrahedron
-	err = fePartial(
+	err = feLayers(
 		inSdf, resolution, render.Quadratic, render.Tetrahedral,
 		fmt.Sprintf("tet10--layers-%v-to-%v.inp", layerStart, layerEnd),
 		restraint, load, layerStart, layerEnd,
@@ -132,7 +132,7 @@ func benchmarkRun(
 	}
 
 	// hex8 i.e. 8-node hexahedron
-	err = fePartial(inSdf, resolution, render.Linear, render.Hexahedral,
+	err = feLayers(inSdf, resolution, render.Linear, render.Hexahedral,
 		fmt.Sprintf("hex8--layers-%v-to-%v.inp", layerStart, layerEnd),
 		restraint, load, layerStart, layerEnd,
 	)
@@ -147,7 +147,7 @@ func benchmarkRun(
 	}
 
 	// hex20 i.e. 20-node hexahedron
-	err = fePartial(inSdf, resolution, render.Quadratic, render.Hexahedral,
+	err = feLayers(inSdf, resolution, render.Quadratic, render.Hexahedral,
 		fmt.Sprintf("hex20--layers-%v-to-%v.inp", layerStart, layerEnd),
 		restraint, load, layerStart, layerEnd,
 	)
@@ -162,7 +162,7 @@ func benchmarkRun(
 	}
 
 	// hex8 and tet4
-	err = fePartial(inSdf, resolution, render.Linear, render.Both,
+	err = feLayers(inSdf, resolution, render.Linear, render.Both,
 		fmt.Sprintf("hex8tet4--layers-%v-to-%v.inp", layerStart, layerEnd),
 		restraint, load, layerStart, layerEnd,
 	)
@@ -177,7 +177,7 @@ func benchmarkRun(
 	}
 
 	// hex20 and tet10
-	err = fePartial(inSdf, resolution, render.Quadratic, render.Both,
+	err = feLayers(inSdf, resolution, render.Quadratic, render.Both,
 		fmt.Sprintf("hex20tet10--layers-%v-to-%v.inp", layerStart, layerEnd),
 		restraint, load, layerStart, layerEnd,
 	)
@@ -203,7 +203,7 @@ func fe(s sdf.SDF3, resolution int, order render.Order, shape render.Shape, pth 
 // Generate finite elements.
 // Only from a start layer to an end layer along the Z axis.
 // Applicable to 3D print analysis that is done layer-by-layer.
-func fePartial(s sdf.SDF3, resolution int, order render.Order, shape render.Shape, pth string,
+func feLayers(s sdf.SDF3, resolution int, order render.Order, shape render.Shape, pth string,
 	restraint func(x, y, z float64) (bool, bool, bool),
 	load func(x, y, z float64) (float64, float64, float64),
 	layerStart, layerEnd int,
