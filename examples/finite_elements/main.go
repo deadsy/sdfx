@@ -53,7 +53,7 @@ func main() {
 
 	switch benchmark {
 	case Square:
-		benchmarkRun("../../files/beam-square.scad", 50, 0, 3, restraintSquare, loadSquare)
+		benchmarkRun("../../files/benchmark-square.scad", 50, 0, 3, restraintSquare, loadSquare)
 	case Circle:
 	case Pipe:
 	case I:
@@ -71,7 +71,7 @@ func benchmarkRun(
 	load func(x, y, z float64) (float64, float64, float64),
 ) {
 	prg := "openscad"
-	stl := "3d-beam.stl"
+	stl := "benchmark.stl"
 	cmd := exec.Command(prg, "-o", stl, cad)
 	stdout, err := cmd.Output()
 	if err != nil {
