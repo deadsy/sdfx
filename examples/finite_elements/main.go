@@ -10,11 +10,14 @@ Output `inp` file is consumable by ABAQUS or CalculiX.
 package main
 
 import (
+	"fmt"
 	"log"
 	"math"
 	"os"
+	"os/exec"
 	"strconv"
 
+	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/render/finiteelements/mesh"
 	"github.com/deadsy/sdfx/sdf"
@@ -50,11 +53,116 @@ func main() {
 
 	switch benchmark {
 	case Square:
-		benchmarkSquare()
+		benchmarkRun("../../files/beam-square.scad", 50, 0, 3, restraintSquare, loadSquare)
 	case Circle:
 	case Pipe:
 	case I:
 	default:
+	}
+}
+
+// Benchmark reference:
+// https://github.com/calculix/CalculiX-Examples/tree/master/NonLinear/Sections
+func benchmarkRun(
+	cad string,
+	resolution int,
+	layerStart, layerEnd int,
+	restraint func(x, y, z float64) (bool, bool, bool),
+	load func(x, y, z float64) (float64, float64, float64),
+) {
+	prg := "openscad"
+	stl := "3d-beam.stl"
+	cmd := exec.Command(prg, "-o", stl, cad)
+	stdout, err := cmd.Output()
+	if err != nil {
+		log.Fatalf("error: %s", err)
+		return
+	}
+
+	fmt.Println(string(stdout))
+
+	// read the stl file.
+	file, err := os.OpenFile(stl, os.O_RDONLY, 0400)
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+
+	// create the SDF from the STL mesh
+	inSdf, err := obj.ImportSTL(file, 20, 3, 5)
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+
+	// tet4 i.e. 4-node tetrahedron
+	err = fe(inSdf, resolution, render.Linear, render.Tetrahedral, "tet4.inp", restraint, load)
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+
+	// tet4 i.e. 4-node tetrahedron
+	err = fePartial(inSdf, resolution, render.Linear, render.Tetrahedral, "partial-tet4.inp", restraint, load, layerStart, layerEnd)
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+
+	// tet10 i.e. 10-node tetrahedron
+	err = fe(inSdf, resolution, render.Quadratic, render.Tetrahedral, "tet10.inp", restraint, load)
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+
+	// tet10 i.e. 10-node tetrahedron
+	err = fePartial(inSdf, resolution, render.Quadratic, render.Tetrahedral, "partial-tet10.inp", restraint, load, layerStart, layerEnd)
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+
+	// hex8 i.e. 8-node hexahedron
+	err = fe(inSdf, resolution, render.Linear, render.Hexahedral, "hex8.inp", restraint, load)
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+
+	// hex8 i.e. 8-node hexahedron
+	err = fePartial(inSdf, resolution, render.Linear, render.Hexahedral, "partial-hex8.inp", restraint, load, layerStart, layerEnd)
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+
+	// hex20 i.e. 20-node hexahedron
+	err = fe(inSdf, resolution, render.Quadratic, render.Hexahedral, "hex20.inp", restraint, load)
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+
+	// hex20 i.e. 20-node hexahedron
+	err = fePartial(inSdf, resolution, render.Quadratic, render.Hexahedral, "partial-hex20.inp", restraint, load, layerStart, layerEnd)
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+
+	// hex8 and tet4
+	err = fe(inSdf, resolution, render.Linear, render.Both, "hex8tet4.inp", restraint, load)
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+
+	// hex8 and tet4
+	err = fePartial(inSdf, resolution, render.Linear, render.Both, "partial-hex8tet4.inp", restraint, load, layerStart, layerEnd)
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+
+	// hex20 and tet10
+	err = fe(inSdf, resolution, render.Quadratic, render.Both, "hex20tet10.inp", restraint, load)
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+
+	// hex20 and tet10
+	err = fePartial(inSdf, resolution, render.Quadratic, render.Both, "partial-hex20tet10.inp", restraint, load, layerStart, layerEnd)
+	if err != nil {
+		log.Fatalf("error: %s", err)
 	}
 }
 
