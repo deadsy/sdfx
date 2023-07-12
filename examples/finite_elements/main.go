@@ -10,7 +10,10 @@ Output `inp` file is consumable by ABAQUS or CalculiX.
 package main
 
 import (
+	"log"
 	"math"
+	"os"
+	"strconv"
 
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/render/finiteelements/mesh"
@@ -35,6 +38,15 @@ const (
 // OpenSCAD must be installed and be available on PATH as `openscad`
 func main() {
 	benchmark := Square
+
+	// Optional argument from 1 to 4 to specify the benchmark to run.
+	if len(os.Args) > 1 {
+		bmint, err := strconv.Atoi(os.Args[1])
+		if err != nil {
+			log.Fatalf("error: %s", err)
+		}
+		benchmark = Benchmark(bmint)
+	}
 
 	switch benchmark {
 	case Square:
