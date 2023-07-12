@@ -100,7 +100,11 @@ func benchmarkRun(
 	}
 
 	// tet4 i.e. 4-node tetrahedron
-	err = fePartial(inSdf, resolution, render.Linear, render.Tetrahedral, "partial-tet4.inp", restraint, load, layerStart, layerEnd)
+	err = fePartial(
+		inSdf, resolution, render.Linear, render.Tetrahedral,
+		fmt.Sprintf("tet4--layers-%v-to-%v.inp", layerStart, layerEnd),
+		restraint, load, layerStart, layerEnd,
+	)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
@@ -112,7 +116,11 @@ func benchmarkRun(
 	}
 
 	// tet10 i.e. 10-node tetrahedron
-	err = fePartial(inSdf, resolution, render.Quadratic, render.Tetrahedral, "partial-tet10.inp", restraint, load, layerStart, layerEnd)
+	err = fePartial(
+		inSdf, resolution, render.Quadratic, render.Tetrahedral,
+		fmt.Sprintf("tet10--layers-%v-to-%v.inp", layerStart, layerEnd),
+		restraint, load, layerStart, layerEnd,
+	)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
@@ -124,7 +132,10 @@ func benchmarkRun(
 	}
 
 	// hex8 i.e. 8-node hexahedron
-	err = fePartial(inSdf, resolution, render.Linear, render.Hexahedral, "partial-hex8.inp", restraint, load, layerStart, layerEnd)
+	err = fePartial(inSdf, resolution, render.Linear, render.Hexahedral,
+		fmt.Sprintf("hex8--layers-%v-to-%v.inp", layerStart, layerEnd),
+		restraint, load, layerStart, layerEnd,
+	)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
@@ -136,7 +147,10 @@ func benchmarkRun(
 	}
 
 	// hex20 i.e. 20-node hexahedron
-	err = fePartial(inSdf, resolution, render.Quadratic, render.Hexahedral, "partial-hex20.inp", restraint, load, layerStart, layerEnd)
+	err = fePartial(inSdf, resolution, render.Quadratic, render.Hexahedral,
+		fmt.Sprintf("hex20--layers-%v-to-%v.inp", layerStart, layerEnd),
+		restraint, load, layerStart, layerEnd,
+	)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
@@ -148,7 +162,10 @@ func benchmarkRun(
 	}
 
 	// hex8 and tet4
-	err = fePartial(inSdf, resolution, render.Linear, render.Both, "partial-hex8tet4.inp", restraint, load, layerStart, layerEnd)
+	err = fePartial(inSdf, resolution, render.Linear, render.Both,
+		fmt.Sprintf("hex8tet4--layers-%v-to-%v.inp", layerStart, layerEnd),
+		restraint, load, layerStart, layerEnd,
+	)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
@@ -160,7 +177,10 @@ func benchmarkRun(
 	}
 
 	// hex20 and tet10
-	err = fePartial(inSdf, resolution, render.Quadratic, render.Both, "partial-hex20tet10.inp", restraint, load, layerStart, layerEnd)
+	err = fePartial(inSdf, resolution, render.Quadratic, render.Both,
+		fmt.Sprintf("hex20tet10--layers-%v-to-%v.inp", layerStart, layerEnd),
+		restraint, load, layerStart, layerEnd,
+	)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
