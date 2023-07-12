@@ -9,18 +9,18 @@ func restraintSquare(x, y, z float64) (bool, bool, bool) {
 	node := v3.Vec{X: x, Y: y, Z: z}
 
 	// All three degrees of freedom are fixed.
-	if node.Equals(v3.Vec{X: 0, Y: 0, Z: 0}, 0.01) {
+	if node.Equals(v3.Vec{X: 0, Y: 0, Z: 0}, 2) {
 		return true, true, true
 	}
-	if node.Equals(v3.Vec{X: 0, Y: 17.32, Z: 0}, 0.01) {
+	if node.Equals(v3.Vec{X: 0, Y: 17.32, Z: 0}, 2) {
 		return true, true, true
 	}
 
 	// Some degrees of freedom are fixed.
-	if node.Equals(v3.Vec{X: 200, Y: 0, Z: 0}, 0.01) {
+	if node.Equals(v3.Vec{X: 200, Y: 0, Z: 0}, 2) {
 		return false, true, true
 	}
-	if node.Equals(v3.Vec{X: 200, Y: 17.32, Z: 0}, 0.01) {
+	if node.Equals(v3.Vec{X: 200, Y: 17.32, Z: 0}, 2) {
 		return false, true, true
 	}
 	return false, false, false
