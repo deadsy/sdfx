@@ -198,7 +198,7 @@ func fe(s sdf.SDF3, resolution int, order render.Order, shape render.Shape, pth 
 	m, _ := mesh.NewFem(s, render.NewMarchingCubesFEUniform(resolution, order, shape))
 
 	// Write all layers of mesh to file.
-	return m.WriteInp(pth, 1.25e-9, 900, 0.3, restraint, load, v3.Vec{X: 0, Y: 0, Z: -1}, 9810)
+	return m.WriteInp(pth, 7.85e-9, 210000, 0.3, restraint, load, v3.Vec{X: 0, Y: 0, Z: -1}, 9810)
 }
 
 // Generate finite elements.
@@ -215,7 +215,7 @@ func feLayers(s sdf.SDF3, resolution int, order render.Order, shape render.Shape
 	m, _ := mesh.NewFem(s, render.NewMarchingCubesFEUniform(resolution, order, shape))
 
 	// Write just some layers of mesh to file.
-	return m.WriteInpLayers(pth, layerStart, layerEnd, 1.25e-9, 900, 0.3, restraint, load, v3.Vec{X: 0, Y: 0, Z: -1}, 9810)
+	return m.WriteInpLayers(pth, layerStart, layerEnd, 7.85e-9, 210000, 0.3, restraint, load, v3.Vec{X: 0, Y: 0, Z: -1}, 9810)
 }
 
 // By dilating SDF a little bit we may actually get rid of
