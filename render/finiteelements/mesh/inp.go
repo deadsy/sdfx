@@ -350,17 +350,6 @@ func (inp *Inp) writeBoundary() error {
 	inp.nextNodeBou = 1 // ID starts from one not zero.
 
 	process = func(x, y, z int, els []*buffer.Element) {
-		var isLayerFixed bool
-		for _, l := range inp.LayersFixed {
-			if l == z {
-				isLayerFixed = true
-			}
-		}
-
-		if !isLayerFixed {
-			return
-		}
-
 		for _, el := range els {
 			vertices := make([]v3.Vec, len(el.Nodes))
 			ids := make([]uint32, len(el.Nodes))
@@ -371,12 +360,63 @@ func (inp *Inp) writeBoundary() error {
 
 			// Write the node IDs.
 			for n := 0; n < len(el.Nodes); n++ {
+				vertex := vertices[n]
+				isFixedX, isFixedY, isFixedZ := inp.Restraint(vertex.X, vertex.Y, vertex.Z)
+				if !isFixedX && !isFixedY && !isFixedZ {
+					continue
+				}
+
+				// ID starts from one not zero.
+
 				// Only write node if it's not already written to file.
 				if ids[n]+1 == inp.nextNodeBou {
-					// ID starts from one not zero.
-					_, err = f.WriteString(fmt.Sprintf("%d,1,3\n", ids[n]+1))
-					if err != nil {
-						panic("Couldn't write boundary to file: " + err.Error())
+
+					// To be written:
+					// 1) Node number/ID.
+					// 2) First degree of freedom constrained.
+					// 3) Last degree of freedom constrained. This field may be left blank if only
+					// one degree of freedom is constrained.
+
+					if isFixedX && isFixedY && isFixedZ {
+						_, err = f.WriteString(fmt.Sprintf("%d,1,3\n", ids[n]+1))
+						if err != nil {
+							panic("Couldn't write boundary to file: " + err.Error())
+						}
+					} else if isFixedX && isFixedY && !isFixedZ {
+						_, err = f.WriteString(fmt.Sprintf("%d,1,2\n", ids[n]+1))
+						if err != nil {
+							panic("Couldn't write boundary to file: " + err.Error())
+						}
+					} else if !isFixedX && isFixedY && isFixedZ {
+						_, err = f.WriteString(fmt.Sprintf("%d,2,3\n", ids[n]+1))
+						if err != nil {
+							panic("Couldn't write boundary to file: " + err.Error())
+						}
+					} else if isFixedX && !isFixedY && isFixedZ {
+						// TODO: Can we write this case by just one line, not two lines?
+						_, err = f.WriteString(fmt.Sprintf("%d,1\n", ids[n]+1))
+						if err != nil {
+							panic("Couldn't write boundary to file: " + err.Error())
+						}
+						_, err = f.WriteString(fmt.Sprintf("%d,3\n", ids[n]+1))
+						if err != nil {
+							panic("Couldn't write boundary to file: " + err.Error())
+						}
+					} else if isFixedX && !isFixedY && !isFixedZ {
+						_, err = f.WriteString(fmt.Sprintf("%d,1\n", ids[n]+1))
+						if err != nil {
+							panic("Couldn't write boundary to file: " + err.Error())
+						}
+					} else if !isFixedX && isFixedY && !isFixedZ {
+						_, err = f.WriteString(fmt.Sprintf("%d,2\n", ids[n]+1))
+						if err != nil {
+							panic("Couldn't write boundary to file: " + err.Error())
+						}
+					} else if !isFixedX && !isFixedY && isFixedZ {
+						_, err = f.WriteString(fmt.Sprintf("%d,3\n", ids[n]+1))
+						if err != nil {
+							panic("Couldn't write boundary to file: " + err.Error())
+						}
 					}
 					inp.nextNodeBou++
 				}
