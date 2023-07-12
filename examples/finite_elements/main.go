@@ -14,7 +14,6 @@ import (
 	"log"
 	"math"
 	"os"
-	"os/exec"
 	"strconv"
 
 	"github.com/deadsy/sdfx/obj"
@@ -38,9 +37,6 @@ const (
 // Render SDF3 to finite elements.
 // Write finite elements to an `inp` file.
 // Written file can be used by ABAQUS or CalculiX.
-//
-// OpenSCAD must be installed and be available on PATH as `openscad`
-// https://openscad.org/downloads.html
 func main() {
 	benchmark := Square
 
@@ -55,7 +51,7 @@ func main() {
 
 	switch benchmark {
 	case Square:
-		benchmarkRun("../../files/benchmark-square.scad", 50, 0, 3, restraintSquare, loadSquare)
+		benchmarkRun("../../files/benchmark-square.stl", 50, 0, 3, restraintSquare, loadSquare)
 	case Circle:
 	case Pipe:
 	case I:
@@ -65,26 +61,13 @@ func main() {
 
 // Benchmark reference:
 // https://github.com/calculix/CalculiX-Examples/tree/master/NonLinear/Sections
-//
-// OpenSCAD must be installed on your system: https://openscad.org/downloads.html
 func benchmarkRun(
-	cad string,
+	stl string,
 	resolution int,
 	layerStart, layerEnd int,
 	restraint func(x, y, z float64) (bool, bool, bool),
 	load func(x, y, z float64) (float64, float64, float64),
 ) {
-	prg := "openscad"
-	stl := "benchmark.stl"
-	cmd := exec.Command(prg, "-o", stl, cad)
-	stdout, err := cmd.Output()
-	if err != nil {
-		log.Fatalf("error: %s", err)
-		return
-	}
-
-	fmt.Println(string(stdout))
-
 	// read the stl file.
 	file, err := os.OpenFile(stl, os.O_RDONLY, 0400)
 	if err != nil {
