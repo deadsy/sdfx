@@ -17,11 +17,42 @@ import (
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
 	v2 "github.com/deadsy/sdfx/vec/v2"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
+// air intake cover: Derived from measurement of an Edelbrock carburetor.
 
-// Derived from internet sources and measurement of an Edelbrock intake manifold.
+const airIntakeRadius = 0.5 * 5.0 * sdf.MillimetresPerInch
+const airIntakeWall = 0.25 * sdf.MillimetresPerInch
+const airIntakeHeight = 1.375 * sdf.MillimetresPerInch
+
+func airIntakeCover() (sdf.SDF3, error) {
+
+	const h0 = airIntakeHeight + airIntakeWall
+	const r0 = airIntakeRadius + airIntakeWall
+
+	c0, err := sdf.Cylinder3D(h0, r0, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	const h1 = airIntakeHeight
+	const r1 = airIntakeRadius
+
+	c1, err := sdf.Cylinder3D(h1, r1, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	c1 = sdf.Transform3D(c1, sdf.Translate3d(v3.Vec{0, 0, airIntakeWall}))
+
+	return sdf.Difference3D(c0, c1), nil
+}
+
+//-----------------------------------------------------------------------------
+// manifold blockoff plate: Derived from measurement of an Edelbrock intake manifold.
+
 const dX = 0.5 * 5.625 * sdf.MillimetresPerInch
 const dY0 = 0.5 * 4.25 * sdf.MillimetresPerInch // spreadbore
 const dY1 = 0.5 * 5.16 * sdf.MillimetresPerInch // holley
@@ -31,8 +62,6 @@ const holeClearance = 1.05
 const plateX = (2.0 * dX) + 20.0
 const plateY = (2.0 * dY1) + 20.0
 const plateZ = 4.0
-
-//-----------------------------------------------------------------------------
 
 func blockOffPlate() (sdf.SDF3, error) {
 
@@ -68,6 +97,13 @@ func main() {
 		log.Fatalf("error: %s", err)
 	}
 	render.ToSTL(s, "plate.stl", render.NewMarchingCubesOctree(300))
+
+	s, err = airIntakeCover()
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	render.ToSTL(s, "air.stl", render.NewMarchingCubesOctree(300))
+
 }
 
 //-----------------------------------------------------------------------------
