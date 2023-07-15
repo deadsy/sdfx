@@ -21,37 +21,42 @@ import (
 )
 
 //-----------------------------------------------------------------------------
-// air intake cover: Derived from measurement of an Edelbrock carburetor.
+// air intake cover: derived from measurement of an Edelbrock carburetor.
 
-const airIntakeRadius = 0.5 * 5.0 * sdf.MillimetresPerInch
-const airIntakeWall = 0.25 * sdf.MillimetresPerInch
+const airIntakeRadius = 0.5 * 5.125 * sdf.MillimetresPerInch
+const airIntakeWall = (3.0 / 16.0) * sdf.MillimetresPerInch
 const airIntakeHeight = 1.375 * sdf.MillimetresPerInch
+const airIntakeHole = 0.5 * (5.0 / 16.0) * sdf.MillimetresPerInch
 
 func airIntakeCover() (sdf.SDF3, error) {
 
-	const h0 = airIntakeHeight + airIntakeWall
+	const h0 = 2.0 * (airIntakeHeight + airIntakeWall)
 	const r0 = airIntakeRadius + airIntakeWall
-
-	c0, err := sdf.Cylinder3D(h0, r0, 0)
+	body, err := sdf.Cylinder3D(h0, r0, 0.75*airIntakeWall)
 	if err != nil {
 		return nil, err
 	}
 
-	const h1 = airIntakeHeight
+	const h1 = 2.0 * airIntakeHeight
 	const r1 = airIntakeRadius
-
-	c1, err := sdf.Cylinder3D(h1, r1, 0)
+	cavity, err := sdf.Cylinder3D(h1, r1, 0)
 	if err != nil {
 		return nil, err
 	}
 
-	c1 = sdf.Transform3D(c1, sdf.Translate3d(v3.Vec{0, 0, airIntakeWall}))
+	const h2 = h0
+	const r2 = airIntakeHole
+	hole, err := sdf.Cylinder3D(h2, r2, 0)
+	if err != nil {
+		return nil, err
+	}
 
-	return sdf.Difference3D(c0, c1), nil
+	cover := sdf.Difference3D(body, sdf.Union3D(cavity, hole))
+	return sdf.Cut3D(cover, v3.Vec{0, 0, 0}, v3.Vec{0, 0, 1}), nil
 }
 
 //-----------------------------------------------------------------------------
-// manifold blockoff plate: Derived from measurement of an Edelbrock intake manifold.
+// manifold blockoff plate: derived from measurement of an Edelbrock intake manifold.
 
 const dX = 0.5 * 5.625 * sdf.MillimetresPerInch
 const dY0 = 0.5 * 4.25 * sdf.MillimetresPerInch // spreadbore
