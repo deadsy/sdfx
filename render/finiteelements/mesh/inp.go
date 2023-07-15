@@ -41,10 +41,10 @@ type Inp struct {
 	eleID uint32
 	// Just a counter to keep track of written nodes
 	nextNode uint32
-	// Inside the function, according to the x, y, z, the caller decides on restraint.
-	Restraint func(x, y, z float64) (bool, bool, bool)
-	// Inside the function, according to the x, y, z, the caller decides on load.
-	Load func(x, y, z float64) (float64, float64, float64)
+	// Single point constraint: one or more degrees of freedom are fixed for a given node. Passed in by the caller.
+	Restraints []*Restraint
+	// Point loads are applied to the nodes of the mesh. Passed in by the caller.
+	Loads []*Load
 	// Assigns gravity loading in this direction to all elements.
 	GravityDirection v3.Vec
 	// Assigns gravity loading with magnitude to all elements.
@@ -57,8 +57,8 @@ func NewInp(
 	path string,
 	layerStart, layerEnd int,
 	massDensity float32, youngModulus float32, poissonRatio float32,
-	restraint func(x, y, z float64) (bool, bool, bool),
-	load func(x, y, z float64) (float64, float64, float64),
+	restraints []*Restraint,
+	loads []*Load,
 	gravityDirection v3.Vec,
 	gravityMagnitude float64,
 ) *Inp {
@@ -77,8 +77,8 @@ func NewInp(
 		MassDensity:      massDensity,
 		YoungModulus:     youngModulus,
 		PoissonRatio:     poissonRatio,
-		Restraint:        restraint,
-		Load:             load,
+		Restraints:       restraints,
+		Loads:            loads,
 		GravityDirection: gravityDirection,
 		GravityMagnitude: gravityMagnitude,
 	}

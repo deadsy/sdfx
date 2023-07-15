@@ -49,9 +49,12 @@ func main() {
 		benchmark = Benchmark(bmint)
 	}
 
+	restraints := []*mesh.Restraint{}
+	loads := []*mesh.Load{}
+
 	switch benchmark {
 	case Square:
-		benchmarkRun("../../files/benchmark-square.stl", 50, 0, 3, restraintSquare, loadSquare)
+		benchmarkRun("../../files/benchmark-square.stl", 50, 0, 3, restraints, loads)
 	case Circle:
 	case Pipe:
 	case I:
@@ -65,8 +68,8 @@ func benchmarkRun(
 	stl string,
 	resolution int,
 	layerStart, layerEnd int,
-	restraint func(x, y, z float64) (bool, bool, bool),
-	load func(x, y, z float64) (float64, float64, float64),
+	restraints []*mesh.Restraint,
+	loads []*mesh.Load,
 ) {
 	// read the stl file.
 	file, err := os.OpenFile(stl, os.O_RDONLY, 0400)
@@ -81,7 +84,7 @@ func benchmarkRun(
 	}
 
 	// tet4 i.e. 4-node tetrahedron
-	err = fe(inSdf, resolution, render.Linear, render.Tetrahedral, "tet4.inp", restraint, load)
+	err = fe(inSdf, resolution, render.Linear, render.Tetrahedral, "tet4.inp", restraints, loads)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
@@ -90,14 +93,14 @@ func benchmarkRun(
 	err = feLayers(
 		inSdf, resolution, render.Linear, render.Tetrahedral,
 		fmt.Sprintf("tet4--layers-%v-to-%v.inp", layerStart, layerEnd),
-		restraint, load, layerStart, layerEnd,
+		restraints, loads, layerStart, layerEnd,
 	)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
 	// tet10 i.e. 10-node tetrahedron
-	err = fe(inSdf, resolution, render.Quadratic, render.Tetrahedral, "tet10.inp", restraint, load)
+	err = fe(inSdf, resolution, render.Quadratic, render.Tetrahedral, "tet10.inp", restraints, loads)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
@@ -106,14 +109,14 @@ func benchmarkRun(
 	err = feLayers(
 		inSdf, resolution, render.Quadratic, render.Tetrahedral,
 		fmt.Sprintf("tet10--layers-%v-to-%v.inp", layerStart, layerEnd),
-		restraint, load, layerStart, layerEnd,
+		restraints, loads, layerStart, layerEnd,
 	)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
 	// hex8 i.e. 8-node hexahedron
-	err = fe(inSdf, resolution, render.Linear, render.Hexahedral, "hex8.inp", restraint, load)
+	err = fe(inSdf, resolution, render.Linear, render.Hexahedral, "hex8.inp", restraints, loads)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
@@ -121,14 +124,14 @@ func benchmarkRun(
 	// hex8 i.e. 8-node hexahedron
 	err = feLayers(inSdf, resolution, render.Linear, render.Hexahedral,
 		fmt.Sprintf("hex8--layers-%v-to-%v.inp", layerStart, layerEnd),
-		restraint, load, layerStart, layerEnd,
+		restraints, loads, layerStart, layerEnd,
 	)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
 	// hex20 i.e. 20-node hexahedron
-	err = fe(inSdf, resolution, render.Quadratic, render.Hexahedral, "hex20.inp", restraint, load)
+	err = fe(inSdf, resolution, render.Quadratic, render.Hexahedral, "hex20.inp", restraints, loads)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
@@ -136,14 +139,14 @@ func benchmarkRun(
 	// hex20 i.e. 20-node hexahedron
 	err = feLayers(inSdf, resolution, render.Quadratic, render.Hexahedral,
 		fmt.Sprintf("hex20--layers-%v-to-%v.inp", layerStart, layerEnd),
-		restraint, load, layerStart, layerEnd,
+		restraints, loads, layerStart, layerEnd,
 	)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
 	// hex8 and tet4
-	err = fe(inSdf, resolution, render.Linear, render.Both, "hex8tet4.inp", restraint, load)
+	err = fe(inSdf, resolution, render.Linear, render.Both, "hex8tet4.inp", restraints, loads)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
@@ -151,14 +154,14 @@ func benchmarkRun(
 	// hex8 and tet4
 	err = feLayers(inSdf, resolution, render.Linear, render.Both,
 		fmt.Sprintf("hex8tet4--layers-%v-to-%v.inp", layerStart, layerEnd),
-		restraint, load, layerStart, layerEnd,
+		restraints, loads, layerStart, layerEnd,
 	)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
 	// hex20 and tet10
-	err = fe(inSdf, resolution, render.Quadratic, render.Both, "hex20tet10.inp", restraint, load)
+	err = fe(inSdf, resolution, render.Quadratic, render.Both, "hex20tet10.inp", restraints, loads)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
@@ -166,7 +169,7 @@ func benchmarkRun(
 	// hex20 and tet10
 	err = feLayers(inSdf, resolution, render.Quadratic, render.Both,
 		fmt.Sprintf("hex20tet10--layers-%v-to-%v.inp", layerStart, layerEnd),
-		restraint, load, layerStart, layerEnd,
+		restraints, loads, layerStart, layerEnd,
 	)
 	if err != nil {
 		log.Fatalf("error: %s", err)
@@ -175,8 +178,8 @@ func benchmarkRun(
 
 // Generate finite elements.
 func fe(s sdf.SDF3, resolution int, order render.Order, shape render.Shape, pth string,
-	restraint func(x, y, z float64) (bool, bool, bool),
-	load func(x, y, z float64) (float64, float64, float64),
+	restraints []*mesh.Restraint,
+	loads []*mesh.Load,
 ) error {
 	s = dilationErosion(s)
 
@@ -184,15 +187,15 @@ func fe(s sdf.SDF3, resolution int, order render.Order, shape render.Shape, pth 
 	m, _ := mesh.NewFem(s, render.NewMarchingCubesFEUniform(resolution, order, shape))
 
 	// Write all layers of mesh to file.
-	return m.WriteInp(pth, 7.85e-9, 210000, 0.3, restraint, load, v3.Vec{X: 0, Y: 0, Z: -1}, 9810)
+	return m.WriteInp(pth, 7.85e-9, 210000, 0.3, restraints, loads, v3.Vec{X: 0, Y: 0, Z: -1}, 9810)
 }
 
 // Generate finite elements.
 // Only from a start layer to an end layer along the Z axis.
 // Applicable to 3D print analysis that is done layer-by-layer.
 func feLayers(s sdf.SDF3, resolution int, order render.Order, shape render.Shape, pth string,
-	restraint func(x, y, z float64) (bool, bool, bool),
-	load func(x, y, z float64) (float64, float64, float64),
+	restraints []*mesh.Restraint,
+	loads []*mesh.Load,
 	layerStart, layerEnd int,
 ) error {
 	s = dilationErosion(s)
@@ -201,7 +204,7 @@ func feLayers(s sdf.SDF3, resolution int, order render.Order, shape render.Shape
 	m, _ := mesh.NewFem(s, render.NewMarchingCubesFEUniform(resolution, order, shape))
 
 	// Write just some layers of mesh to file.
-	return m.WriteInpLayers(pth, layerStart, layerEnd, 7.85e-9, 210000, 0.3, restraint, load, v3.Vec{X: 0, Y: 0, Z: -1}, 9810)
+	return m.WriteInpLayers(pth, layerStart, layerEnd, 7.85e-9, 210000, 0.3, restraints, loads, v3.Vec{X: 0, Y: 0, Z: -1}, 9810)
 }
 
 // By dilating SDF a little bit we may actually get rid of
