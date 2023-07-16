@@ -5,6 +5,7 @@ import (
 
 	"github.com/deadsy/sdfx/sdf"
 	"github.com/deadsy/sdfx/vec/conv"
+	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 //-----------------------------------------------------------------------------
@@ -57,20 +58,6 @@ func (r *MarchingCubesFEUniform) Info(s sdf.SDF3) string {
 	return fmt.Sprintf("%dx%dx%d", cells.X, cells.Y, cells.Z)
 }
 
-// To get the layer counts which are consistent with loops of marching algorithm.
-func (r *MarchingCubesFEUniform) LayerCounts(s sdf.SDF3) (int, int, int) {
-	bb0 := s.BoundingBox()
-	bb0Size := bb0.Size()
-	meshInc := bb0Size.MaxComponent() / float64(r.meshCells)
-	bb1Size := bb0Size.DivScalar(meshInc)
-	bb1Size = bb1Size.Ceil().AddScalar(1)
-	bb1Size = bb1Size.MulScalar(meshInc)
-	bb := sdf.NewBox3(bb0.Center(), bb1Size)
-	size := bb.Size()
-	steps := conv.V3ToV3i(size.DivScalar(meshInc).Ceil())
-	return steps.X, steps.Y, steps.Z
-}
-
 // Render produces a finite elements mesh over the bounding volume of an sdf3.
 // Order and shape of finite elements are selectable.
 func (r *MarchingCubesFEUniform) RenderFE(s sdf.SDF3, output chan<- []*Fe) {
@@ -83,6 +70,55 @@ func (r *MarchingCubesFEUniform) RenderFE(s sdf.SDF3, output chan<- []*Fe) {
 	bb1Size = bb1Size.MulScalar(meshInc)
 	bb := sdf.NewBox3(bb0.Center(), bb1Size)
 	output <- marchingCubesFE(s, bb, meshInc, r.order, r.shape)
+}
+
+//-----------------------------------------------------------------------------
+
+// To get the voxel counts and min/max corners which are consistent with loops of marching algorithm.
+// This func loops are exactly like `marchingCubesFE` loops. We have to be consistant.
+func (r *MarchingCubesFEUniform) Voxels(s sdf.SDF3) (int, int, int, []v3.Vec, []v3.Vec) {
+	// work out the region we will sample
+	bb0 := s.BoundingBox()
+	bb0Size := bb0.Size()
+	meshInc := bb0Size.MaxComponent() / float64(r.meshCells)
+	bb1Size := bb0Size.DivScalar(meshInc)
+	bb1Size = bb1Size.Ceil().AddScalar(1)
+	bb1Size = bb1Size.MulScalar(meshInc)
+	bb := sdf.NewBox3(bb0.Center(), bb1Size)
+
+	size := bb.Size()
+	base := bb.Min
+	steps := conv.V3ToV3i(size.DivScalar(meshInc).Ceil())
+	inc := size.Div(conv.V3iToV3(steps))
+
+	nx, ny, nz := steps.X, steps.Y, steps.Z
+	dx, dy, dz := inc.X, inc.Y, inc.Z
+
+	mins := make([]v3.Vec, 0, nz*nx*ny)
+	maxs := make([]v3.Vec, 0, nz*nx*ny)
+
+	var p v3.Vec
+	p.Z = base.Z
+	for z := 0; z < nz; z++ {
+		// all cubes in the z and z + 1 layers
+		p.X = base.X
+		for x := 0; x < nx; x++ {
+			p.Y = base.Y
+			for y := 0; y < ny; y++ {
+				x0, y0, z0 := p.X, p.Y, p.Z
+				x1, y1, z1 := x0+dx, y0+dy, z0+dz
+
+				mins = append(mins, v3.Vec{X: x0, Y: y0, Z: z0})
+				maxs = append(maxs, v3.Vec{X: x1, Y: y1, Z: z1})
+
+				p.Y += dy
+			}
+			p.X += dx
+		}
+		p.Z += dz
+	}
+
+	return nx, ny, nz, mins, maxs
 }
 
 //-----------------------------------------------------------------------------

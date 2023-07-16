@@ -370,7 +370,9 @@ func (inp *Inp) writeBoundary() error {
 			// Write the node IDs.
 			for n := 0; n < len(el.Nodes); n++ {
 				vertex := vertices[n]
-				isFixedX, isFixedY, isFixedZ := inp.Restraint(vertex.X, vertex.Y, vertex.Z)
+				// TODO: restraints.
+				_ = vertex
+				isFixedX, isFixedY, isFixedZ := false, false, false //inp.Restraint(vertex.X, vertex.Y, vertex.Z)
 				if !isFixedX && !isFixedY && !isFixedZ {
 					continue
 				}

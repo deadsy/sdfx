@@ -22,9 +22,9 @@ type Fem struct {
 func NewFem(s sdf.SDF3, r render.RenderFE) (*Fem, int) {
 	fes := render.ToFem(s, r)
 
-	layersX, layersY, layersZ := r.LayerCounts(s)
+	voxelsX, voxelsY, voxelsZ, mins, maxs := r.Voxels(s)
 
-	m := newFem(layersX, layersY, layersZ)
+	m := newFem(voxelsX, voxelsY, voxelsZ, mins, maxs)
 
 	// Fill out the mesh with finite elements.
 	for _, fe := range fes {
@@ -33,12 +33,12 @@ func NewFem(s sdf.SDF3, r render.RenderFE) (*Fem, int) {
 
 	defer m.VBuff.DestroyHashTable()
 
-	return m, layersZ
+	return m, voxelsZ
 }
 
-func newFem(layersX, layersY, layersZ int) *Fem {
+func newFem(layersX, layersY, layersZ int, mins, maxs []v3.Vec) *Fem {
 	return &Fem{
-		IBuff: buffer.NewIB(layersX, layersY, layersZ),
+		IBuff: buffer.NewIB(layersX, layersY, layersZ, mins, maxs),
 		VBuff: buffer.NewVB(),
 	}
 }

@@ -43,6 +43,14 @@ type Voxel struct {
 	max  v3.Vec     // Max corner of voxel.
 }
 
+func NewVoxel(min, max v3.Vec) *Voxel {
+	return &Voxel{
+		data: make([]*Element, 0),
+		min:  min,
+		max:  max,
+	}
+}
+
 // Acts like a three-dimensional nested slice using
 // a one-dimensional slice under the hood.
 // To increase performance.
@@ -51,13 +59,20 @@ type VoxelGrid struct {
 	lenX, lenY, lenZ int      // Voxels count in 3 directions.
 }
 
-func NewVoxelGrid(x, y, z int) *VoxelGrid {
-	return &VoxelGrid{
+func NewVoxelGrid(x, y, z int, mins, maxs []v3.Vec) *VoxelGrid {
+	vg := &VoxelGrid{
 		voxels: make([]*Voxel, x*y*z),
 		lenX:   x,
 		lenY:   y,
 		lenZ:   z,
 	}
+
+	// Assign the min corner and max corner of each voxel.
+	for i := range vg.voxels {
+		vg.voxels[i] = NewVoxel(mins[i], maxs[i])
+	}
+
+	return vg
 }
 
 func (vg *VoxelGrid) Size() (int, int, int) {
