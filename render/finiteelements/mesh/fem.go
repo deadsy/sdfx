@@ -5,6 +5,7 @@ import (
 	"github.com/deadsy/sdfx/render/finiteelements/buffer"
 	"github.com/deadsy/sdfx/sdf"
 	v3 "github.com/deadsy/sdfx/vec/v3"
+	"github.com/deadsy/sdfx/vec/v3i"
 )
 
 // Fem is a mesh of finite elements.
@@ -74,6 +75,13 @@ func (m *Fem) vertex(i uint32) v3.Vec {
 // To iterate over all voxels and get elements inside each voxel and do stuff with them.
 func (m *Fem) iterate(f func(int, int, int, []*buffer.Element)) {
 	m.IBuff.Iterate(f)
+}
+
+// The closest node is identified.
+// Also, the containing voxel is figured out.
+func (m *Fem) Locate(location v3.Vec) (int, v3i.Vec) {
+	// TODO.
+	return 0, v3i.Vec{}
 }
 
 // WriteInp writes mesh to ABAQUS or CalculiX `inp` file.
