@@ -42,3 +42,9 @@ func NewLoad(location, magnitude v3.Vec) *Load {
 		nodeID:    0,
 	}
 }
+
+// Identify the node to which restraint is applied.
+// Also, the containing voxel is figured out.
+func (r *Restraint) FindNode() {
+	// TODO.
+}

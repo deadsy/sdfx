@@ -62,7 +62,7 @@ func NewInp(
 	gravityDirection v3.Vec,
 	gravityMagnitude float64,
 ) *Inp {
-	return &Inp{
+	inp := &Inp{
 		Mesh:             m,
 		Path:             path,
 		PathNodes:        path + ".nodes",
@@ -82,6 +82,13 @@ func NewInp(
 		GravityDirection: gravityDirection,
 		GravityMagnitude: gravityMagnitude,
 	}
+
+	// Figure out node and voxel for each restraint.
+	for _, r := range inp.Restraints {
+		r.FindNode()
+	}
+
+	return inp
 }
 
 // Write starts writing to `inp` file.
