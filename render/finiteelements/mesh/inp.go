@@ -363,79 +363,66 @@ func (inp *Inp) writeBoundary() error {
 		return err
 	}
 
-	process := func(x, y, z int, els []*buffer.Element) {
-		for _, el := range els {
-			vertices := make([]v3.Vec, len(el.Nodes))
-			ids := make([]uint32, len(el.Nodes))
-			for n := 0; n < len(el.Nodes); n++ {
-				vertices[n] = inp.Mesh.vertex(el.Nodes[n])
-				ids[n] = inp.TempVBuff.Id(vertices[n])
+	// The closest node to any restraint is already computed.
+	for _, r := range inp.Restraints {
+		isFixedX, isFixedY, isFixedZ := r.IsFixedX, r.IsFixedY, r.IsFixedZ
+		if !isFixedX && !isFixedY && !isFixedZ {
+			continue
+		}
+
+		id := r.nodeID
+
+		// To be written:
+		//
+		// 1) Node ID.
+		// 2) First degree of freedom constrained.
+		// 3) Last degree of freedom constrained. This field may be left blank if only
+		// one degree of freedom is constrained.
+		//
+		// Note: written node ID would start from one not zero.
+
+		if isFixedX && isFixedY && isFixedZ {
+			_, err = f.WriteString(fmt.Sprintf("%d,1,3\n", id+1))
+			if err != nil {
+				panic("Couldn't write boundary to file: " + err.Error())
 			}
-
-			// Write the node IDs.
-			for n := 0; n < len(el.Nodes); n++ {
-				vertex := vertices[n]
-				// TODO: restraints.
-				_ = vertex
-				isFixedX, isFixedY, isFixedZ := false, false, false //inp.Restraint(vertex.X, vertex.Y, vertex.Z)
-				if !isFixedX && !isFixedY && !isFixedZ {
-					continue
-				}
-
-				// ID starts from one not zero.
-
-				// To be written:
-				// 1) Node number/ID.
-				// 2) First degree of freedom constrained.
-				// 3) Last degree of freedom constrained. This field may be left blank if only
-				// one degree of freedom is constrained.
-
-				if isFixedX && isFixedY && isFixedZ {
-					_, err = f.WriteString(fmt.Sprintf("%d,1,3\n", ids[n]+1))
-					if err != nil {
-						panic("Couldn't write boundary to file: " + err.Error())
-					}
-				} else if isFixedX && isFixedY && !isFixedZ {
-					_, err = f.WriteString(fmt.Sprintf("%d,1,2\n", ids[n]+1))
-					if err != nil {
-						panic("Couldn't write boundary to file: " + err.Error())
-					}
-				} else if !isFixedX && isFixedY && isFixedZ {
-					_, err = f.WriteString(fmt.Sprintf("%d,2,3\n", ids[n]+1))
-					if err != nil {
-						panic("Couldn't write boundary to file: " + err.Error())
-					}
-				} else if isFixedX && !isFixedY && isFixedZ {
-					// TODO: Can we write this case by just one line, not two lines?
-					_, err = f.WriteString(fmt.Sprintf("%d,1\n", ids[n]+1))
-					if err != nil {
-						panic("Couldn't write boundary to file: " + err.Error())
-					}
-					_, err = f.WriteString(fmt.Sprintf("%d,3\n", ids[n]+1))
-					if err != nil {
-						panic("Couldn't write boundary to file: " + err.Error())
-					}
-				} else if isFixedX && !isFixedY && !isFixedZ {
-					_, err = f.WriteString(fmt.Sprintf("%d,1\n", ids[n]+1))
-					if err != nil {
-						panic("Couldn't write boundary to file: " + err.Error())
-					}
-				} else if !isFixedX && isFixedY && !isFixedZ {
-					_, err = f.WriteString(fmt.Sprintf("%d,2\n", ids[n]+1))
-					if err != nil {
-						panic("Couldn't write boundary to file: " + err.Error())
-					}
-				} else if !isFixedX && !isFixedY && isFixedZ {
-					_, err = f.WriteString(fmt.Sprintf("%d,3\n", ids[n]+1))
-					if err != nil {
-						panic("Couldn't write boundary to file: " + err.Error())
-					}
-				}
+		} else if isFixedX && isFixedY && !isFixedZ {
+			_, err = f.WriteString(fmt.Sprintf("%d,1,2\n", id+1))
+			if err != nil {
+				panic("Couldn't write boundary to file: " + err.Error())
+			}
+		} else if !isFixedX && isFixedY && isFixedZ {
+			_, err = f.WriteString(fmt.Sprintf("%d,2,3\n", id+1))
+			if err != nil {
+				panic("Couldn't write boundary to file: " + err.Error())
+			}
+		} else if isFixedX && !isFixedY && isFixedZ {
+			// TODO: Can we write this case by just one line, not two lines?
+			_, err = f.WriteString(fmt.Sprintf("%d,1\n", id+1))
+			if err != nil {
+				panic("Couldn't write boundary to file: " + err.Error())
+			}
+			_, err = f.WriteString(fmt.Sprintf("%d,3\n", id+1))
+			if err != nil {
+				panic("Couldn't write boundary to file: " + err.Error())
+			}
+		} else if isFixedX && !isFixedY && !isFixedZ {
+			_, err = f.WriteString(fmt.Sprintf("%d,1\n", id+1))
+			if err != nil {
+				panic("Couldn't write boundary to file: " + err.Error())
+			}
+		} else if !isFixedX && isFixedY && !isFixedZ {
+			_, err = f.WriteString(fmt.Sprintf("%d,2\n", id+1))
+			if err != nil {
+				panic("Couldn't write boundary to file: " + err.Error())
+			}
+		} else if !isFixedX && !isFixedY && isFixedZ {
+			_, err = f.WriteString(fmt.Sprintf("%d,3\n", id+1))
+			if err != nil {
+				panic("Couldn't write boundary to file: " + err.Error())
 			}
 		}
 	}
-
-	inp.Mesh.iterate(process)
 
 	return nil
 }
