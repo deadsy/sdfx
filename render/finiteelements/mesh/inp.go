@@ -85,12 +85,12 @@ func NewInp(
 
 	// Figure out node and voxel for each restraint.
 	for _, r := range inp.Restraints {
-		r.nodeID, r.voxel = locate(r.Location)
+		r.nodeID, r.voxel = inp.Mesh.Locate(r.Location)
 	}
 
 	// Figure out node and voxel for each load.
 	for _, l := range inp.Loads {
-		l.nodeID, l.voxel = locate(l.Location)
+		l.nodeID, l.voxel = inp.Mesh.Locate(l.Location)
 	}
 
 	return inp
