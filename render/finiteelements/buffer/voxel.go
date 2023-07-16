@@ -1,6 +1,9 @@
 package buffer
 
-import v3 "github.com/deadsy/sdfx/vec/v3"
+import (
+	v3 "github.com/deadsy/sdfx/vec/v3"
+	"github.com/deadsy/sdfx/vec/v3i"
+)
 
 type Element struct {
 	Nodes []uint32 // Node indices
@@ -104,4 +107,11 @@ func (vg *VoxelGrid) Iterate(f func(int, int, int, []*Element)) {
 			}
 		}
 	}
+}
+
+// The closest node is identified.
+// Also, the containing voxel is figured out.
+func (vg *VoxelGrid) Locate(location v3.Vec) (int, v3i.Vec) {
+	// TODO.
+	return 0, v3i.Vec{}
 }

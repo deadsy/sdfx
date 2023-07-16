@@ -80,8 +80,7 @@ func (m *Fem) iterate(f func(int, int, int, []*buffer.Element)) {
 // The closest node is identified.
 // Also, the containing voxel is figured out.
 func (m *Fem) Locate(location v3.Vec) (int, v3i.Vec) {
-	// TODO.
-	return 0, v3i.Vec{}
+	return m.IBuff.Locate(location)
 }
 
 // WriteInp writes mesh to ABAQUS or CalculiX `inp` file.
