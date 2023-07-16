@@ -2,7 +2,6 @@ package buffer
 
 import (
 	v3 "github.com/deadsy/sdfx/vec/v3"
-	"github.com/deadsy/sdfx/vec/v3i"
 )
 
 // Index buffer for a mesh of finite elements.
@@ -33,10 +32,4 @@ func (ib *IB) Iterate(f func(int, int, int, []*Element)) {
 
 func (ib *IB) Size() (int, int, int) {
 	return ib.Grid.Size()
-}
-
-// The closest node is identified.
-// Also, the containing voxel is figured out.
-func (ib *IB) Locate(location v3.Vec) (int, v3i.Vec) {
-	return ib.Grid.Locate(location)
 }

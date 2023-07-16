@@ -1,6 +1,8 @@
 package mesh
 
 import (
+	"math"
+
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/render/finiteelements/buffer"
 	"github.com/deadsy/sdfx/sdf"
@@ -79,8 +81,47 @@ func (m *Fem) iterate(f func(int, int, int, []*buffer.Element)) {
 
 // The closest node is identified.
 // Also, the containing voxel is figured out.
+//
+// This logic has to be here, since we need access to any node vertex.
 func (m *Fem) Locate(location v3.Vec) (int, v3i.Vec) {
-	return m.IBuff.Locate(location)
+	// Calculating voxel indices.
+	// Assumes that the voxels are evenly distributed across the grid.
+	idxX := int((location.X - m.IBuff.Grid.Voxels[0].Min.X) / (m.IBuff.Grid.Voxels[0].Max.X - m.IBuff.Grid.Voxels[0].Min.X) * float64(m.IBuff.Grid.LenX))
+	idxY := int((location.Y - m.IBuff.Grid.Voxels[0].Min.Y) / (m.IBuff.Grid.Voxels[0].Max.Y - m.IBuff.Grid.Voxels[0].Min.Y) * float64(m.IBuff.Grid.LenY))
+	idxZ := int((location.Z - m.IBuff.Grid.Voxels[0].Min.Z) / (m.IBuff.Grid.Voxels[0].Max.Z - m.IBuff.Grid.Voxels[0].Min.Z) * float64(m.IBuff.Grid.LenZ))
+
+	// Ensure indices are within bounds
+	if idxX >= m.IBuff.Grid.LenX {
+		idxX = m.IBuff.Grid.LenX - 1
+	}
+	if idxY >= m.IBuff.Grid.LenY {
+		idxY = m.IBuff.Grid.LenY - 1
+	}
+	if idxZ >= m.IBuff.Grid.LenZ {
+		idxZ = m.IBuff.Grid.LenZ - 1
+	}
+
+	// Get elements in the voxel
+	elements := m.IBuff.Grid.Get(idxX, idxY, idxZ)
+
+	// Find the closest node
+	closestNode := -1
+	minDistance := math.Inf(1)
+
+	for _, element := range elements {
+		for _, node := range element.Nodes {
+			// A function that gives you the position of a node.
+			nodePos := m.vertex(node)
+
+			distance := location.Sub(nodePos).Length()
+			if distance < minDistance {
+				minDistance = distance
+				closestNode = int(node)
+			}
+		}
+	}
+
+	return closestNode, v3i.Vec{X: idxX, Y: idxY, Z: idxZ}
 }
 
 // WriteInp writes mesh to ABAQUS or CalculiX `inp` file.
