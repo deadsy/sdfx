@@ -219,6 +219,8 @@ func feLayers(s sdf.SDF3, resolution int, order render.Order, shape render.Shape
 // By dilating SDF a little bit we may actually get rid of
 // bad elements like disconnected or improperly connected elements.
 // Erode so that SDF returns to its original size, well almost.
+//
+// TODO: run benchmarks without this to test.
 func dilationErosion(s sdf.SDF3) sdf.SDF3 {
 	min := s.BoundingBox().Min
 	max := s.BoundingBox().Max
