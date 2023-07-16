@@ -1,6 +1,8 @@
 package buffer
 
 import (
+	"math"
+
 	v3 "github.com/deadsy/sdfx/vec/v3"
 	"github.com/deadsy/sdfx/vec/v3i"
 )
@@ -112,6 +114,42 @@ func (vg *VoxelGrid) Iterate(f func(int, int, int, []*Element)) {
 // The closest node is identified.
 // Also, the containing voxel is figured out.
 func (vg *VoxelGrid) Locate(location v3.Vec) (int, v3i.Vec) {
-	// TODO.
-	return 0, v3i.Vec{}
+	// Calculating voxel indices.
+	// Assumes that the voxels are evenly distributed across the grid.
+	idxX := int((location.X - vg.voxels[0].min.X) / (vg.voxels[0].max.X - vg.voxels[0].min.X) * float64(vg.lenX))
+	idxY := int((location.Y - vg.voxels[0].min.Y) / (vg.voxels[0].max.Y - vg.voxels[0].min.Y) * float64(vg.lenY))
+	idxZ := int((location.Z - vg.voxels[0].min.Z) / (vg.voxels[0].max.Z - vg.voxels[0].min.Z) * float64(vg.lenZ))
+
+	// Ensure indices are within bounds
+	if idxX >= vg.lenX {
+		idxX = vg.lenX - 1
+	}
+	if idxY >= vg.lenY {
+		idxY = vg.lenY - 1
+	}
+	if idxZ >= vg.lenZ {
+		idxZ = vg.lenZ - 1
+	}
+
+	// Get elements in the voxel
+	elements := vg.Get(idxX, idxY, idxZ)
+
+	// Find the closest node
+	closestNode := -1
+	minDistance := math.Inf(1)
+
+	for _, element := range elements {
+		for _, node := range element.Nodes {
+			// Assuming you have a function that gives you the position of a node
+			nodePos := GetNodePosition(node)
+
+			distance := location.Sub(nodePos).Length()
+			if distance < minDistance {
+				minDistance = distance
+				closestNode = int(node)
+			}
+		}
+	}
+
+	return closestNode, v3i.Vec{X: idxX, Y: idxY, Z: idxZ}
 }
