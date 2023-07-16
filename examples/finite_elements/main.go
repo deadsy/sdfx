@@ -49,15 +49,23 @@ func main() {
 		benchmark = Benchmark(bmint)
 	}
 
-	restraints := []*mesh.Restraint{}
+	restraints := []*mesh.Restraint{
+		mesh.NewRestraint(v3.Vec{X: 0, Y: 0, Z: 0}, true, true, true),
+		mesh.NewRestraint(v3.Vec{X: 0, Y: 17.32, Z: 0}, true, true, true),
+		mesh.NewRestraint(v3.Vec{X: 200, Y: 0, Z: 0}, false, true, true),
+		mesh.NewRestraint(v3.Vec{X: 200, Y: 17.32, Z: 0}, false, true, true),
+	}
 	loads := []*mesh.Load{}
 
 	switch benchmark {
 	case Square:
 		benchmarkRun("../../files/benchmark-square.stl", 50, 0, 3, restraints, loads)
 	case Circle:
+		benchmarkRun("../../files/benchmark-circle.stl", 50, 0, 3, restraints, loads)
 	case Pipe:
+		benchmarkRun("../../files/benchmark-pipe.stl", 50, 0, 3, restraints, loads)
 	case I:
+		benchmarkRun("../../files/benchmark-I.stl", 50, 0, 3, restraints, loads)
 	default:
 	}
 }
