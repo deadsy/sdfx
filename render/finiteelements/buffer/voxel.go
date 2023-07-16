@@ -1,5 +1,7 @@
 package buffer
 
+import v3 "github.com/deadsy/sdfx/vec/v3"
+
 type Element struct {
 	Nodes []uint32 // Node indices
 }
@@ -35,20 +37,26 @@ func NewElement(nodes []uint32) *Element {
 	return &e
 }
 
+type Voxel struct {
+	data []*Element // Each voxel stores multiple elements.
+	min  v3.Vec     // Min corner of voxel.
+	max  v3.Vec     // Max corner of voxel.
+}
+
 // Acts like a three-dimensional nested slice using
 // a one-dimensional slice under the hood.
 // To increase performance.
 type VoxelGrid struct {
-	data             [][]*Element // Each voxel stores multiple elements.
-	lenX, lenY, lenZ int          // Voxels count in 3 directions.
+	voxels           []*Voxel //
+	lenX, lenY, lenZ int      // Voxels count in 3 directions.
 }
 
 func NewVoxelGrid(x, y, z int) *VoxelGrid {
 	return &VoxelGrid{
-		data: make([][]*Element, x*y*z),
-		lenX: x,
-		lenY: y,
-		lenZ: z,
+		voxels: make([]*Voxel, x*y*z),
+		lenX:   x,
+		lenY:   y,
+		lenZ:   z,
 	}
 }
 
@@ -58,17 +66,17 @@ func (vg *VoxelGrid) Size() (int, int, int) {
 
 // To get all the elements inside a voxel.
 func (vg *VoxelGrid) Get(x, y, z int) []*Element {
-	return vg.data[x*vg.lenY*vg.lenZ+y*vg.lenZ+z]
+	return vg.voxels[x*vg.lenY*vg.lenZ+y*vg.lenZ+z].data
 }
 
 // To set all the elements inside a voxel at once.
 func (vg *VoxelGrid) Set(x, y, z int, value []*Element) {
-	vg.data[x*vg.lenY*vg.lenZ+y*vg.lenZ+z] = value
+	vg.voxels[x*vg.lenY*vg.lenZ+y*vg.lenZ+z].data = value
 }
 
 // To append a single element to the elements inside a voxel.
 func (vg *VoxelGrid) Append(x, y, z int, value *Element) {
-	vg.data[x*vg.lenY*vg.lenZ+y*vg.lenZ+z] = append(vg.data[x*vg.lenY*vg.lenZ+y*vg.lenZ+z], value)
+	vg.voxels[x*vg.lenY*vg.lenZ+y*vg.lenZ+z].data = append(vg.voxels[x*vg.lenY*vg.lenZ+y*vg.lenZ+z].data, value)
 }
 
 // To iterate over all voxels and get elements inside each voxel and do stuff with them.
