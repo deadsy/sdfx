@@ -43,8 +43,9 @@ func NewLoad(location, magnitude v3.Vec) *Load {
 	}
 }
 
-// Identify the node to which restraint is applied.
+// The closest node is identified.
 // Also, the containing voxel is figured out.
-func (r *Restraint) FindNode() {
+func locate(location v3.Vec) (int, v3i.Vec) {
 	// TODO.
+	return 0, v3i.Vec{}
 }
