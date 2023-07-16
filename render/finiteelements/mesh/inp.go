@@ -83,12 +83,8 @@ func NewInp(
 		GravityMagnitude: gravityMagnitude,
 	}
 
-	// Figure out node and voxel for each restraint.
-	for _, r := range inp.Restraints {
-		r.nodeID, r.voxel = inp.Mesh.Locate(r.Location)
-	}
-
 	// Figure out node and voxel for each load.
+	// TODO: move this statement to the logic that writes loads to file.
 	for _, l := range inp.Loads {
 		l.nodeID, l.voxel = inp.Mesh.Locate(l.Location)
 	}
@@ -361,6 +357,11 @@ func (inp *Inp) writeBoundary() error {
 	_, err = f.WriteString("*BOUNDARY\n")
 	if err != nil {
 		return err
+	}
+
+	// Figure out node and voxel for each restraint.
+	for _, r := range inp.Restraints {
+		r.nodeID, r.voxel = inp.Mesh.Locate(r.Location)
 	}
 
 	// The closest node to any restraint is already computed.
