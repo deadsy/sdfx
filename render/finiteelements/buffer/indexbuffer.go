@@ -2,6 +2,7 @@ package buffer
 
 import (
 	v3 "github.com/deadsy/sdfx/vec/v3"
+	"github.com/deadsy/sdfx/vec/v3i"
 )
 
 // Index buffer for a mesh of finite elements.
@@ -9,9 +10,9 @@ type IB struct {
 	Grid *VoxelGrid
 }
 
-func NewIB(voxelsX, voxelsY, voxelsZ int, mins, maxs []v3.Vec) *IB {
+func NewIB(voxelLen v3i.Vec, voxelDim v3.Vec, mins, maxs []v3.Vec) *IB {
 	ib := IB{
-		Grid: NewVoxelGrid(voxelsX, voxelsY, voxelsZ, mins, maxs),
+		Grid: NewVoxelGrid(voxelLen, voxelDim, mins, maxs),
 	}
 
 	return &ib

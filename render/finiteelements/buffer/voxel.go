@@ -2,6 +2,7 @@ package buffer
 
 import (
 	v3 "github.com/deadsy/sdfx/vec/v3"
+	"github.com/deadsy/sdfx/vec/v3i"
 )
 
 type Element struct {
@@ -57,16 +58,16 @@ func NewVoxel(min, max v3.Vec) *Voxel {
 // a one-dimensional slice under the hood.
 // To increase performance.
 type VoxelGrid struct {
-	Voxels           []*Voxel //
-	LenX, LenY, LenZ int      // Voxels count in 3 directions.
+	Voxels []*Voxel //
+	Len    v3i.Vec  // Voxel count in 3 directions.
+	Dim    v3.Vec   // Voxel dimension in 3 directions.
 }
 
-func NewVoxelGrid(x, y, z int, mins, maxs []v3.Vec) *VoxelGrid {
+func NewVoxelGrid(len v3i.Vec, dim v3.Vec, mins, maxs []v3.Vec) *VoxelGrid {
 	vg := &VoxelGrid{
-		Voxels: make([]*Voxel, x*y*z),
-		LenX:   x,
-		LenY:   y,
-		LenZ:   z,
+		Voxels: make([]*Voxel, len.X*len.Y*len.Z),
+		Len:    len,
+		Dim:    dim,
 	}
 
 	// Assign the min corner and max corner of each voxel.
@@ -78,29 +79,29 @@ func NewVoxelGrid(x, y, z int, mins, maxs []v3.Vec) *VoxelGrid {
 }
 
 func (vg *VoxelGrid) Size() (int, int, int) {
-	return vg.LenX, vg.LenY, vg.LenZ
+	return vg.Len.X, vg.Len.Y, vg.Len.Z
 }
 
 // To get all the elements inside a voxel.
 func (vg *VoxelGrid) Get(x, y, z int) []*Element {
-	return vg.Voxels[x*vg.LenY*vg.LenZ+y*vg.LenZ+z].data
+	return vg.Voxels[x*vg.Len.Y*vg.Len.Z+y*vg.Len.Z+z].data
 }
 
 // To set all the elements inside a voxel at once.
 func (vg *VoxelGrid) Set(x, y, z int, value []*Element) {
-	vg.Voxels[x*vg.LenY*vg.LenZ+y*vg.LenZ+z].data = value
+	vg.Voxels[x*vg.Len.Y*vg.Len.Z+y*vg.Len.Z+z].data = value
 }
 
 // To append a single element to the elements inside a voxel.
 func (vg *VoxelGrid) Append(x, y, z int, value *Element) {
-	vg.Voxels[x*vg.LenY*vg.LenZ+y*vg.LenZ+z].data = append(vg.Voxels[x*vg.LenY*vg.LenZ+y*vg.LenZ+z].data, value)
+	vg.Voxels[x*vg.Len.Y*vg.Len.Z+y*vg.Len.Z+z].data = append(vg.Voxels[x*vg.Len.Y*vg.Len.Z+y*vg.Len.Z+z].data, value)
 }
 
 // To iterate over all voxels and get elements inside each voxel and do stuff with them.
 func (vg *VoxelGrid) Iterate(f func(int, int, int, []*Element)) {
-	for z := 0; z < vg.LenZ; z++ {
-		for y := 0; y < vg.LenY; y++ {
-			for x := 0; x < vg.LenX; x++ {
+	for z := 0; z < vg.Len.Z; z++ {
+		for y := 0; y < vg.Len.Y; y++ {
+			for x := 0; x < vg.Len.X; x++ {
 				value := vg.Get(x, y, z)
 				f(x, y, z, value)
 			}

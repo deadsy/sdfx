@@ -14,6 +14,7 @@ import (
 
 	"github.com/deadsy/sdfx/sdf"
 	v3 "github.com/deadsy/sdfx/vec/v3"
+	"github.com/deadsy/sdfx/vec/v3i"
 )
 
 //-----------------------------------------------------------------------------
@@ -34,7 +35,7 @@ type Render2 interface {
 type RenderFE interface {
 	RenderFE(sdf3 sdf.SDF3, output chan<- []*Fe)
 	Info(sdf3 sdf.SDF3) string
-	Voxels(sdf3 sdf.SDF3) (int, int, int, []v3.Vec, []v3.Vec)
+	Voxels(sdf3 sdf.SDF3) (v3i.Vec, v3.Vec, []v3.Vec, []v3.Vec)
 }
 
 //-----------------------------------------------------------------------------
@@ -67,8 +68,8 @@ func ToFem(
 ) []Fe {
 	fmt.Printf("rendering %s\n", r.Info(s))
 
-	voxelCountX, voxelCountY, voxelCountZ, _, _ := r.Voxels(s)
-	fmt.Printf("voxel counts of marching algorithm are: (%v x %v x %v)\n", voxelCountX, voxelCountY, voxelCountZ)
+	voxelCount, _, _, _ := r.Voxels(s)
+	fmt.Printf("voxel counts of marching algorithm are: (%v x %v x %v)\n", voxelCount.X, voxelCount.Y, voxelCount.Z)
 
 	// Will be filled by the rendering.
 	fes := make([]Fe, 0)

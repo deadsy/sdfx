@@ -6,6 +6,7 @@ import (
 	"github.com/deadsy/sdfx/sdf"
 	"github.com/deadsy/sdfx/vec/conv"
 	v3 "github.com/deadsy/sdfx/vec/v3"
+	"github.com/deadsy/sdfx/vec/v3i"
 )
 
 //-----------------------------------------------------------------------------
@@ -74,9 +75,9 @@ func (r *MarchingCubesFEUniform) RenderFE(s sdf.SDF3, output chan<- []*Fe) {
 
 //-----------------------------------------------------------------------------
 
-// To get the voxel counts and min/max corners which are consistent with loops of marching algorithm.
+// To get the voxel count, dimension, and min/max corner which are consistent with loops of marching algorithm.
 // This func loops are exactly like `marchingCubesFE` loops. We have to be consistant.
-func (r *MarchingCubesFEUniform) Voxels(s sdf.SDF3) (int, int, int, []v3.Vec, []v3.Vec) {
+func (r *MarchingCubesFEUniform) Voxels(s sdf.SDF3) (v3i.Vec, v3.Vec, []v3.Vec, []v3.Vec) {
 	// work out the region we will sample
 	bb0 := s.BoundingBox()
 	bb0Size := bb0.Size()
@@ -118,7 +119,7 @@ func (r *MarchingCubesFEUniform) Voxels(s sdf.SDF3) (int, int, int, []v3.Vec, []
 		p.Z += dz
 	}
 
-	return nx, ny, nz, mins, maxs
+	return v3i.Vec{X: nx, Y: ny, Z: nz}, v3.Vec{X: dx, Y: dy, Z: dz}, mins, maxs
 }
 
 //-----------------------------------------------------------------------------

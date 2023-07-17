@@ -25,9 +25,9 @@ type Fem struct {
 func NewFem(s sdf.SDF3, r render.RenderFE) (*Fem, int) {
 	fes := render.ToFem(s, r)
 
-	voxelsX, voxelsY, voxelsZ, mins, maxs := r.Voxels(s)
+	voxelLen, voxelDim, mins, maxs := r.Voxels(s)
 
-	m := newFem(voxelsX, voxelsY, voxelsZ, mins, maxs)
+	m := newFem(voxelLen, voxelDim, mins, maxs)
 
 	// Fill out the mesh with finite elements.
 	for _, fe := range fes {
@@ -36,12 +36,12 @@ func NewFem(s sdf.SDF3, r render.RenderFE) (*Fem, int) {
 
 	defer m.VBuff.DestroyHashTable()
 
-	return m, voxelsZ
+	return m, voxelLen.Z
 }
 
-func newFem(layersX, layersY, layersZ int, mins, maxs []v3.Vec) *Fem {
+func newFem(voxelLen v3i.Vec, voxelDim v3.Vec, mins, maxs []v3.Vec) *Fem {
 	return &Fem{
-		IBuff: buffer.NewIB(layersX, layersY, layersZ, mins, maxs),
+		IBuff: buffer.NewIB(voxelLen, voxelDim, mins, maxs),
 		VBuff: buffer.NewVB(),
 	}
 }
@@ -86,19 +86,19 @@ func (m *Fem) iterate(f func(int, int, int, []*buffer.Element)) {
 func (m *Fem) Locate(location v3.Vec) (int, v3i.Vec) {
 	// Calculating voxel indices.
 	// Assumes that the voxels are evenly distributed across the grid.
-	idxX := int((location.X - m.IBuff.Grid.Voxels[0].Min.X) / (m.IBuff.Grid.Voxels[0].Max.X - m.IBuff.Grid.Voxels[0].Min.X) * float64(m.IBuff.Grid.LenX))
-	idxY := int((location.Y - m.IBuff.Grid.Voxels[0].Min.Y) / (m.IBuff.Grid.Voxels[0].Max.Y - m.IBuff.Grid.Voxels[0].Min.Y) * float64(m.IBuff.Grid.LenY))
-	idxZ := int((location.Z - m.IBuff.Grid.Voxels[0].Min.Z) / (m.IBuff.Grid.Voxels[0].Max.Z - m.IBuff.Grid.Voxels[0].Min.Z) * float64(m.IBuff.Grid.LenZ))
+	idxX := int((location.X - m.IBuff.Grid.Voxels[0].Min.X) / (m.IBuff.Grid.Voxels[0].Max.X - m.IBuff.Grid.Voxels[0].Min.X) * float64(m.IBuff.Grid.Len.X))
+	idxY := int((location.Y - m.IBuff.Grid.Voxels[0].Min.Y) / (m.IBuff.Grid.Voxels[0].Max.Y - m.IBuff.Grid.Voxels[0].Min.Y) * float64(m.IBuff.Grid.Len.Y))
+	idxZ := int((location.Z - m.IBuff.Grid.Voxels[0].Min.Z) / (m.IBuff.Grid.Voxels[0].Max.Z - m.IBuff.Grid.Voxels[0].Min.Z) * float64(m.IBuff.Grid.Len.Z))
 
 	// Ensure indices are within bounds
-	if idxX >= m.IBuff.Grid.LenX {
-		idxX = m.IBuff.Grid.LenX - 1
+	if idxX >= m.IBuff.Grid.Len.X {
+		idxX = m.IBuff.Grid.Len.X - 1
 	}
-	if idxY >= m.IBuff.Grid.LenY {
-		idxY = m.IBuff.Grid.LenY - 1
+	if idxY >= m.IBuff.Grid.Len.Y {
+		idxY = m.IBuff.Grid.Len.Y - 1
 	}
-	if idxZ >= m.IBuff.Grid.LenZ {
-		idxZ = m.IBuff.Grid.LenZ - 1
+	if idxZ >= m.IBuff.Grid.Len.Z {
+		idxZ = m.IBuff.Grid.Len.Z - 1
 	}
 
 	// Get elements in the voxel
