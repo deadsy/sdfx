@@ -49,12 +49,8 @@ func main() {
 		benchmark = Benchmark(bmint)
 	}
 
-	restraints := []*mesh.Restraint{
-		mesh.NewRestraint(v3.Vec{X: 0, Y: 0, Z: 0}, true, true, true),
-		mesh.NewRestraint(v3.Vec{X: 0, Y: 17.32, Z: 0}, true, true, true),
-		mesh.NewRestraint(v3.Vec{X: 200, Y: 0, Z: 0}, false, true, true),
-		mesh.NewRestraint(v3.Vec{X: 200, Y: 17.32, Z: 0}, false, true, true),
-	}
+	// To be set for each benchmark.
+	var restraints []*mesh.Restraint
 
 	// Gravity load is used for benchmarks. So, there is no point load.
 	loads := []*mesh.Load{
@@ -63,6 +59,7 @@ func main() {
 
 	switch benchmark {
 	case Square:
+		restraints = benchmarkSquareRestraint()
 		benchmarkRun("../../files/benchmark-square.stl", 50, 0, 3, restraints, loads)
 	case Circle:
 		benchmarkRun("../../files/benchmark-circle.stl", 50, 0, 3, restraints, loads)
@@ -239,4 +236,28 @@ func dilationErosion(s sdf.SDF3) sdf.SDF3 {
 	erosion := sdf.Offset3D(dilation, -factor)
 
 	return erosion
+}
+
+func benchmarkSquareRestraint() []*mesh.Restraint {
+	// Four corners.
+	restraints := []*mesh.Restraint{
+		mesh.NewRestraint(v3.Vec{X: 0, Y: 0, Z: 0}, true, true, true),
+		mesh.NewRestraint(v3.Vec{X: 0, Y: 17.32, Z: 0}, true, true, true),
+		mesh.NewRestraint(v3.Vec{X: 200, Y: 0, Z: 0}, false, true, true),
+		mesh.NewRestraint(v3.Vec{X: 200, Y: 17.32, Z: 0}, false, true, true),
+	}
+
+	// Let's avoid stress concentration by increasing the number of restraints.
+	// Let's increase it so that most of the edge length is restrained. Not just corners.
+	gap := 0.1
+	maxY := 17.32
+	for i := 0; i < int(maxY); i++ {
+		restraints = append(restraints, mesh.NewRestraint(v3.Vec{X: 0, Y: float64(i * int(gap)), Z: 0}, true, true, true))
+	}
+
+	for i := 0; i < int(maxY); i++ {
+		restraints = append(restraints, mesh.NewRestraint(v3.Vec{X: 200, Y: float64(i * int(gap)), Z: 0}, false, true, true))
+	}
+
+	return restraints
 }
