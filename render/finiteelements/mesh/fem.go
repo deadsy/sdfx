@@ -85,10 +85,9 @@ func (m *Fem) iterate(f func(int, int, int, []*buffer.Element)) {
 // This logic has to be here, since we need access to any node vertex.
 func (m *Fem) Locate(location v3.Vec) (int, v3i.Vec) {
 	// Calculating voxel indices.
-	// Assumes that the voxels are evenly distributed across the grid.
-	idxX := int((location.X - m.IBuff.Grid.Voxels[0].Min.X) / (m.IBuff.Grid.Voxels[0].Max.X - m.IBuff.Grid.Voxels[0].Min.X) * float64(m.IBuff.Grid.Len.X))
-	idxY := int((location.Y - m.IBuff.Grid.Voxels[0].Min.Y) / (m.IBuff.Grid.Voxels[0].Max.Y - m.IBuff.Grid.Voxels[0].Min.Y) * float64(m.IBuff.Grid.Len.Y))
-	idxZ := int((location.Z - m.IBuff.Grid.Voxels[0].Min.Z) / (m.IBuff.Grid.Voxels[0].Max.Z - m.IBuff.Grid.Voxels[0].Min.Z) * float64(m.IBuff.Grid.Len.Z))
+	idxX := int(math.Floor((location.X - m.IBuff.Grid.Voxels[0].Min.X) / (m.IBuff.Grid.Dim.X)))
+	idxY := int(math.Floor((location.Y - m.IBuff.Grid.Voxels[0].Min.Y) / (m.IBuff.Grid.Dim.Y)))
+	idxZ := int(math.Floor((location.Z - m.IBuff.Grid.Voxels[0].Min.Z) / (m.IBuff.Grid.Dim.Z)))
 
 	// Ensure indices are within bounds
 	if idxX >= m.IBuff.Grid.Len.X {
