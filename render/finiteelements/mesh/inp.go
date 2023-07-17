@@ -165,17 +165,6 @@ func (inp *Inp) Write() error {
 		return err
 	}
 
-	// Include a separate file to avoid cluttering the `inp` file.
-	_, err = f.WriteString(fmt.Sprintf("*INCLUDE,INPUT=%s\n", inp.PathLoad))
-	if err != nil {
-		return err
-	}
-
-	err = inp.writeLoad()
-	if err != nil {
-		return err
-	}
-
 	return inp.writeFooter(f)
 }
 
@@ -547,6 +536,19 @@ func (inp *Inp) writeFooter(f *os.File) error {
 	// Write analysis
 
 	_, err = f.WriteString("*STEP\n*STATIC\n")
+	if err != nil {
+		return err
+	}
+
+	// Write point loads.
+
+	// Include a separate file to avoid cluttering the `inp` file.
+	_, err = f.WriteString(fmt.Sprintf("*INCLUDE,INPUT=%s\n", inp.PathLoad))
+	if err != nil {
+		return err
+	}
+
+	err = inp.writeLoad()
 	if err != nil {
 		return err
 	}
