@@ -249,14 +249,17 @@ func benchmarkSquareRestraint() []*mesh.Restraint {
 
 	// Let's avoid stress concentration by increasing the number of restraints.
 	// Let's increase it so that most of the edge length is restrained. Not just corners.
-	gap := 0.1
-	maxY := 17.32
-	for i := 0; i < int(maxY); i++ {
-		restraints = append(restraints, mesh.NewRestraint(v3.Vec{X: 0, Y: float64(i * int(gap)), Z: 0}, true, true, true))
+	gap := 1.0
+	var y float64
+	for y <= 17.32 {
+		restraints = append(restraints, mesh.NewRestraint(v3.Vec{X: 0, Y: y, Z: 0}, true, true, true))
+		y += gap
 	}
 
-	for i := 0; i < int(maxY); i++ {
-		restraints = append(restraints, mesh.NewRestraint(v3.Vec{X: 200, Y: float64(i * int(gap)), Z: 0}, false, true, true))
+	y = 0
+	for y <= 17.32 {
+		restraints = append(restraints, mesh.NewRestraint(v3.Vec{X: 200, Y: y, Z: 0}, false, true, true))
+		y += gap
 	}
 
 	return restraints
