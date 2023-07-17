@@ -27,6 +27,8 @@ type Inp struct {
 	PathElsC3D20R string
 	// For writing boundary conditions to a separate file.
 	PathBou string
+	// For writing loads to a separate file.
+	PathLoad string
 	// Output `inp` file would include start layer.
 	LayerStart int
 	// Output `inp` file would exclude end layer.
@@ -71,6 +73,7 @@ func NewInp(
 		PathElsC3D8:      path + ".elements_C3D8",
 		PathElsC3D20R:    path + ".elements_C3D20R",
 		PathBou:          path + ".boundary",
+		PathLoad:         path + ".load",
 		LayerStart:       layerStart,
 		LayerEnd:         layerEnd,
 		TempVBuff:        buffer.NewVB(),
@@ -158,6 +161,17 @@ func (inp *Inp) Write() error {
 	}
 
 	err = inp.writeBoundary()
+	if err != nil {
+		return err
+	}
+
+	// Include a separate file to avoid cluttering the `inp` file.
+	_, err = f.WriteString(fmt.Sprintf("*INCLUDE,INPUT=%s\n", inp.PathLoad))
+	if err != nil {
+		return err
+	}
+
+	err = inp.writeLoad()
 	if err != nil {
 		return err
 	}
@@ -425,6 +439,56 @@ func (inp *Inp) writeBoundary() error {
 			if err != nil {
 				panic("Couldn't write boundary to file: " + err.Error())
 			}
+		}
+	}
+
+	return nil
+}
+
+func (inp *Inp) writeLoad() error {
+	// Write to a separate file to avoid cluttering the `inp` file.
+	f, err := os.Create(inp.PathLoad)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	_, err = f.WriteString("*CLOAD\n")
+	if err != nil {
+		return err
+	}
+
+	// Figure out node and voxel for each.
+	for _, l := range inp.Loads {
+		l.nodeID, l.voxel = inp.Mesh.Locate(l.Location)
+	}
+
+	// The closest node to any restraint is already computed.
+	for _, l := range inp.Loads {
+		// Node ID should be consistant with the temp vertex buffer.
+		// Node ID is different on these two: (1) original vertex buffer, (2) temp vertex buffer.
+		vertex := inp.Mesh.vertex(l.nodeID)
+		id := inp.TempVBuff.Id(vertex)
+
+		// To be written:
+		//
+		// 1) Node ID.
+		// 2) Degree of freedom.
+		// 3) Magnitude of the load.
+		//
+		// Note: written node ID would start from one not zero.
+
+		_, err = f.WriteString(fmt.Sprintf("%d,1,%f\n", id+1, l.Magnitude.X))
+		if err != nil {
+			panic("Couldn't write load to file: " + err.Error())
+		}
+		_, err = f.WriteString(fmt.Sprintf("%d,2,%f\n", id+1, l.Magnitude.Y))
+		if err != nil {
+			panic("Couldn't write load to file: " + err.Error())
+		}
+		_, err = f.WriteString(fmt.Sprintf("%d,3,%f\n", id+1, l.Magnitude.Z))
+		if err != nil {
+			panic("Couldn't write load to file: " + err.Error())
 		}
 	}
 
