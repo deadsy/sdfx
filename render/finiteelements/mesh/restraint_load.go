@@ -12,7 +12,7 @@ type Restraint struct {
 	IsFixedY bool    // Is Y degree of freedom fixed?
 	IsFixedZ bool    // Is Z degree of freedom fixed?
 	voxel    v3i.Vec // Containing voxel: to be computed by logic.
-	nodeID   int     // Eventual node to which the restraint is applied. To be computed.
+	nodeID   uint32  // Eventual node to which the restraint is applied. To be computed.
 }
 
 // Point loads are applied to the nodes of the mesh.
@@ -20,7 +20,7 @@ type Load struct {
 	Location  v3.Vec  // Exact coordinate.
 	Magnitude v3.Vec  // X, Y, Z magnitude.
 	voxel     v3i.Vec // Containing voxel: to be computed by logic.
-	nodeID    int     // Eventual node to which the load is applied. To be computed.
+	nodeID    uint32  // Eventual node to which the load is applied. To be computed.
 }
 
 func NewRestraint(location v3.Vec, isFixedX, isFixedY, isFixedZ bool) *Restraint {

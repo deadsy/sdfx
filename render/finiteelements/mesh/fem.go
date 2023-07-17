@@ -83,7 +83,7 @@ func (m *Fem) iterate(f func(int, int, int, []*buffer.Element)) {
 // Also, the containing voxel is figured out.
 //
 // This logic has to be here, since we need access to any node vertex.
-func (m *Fem) Locate(location v3.Vec) (int, v3i.Vec) {
+func (m *Fem) Locate(location v3.Vec) (uint32, v3i.Vec) {
 	// Calculating voxel indices.
 	idxX := int(math.Floor((location.X - m.IBuff.Grid.Voxels[0].Min.X) / (m.IBuff.Grid.Dim.X)))
 	idxY := int(math.Floor((location.Y - m.IBuff.Grid.Voxels[0].Min.Y) / (m.IBuff.Grid.Dim.Y)))
@@ -104,7 +104,7 @@ func (m *Fem) Locate(location v3.Vec) (int, v3i.Vec) {
 	elements := m.IBuff.Grid.Get(idxX, idxY, idxZ)
 
 	// Find the closest node
-	closestNode := -1
+	var closestNode uint32
 	minDistance := math.Inf(1)
 
 	for _, element := range elements {
@@ -115,7 +115,7 @@ func (m *Fem) Locate(location v3.Vec) (int, v3i.Vec) {
 			distance := location.Sub(nodePos).Length()
 			if distance < minDistance {
 				minDistance = distance
-				closestNode = int(node)
+				closestNode = node
 			}
 		}
 	}

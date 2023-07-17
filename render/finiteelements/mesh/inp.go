@@ -371,7 +371,10 @@ func (inp *Inp) writeBoundary() error {
 			continue
 		}
 
-		id := r.nodeID
+		// Node ID should be consistant with the temp vertex buffer.
+		// Node ID is different on these two: (1) original vertex buffer, (2) temp vertex buffer.
+		vertex := inp.Mesh.vertex(r.nodeID)
+		id := inp.TempVBuff.Id(vertex)
 
 		// To be written:
 		//
