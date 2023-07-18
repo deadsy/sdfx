@@ -267,9 +267,23 @@ func benchmarkSquareRestraint() []*mesh.Restraint {
 }
 
 func benchmarkCircleRestraint() []*mesh.Restraint {
-	// Four corners.
 	restraints := []*mesh.Restraint{
+		// The pinned end of 3D beam.
 		mesh.NewRestraint(v3.Vec{X: 0, Y: 0, Z: 0}, true, true, true),
+		mesh.NewRestraint(v3.Vec{X: 0, Y: -2.0313, Z: 0.213498}, true, true, true),
+		mesh.NewRestraint(v3.Vec{X: 0, Y: -3.97382, Z: 0.844661}, true, true, true),
+		mesh.NewRestraint(v3.Vec{X: 0, Y: -5.74266, Z: 1.8659}, true, true, true),
+		mesh.NewRestraint(v3.Vec{X: 0, Y: -7.26052, Z: 3.23259}, true, true, true),
+		mesh.NewRestraint(v3.Vec{X: 0, Y: -8.46107, Z: 4.885}, true, true, true),
+		mesh.NewRestraint(v3.Vec{X: 0, Y: -9.29182, Z: 6.7509}, true, true, true),
+		mesh.NewRestraint(v3.Vec{X: 0, Y: 2.0313, Z: 0.213498}, true, true, true),
+		mesh.NewRestraint(v3.Vec{X: 0, Y: 3.97382, Z: 0.844661}, true, true, true),
+		mesh.NewRestraint(v3.Vec{X: 0, Y: 5.74266, Z: 1.8659}, true, true, true),
+		mesh.NewRestraint(v3.Vec{X: 0, Y: 7.26052, Z: 3.23259}, true, true, true),
+		mesh.NewRestraint(v3.Vec{X: 0, Y: 8.46107, Z: 4.885}, true, true, true),
+		mesh.NewRestraint(v3.Vec{X: 0, Y: 9.29182, Z: 6.7509}, true, true, true),
+
+		// The roller end of 3D beam.
 		mesh.NewRestraint(v3.Vec{X: 200, Y: 0, Z: 0}, false, true, true),
 		mesh.NewRestraint(v3.Vec{X: 200, Y: -2.0313, Z: 0.213498}, false, true, true),
 		mesh.NewRestraint(v3.Vec{X: 200, Y: -3.97382, Z: 0.844661}, false, true, true),
