@@ -62,6 +62,7 @@ func main() {
 		restraints = benchmarkSquareRestraint()
 		benchmarkRun("../../files/benchmark-square.stl", 50, 0, 3, restraints, loads)
 	case Circle:
+		restraints = benchmarkCircleRestraint()
 		benchmarkRun("../../files/benchmark-circle.stl", 50, 0, 3, restraints, loads)
 	case Pipe:
 		benchmarkRun("../../files/benchmark-pipe.stl", 50, 0, 3, restraints, loads)
@@ -260,6 +261,28 @@ func benchmarkSquareRestraint() []*mesh.Restraint {
 	for y <= 17.32 {
 		restraints = append(restraints, mesh.NewRestraint(v3.Vec{X: 200, Y: y, Z: 0}, false, true, true))
 		y += gap
+	}
+
+	return restraints
+}
+
+func benchmarkCircleRestraint() []*mesh.Restraint {
+	// Four corners.
+	restraints := []*mesh.Restraint{
+		mesh.NewRestraint(v3.Vec{X: 0, Y: 0, Z: 0}, true, true, true),
+		mesh.NewRestraint(v3.Vec{X: 200, Y: 0, Z: 0}, false, true, true),
+		mesh.NewRestraint(v3.Vec{X: 200, Y: -2.0313, Z: 0.213498}, false, true, true),
+		mesh.NewRestraint(v3.Vec{X: 200, Y: -3.97382, Z: 0.844661}, false, true, true),
+		mesh.NewRestraint(v3.Vec{X: 200, Y: -5.74266, Z: 1.8659}, false, true, true),
+		mesh.NewRestraint(v3.Vec{X: 200, Y: -7.26052, Z: 3.23259}, false, true, true),
+		mesh.NewRestraint(v3.Vec{X: 200, Y: -8.46107, Z: 4.885}, false, true, true),
+		mesh.NewRestraint(v3.Vec{X: 200, Y: -9.29182, Z: 6.7509}, false, true, true),
+		mesh.NewRestraint(v3.Vec{X: 200, Y: 2.0313, Z: 0.213498}, false, true, true),
+		mesh.NewRestraint(v3.Vec{X: 200, Y: 3.97382, Z: 0.844661}, false, true, true),
+		mesh.NewRestraint(v3.Vec{X: 200, Y: 5.74266, Z: 1.8659}, false, true, true),
+		mesh.NewRestraint(v3.Vec{X: 200, Y: 7.26052, Z: 3.23259}, false, true, true),
+		mesh.NewRestraint(v3.Vec{X: 200, Y: 8.46107, Z: 4.885}, false, true, true),
+		mesh.NewRestraint(v3.Vec{X: 200, Y: 9.29182, Z: 6.7509}, false, true, true),
 	}
 
 	return restraints
