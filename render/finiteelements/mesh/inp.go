@@ -372,7 +372,7 @@ func (inp *Inp) writeBoundary() error {
 	for i, r := range inp.Restraints {
 		isFixedX, isFixedY, isFixedZ := r.IsFixedX, r.IsFixedY, r.IsFixedZ
 		if !isFixedX && !isFixedY && !isFixedZ {
-			panic("restraint has no fixed degree of freedom")
+			return fmt.Errorf("restraint has no fixed degree of freedom")
 		}
 
 		nodeSet := make([]uint32, 0)
