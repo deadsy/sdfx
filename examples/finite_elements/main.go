@@ -53,8 +53,9 @@ func main() {
 	var restraints []*mesh.Restraint
 
 	// Gravity load is used for benchmarks. So, there is no point load.
+	location := []v3.Vec{v3.Vec{X: 0, Y: 0, Z: 0}}
 	loads := []*mesh.Load{
-		mesh.NewLoad(v3.Vec{X: 0, Y: 0, Z: 0}, v3.Vec{X: 0, Y: 0, Z: 0}),
+		mesh.NewLoad(location, v3.Vec{X: 0, Y: 0, Z: 0}),
 	}
 
 	switch benchmark {
