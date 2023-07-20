@@ -123,6 +123,12 @@ func (m *Fem) Locate(location v3.Vec) (uint32, v3i.Vec) {
 	return closestNode, v3i.Vec{X: idxX, Y: idxY, Z: idxZ}
 }
 
+// Compute the bounding box of all the input points.
+// Return all the voxels that are intersecting with that bounding box.
+func (m *Fem) VoxelsIntersecting(points []v3.Vec) []v3i.Vec {
+	return m.IBuff.Grid.VoxelsIntersecting(points)
+}
+
 // WriteInp writes mesh to ABAQUS or CalculiX `inp` file.
 func (m *Fem) WriteInp(
 	path string,
