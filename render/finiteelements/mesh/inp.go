@@ -7,6 +7,7 @@ import (
 
 	"github.com/deadsy/sdfx/render/finiteelements/buffer"
 	v3 "github.com/deadsy/sdfx/vec/v3"
+	"github.com/deadsy/sdfx/vec/v3i"
 )
 
 // Inp writes different types of finite elements as ABAQUS or CalculiX `inp` file.
@@ -362,10 +363,26 @@ func (inp *Inp) writeBoundary() error {
 	// Figure out reference node and voxels for each restraint.
 	for _, r := range inp.Restraints {
 		r.voxels, _, _ = inp.Mesh.VoxelsIntersecting(r.Location)
-		// Reference node is picked as:
-		// 1st node of 1st element of 1st voxel.
+
+		pickFirstValidNode := func(voxels []v3i.Vec) (uint32, error) {
+			for _, vox := range r.voxels {
+				// Get elements in the voxel
+				elements := inp.Mesh.IBuff.Grid.Get(vox.X, vox.Y, vox.Z)
+				for _, element := range elements {
+					for _, node := range element.Nodes {
+						return node, nil
+					}
+				}
+			}
+			return 0, fmt.Errorf("there is no valid nodes in voxels of a boundary condition")
+		}
+
+		// Reference node is picked here.
 		// TODO: Does it make sense? Replace with a more sane approach.
-		r.nodeREF = inp.Mesh.IBuff.Grid.Get(r.voxels[0].X, r.voxels[0].Y, r.voxels[0].Z)[0].Nodes[0]
+		r.nodeREF, err = pickFirstValidNode(r.voxels)
+		if err != nil {
+			return err
+		}
 	}
 
 	for i, r := range inp.Restraints {
