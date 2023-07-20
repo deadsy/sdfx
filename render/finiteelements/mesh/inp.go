@@ -406,7 +406,7 @@ func (inp *Inp) writeBoundary() error {
 				if err != nil {
 					return err
 				}
-			} else if j%15 == 0 {
+			} else if j != 0 && j%15 == 0 {
 				// According to CCX manual: maximum 16 entries per line.
 				_, err = f.WriteString(fmt.Sprintf("%d,\n", id+1))
 				if err != nil {
