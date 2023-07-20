@@ -53,7 +53,7 @@ func main() {
 	var restraints []*mesh.Restraint
 
 	// Gravity load is used for benchmarks. So, there is no point load.
-	location := []v3.Vec{v3.Vec{X: 0, Y: 0, Z: 0}}
+	location := []v3.Vec{{X: 0, Y: 0, Z: 0}}
 	loads := []*mesh.Load{
 		mesh.NewLoad(location, v3.Vec{X: 0, Y: 0, Z: 0}),
 	}
@@ -270,38 +270,38 @@ func benchmarkCircleRestraint() []*mesh.Restraint {
 
 	// The pinned end of 3D beam.
 	locationPinned := []v3.Vec{
-		v3.Vec{X: 0, Y: 0, Z: 0},
-		v3.Vec{X: 0, Y: -2.0313, Z: 0.213498},
-		v3.Vec{X: 0, Y: -3.97382, Z: 0.844661},
-		v3.Vec{X: 0, Y: -5.74266, Z: 1.8659},
-		v3.Vec{X: 0, Y: -7.26052, Z: 3.23259},
-		v3.Vec{X: 0, Y: -8.46107, Z: 4.885},
-		v3.Vec{X: 0, Y: -9.29182, Z: 6.7509},
-		v3.Vec{X: 0, Y: 2.0313, Z: 0.213498},
-		v3.Vec{X: 0, Y: 3.97382, Z: 0.844661},
-		v3.Vec{X: 0, Y: 5.74266, Z: 1.8659},
-		v3.Vec{X: 0, Y: 7.26052, Z: 3.23259},
-		v3.Vec{X: 0, Y: 8.46107, Z: 4.885},
-		v3.Vec{X: 0, Y: 9.29182, Z: 6.7509},
+		{X: 0, Y: 0, Z: 0},
+		{X: 0, Y: -2.0313, Z: 0.213498},
+		{X: 0, Y: -3.97382, Z: 0.844661},
+		{X: 0, Y: -5.74266, Z: 1.8659},
+		{X: 0, Y: -7.26052, Z: 3.23259},
+		{X: 0, Y: -8.46107, Z: 4.885},
+		{X: 0, Y: -9.29182, Z: 6.7509},
+		{X: 0, Y: 2.0313, Z: 0.213498},
+		{X: 0, Y: 3.97382, Z: 0.844661},
+		{X: 0, Y: 5.74266, Z: 1.8659},
+		{X: 0, Y: 7.26052, Z: 3.23259},
+		{X: 0, Y: 8.46107, Z: 4.885},
+		{X: 0, Y: 9.29182, Z: 6.7509},
 	}
 
 	restraints = append(restraints, mesh.NewRestraint(locationPinned, true, true, true))
 
 	// The roller end of 3D beam.
 	locationRoller := []v3.Vec{
-		v3.Vec{X: 200, Y: 0, Z: 0},
-		v3.Vec{X: 200, Y: -2.0313, Z: 0.213498},
-		v3.Vec{X: 200, Y: -3.97382, Z: 0.844661},
-		v3.Vec{X: 200, Y: -5.74266, Z: 1.8659},
-		v3.Vec{X: 200, Y: -7.26052, Z: 3.23259},
-		v3.Vec{X: 200, Y: -8.46107, Z: 4.885},
-		v3.Vec{X: 200, Y: -9.29182, Z: 6.7509},
-		v3.Vec{X: 200, Y: 2.0313, Z: 0.213498},
-		v3.Vec{X: 200, Y: 3.97382, Z: 0.844661},
-		v3.Vec{X: 200, Y: 5.74266, Z: 1.8659},
-		v3.Vec{X: 200, Y: 7.26052, Z: 3.23259},
-		v3.Vec{X: 200, Y: 8.46107, Z: 4.885},
-		v3.Vec{X: 200, Y: 9.29182, Z: 6.7509},
+		{X: 200, Y: 0, Z: 0},
+		{X: 200, Y: -2.0313, Z: 0.213498},
+		{X: 200, Y: -3.97382, Z: 0.844661},
+		{X: 200, Y: -5.74266, Z: 1.8659},
+		{X: 200, Y: -7.26052, Z: 3.23259},
+		{X: 200, Y: -8.46107, Z: 4.885},
+		{X: 200, Y: -9.29182, Z: 6.7509},
+		{X: 200, Y: 2.0313, Z: 0.213498},
+		{X: 200, Y: 3.97382, Z: 0.844661},
+		{X: 200, Y: 5.74266, Z: 1.8659},
+		{X: 200, Y: 7.26052, Z: 3.23259},
+		{X: 200, Y: 8.46107, Z: 4.885},
+		{X: 200, Y: 9.29182, Z: 6.7509},
 	}
 
 	restraints = append(restraints, mesh.NewRestraint(locationRoller, false, true, true))
