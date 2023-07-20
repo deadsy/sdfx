@@ -116,7 +116,7 @@ func (vg *VoxelGrid) VoxelsIntersecting(points []v3.Vec) ([]v3i.Vec, v3.Vec, v3.
 	// iterate over all the voxels
 	for i, voxel := range vg.Voxels {
 		// check if the voxel intersects with the bounding box
-		if voxel.Max.Min(max) != max || voxel.Min.Max(min) != min {
+		if !DoesIntersect(voxel.Min, voxel.Max, min, max) {
 			continue
 		}
 
@@ -129,6 +129,17 @@ func (vg *VoxelGrid) VoxelsIntersecting(points []v3.Vec) ([]v3i.Vec, v3.Vec, v3.
 	}
 
 	return intersectingVoxels, min, max
+}
+
+// Does two voxels or b-boxes intersect with each other?
+func DoesIntersect(aMin, aMax, bMin, bMax v3.Vec) bool {
+	if aMin.X > bMax.X || aMin.Y > bMax.Y || aMin.Z > bMax.Z {
+		return false
+	}
+	if bMin.X > aMax.X || bMin.Y > aMax.Y || bMin.Z > aMax.Z {
+		return false
+	}
+	return true
 }
 
 // To iterate over all voxels and get elements inside each voxel and do stuff with them.
