@@ -361,12 +361,11 @@ func (inp *Inp) writeBoundary() error {
 
 	// Figure out reference node and voxels for each restraint.
 	for _, r := range inp.Restraints {
-		var min, max v3.Vec
-		r.voxels, min, max = inp.Mesh.VoxelsIntersecting(r.Location)
-		// Reference node is closest node to the b-box center.
-		// TODO: Does center make sense?
-		center := min.Add(max).DivScalar(2.0)
-		r.nodeREF, _ = inp.Mesh.Locate(center)
+		r.voxels, _, _ = inp.Mesh.VoxelsIntersecting(r.Location)
+		// Reference node is picked as:
+		// 1st node of 1st element of 1st voxel.
+		// TODO: Does it make sense? Replace with a more sane approach.
+		r.nodeREF = inp.Mesh.IBuff.Grid.Get(r.voxels[0].X, r.voxels[0].Y, r.voxels[0].Z)[0].Nodes[0]
 	}
 
 	for i, r := range inp.Restraints {
