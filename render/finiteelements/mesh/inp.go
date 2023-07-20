@@ -86,10 +86,12 @@ func NewInp(
 		GravityMagnitude: gravityMagnitude,
 	}
 
+	// TODO: complete loading.
+	//
 	// Figure out node and voxel for each load.
 	// TODO: move this statement to the logic that writes loads to file.
 	for _, l := range inp.Loads {
-		l.nodeID, l.voxel = inp.Mesh.Locate(l.Location)
+		l.voxels, _, _ = inp.Mesh.VoxelsIntersecting(l.Location)
 	}
 
 	return inp
@@ -357,27 +359,83 @@ func (inp *Inp) writeBoundary() error {
 	}
 	defer f.Close()
 
-	_, err = f.WriteString("*BOUNDARY\n")
-	if err != nil {
-		return err
+	// Figure out reference node and voxels for each restraint.
+	for _, r := range inp.Restraints {
+		var min, max v3.Vec
+		r.voxels, min, max = inp.Mesh.VoxelsIntersecting(r.Location)
+		// Reference node is closest node to the b-box center.
+		// TODO: Does center make sense?
+		center := min.Add(max).DivScalar(2.0)
+		r.nodeREF, _ = inp.Mesh.Locate(center)
 	}
 
-	// Figure out node and voxel for each restraint.
-	for _, r := range inp.Restraints {
-		r.nodeID, r.voxel = inp.Mesh.Locate(r.Location)
-	}
-
-	// The closest node to any restraint is already computed.
-	for _, r := range inp.Restraints {
+	for i, r := range inp.Restraints {
 		isFixedX, isFixedY, isFixedZ := r.IsFixedX, r.IsFixedY, r.IsFixedZ
 		if !isFixedX && !isFixedY && !isFixedZ {
-			continue
+			panic("restraint has no fixed degree of freedom")
+		}
+
+		nodeSet := make([]uint32, 0)
+
+		for _, vox := range r.voxels {
+
+			// Get elements in the voxel
+			elements := inp.Mesh.IBuff.Grid.Get(vox.X, vox.Y, vox.Z)
+
+			for _, element := range elements {
+				for _, node := range element.Nodes {
+					// Node ID should be consistant with the temp vertex buffer.
+					// Node ID is different on these two: (1) original vertex buffer, (2) temp vertex buffer.
+					vertex := inp.Mesh.vertex(node)
+					id := inp.TempVBuff.Id(vertex)
+					nodeSet = append(nodeSet, id)
+				}
+			}
+		}
+
+		// Write node set for this restraint.
+		_, err = f.WriteString(fmt.Sprintf("*NSET,NSET=restraint%d\n", i+1))
+		if err != nil {
+			return err
+		}
+
+		for j, id := range nodeSet {
+			if j == len(nodeSet)-1 {
+				// The last one is written differently.
+				_, err = f.WriteString(fmt.Sprintf("%d\n", id+1))
+				if err != nil {
+					return err
+				}
+			} else if j%15 == 0 {
+				// According to CCX manual: maximum 16 entries per line.
+				_, err = f.WriteString(fmt.Sprintf("%d,\n", id+1))
+				if err != nil {
+					return err
+				}
+			} else {
+				_, err = f.WriteString(fmt.Sprintf("%d,", id+1))
+				if err != nil {
+					return err
+				}
+			}
 		}
 
 		// Node ID should be consistant with the temp vertex buffer.
 		// Node ID is different on these two: (1) original vertex buffer, (2) temp vertex buffer.
-		vertex := inp.Mesh.vertex(r.nodeID)
+		vertex := inp.Mesh.vertex(r.nodeREF)
 		id := inp.TempVBuff.Id(vertex)
+
+		// Define a rigid body consisting of the nodes belonging to node set.
+		_, err = f.WriteString(fmt.Sprintf("*RIGID BODY,NSET=restraint%d,REF NODE=%d\n", i+1, id+1))
+		if err != nil {
+			return err
+		}
+
+		// Put the boundary constraints on the reference node.
+		_, err = f.WriteString("*BOUNDARY\n")
+		if err != nil {
+			return err
+		}
 
 		// To be written:
 		//
@@ -447,16 +505,18 @@ func (inp *Inp) writeLoad() error {
 		return err
 	}
 
+	// TODO: complete loading.
+
 	// Figure out node and voxel for each.
 	for _, l := range inp.Loads {
-		l.nodeID, l.voxel = inp.Mesh.Locate(l.Location)
+		l.voxels, _, _ = inp.Mesh.VoxelsIntersecting(l.Location)
 	}
 
 	// The closest node to any restraint is already computed.
 	for _, l := range inp.Loads {
 		// Node ID should be consistant with the temp vertex buffer.
 		// Node ID is different on these two: (1) original vertex buffer, (2) temp vertex buffer.
-		vertex := inp.Mesh.vertex(l.nodeID)
+		vertex := inp.Mesh.vertex(l.nodeREF)
 		id := inp.TempVBuff.Id(vertex)
 
 		// To be written:

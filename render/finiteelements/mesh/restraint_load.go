@@ -17,20 +17,20 @@ import (
 //
 // The objective: the stress concentration at the restraint may be alleviated by distributing it.
 type Restraint struct {
-	Location []v3.Vec // Exact coordinates inside rigid body.
-	IsFixedX bool     // Is X degree of freedom fixed?
-	IsFixedY bool     // Is Y degree of freedom fixed?
-	IsFixedZ bool     // Is Z degree of freedom fixed?
-	voxel    v3i.Vec  // Containing voxel: to be computed by logic.
-	nodeID   uint32   // Eventual node to which the restraint is applied. To be computed.
+	Location []v3.Vec  // Exact coordinates inside rigid body.
+	IsFixedX bool      // Is X degree of freedom fixed?
+	IsFixedY bool      // Is Y degree of freedom fixed?
+	IsFixedZ bool      // Is Z degree of freedom fixed?
+	voxels   []v3i.Vec // Intersecting voxels: to be computed by logic.
+	nodeREF  uint32    // Eventual node to which the restraint is applied. To be computed.
 }
 
 // Point loads are applied to the nodes of the mesh.
 type Load struct {
-	Location  []v3.Vec // Exact coordinates inside rigid body.
-	Magnitude v3.Vec   // X, Y, Z magnitude.
-	voxel     v3i.Vec  // Containing voxel: to be computed by logic.
-	nodeID    uint32   // Eventual node to which the load is applied. To be computed.
+	Location  []v3.Vec  // Exact coordinates inside rigid body.
+	Magnitude v3.Vec    // X, Y, Z magnitude.
+	voxels    []v3i.Vec // Intersecting voxels: to be computed by logic.
+	nodeREF   uint32    // Eventual node to which the load is applied. To be computed.
 }
 
 func NewRestraint(location []v3.Vec, isFixedX, isFixedY, isFixedZ bool) *Restraint {
@@ -39,8 +39,8 @@ func NewRestraint(location []v3.Vec, isFixedX, isFixedY, isFixedZ bool) *Restrai
 		IsFixedX: isFixedX,
 		IsFixedY: isFixedY,
 		IsFixedZ: isFixedZ,
-		voxel:    v3i.Vec{},
-		nodeID:   0,
+		voxels:   make([]v3i.Vec, 0),
+		nodeREF:  0,
 	}
 }
 
@@ -48,7 +48,7 @@ func NewLoad(location []v3.Vec, magnitude v3.Vec) *Load {
 	return &Load{
 		Location:  location,
 		Magnitude: magnitude,
-		voxel:     v3i.Vec{},
-		nodeID:    0,
+		voxels:    make([]v3i.Vec, 0),
+		nodeREF:   0,
 	}
 }

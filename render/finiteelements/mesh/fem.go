@@ -125,7 +125,7 @@ func (m *Fem) Locate(location v3.Vec) (uint32, v3i.Vec) {
 
 // Compute the bounding box of all the input points.
 // Return all the voxels that are intersecting with that bounding box.
-func (m *Fem) VoxelsIntersecting(points []v3.Vec) []v3i.Vec {
+func (m *Fem) VoxelsIntersecting(points []v3.Vec) ([]v3i.Vec, v3.Vec, v3.Vec) {
 	return m.IBuff.Grid.VoxelsIntersecting(points)
 }
 
