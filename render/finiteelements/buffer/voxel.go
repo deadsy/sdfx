@@ -97,6 +97,40 @@ func (vg *VoxelGrid) Append(x, y, z int, value *Element) {
 	vg.Voxels[x*vg.Len.Y*vg.Len.Z+y*vg.Len.Z+z].data = append(vg.Voxels[x*vg.Len.Y*vg.Len.Z+y*vg.Len.Z+z].data, value)
 }
 
+// Compute the bounding box of all the input points.
+// Return all the voxels that are intersecting with that bounding box.
+func (vg *VoxelGrid) VoxelsIntersecting(points []v3.Vec) []v3i.Vec {
+	if len(points) == 0 {
+		return nil
+	}
+
+	// compute the bounding box of all the input points
+	min, max := points[0], points[0]
+	for _, point := range points {
+		min = min.Min(point)
+		max = max.Max(point)
+	}
+
+	var intersectingVoxels []v3i.Vec
+
+	// iterate over all the voxels
+	for i, voxel := range vg.Voxels {
+		// check if the voxel intersects with the bounding box
+		if voxel.Max.Min(max) != max || voxel.Min.Max(min) != min {
+			continue
+		}
+
+		// convert the 1D index to a 3D index
+		x := i / (vg.Len.Y * vg.Len.Z)
+		y := (i % (vg.Len.Y * vg.Len.Z)) / vg.Len.Z
+		z := i % vg.Len.Z
+
+		intersectingVoxels = append(intersectingVoxels, v3i.Vec{X: x, Y: y, Z: z})
+	}
+
+	return intersectingVoxels
+}
+
 // To iterate over all voxels and get elements inside each voxel and do stuff with them.
 func (vg *VoxelGrid) Iterate(f func(int, int, int, []*Element)) {
 	for z := 0; z < vg.Len.Z; z++ {
