@@ -240,64 +240,70 @@ func dilationErosion(s sdf.SDF3) sdf.SDF3 {
 }
 
 func benchmarkSquareRestraint() []*mesh.Restraint {
-	// Four corners.
-	restraints := []*mesh.Restraint{
-		mesh.NewRestraint(v3.Vec{X: 0, Y: 0, Z: 0}, true, true, true),
-		mesh.NewRestraint(v3.Vec{X: 0, Y: 17.32, Z: 0}, true, true, true),
-		mesh.NewRestraint(v3.Vec{X: 200, Y: 0, Z: 0}, false, true, true),
-		mesh.NewRestraint(v3.Vec{X: 200, Y: 17.32, Z: 0}, false, true, true),
-	}
+	restraints := []*mesh.Restraint{}
 
-	// Let's avoid stress concentration by increasing the number of restraints.
-	// Let's increase it so that most of the edge length is restrained. Not just corners.
+	locationPinned := []v3.Vec{}
 	gap := 1.0
 	var y float64
 	for y <= 17.32 {
-		restraints = append(restraints, mesh.NewRestraint(v3.Vec{X: 0, Y: y, Z: 0}, true, true, true))
+		locationPinned = append(locationPinned, v3.Vec{X: 0, Y: y, Z: 0})
 		y += gap
 	}
 
+	restraints = append(restraints, mesh.NewRestraint(locationPinned, true, true, true))
+
+	locationRoller := []v3.Vec{}
 	y = 0
 	for y <= 17.32 {
-		restraints = append(restraints, mesh.NewRestraint(v3.Vec{X: 200, Y: y, Z: 0}, false, true, true))
+		locationRoller = append(locationRoller, v3.Vec{X: 200, Y: y, Z: 0})
 		y += gap
 	}
+
+	restraints = append(restraints, mesh.NewRestraint(locationRoller, false, true, true))
 
 	return restraints
 }
 
 func benchmarkCircleRestraint() []*mesh.Restraint {
-	restraints := []*mesh.Restraint{
-		// The pinned end of 3D beam.
-		mesh.NewRestraint(v3.Vec{X: 0, Y: 0, Z: 0}, true, true, true),
-		mesh.NewRestraint(v3.Vec{X: 0, Y: -2.0313, Z: 0.213498}, true, true, true),
-		mesh.NewRestraint(v3.Vec{X: 0, Y: -3.97382, Z: 0.844661}, true, true, true),
-		mesh.NewRestraint(v3.Vec{X: 0, Y: -5.74266, Z: 1.8659}, true, true, true),
-		mesh.NewRestraint(v3.Vec{X: 0, Y: -7.26052, Z: 3.23259}, true, true, true),
-		mesh.NewRestraint(v3.Vec{X: 0, Y: -8.46107, Z: 4.885}, true, true, true),
-		mesh.NewRestraint(v3.Vec{X: 0, Y: -9.29182, Z: 6.7509}, true, true, true),
-		mesh.NewRestraint(v3.Vec{X: 0, Y: 2.0313, Z: 0.213498}, true, true, true),
-		mesh.NewRestraint(v3.Vec{X: 0, Y: 3.97382, Z: 0.844661}, true, true, true),
-		mesh.NewRestraint(v3.Vec{X: 0, Y: 5.74266, Z: 1.8659}, true, true, true),
-		mesh.NewRestraint(v3.Vec{X: 0, Y: 7.26052, Z: 3.23259}, true, true, true),
-		mesh.NewRestraint(v3.Vec{X: 0, Y: 8.46107, Z: 4.885}, true, true, true),
-		mesh.NewRestraint(v3.Vec{X: 0, Y: 9.29182, Z: 6.7509}, true, true, true),
+	restraints := make([]*mesh.Restraint, 0)
 
-		// The roller end of 3D beam.
-		mesh.NewRestraint(v3.Vec{X: 200, Y: 0, Z: 0}, false, true, true),
-		mesh.NewRestraint(v3.Vec{X: 200, Y: -2.0313, Z: 0.213498}, false, true, true),
-		mesh.NewRestraint(v3.Vec{X: 200, Y: -3.97382, Z: 0.844661}, false, true, true),
-		mesh.NewRestraint(v3.Vec{X: 200, Y: -5.74266, Z: 1.8659}, false, true, true),
-		mesh.NewRestraint(v3.Vec{X: 200, Y: -7.26052, Z: 3.23259}, false, true, true),
-		mesh.NewRestraint(v3.Vec{X: 200, Y: -8.46107, Z: 4.885}, false, true, true),
-		mesh.NewRestraint(v3.Vec{X: 200, Y: -9.29182, Z: 6.7509}, false, true, true),
-		mesh.NewRestraint(v3.Vec{X: 200, Y: 2.0313, Z: 0.213498}, false, true, true),
-		mesh.NewRestraint(v3.Vec{X: 200, Y: 3.97382, Z: 0.844661}, false, true, true),
-		mesh.NewRestraint(v3.Vec{X: 200, Y: 5.74266, Z: 1.8659}, false, true, true),
-		mesh.NewRestraint(v3.Vec{X: 200, Y: 7.26052, Z: 3.23259}, false, true, true),
-		mesh.NewRestraint(v3.Vec{X: 200, Y: 8.46107, Z: 4.885}, false, true, true),
-		mesh.NewRestraint(v3.Vec{X: 200, Y: 9.29182, Z: 6.7509}, false, true, true),
+	// The pinned end of 3D beam.
+	locationPinned := []v3.Vec{
+		v3.Vec{X: 0, Y: 0, Z: 0},
+		v3.Vec{X: 0, Y: -2.0313, Z: 0.213498},
+		v3.Vec{X: 0, Y: -3.97382, Z: 0.844661},
+		v3.Vec{X: 0, Y: -5.74266, Z: 1.8659},
+		v3.Vec{X: 0, Y: -7.26052, Z: 3.23259},
+		v3.Vec{X: 0, Y: -8.46107, Z: 4.885},
+		v3.Vec{X: 0, Y: -9.29182, Z: 6.7509},
+		v3.Vec{X: 0, Y: 2.0313, Z: 0.213498},
+		v3.Vec{X: 0, Y: 3.97382, Z: 0.844661},
+		v3.Vec{X: 0, Y: 5.74266, Z: 1.8659},
+		v3.Vec{X: 0, Y: 7.26052, Z: 3.23259},
+		v3.Vec{X: 0, Y: 8.46107, Z: 4.885},
+		v3.Vec{X: 0, Y: 9.29182, Z: 6.7509},
 	}
+
+	restraints = append(restraints, mesh.NewRestraint(locationPinned, true, true, true))
+
+	// The roller end of 3D beam.
+	locationRoller := []v3.Vec{
+		v3.Vec{X: 200, Y: 0, Z: 0},
+		v3.Vec{X: 200, Y: -2.0313, Z: 0.213498},
+		v3.Vec{X: 200, Y: -3.97382, Z: 0.844661},
+		v3.Vec{X: 200, Y: -5.74266, Z: 1.8659},
+		v3.Vec{X: 200, Y: -7.26052, Z: 3.23259},
+		v3.Vec{X: 200, Y: -8.46107, Z: 4.885},
+		v3.Vec{X: 200, Y: -9.29182, Z: 6.7509},
+		v3.Vec{X: 200, Y: 2.0313, Z: 0.213498},
+		v3.Vec{X: 200, Y: 3.97382, Z: 0.844661},
+		v3.Vec{X: 200, Y: 5.74266, Z: 1.8659},
+		v3.Vec{X: 200, Y: 7.26052, Z: 3.23259},
+		v3.Vec{X: 200, Y: 8.46107, Z: 4.885},
+		v3.Vec{X: 200, Y: 9.29182, Z: 6.7509},
+	}
+
+	restraints = append(restraints, mesh.NewRestraint(locationRoller, false, true, true))
 
 	return restraints
 }
