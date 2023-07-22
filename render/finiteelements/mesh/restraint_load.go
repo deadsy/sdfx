@@ -8,12 +8,10 @@ import (
 //  1. Define each restraint by two things:
 //     1.1. A collection of points, *not* by a single point.
 //     1.2. Degrees of freedom that are fixed/free for all the points of the collection.
-//  2. Assume those points are connected by straight lines.
-//  3. Any voxel that intersects with those straight lines is considered rigid.
-//  4. Create `*RIGID BODY` by all the elements or nodes inside those voxels.
-//  5. Degree of freedom would be fixed/free for the `REF NODE` of the `*RIGID BODY`
-//
-// According to CCX manual, under the hood, a `*RIGID BODY` is actually a nonlinear multiple-point constraint (MPC).
+//  2. Assume a bounding box around all those points.
+//  3. Any voxel that intersects with the bounding box is considered inside restraint.
+//  4. Create `*BOUNDARY` for all the nodes inside those voxels.
+//  5. Degree of freedom would be fixed/free for all those nodes.
 //
 // The objective: the stress concentration at the restraint may be alleviated by distributing it.
 type Restraint struct {
