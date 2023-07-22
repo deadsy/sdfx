@@ -121,9 +121,9 @@ func (vg *VoxelGrid) VoxelsIntersecting(points []v3.Vec) ([]v3i.Vec, v3.Vec, v3.
 		}
 
 		// convert the 1D index to a 3D index
-		x := i / (vg.Len.Y * vg.Len.Z)
-		y := (i % (vg.Len.Y * vg.Len.Z)) / vg.Len.Z
 		z := i % vg.Len.Z
+		y := (i / vg.Len.Z) % vg.Len.Y
+		x := (i / vg.Len.Z) / vg.Len.Y
 
 		intersectingVoxels = append(intersectingVoxels, v3i.Vec{X: x, Y: y, Z: z})
 	}
