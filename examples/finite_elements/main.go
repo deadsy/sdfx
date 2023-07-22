@@ -12,7 +12,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"math"
 	"os"
 	"strconv"
 
@@ -217,8 +216,6 @@ func fe(s sdf.SDF3, resolution int, order render.Order, shape render.Shape, pth 
 	restraints []*mesh.Restraint,
 	loads []*mesh.Load,
 ) error {
-	s = dilationErosion(s)
-
 	// Create a mesh out of finite elements.
 	m, _ := mesh.NewFem(s, render.NewMarchingCubesFEUniform(resolution, order, shape))
 
@@ -234,35 +231,11 @@ func feLayers(s sdf.SDF3, resolution int, order render.Order, shape render.Shape
 	loads []*mesh.Load,
 	layerStart, layerEnd int,
 ) error {
-	s = dilationErosion(s)
-
 	// Create a mesh out of finite elements.
 	m, _ := mesh.NewFem(s, render.NewMarchingCubesFEUniform(resolution, order, shape))
 
 	// Write just some layers of mesh to file.
 	return m.WriteInpLayers(pth, layerStart, layerEnd, 7.85e-9, 210000, 0.3, restraints, loads, v3.Vec{X: 0, Y: 0, Z: -1}, 9810)
-}
-
-// By dilating SDF a little bit we may actually get rid of
-// bad elements like disconnected or improperly connected elements.
-// Erode so that SDF returns to its original size, well almost.
-//
-// TODO: run benchmarks without this to test.
-func dilationErosion(s sdf.SDF3) sdf.SDF3 {
-	min := s.BoundingBox().Min
-	max := s.BoundingBox().Max
-
-	dimX := (max.X - min.X)
-	dimY := (max.Y - min.Y)
-	dimZ := (max.Z - min.Z)
-
-	// What percent is preferred? Calibration is done a bit.
-	factor := math.Min(dimX, math.Min(dimY, dimZ)) * float64(0.02)
-
-	dilation := sdf.Offset3D(s, factor)
-	erosion := sdf.Offset3D(dilation, -factor)
-
-	return erosion
 }
 
 func benchmarkSquareRestraint() []*mesh.Restraint {
