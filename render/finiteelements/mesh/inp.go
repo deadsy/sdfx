@@ -463,17 +463,33 @@ func (inp *Inp) writeBoundary() error {
 		// Note: written node ID would start from one not zero.
 
 		if isFixedX && isFixedY && isFixedZ {
-			_, err = f.WriteString(fmt.Sprintf("%d,1,3\n", id+1))
+			_, err = f.WriteString(fmt.Sprintf("%d,1\n", id+1))
+			if err != nil {
+				panic("Couldn't write boundary to file: " + err.Error())
+			}
+			_, err = f.WriteString(fmt.Sprintf("%d,2\n", id+1))
+			if err != nil {
+				panic("Couldn't write boundary to file: " + err.Error())
+			}
+			_, err = f.WriteString(fmt.Sprintf("%d,3\n", id+1))
 			if err != nil {
 				panic("Couldn't write boundary to file: " + err.Error())
 			}
 		} else if isFixedX && isFixedY && !isFixedZ {
-			_, err = f.WriteString(fmt.Sprintf("%d,1,2\n", id+1))
+			_, err = f.WriteString(fmt.Sprintf("%d,1\n", id+1))
+			if err != nil {
+				panic("Couldn't write boundary to file: " + err.Error())
+			}
+			_, err = f.WriteString(fmt.Sprintf("%d,2\n", id+1))
 			if err != nil {
 				panic("Couldn't write boundary to file: " + err.Error())
 			}
 		} else if !isFixedX && isFixedY && isFixedZ {
-			_, err = f.WriteString(fmt.Sprintf("%d,2,3\n", id+1))
+			_, err = f.WriteString(fmt.Sprintf("%d,2\n", id+1))
+			if err != nil {
+				panic("Couldn't write boundary to file: " + err.Error())
+			}
+			_, err = f.WriteString(fmt.Sprintf("%d,3\n", id+1))
 			if err != nil {
 				panic("Couldn't write boundary to file: " + err.Error())
 			}
