@@ -22,7 +22,6 @@ type Restraint struct {
 	IsFixedY bool      // Is Y degree of freedom fixed?
 	IsFixedZ bool      // Is Z degree of freedom fixed?
 	voxels   []v3i.Vec // Intersecting voxels: to be computed by logic.
-	nodeREF  uint32    // Eventual node to which the restraint is applied. To be computed.
 }
 
 // Point loads are applied to the nodes of the mesh.
@@ -40,7 +39,6 @@ func NewRestraint(location []v3.Vec, isFixedX, isFixedY, isFixedZ bool) *Restrai
 		IsFixedY: isFixedY,
 		IsFixedZ: isFixedZ,
 		voxels:   make([]v3i.Vec, 0),
-		nodeREF:  0,
 	}
 }
 

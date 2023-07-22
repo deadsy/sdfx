@@ -7,7 +7,6 @@ import (
 
 	"github.com/deadsy/sdfx/render/finiteelements/buffer"
 	v3 "github.com/deadsy/sdfx/vec/v3"
-	"github.com/deadsy/sdfx/vec/v3i"
 )
 
 // Inp writes different types of finite elements as ABAQUS or CalculiX `inp` file.
@@ -363,26 +362,6 @@ func (inp *Inp) writeBoundary() error {
 	// Figure out reference node and voxels for each restraint.
 	for _, r := range inp.Restraints {
 		r.voxels, _, _ = inp.Mesh.VoxelsIntersecting(r.Location)
-
-		pickFirstValidNode := func(voxels []v3i.Vec) (uint32, error) {
-			for _, vox := range r.voxels {
-				// Get elements in the voxel
-				elements := inp.Mesh.IBuff.Grid.Get(vox.X, vox.Y, vox.Z)
-				for _, element := range elements {
-					for _, node := range element.Nodes {
-						return node, nil
-					}
-				}
-			}
-			return 0, fmt.Errorf("there is no valid nodes in voxels of a boundary condition")
-		}
-
-		// Reference node is picked here.
-		// TODO: Does it make sense? Replace with a more sane approach.
-		r.nodeREF, err = pickFirstValidNode(r.voxels)
-		if err != nil {
-			return err
-		}
 	}
 
 	for i, r := range inp.Restraints {
@@ -436,17 +415,6 @@ func (inp *Inp) writeBoundary() error {
 			}
 		}
 
-		// Node ID should be consistant with the temp vertex buffer.
-		// Node ID is different on these two: (1) original vertex buffer, (2) temp vertex buffer.
-		vertex := inp.Mesh.vertex(r.nodeREF)
-		id := inp.TempVBuff.Id(vertex)
-
-		// Define a rigid body consisting of the nodes belonging to node set.
-		_, err = f.WriteString(fmt.Sprintf("*RIGID BODY,NSET=restraint%d,REF NODE=%d\n", i+1, id+1))
-		if err != nil {
-			return err
-		}
-
 		// Put the boundary constraints on the reference node.
 		_, err = f.WriteString("*BOUNDARY\n")
 		if err != nil {
@@ -455,7 +423,7 @@ func (inp *Inp) writeBoundary() error {
 
 		// To be written:
 		//
-		// 1) Node ID.
+		// 1) Node number/ID or node set label.
 		// 2) First degree of freedom constrained.
 		// 3) Last degree of freedom constrained. This field may be left blank if only
 		// one degree of freedom is constrained.
@@ -463,57 +431,57 @@ func (inp *Inp) writeBoundary() error {
 		// Note: written node ID would start from one not zero.
 
 		if isFixedX && isFixedY && isFixedZ {
-			_, err = f.WriteString(fmt.Sprintf("%d,1\n", id+1))
+			_, err = f.WriteString(fmt.Sprintf("restraint%d,1\n", i+1))
 			if err != nil {
 				panic("Couldn't write boundary to file: " + err.Error())
 			}
-			_, err = f.WriteString(fmt.Sprintf("%d,2\n", id+1))
+			_, err = f.WriteString(fmt.Sprintf("restraint%d,2\n", i+1))
 			if err != nil {
 				panic("Couldn't write boundary to file: " + err.Error())
 			}
-			_, err = f.WriteString(fmt.Sprintf("%d,3\n", id+1))
+			_, err = f.WriteString(fmt.Sprintf("restraint%d,3\n", i+1))
 			if err != nil {
 				panic("Couldn't write boundary to file: " + err.Error())
 			}
 		} else if isFixedX && isFixedY && !isFixedZ {
-			_, err = f.WriteString(fmt.Sprintf("%d,1\n", id+1))
+			_, err = f.WriteString(fmt.Sprintf("restraint%d,1\n", i+1))
 			if err != nil {
 				panic("Couldn't write boundary to file: " + err.Error())
 			}
-			_, err = f.WriteString(fmt.Sprintf("%d,2\n", id+1))
+			_, err = f.WriteString(fmt.Sprintf("restraint%d,2\n", i+1))
 			if err != nil {
 				panic("Couldn't write boundary to file: " + err.Error())
 			}
 		} else if !isFixedX && isFixedY && isFixedZ {
-			_, err = f.WriteString(fmt.Sprintf("%d,2\n", id+1))
+			_, err = f.WriteString(fmt.Sprintf("restraint%d,2\n", i+1))
 			if err != nil {
 				panic("Couldn't write boundary to file: " + err.Error())
 			}
-			_, err = f.WriteString(fmt.Sprintf("%d,3\n", id+1))
+			_, err = f.WriteString(fmt.Sprintf("restraint%d,3\n", i+1))
 			if err != nil {
 				panic("Couldn't write boundary to file: " + err.Error())
 			}
 		} else if isFixedX && !isFixedY && isFixedZ {
-			_, err = f.WriteString(fmt.Sprintf("%d,1\n", id+1))
+			_, err = f.WriteString(fmt.Sprintf("restraint%d,1\n", i+1))
 			if err != nil {
 				panic("Couldn't write boundary to file: " + err.Error())
 			}
-			_, err = f.WriteString(fmt.Sprintf("%d,3\n", id+1))
+			_, err = f.WriteString(fmt.Sprintf("restraint%d,3\n", i+1))
 			if err != nil {
 				panic("Couldn't write boundary to file: " + err.Error())
 			}
 		} else if isFixedX && !isFixedY && !isFixedZ {
-			_, err = f.WriteString(fmt.Sprintf("%d,1\n", id+1))
+			_, err = f.WriteString(fmt.Sprintf("restraint%d,1\n", i+1))
 			if err != nil {
 				panic("Couldn't write boundary to file: " + err.Error())
 			}
 		} else if !isFixedX && isFixedY && !isFixedZ {
-			_, err = f.WriteString(fmt.Sprintf("%d,2\n", id+1))
+			_, err = f.WriteString(fmt.Sprintf("restraint%d,2\n", i+1))
 			if err != nil {
 				panic("Couldn't write boundary to file: " + err.Error())
 			}
 		} else if !isFixedX && !isFixedY && isFixedZ {
-			_, err = f.WriteString(fmt.Sprintf("%d,3\n", id+1))
+			_, err = f.WriteString(fmt.Sprintf("restraint%d,3\n", i+1))
 			if err != nil {
 				panic("Couldn't write boundary to file: " + err.Error())
 			}
