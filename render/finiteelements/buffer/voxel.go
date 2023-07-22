@@ -78,23 +78,38 @@ func NewVoxelGrid(len v3i.Vec, dim v3.Vec, mins, maxs []v3.Vec) *VoxelGrid {
 	return vg
 }
 
+// This func must be consistent with `(r *MarchingCubesFEUniform) Voxels` func.
+// This func must be consistent with `marchingCubesFE` func too.
+func (vg *VoxelGrid) index1Dto3D(i int) (int, int, int) {
+	z := i % vg.Len.Z
+	y := (i / vg.Len.Z) % vg.Len.Y
+	x := (i / vg.Len.Z) / vg.Len.Y
+	return x, y, z
+}
+
+// This func must be consistent with `(r *MarchingCubesFEUniform) Voxels` func.
+// This func must be consistent with `marchingCubesFE` func too.
+func (vg *VoxelGrid) index3Dto1D(x, y, z int) int {
+	return x*vg.Len.Y*vg.Len.Z + y*vg.Len.Z + z
+}
+
 func (vg *VoxelGrid) Size() (int, int, int) {
 	return vg.Len.X, vg.Len.Y, vg.Len.Z
 }
 
 // To get all the elements inside a voxel.
 func (vg *VoxelGrid) Get(x, y, z int) []*Element {
-	return vg.Voxels[x*vg.Len.Y*vg.Len.Z+y*vg.Len.Z+z].data
+	return vg.Voxels[vg.index3Dto1D(x, y, z)].data
 }
 
 // To set all the elements inside a voxel at once.
 func (vg *VoxelGrid) Set(x, y, z int, value []*Element) {
-	vg.Voxels[x*vg.Len.Y*vg.Len.Z+y*vg.Len.Z+z].data = value
+	vg.Voxels[vg.index3Dto1D(x, y, z)].data = value
 }
 
 // To append a single element to the elements inside a voxel.
 func (vg *VoxelGrid) Append(x, y, z int, value *Element) {
-	vg.Voxels[x*vg.Len.Y*vg.Len.Z+y*vg.Len.Z+z].data = append(vg.Voxels[x*vg.Len.Y*vg.Len.Z+y*vg.Len.Z+z].data, value)
+	vg.Voxels[vg.index3Dto1D(x, y, z)].data = append(vg.Voxels[vg.index3Dto1D(x, y, z)].data, value)
 }
 
 // Compute the bounding box of all the input points.
@@ -121,9 +136,7 @@ func (vg *VoxelGrid) VoxelsIntersecting(points []v3.Vec) ([]v3i.Vec, v3.Vec, v3.
 		}
 
 		// convert the 1D index to a 3D index
-		z := i % vg.Len.Z
-		y := (i / vg.Len.Z) % vg.Len.Y
-		x := (i / vg.Len.Z) / vg.Len.Y
+		x, y, z := vg.index1Dto3D(i)
 
 		intersectingVoxels = append(intersectingVoxels, v3i.Vec{X: x, Y: y, Z: z})
 	}
