@@ -15,7 +15,7 @@ import (
 //
 // The objective: the stress concentration at the restraint may be alleviated by distributing it.
 type Restraint struct {
-	Location []v3.Vec  // Exact coordinates inside rigid body.
+	Location []v3.Vec  // Exact coordinates inside restraint.
 	IsFixedX bool      // Is X degree of freedom fixed?
 	IsFixedY bool      // Is Y degree of freedom fixed?
 	IsFixedZ bool      // Is Z degree of freedom fixed?
@@ -24,7 +24,7 @@ type Restraint struct {
 
 // Point loads are applied to the nodes of the mesh.
 type Load struct {
-	Location  []v3.Vec  // Exact coordinates inside rigid body.
+	Location  []v3.Vec  // Exact coordinates inside restraint.
 	Magnitude v3.Vec    // X, Y, Z magnitude.
 	voxels    []v3i.Vec // Intersecting voxels: to be computed by logic.
 	nodeREF   uint32    // Eventual node to which the load is applied. To be computed.
