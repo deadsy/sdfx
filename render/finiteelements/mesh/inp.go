@@ -494,7 +494,6 @@ func (inp *Inp) writeBoundary() error {
 				panic("Couldn't write boundary to file: " + err.Error())
 			}
 		} else if isFixedX && !isFixedY && isFixedZ {
-			// TODO: Can we write this case by just one line, not two lines?
 			_, err = f.WriteString(fmt.Sprintf("%d,1\n", id+1))
 			if err != nil {
 				panic("Couldn't write boundary to file: " + err.Error())
