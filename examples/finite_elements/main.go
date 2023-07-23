@@ -85,6 +85,7 @@ func main() {
 		restraints = benchmarkCircleRestraint()
 		benchmarkRun("../../files/benchmark-circle.stl", 50, 0, 3, restraints, loads, elementconfig)
 	case Pipe:
+		restraints = benchmarkPipeRestraint()
 		benchmarkRun("../../files/benchmark-pipe.stl", 50, 0, 3, restraints, loads, elementconfig)
 	case I:
 		benchmarkRun("../../files/benchmark-I.stl", 50, 0, 3, restraints, loads, elementconfig)
@@ -264,6 +265,34 @@ func benchmarkSquareRestraint() []*mesh.Restraint {
 }
 
 func benchmarkCircleRestraint() []*mesh.Restraint {
+	restraints := make([]*mesh.Restraint, 0)
+
+	// The pinned end of 3D beam.
+	locationPinned := []v3.Vec{
+		{X: 0, Y: 0, Z: 0},
+		{X: 0, Y: -2.0313, Z: 0.213498},
+		{X: 0, Y: -3.97382, Z: 0.844661},
+		{X: 0, Y: 2.0313, Z: 0.213498},
+		{X: 0, Y: 3.97382, Z: 0.844661},
+	}
+
+	restraints = append(restraints, mesh.NewRestraint(locationPinned, true, true, true))
+
+	// The roller end of 3D beam.
+	locationRoller := []v3.Vec{
+		{X: 200, Y: 0, Z: 0},
+		{X: 200, Y: -2.0313, Z: 0.213498},
+		{X: 200, Y: -3.97382, Z: 0.844661},
+		{X: 200, Y: 2.0313, Z: 0.213498},
+		{X: 200, Y: 3.97382, Z: 0.844661},
+	}
+
+	restraints = append(restraints, mesh.NewRestraint(locationRoller, false, true, true))
+
+	return restraints
+}
+
+func benchmarkPipeRestraint() []*mesh.Restraint {
 	restraints := make([]*mesh.Restraint, 0)
 
 	// The pinned end of 3D beam.
