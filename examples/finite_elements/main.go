@@ -88,6 +88,7 @@ func main() {
 		restraints = benchmarkPipeRestraint()
 		benchmarkRun("../../files/benchmark-pipe.stl", 50, 0, 3, restraints, loads, elementconfig)
 	case I:
+		restraints = benchmarkIRestraint()
 		benchmarkRun("../../files/benchmark-I.stl", 50, 0, 3, restraints, loads, elementconfig)
 	default:
 	}
@@ -313,6 +314,31 @@ func benchmarkPipeRestraint() []*mesh.Restraint {
 		{X: 200, Y: -3.97382, Z: 0.844661},
 		{X: 200, Y: 2.0313, Z: 0.213498},
 		{X: 200, Y: 3.97382, Z: 0.844661},
+	}
+
+	restraints = append(restraints, mesh.NewRestraint(locationRoller, false, true, true))
+
+	return restraints
+}
+
+func benchmarkIRestraint() []*mesh.Restraint {
+	restraints := []*mesh.Restraint{}
+
+	locationPinned := []v3.Vec{}
+	gap := 1.0
+	var y float64
+	for y <= 25 {
+		locationPinned = append(locationPinned, v3.Vec{X: 0, Y: y, Z: 0})
+		y += gap
+	}
+
+	restraints = append(restraints, mesh.NewRestraint(locationPinned, true, true, true))
+
+	locationRoller := []v3.Vec{}
+	y = 0
+	for y <= 25 {
+		locationRoller = append(locationRoller, v3.Vec{X: 200, Y: y, Z: 0})
+		y += gap
 	}
 
 	restraints = append(restraints, mesh.NewRestraint(locationRoller, false, true, true))
