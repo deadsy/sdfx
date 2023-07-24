@@ -29,7 +29,6 @@ const (
 	Circle
 	Pipe
 	I
-	Unknown
 )
 
 type ElementConfig int
@@ -95,7 +94,7 @@ func main() {
 		benchmarkRun("../../files/benchmark-I.stl", 50, 0, 3, restraints, loads, elementconfig)
 	default:
 		// If no valid benchmark is picked, run for the teapot.
-		benchmarkRun("../../files/teapot.stl", 50, 0, 15, restraints, loads, elementconfig)
+		benchmarkRun("../../files/teapot.stl", 61, 0, 18, restraints, loads, elementconfig)
 	}
 }
 
