@@ -86,7 +86,10 @@ func main() {
 		benchmarkRun("../../files/benchmark-circle.stl", 50, 0, 3, restraints, loads, elementconfig)
 	case Pipe:
 		restraints = benchmarkPipeRestraint()
-		benchmarkRun("../../files/benchmark-pipe.stl", 50, 0, 3, restraints, loads, elementconfig)
+		// When resolution is `50`, the pipe benchmark misses some necessary finite elements.
+		// By incrementing it to `51`, the problem is fixed.
+		// TODO: Why does resolution have a high sensitivity?
+		benchmarkRun("../../files/benchmark-pipe.stl", 51, 0, 3, restraints, loads, elementconfig)
 	case I:
 		restraints = benchmarkIRestraint()
 		benchmarkRun("../../files/benchmark-I.stl", 50, 0, 3, restraints, loads, elementconfig)
