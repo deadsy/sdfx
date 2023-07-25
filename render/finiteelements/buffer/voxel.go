@@ -81,16 +81,16 @@ func NewVoxelGrid(len v3i.Vec, dim v3.Vec, mins, maxs []v3.Vec) *VoxelGrid {
 // This func must be consistent with `(r *MarchingCubesFEUniform) Voxels` func.
 // This func must be consistent with `marchingCubesFE` func too.
 func (vg *VoxelGrid) index1Dto3D(i int) (int, int, int) {
-	y := i % vg.Len.Y
-	x := (i / vg.Len.Y) % vg.Len.X
-	z := i / (vg.Len.Y * vg.Len.X)
+	z := i % vg.Len.Z
+	y := (i / vg.Len.Z) % vg.Len.Y
+	x := i / (vg.Len.Z * vg.Len.Y)
 	return x, y, z
 }
 
 // This func must be consistent with `(r *MarchingCubesFEUniform) Voxels` func.
 // This func must be consistent with `marchingCubesFE` func too.
 func (vg *VoxelGrid) index3Dto1D(x, y, z int) int {
-	return z*vg.Len.X*vg.Len.Y + x*vg.Len.Y + y
+	return x*vg.Len.Y*vg.Len.Z + y*vg.Len.Z + z
 }
 
 func (vg *VoxelGrid) Size() (int, int, int) {
