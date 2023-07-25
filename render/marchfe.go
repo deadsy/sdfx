@@ -99,24 +99,23 @@ func (r *MarchingCubesFEUniform) Voxels(s sdf.SDF3) (v3i.Vec, v3.Vec, []v3.Vec, 
 	maxs := make([]v3.Vec, 0, nz*nx*ny)
 
 	var p v3.Vec
-	p.Z = base.Z
-	for z := 0; z < nz; z++ {
-		// all cubes in the z and z + 1 layers
-		p.X = base.X
-		for x := 0; x < nx; x++ {
-			p.Y = base.Y
-			for y := 0; y < ny; y++ {
+	p.X = base.X
+	for x := 0; x < nx; x++ {
+		p.Y = base.Y
+		for y := 0; y < ny; y++ {
+			p.Z = base.Z
+			for z := 0; z < nz; z++ {
 				x0, y0, z0 := p.X, p.Y, p.Z
 				x1, y1, z1 := x0+dx, y0+dy, z0+dz
 
 				mins = append(mins, v3.Vec{X: x0, Y: y0, Z: z0})
 				maxs = append(maxs, v3.Vec{X: x1, Y: y1, Z: z1})
 
-				p.Y += dy
+				p.Z += dz
 			}
-			p.X += dx
+			p.Y += dy
 		}
-		p.Z += dz
+		p.X += dx
 	}
 
 	return v3i.Vec{X: nx, Y: ny, Z: nz}, v3.Vec{X: dx, Y: dy, Z: dz}, mins, maxs
