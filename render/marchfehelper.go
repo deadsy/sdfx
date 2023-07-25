@@ -109,6 +109,20 @@ func point(edges [12]v3.Vec, corners [8]v3.Vec, index int) v3.Vec {
 	}
 }
 
+// -----------------------------------------------------------------------------
+// To avoid distorted tetrahedron with non-positive Jacobian or with flat shape or with degenerate faces.
+// Regradless of input values at corners, return the point at the middle of the edge.
+func mcInterpolateFE(p1, p2 v3.Vec, v1, v2, x float64) v3.Vec {
+	// Pick the half way point
+	t := 0.5
+
+	return v3.Vec{
+		X: p1.X + t*(p2.X-p1.X),
+		Y: p1.Y + t*(p2.Y-p1.Y),
+		Z: p1.Z + t*(p2.Z-p1.Z),
+	}
+}
+
 //-----------------------------------------------------------------------------
 
 // Is a tetrahedron almost flat?
