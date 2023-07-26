@@ -53,6 +53,10 @@ func (t *triMeshSdf) Evaluate(p v3.Vec) float64 {
 		dists = append(dists, signedDistanceToTriPlane)
 	}
 
+	// Does the approach of this paper make sense:
+	// https://www2.imm.dtu.dk/pubdb/edoc/imm1289.pdf
+	// TODO: If so, try to implement it in the future.
+
 	if !sameSign(dists) {
 		// Sometimes the sign of the final result is not consistent.
 		signedDistanceResult = signConsistency(dists, signedDistanceResult)
