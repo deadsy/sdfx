@@ -9,6 +9,7 @@ Closed-surface triangle meshes (and STL files)
 package obj
 
 import (
+	"fmt"
 	"io"
 	"math"
 
@@ -37,17 +38,33 @@ func (t *triMeshSdf) Evaluate(p v3.Vec) float64 {
 	neighbors := t.rtree.NearestNeighbors(t.numNeighbors, stlToPoint(p))
 	for _, neighbor := range neighbors {
 		triangle := neighbor.(*stlTriangle).Triangle3
-		testPointToTriangle := p.Sub(triangle.V[0])
 		triNormal := triangle.Normal()
-		signedDistanceToTriPlane := triNormal.Dot(testPointToTriangle)
+		pointToTri1st := p.Sub(triangle.V[0])
+		signedDistanceToTriPlane1st := triNormal.Dot(pointToTri1st)
+		pointToTri2nd := p.Sub(triangle.V[1])
+		signedDistanceToTriPlane2nd := triNormal.Dot(pointToTri2nd)
+		pointToTri3rd := p.Sub(triangle.V[2])
+		signedDistanceToTriPlane3rd := triNormal.Dot(pointToTri3rd)
+		if sameSign(signedDistanceToTriPlane1st, signedDistanceToTriPlane2nd, signedDistanceToTriPlane3rd) {
+			fmt.Println("good")
+		} else {
+			fmt.Println("bad")
+		}
+		if signedDistanceToTriPlane1st == 1.5501217261323195 {
+			fmt.Println("debug")
+		}
 		// Take this triangle as the source of truth if the projection of the point on the triangle is the closest
 		distToTri, _ := stlPointToTriangleDistSq(p, triangle)
 		if distToTri < closestTriangle {
 			closestTriangle = distToTri
-			signedDistanceResult = signedDistanceToTriPlane
+			signedDistanceResult = signedDistanceToTriPlane1st
 		}
 	}
 	return signedDistanceResult
+}
+
+func sameSign(v1, v2, v3 float64) bool {
+	return (v1 < 0) == (v2 < 0) && (v2 < 0) == (v3 < 0)
 }
 
 func (t *triMeshSdf) BoundingBox() sdf.Box3 {
