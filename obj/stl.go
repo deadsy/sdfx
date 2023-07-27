@@ -9,14 +9,12 @@ Closed-surface triangle meshes (and STL files)
 package obj
 
 import (
-	"io"
 	"math"
 
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
 	v3 "github.com/deadsy/sdfx/vec/v3"
 	"github.com/dhconnelly/rtreego"
-	"github.com/hschendel/stl"
 )
 
 //-----------------------------------------------------------------------------
@@ -192,21 +190,19 @@ func stlToPoint(v3 v3.Vec) rtreego.Point {
 //-----------------------------------------------------------------------------
 
 // ImportSTL converts an STL model into a SDF3 surface. See ImportTriMesh.
-func ImportSTL(reader io.ReadSeeker, numNeighbors, minChildren, maxChildren int) (sdf.SDF3, error) {
-	mesh, err := stl.ReadAll(reader)
+func ImportSTL(path string, numNeighbors, minChildren, maxChildren int) (sdf.SDF3, error) {
+	mesh, err := render.LoadSTL(path)
 	if err != nil {
 		return nil, err
 	}
 	tris := make(chan *render.Triangle3, 128) // Buffer some triangles and send in batches if scheduler prefers it
 	go func() {
-		for _, triangle := range mesh.Triangles {
-			tri := &render.Triangle3{}
-			for i, vertex := range triangle.Vertices {
-				tri.V[i] = v3.Vec{X: float64(vertex[0]), Y: float64(vertex[1]), Z: float64(vertex[2])}
-			}
+		for _, tri := range mesh {
 			tris <- tri
 		}
 		close(tris)
 	}()
 	return ImportTriMesh(tris, numNeighbors, minChildren, maxChildren), nil
 }
+
+//-----------------------------------------------------------------------------
