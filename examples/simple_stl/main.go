@@ -26,10 +26,10 @@ func main() {
 	c := v3.Vec{0, side, 0}
 	d := v3.Vec{0, 0, side}
 
-	t1 := render.NewTriangle3(a, b, d)
-	t2 := render.NewTriangle3(a, c, b)
-	t3 := render.NewTriangle3(a, d, c)
-	t4 := render.NewTriangle3(b, c, d)
+	t1 := &render.Triangle3{a, b, d}
+	t2 := &render.Triangle3{a, c, b}
+	t3 := &render.Triangle3{a, d, c}
+	t4 := &render.Triangle3{b, c, d}
 
 	err := render.SaveSTL("simple.stl", []*render.Triangle3{t1, t2, t3, t4})
 	if err != nil {

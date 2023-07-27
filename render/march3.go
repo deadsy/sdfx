@@ -222,9 +222,9 @@ func mcToTriangles(p [8]v3.Vec, v [8]float64, x float64) []*Triangle3 {
 	result := make([]*Triangle3, 0, count)
 	for i := 0; i < count; i++ {
 		t := Triangle3{}
-		t.V[2] = points[table[i*3+0]]
-		t.V[1] = points[table[i*3+1]]
-		t.V[0] = points[table[i*3+2]]
+		t[2] = points[table[i*3+0]]
+		t[1] = points[table[i*3+1]]
+		t[0] = points[table[i*3+2]]
 		if !t.Degenerate(0) {
 			result = append(result, &t)
 		}

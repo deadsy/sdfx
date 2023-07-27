@@ -67,7 +67,7 @@ func loadSTLAscii(file *os.File) ([]*Triangle3, error) {
 	// make triangles out of every 3 vertices
 	var mesh []*Triangle3
 	for i := 0; i < len(v); i += 3 {
-		mesh = append(mesh, NewTriangle3(v[i+0], v[i+1], v[i+2]))
+		mesh = append(mesh, &Triangle3{v[i+0], v[i+1], v[i+2]})
 	}
 	return mesh, scanner.Err()
 }
@@ -88,7 +88,7 @@ func loadSTLBinary(file *os.File) ([]*Triangle3, error) {
 		v1 := v3.Vec{float64(d.Vertex1[0]), float64(d.Vertex1[1]), float64(d.Vertex1[2])}
 		v2 := v3.Vec{float64(d.Vertex2[0]), float64(d.Vertex2[1]), float64(d.Vertex2[2])}
 		v3 := v3.Vec{float64(d.Vertex3[0]), float64(d.Vertex3[1]), float64(d.Vertex3[2])}
-		mesh[i] = NewTriangle3(v1, v2, v3)
+		mesh[i] = &Triangle3{v1, v2, v3}
 	}
 	return mesh, nil
 }
@@ -152,15 +152,15 @@ func SaveSTL(path string, mesh []*Triangle3) error {
 		d.Normal[0] = float32(n.X)
 		d.Normal[1] = float32(n.Y)
 		d.Normal[2] = float32(n.Z)
-		d.Vertex1[0] = float32(triangle.V[0].X)
-		d.Vertex1[1] = float32(triangle.V[0].Y)
-		d.Vertex1[2] = float32(triangle.V[0].Z)
-		d.Vertex2[0] = float32(triangle.V[1].X)
-		d.Vertex2[1] = float32(triangle.V[1].Y)
-		d.Vertex2[2] = float32(triangle.V[1].Z)
-		d.Vertex3[0] = float32(triangle.V[2].X)
-		d.Vertex3[1] = float32(triangle.V[2].Y)
-		d.Vertex3[2] = float32(triangle.V[2].Z)
+		d.Vertex1[0] = float32(triangle[0].X)
+		d.Vertex1[1] = float32(triangle[0].Y)
+		d.Vertex1[2] = float32(triangle[0].Z)
+		d.Vertex2[0] = float32(triangle[1].X)
+		d.Vertex2[1] = float32(triangle[1].Y)
+		d.Vertex2[2] = float32(triangle[1].Z)
+		d.Vertex3[0] = float32(triangle[2].X)
+		d.Vertex3[1] = float32(triangle[2].Y)
+		d.Vertex3[2] = float32(triangle[2].Z)
 		if err := binary.Write(buf, binary.LittleEndian, &d); err != nil {
 			return err
 		}
@@ -207,15 +207,15 @@ func writeSTL(wg *sync.WaitGroup, path string) (chan<- []*Triangle3, error) {
 				d.Normal[0] = float32(n.X)
 				d.Normal[1] = float32(n.Y)
 				d.Normal[2] = float32(n.Z)
-				d.Vertex1[0] = float32(t.V[0].X)
-				d.Vertex1[1] = float32(t.V[0].Y)
-				d.Vertex1[2] = float32(t.V[0].Z)
-				d.Vertex2[0] = float32(t.V[1].X)
-				d.Vertex2[1] = float32(t.V[1].Y)
-				d.Vertex2[2] = float32(t.V[1].Z)
-				d.Vertex3[0] = float32(t.V[2].X)
-				d.Vertex3[1] = float32(t.V[2].Y)
-				d.Vertex3[2] = float32(t.V[2].Z)
+				d.Vertex1[0] = float32(t[0].X)
+				d.Vertex1[1] = float32(t[0].Y)
+				d.Vertex1[2] = float32(t[0].Z)
+				d.Vertex2[0] = float32(t[1].X)
+				d.Vertex2[1] = float32(t[1].Y)
+				d.Vertex2[2] = float32(t[1].Z)
+				d.Vertex3[0] = float32(t[2].X)
+				d.Vertex3[1] = float32(t[2].Y)
+				d.Vertex3[2] = float32(t[2].Z)
 				if err := binary.Write(buf, binary.LittleEndian, &d); err != nil {
 					fmt.Printf("%s\n", err)
 					return

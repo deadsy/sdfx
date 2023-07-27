@@ -519,11 +519,9 @@ func (node *dcOctree) GenerateMesh(output chan<- *render.Triangle3) {
 	// Return triangles
 	for tri := 0; tri < len(*indexBuffer)/3; tri++ {
 		triangle := &render.Triangle3{
-			V: [3]v3.Vec{
-				(*vertexBuffer)[(*indexBuffer)[tri*3]],
-				(*vertexBuffer)[(*indexBuffer)[tri*3+1]],
-				(*vertexBuffer)[(*indexBuffer)[tri*3+2]],
-			},
+			(*vertexBuffer)[(*indexBuffer)[tri*3]],
+			(*vertexBuffer)[(*indexBuffer)[tri*3+1]],
+			(*vertexBuffer)[(*indexBuffer)[tri*3+2]],
 		}
 		//log.Println("Outputting triangle:", triangle)
 		output <- triangle

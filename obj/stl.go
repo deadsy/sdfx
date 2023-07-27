@@ -34,8 +34,8 @@ func (t *triMeshSdf) Evaluate(p v3.Vec) float64 {
 	// Quickly skip checking most triangles by only checking the N closest neighbours (AABB based)
 	neighbors := t.rtree.NearestNeighbors(t.numNeighbors, stlToPoint(p))
 	for _, neighbor := range neighbors {
-		triangle := neighbor.(*stlTriangle).Triangle3
-		testPointToTriangle := p.Sub(triangle.V[0])
+		triangle := neighbor.(*stlTriangle).t
+		testPointToTriangle := p.Sub(triangle[0])
 		triNormal := triangle.Normal()
 		signedDistanceToTriPlane := triNormal.Dot(testPointToTriangle)
 		// Take this triangle as the source of truth if the projection of the point on the triangle is the closest
@@ -77,8 +77,8 @@ func ImportTriMesh(mesh []*render.Triangle3, numNeighbors, minChildren, maxChild
 	// Compute the bounding box
 	bulkLoad := make([]rtreego.Spatial, 0)
 	for _, triangle := range mesh {
-		bulkLoad = append(bulkLoad, &stlTriangle{Triangle3: triangle})
-		for _, vertex := range triangle.V {
+		bulkLoad = append(bulkLoad, &stlTriangle{t: triangle})
+		for _, vertex := range triangle {
 			m.bb = m.bb.Include(vertex)
 		}
 	}
@@ -110,22 +110,22 @@ func stlPointToTriangleDistSq(p v3.Vec, triangle *render.Triangle3) (float64, bo
 
 // https://stackoverflow.com/a/47505833
 func stlClosestTrianglePointTo(p v3.Vec, triangle *render.Triangle3) (v3.Vec, bool /* falls outside? */) {
-	edgeAbDelta := triangle.V[1].Sub(triangle.V[0])
-	edgeCaDelta := triangle.V[0].Sub(triangle.V[2])
-	edgeBcDelta := triangle.V[2].Sub(triangle.V[1])
+	edgeAbDelta := triangle[1].Sub(triangle[0])
+	edgeCaDelta := triangle[0].Sub(triangle[2])
+	edgeBcDelta := triangle[2].Sub(triangle[1])
 
 	// The closest point may be a vertex
-	uab := stlEdgeProject(triangle.V[0], edgeAbDelta, p)
-	uca := stlEdgeProject(triangle.V[2], edgeCaDelta, p)
+	uab := stlEdgeProject(triangle[0], edgeAbDelta, p)
+	uca := stlEdgeProject(triangle[2], edgeCaDelta, p)
 	if uca > 1 && uab < 0 {
-		return triangle.V[0], true
+		return triangle[0], true
 	}
-	ubc := stlEdgeProject(triangle.V[1], edgeBcDelta, p)
+	ubc := stlEdgeProject(triangle[1], edgeBcDelta, p)
 	if uab > 1 && ubc < 0 {
-		return triangle.V[1], true
+		return triangle[1], true
 	}
 	if ubc > 1 && uca < 0 {
-		return triangle.V[2], true
+		return triangle[2], true
 	}
 
 	// The closest point may be on an edge
@@ -133,18 +133,18 @@ func stlClosestTrianglePointTo(p v3.Vec, triangle *render.Triangle3) (v3.Vec, bo
 	planeAbNormal := triNormal.Cross(edgeAbDelta)
 	planeBcNormal := triNormal.Cross(edgeBcDelta)
 	planeCaNormal := triNormal.Cross(edgeCaDelta)
-	if uab >= 0 && uab <= 1 && !stlPlaneIsAbove(triangle.V[0], planeAbNormal, p) {
-		return stlEdgePointAt(triangle.V[0], edgeAbDelta, uab), true
+	if uab >= 0 && uab <= 1 && !stlPlaneIsAbove(triangle[0], planeAbNormal, p) {
+		return stlEdgePointAt(triangle[0], edgeAbDelta, uab), true
 	}
-	if ubc >= 0 && ubc <= 1 && !stlPlaneIsAbove(triangle.V[1], planeBcNormal, p) {
-		return stlEdgePointAt(triangle.V[1], edgeBcDelta, ubc), true
+	if ubc >= 0 && ubc <= 1 && !stlPlaneIsAbove(triangle[1], planeBcNormal, p) {
+		return stlEdgePointAt(triangle[1], edgeBcDelta, ubc), true
 	}
-	if uca >= 0 && uca <= 1 && !stlPlaneIsAbove(triangle.V[2], planeCaNormal, p) {
-		return stlEdgePointAt(triangle.V[2], edgeCaDelta, uca), true
+	if uca >= 0 && uca <= 1 && !stlPlaneIsAbove(triangle[2], planeCaNormal, p) {
+		return stlEdgePointAt(triangle[2], edgeCaDelta, uca), true
 	}
 
 	// The closest point is in the triangle so project to the plane to find it
-	return stlPlaneProject(triangle.V[0], triNormal, p), false
+	return stlPlaneProject(triangle[0], triNormal, p), false
 }
 
 func stlEdgeProject(edge1, edgeDelta, p v3.Vec) float64 {
@@ -169,13 +169,13 @@ func stlPlaneProject(anyPoint, normal, testPoint v3.Vec) v3.Vec {
 //-----------------------------------------------------------------------------
 
 type stlTriangle struct {
-	*render.Triangle3
+	t *render.Triangle3
 }
 
 func (s *stlTriangle) Bounds() *rtreego.Rect {
-	bounds := sdf.Box3{Min: s.V[0], Max: s.V[0]}
-	bounds = bounds.Include(s.V[1])
-	bounds = bounds.Include(s.V[2])
+	bounds := sdf.Box3{Min: s.t[0], Max: s.t[0]}
+	bounds = bounds.Include(s.t[1])
+	bounds = bounds.Include(s.t[2])
 	points, err := rtreego.NewRectFromPoints(stlToPoint(bounds.Min), stlToPoint(bounds.Max))
 	if err != nil {
 		panic(err) // Implementation error

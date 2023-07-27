@@ -69,9 +69,9 @@ func write3MF(wg *sync.WaitGroup, path string) (chan<- []*Triangle3, error) {
 		// read triangles from the channel and add them to the model
 		for ts := range c {
 			for _, t := range ts {
-				v1 := mb.AddVertex(toPoint3D(t.V[0]))
-				v2 := mb.AddVertex(toPoint3D(t.V[1]))
-				v3 := mb.AddVertex(toPoint3D(t.V[2]))
+				v1 := mb.AddVertex(toPoint3D(t[0]))
+				v2 := mb.AddVertex(toPoint3D(t[1]))
+				v3 := mb.AddVertex(toPoint3D(t[2]))
 				mesh.Triangles.Triangle = append(mesh.Triangles.Triangle, go3mf.Triangle{V1: v1, V2: v2, V3: v3})
 			}
 		}

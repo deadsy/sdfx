@@ -327,8 +327,8 @@ func (dc *DualContouringV2) generateTriangles(s *dcSdf, vertices []v3.Vec, info 
 
 			// Define triangles
 			t := make([]*render.Triangle3, 0)
-			t = append(t, &render.Triangle3{V: [3]v3.Vec{vertices[k0], vertices[k1.bufIndex], vertices[k3.bufIndex]}})
-			t = append(t, &render.Triangle3{V: [3]v3.Vec{vertices[k0], vertices[k3.bufIndex], vertices[k2.bufIndex]}})
+			t = append(t, &render.Triangle3{vertices[k0], vertices[k1.bufIndex], vertices[k3.bufIndex]})
+			t = append(t, &render.Triangle3{vertices[k0], vertices[k3.bufIndex], vertices[k2.bufIndex]})
 
 			// Get the normals right:
 			if ((inside >> edge.X) & 1) != uint8(ai&1) { // xor
