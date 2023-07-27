@@ -64,7 +64,7 @@ func (t *triMeshSdf) BoundingBox() sdf.Box3 {
 //
 // WARNING: It will only work on non-intersecting closed-surface(s) meshes.
 // NOTE: Fix using blender for intersecting surfaces: Edit mode > P > By loose parts > Add boolean modifier to join them
-func ImportTriMesh(tris chan *render.Triangle3, numNeighbors, minChildren, maxChildren int) sdf.SDF3 {
+func ImportTriMesh(mesh []*render.Triangle3, numNeighbors, minChildren, maxChildren int) sdf.SDF3 {
 	m := &triMeshSdf{
 		rtree:        nil,
 		numNeighbors: numNeighbors,
@@ -76,7 +76,7 @@ func ImportTriMesh(tris chan *render.Triangle3, numNeighbors, minChildren, maxCh
 
 	// Compute the bounding box
 	bulkLoad := make([]rtreego.Spatial, 0)
-	for triangle := range tris {
+	for _, triangle := range mesh {
 		bulkLoad = append(bulkLoad, &stlTriangle{Triangle3: triangle})
 		for _, vertex := range triangle.V {
 			m.bb = m.bb.Include(vertex)
@@ -195,14 +195,7 @@ func ImportSTL(path string, numNeighbors, minChildren, maxChildren int) (sdf.SDF
 	if err != nil {
 		return nil, err
 	}
-	tris := make(chan *render.Triangle3, 128) // Buffer some triangles and send in batches if scheduler prefers it
-	go func() {
-		for _, tri := range mesh {
-			tris <- tri
-		}
-		close(tris)
-	}()
-	return ImportTriMesh(tris, numNeighbors, minChildren, maxChildren), nil
+	return ImportTriMesh(mesh, numNeighbors, minChildren, maxChildren), nil
 }
 
 //-----------------------------------------------------------------------------
