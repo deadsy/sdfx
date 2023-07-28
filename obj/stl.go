@@ -19,6 +19,12 @@ import (
 
 //-----------------------------------------------------------------------------
 
+func v3ToPoint(v v3.Vec) rtreego.Point {
+	return rtreego.Point{v.X, v.Y, v.Z}
+}
+
+//-----------------------------------------------------------------------------
+
 type triMeshSdf struct {
 	rtree        *rtreego.Rtree
 	numNeighbors int
@@ -32,9 +38,9 @@ func (t *triMeshSdf) Evaluate(p v3.Vec) float64 {
 	signedDistanceResult := 1.
 	closestTriangle := math.MaxFloat64
 	// Quickly skip checking most triangles by only checking the N closest neighbours (AABB based)
-	neighbors := t.rtree.NearestNeighbors(t.numNeighbors, stlToPoint(p))
+	neighbors := t.rtree.NearestNeighbors(t.numNeighbors, v3ToPoint(p))
 	for _, neighbor := range neighbors {
-		triangle := neighbor.(*stlTriangle).t
+		triangle := neighbor.(*render.Triangle3)
 		testPointToTriangle := p.Sub(triangle[0])
 		triNormal := triangle.Normal()
 		signedDistanceToTriPlane := triNormal.Dot(testPointToTriangle)
@@ -65,30 +71,21 @@ func (t *triMeshSdf) BoundingBox() sdf.Box3 {
 // WARNING: It will only work on non-intersecting closed-surface(s) meshes.
 // NOTE: Fix using blender for intersecting surfaces: Edit mode > P > By loose parts > Add boolean modifier to join them
 func ImportTriMesh(mesh []*render.Triangle3, numNeighbors, minChildren, maxChildren int) sdf.SDF3 {
-	m := &triMeshSdf{
-		rtree:        nil,
-		numNeighbors: numNeighbors,
-		bb: sdf.Box3{
-			Min: v3.Vec{X: math.MaxFloat64, Y: math.MaxFloat64, Z: math.MaxFloat64},
-			Max: v3.Vec{X: -math.MaxFloat64, Y: -math.MaxFloat64, Z: -math.MaxFloat64},
-		},
+	if len(mesh) == 0 {
+		return nil
 	}
-
 	// Compute the bounding box
-	bulkLoad := make([]rtreego.Spatial, 0)
-	for _, triangle := range mesh {
-		bulkLoad = append(bulkLoad, &stlTriangle{t: triangle})
-		for _, vertex := range triangle {
-			m.bb = m.bb.Include(vertex)
-		}
+	bulkLoad := make([]rtreego.Spatial, len(mesh))
+	bb := mesh[0].BoundingBox()
+	for i, triangle := range mesh {
+		bulkLoad[i] = triangle
+		bb = bb.Extend(triangle.BoundingBox())
 	}
-	if !m.bb.Contains(m.bb.Min) { // Return a valid bounding box if no vertices are found in the mesh
-		m.bb = sdf.Box3{} // Empty box centered at {0,0,0}
+	return &triMeshSdf{
+		rtree:        rtreego.NewTree(3, minChildren, maxChildren, bulkLoad...),
+		numNeighbors: numNeighbors,
+		bb:           bb,
 	}
-	//m.bb = m.bb.ScaleAboutCenter(1 + 1e-12) // Avoids missing faces due to inaccurate math operations.
-	m.rtree = rtreego.NewTree(3, minChildren, maxChildren, bulkLoad...)
-
-	return m
 }
 
 //-----------------------------------------------------------------------------
@@ -164,27 +161,6 @@ func stlPlaneProject(anyPoint, normal, testPoint v3.Vec) v3.Vec {
 	d := normal.Dot(v)
 	p := testPoint.Sub(normal.MulScalar(d))
 	return p
-}
-
-//-----------------------------------------------------------------------------
-
-type stlTriangle struct {
-	t *render.Triangle3
-}
-
-func (s *stlTriangle) Bounds() *rtreego.Rect {
-	bounds := sdf.Box3{Min: s.t[0], Max: s.t[0]}
-	bounds = bounds.Include(s.t[1])
-	bounds = bounds.Include(s.t[2])
-	points, err := rtreego.NewRectFromPoints(stlToPoint(bounds.Min), stlToPoint(bounds.Max))
-	if err != nil {
-		panic(err) // Implementation error
-	}
-	return points
-}
-
-func stlToPoint(v3 v3.Vec) rtreego.Point {
-	return rtreego.Point{v3.X, v3.Y, v3.Z}
 }
 
 //-----------------------------------------------------------------------------

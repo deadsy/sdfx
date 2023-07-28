@@ -11,8 +11,10 @@ package render
 import (
 	"sync"
 
+	"github.com/deadsy/sdfx/sdf"
 	v2 "github.com/deadsy/sdfx/vec/v2"
 	v3 "github.com/deadsy/sdfx/vec/v3"
+	"github.com/dhconnelly/rtreego"
 )
 
 //-----------------------------------------------------------------------------
@@ -46,6 +48,22 @@ func (t *Triangle3) Degenerate(tolerance float64) bool {
 	}
 	// TODO more tests needed
 	return false
+}
+
+func v3ToPoint(v v3.Vec) rtreego.Point {
+	return rtreego.Point{v.X, v.Y, v.Z}
+}
+
+// BoundingBox returns a bounding box for the triangle.
+func (t *Triangle3) BoundingBox() sdf.Box3 {
+	return sdf.Box3{Min: t[0], Max: t[0]}.Include(t[1]).Include(t[2])
+}
+
+// Bounds returns a r-tree bounding rectangle for the triangle.
+func (t *Triangle3) Bounds() *rtreego.Rect {
+	b := t.BoundingBox()
+	r, _ := rtreego.NewRectFromPoints(v3ToPoint(b.Min), v3ToPoint(b.Max))
+	return r
 }
 
 //-----------------------------------------------------------------------------
