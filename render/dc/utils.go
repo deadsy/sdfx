@@ -1,14 +1,12 @@
 package dc
 
-import (
-	"github.com/deadsy/sdfx/render"
-)
+import "github.com/deadsy/sdfx/sdf"
 
 //-----------------------------------------------------------------------------
 // UTILITIES/MISC
 //-----------------------------------------------------------------------------
 
-func dcFlip(t *render.Triangle3) *render.Triangle3 {
+func dcFlip(t *sdf.Triangle3) *sdf.Triangle3 {
 	t[1], t[2] = t[2], t[1]
 	return t
 }

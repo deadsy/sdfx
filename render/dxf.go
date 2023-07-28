@@ -66,7 +66,7 @@ func (d *DXF) Points(s v2.VecSet, r float64) {
 }
 
 // Triangle adds a triangle to a dxf drawing object.
-func (d *DXF) Triangle(t Triangle2) {
+func (d *DXF) Triangle(t sdf.Triangle2) {
 	d.Lines([]v2.Vec{t[0], t[1], t[2], t[0]})
 }
 

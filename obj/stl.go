@@ -40,7 +40,7 @@ func (t *triMeshSdf) Evaluate(p v3.Vec) float64 {
 	// Quickly skip checking most triangles by only checking the N closest neighbours (AABB based)
 	neighbors := t.rtree.NearestNeighbors(t.numNeighbors, v3ToPoint(p))
 	for _, neighbor := range neighbors {
-		triangle := neighbor.(*render.Triangle3)
+		triangle := neighbor.(*sdf.Triangle3)
 		testPointToTriangle := p.Sub(triangle[0])
 		triNormal := triangle.Normal()
 		signedDistanceToTriPlane := triNormal.Dot(testPointToTriangle)
@@ -70,7 +70,7 @@ func (t *triMeshSdf) BoundingBox() sdf.Box3 {
 //
 // WARNING: It will only work on non-intersecting closed-surface(s) meshes.
 // NOTE: Fix using blender for intersecting surfaces: Edit mode > P > By loose parts > Add boolean modifier to join them
-func ImportTriMesh(mesh []*render.Triangle3, numNeighbors, minChildren, maxChildren int) sdf.SDF3 {
+func ImportTriMesh(mesh []*sdf.Triangle3, numNeighbors, minChildren, maxChildren int) sdf.SDF3 {
 	if len(mesh) == 0 {
 		return nil
 	}
@@ -90,7 +90,7 @@ func ImportTriMesh(mesh []*render.Triangle3, numNeighbors, minChildren, maxChild
 
 //-----------------------------------------------------------------------------
 
-func stlPointToTriangleDistSq(p v3.Vec, triangle *render.Triangle3) (float64, bool /* falls outside? */) {
+func stlPointToTriangleDistSq(p v3.Vec, triangle *sdf.Triangle3) (float64, bool /* falls outside? */) {
 	// Compute the closest point
 	closest, fallsOutside := stlClosestTrianglePointTo(p, triangle)
 	// Compute distance to the closest point
@@ -106,7 +106,7 @@ func stlPointToTriangleDistSq(p v3.Vec, triangle *render.Triangle3) (float64, bo
 }
 
 // https://stackoverflow.com/a/47505833
-func stlClosestTrianglePointTo(p v3.Vec, triangle *render.Triangle3) (v3.Vec, bool /* falls outside? */) {
+func stlClosestTrianglePointTo(p v3.Vec, triangle *sdf.Triangle3) (v3.Vec, bool /* falls outside? */) {
 	edgeAbDelta := triangle[1].Sub(triangle[0])
 	edgeCaDelta := triangle[0].Sub(triangle[2])
 	edgeBcDelta := triangle[2].Sub(triangle[1])

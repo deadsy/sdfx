@@ -18,7 +18,6 @@ import (
 	"math"
 	"sort"
 
-	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
 	"github.com/deadsy/sdfx/vec/conv"
 	v3 "github.com/deadsy/sdfx/vec/v3"
@@ -56,7 +55,7 @@ func (m *DualContouringV1) Info(s sdf.SDF3, meshCells int) string {
 }
 
 // Render produces a 3d triangle mesh over the bounding volume of an sdf3.
-func (m *DualContouringV1) Render(s sdf.SDF3, meshCells int, output chan<- *render.Triangle3) {
+func (m *DualContouringV1) Render(s sdf.SDF3, meshCells int, output chan<- *sdf.Triangle3) {
 	if m.RCond == 0 {
 		m.RCond = 1e-3
 	}
@@ -510,7 +509,7 @@ func dcContourProcessEdge(node [4]*dcOctree, dir int, indexBuffer *[]int) {
 	}
 }
 
-func (node *dcOctree) GenerateMesh(output chan<- *render.Triangle3) {
+func (node *dcOctree) GenerateMesh(output chan<- *sdf.Triangle3) {
 	vertexBuffer := new([]v3.Vec)
 	indexBuffer := new([]int)
 	// Populate buffers
@@ -518,7 +517,7 @@ func (node *dcOctree) GenerateMesh(output chan<- *render.Triangle3) {
 	node.contourCellProc(indexBuffer)
 	// Return triangles
 	for tri := 0; tri < len(*indexBuffer)/3; tri++ {
-		triangle := &render.Triangle3{
+		triangle := &sdf.Triangle3{
 			(*vertexBuffer)[(*indexBuffer)[tri*3]],
 			(*vertexBuffer)[(*indexBuffer)[tri*3+1]],
 			(*vertexBuffer)[(*indexBuffer)[tri*3+2]],

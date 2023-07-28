@@ -17,6 +17,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/deadsy/sdfx/sdf"
 	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
@@ -50,7 +51,7 @@ func parseFloats(in []string) ([]float64, error) {
 }
 
 // loadSTLAscii loads an STL file created in ASCII format.
-func loadSTLAscii(file *os.File) ([]*Triangle3, error) {
+func loadSTLAscii(file *os.File) ([]*sdf.Triangle3, error) {
 	var v []v3.Vec
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
@@ -65,21 +66,21 @@ func loadSTLAscii(file *os.File) ([]*Triangle3, error) {
 		}
 	}
 	// make triangles out of every 3 vertices
-	var mesh []*Triangle3
+	var mesh []*sdf.Triangle3
 	for i := 0; i < len(v); i += 3 {
-		mesh = append(mesh, &Triangle3{v[i+0], v[i+1], v[i+2]})
+		mesh = append(mesh, &sdf.Triangle3{v[i+0], v[i+1], v[i+2]})
 	}
 	return mesh, scanner.Err()
 }
 
 // loadSTLBinary loads an STL file created in binary format.
-func loadSTLBinary(file *os.File) ([]*Triangle3, error) {
+func loadSTLBinary(file *os.File) ([]*sdf.Triangle3, error) {
 	r := bufio.NewReader(file)
 	header := STLHeader{}
 	if err := binary.Read(r, binary.LittleEndian, &header); err != nil {
 		return nil, err
 	}
-	mesh := make([]*Triangle3, int(header.Count))
+	mesh := make([]*sdf.Triangle3, int(header.Count))
 	for i := range mesh {
 		d := STLTriangle{}
 		if err := binary.Read(r, binary.LittleEndian, &d); err != nil {
@@ -88,13 +89,13 @@ func loadSTLBinary(file *os.File) ([]*Triangle3, error) {
 		v1 := v3.Vec{float64(d.Vertex1[0]), float64(d.Vertex1[1]), float64(d.Vertex1[2])}
 		v2 := v3.Vec{float64(d.Vertex2[0]), float64(d.Vertex2[1]), float64(d.Vertex2[2])}
 		v3 := v3.Vec{float64(d.Vertex3[0]), float64(d.Vertex3[1]), float64(d.Vertex3[2])}
-		mesh[i] = &Triangle3{v1, v2, v3}
+		mesh[i] = &sdf.Triangle3{v1, v2, v3}
 	}
 	return mesh, nil
 }
 
 // LoadSTL loads an STL file (ascii or binary) and returns the triangle mesh.
-func LoadSTL(path string) ([]*Triangle3, error) {
+func LoadSTL(path string) ([]*sdf.Triangle3, error) {
 	// open file
 	file, err := os.Open(path)
 	if err != nil {
@@ -132,7 +133,7 @@ func LoadSTL(path string) ([]*Triangle3, error) {
 //-----------------------------------------------------------------------------
 
 // SaveSTL writes a triangle mesh to an STL file.
-func SaveSTL(path string, mesh []*Triangle3) error {
+func SaveSTL(path string, mesh []*sdf.Triangle3) error {
 	file, err := os.Create(path)
 	if err != nil {
 		return err
@@ -172,7 +173,7 @@ func SaveSTL(path string, mesh []*Triangle3) error {
 //-----------------------------------------------------------------------------
 
 // writeSTL writes a stream of triangles to an STL file.
-func writeSTL(wg *sync.WaitGroup, path string) (chan<- []*Triangle3, error) {
+func writeSTL(wg *sync.WaitGroup, path string) (chan<- []*sdf.Triangle3, error) {
 
 	f, err := os.Create(path)
 	if err != nil {
@@ -191,7 +192,7 @@ func writeSTL(wg *sync.WaitGroup, path string) (chan<- []*Triangle3, error) {
 
 	// External code writes triangles to this channel.
 	// This goroutine reads the channel and writes triangles to the file.
-	c := make(chan []*Triangle3)
+	c := make(chan []*sdf.Triangle3)
 
 	wg.Add(1)
 	go func() {
