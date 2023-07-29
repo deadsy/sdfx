@@ -1,9 +1,7 @@
 //-----------------------------------------------------------------------------
 /*
 
-2D line segments
-
-Used for building 2D polygons SDFs.
+2D lines
 
 */
 //-----------------------------------------------------------------------------
@@ -14,12 +12,35 @@ import (
 	"fmt"
 
 	v2 "github.com/deadsy/sdfx/vec/v2"
+	"github.com/dhconnelly/rtreego"
 )
 
 //-----------------------------------------------------------------------------
 
-// Line2 is a 2d line defined with 2d points.
+// Line2 is a 2d line defined with end-points.
 type Line2 [2]v2.Vec
+
+func v2ToPoint(v v2.Vec) rtreego.Point {
+	return rtreego.Point{v.X, v.Y}
+}
+
+// BoundingBox returns a bounding box for the line.
+func (l *Line2) BoundingBox() Box2 {
+	return Box2{Min: l[0], Max: l[0]}.Include(l[1])
+}
+
+// Bounds returns a r-tree bounding rectangle for the line.
+func (l *Line2) Bounds() *rtreego.Rect {
+	b := l.BoundingBox()
+	r, _ := rtreego.NewRectFromPoints(v2ToPoint(b.Min), v2ToPoint(b.Max))
+	return r
+}
+
+// Degenerate returns true if the line is degenerate.
+func (l Line2) Degenerate(tolerance float64) bool {
+	// check for identical vertices
+	return l[0].Equals(l[1], tolerance)
+}
 
 //-----------------------------------------------------------------------------
 

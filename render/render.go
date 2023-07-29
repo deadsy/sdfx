@@ -25,7 +25,7 @@ type Render3 interface {
 
 // Render2 renders a 2D line set over the bounding area of an sdf2.
 type Render2 interface {
-	Render(s sdf.SDF2, output chan<- []*Line)
+	Render(s sdf.SDF2, output chan<- []*sdf.Line2)
 	Info(s sdf.SDF2) string
 }
 
