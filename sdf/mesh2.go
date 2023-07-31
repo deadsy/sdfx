@@ -12,7 +12,7 @@ https://en.wikipedia.org/wiki/R-tree
 package sdf
 
 import (
-	"errors"
+	"fmt"
 
 	v2 "github.com/deadsy/sdfx/vec/v2"
 	"github.com/dhconnelly/rtreego"
@@ -34,7 +34,7 @@ type MeshSDF2 struct {
 func Mesh2D(mesh []*Line2) (SDF2, error) {
 	n := len(mesh)
 	if n == 0 {
-		return nil, errors.New("no 2d line segments")
+		return nil, ErrMsg("no 2d line segments")
 	}
 
 	// r-tree bulk loading
@@ -56,6 +56,15 @@ func Mesh2D(mesh []*Line2) (SDF2, error) {
 
 // Evaluate returns the minimum distance for a 2d mesh.
 func (s *MeshSDF2) Evaluate(p v2.Vec) float64 {
+
+	r := s.rtree.NearestNeighbor(v2ToPoint(p))
+
+	fmt.Printf("rect %v", r)
+
+	rs := s.rtree.NearestNeighbors(10, v2ToPoint(p))
+
+	fmt.Printf("rects %v", rs)
+
 	return 0
 }
 
