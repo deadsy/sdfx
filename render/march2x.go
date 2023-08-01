@@ -97,7 +97,7 @@ func (dc *dcache2) isEmpty(c *square) bool {
 }
 
 // Process a square. Generate line segments, or more squares.
-func (dc *dcache2) processSquare(c *square, output chan<- []*Line) {
+func (dc *dcache2) processSquare(c *square, output chan<- []*sdf.Line2) {
 	if !dc.isEmpty(c) {
 		if c.n == 1 {
 			// this square is at the required resolution
@@ -125,7 +125,7 @@ func (dc *dcache2) processSquare(c *square, output chan<- []*Line) {
 //-----------------------------------------------------------------------------
 
 // marchingSquaresQuadtree generates line segments for an SDF2 using quadtree subdivision.
-func marchingSquaresQuadtree(s sdf.SDF2, resolution float64, output chan<- []*Line) {
+func marchingSquaresQuadtree(s sdf.SDF2, resolution float64, output chan<- []*sdf.Line2) {
 	// Scale the bounding box about the center to make sure the boundaries
 	// aren't on the object surface.
 	bb := s.BoundingBox()
@@ -165,7 +165,7 @@ func (r *MarchingSquaresQuadtree) Info(s sdf.SDF2) string {
 }
 
 // Render produces a 2d line mesh over the bounding area of an sdf2.
-func (r *MarchingSquaresQuadtree) Render(s sdf.SDF2, output chan<- []*Line) {
+func (r *MarchingSquaresQuadtree) Render(s sdf.SDF2, output chan<- []*sdf.Line2) {
 	bbSize := s.BoundingBox().Size()
 	resolution := bbSize.MaxComponent() / float64(r.meshCells)
 	marchingSquaresQuadtree(s, resolution, output)
