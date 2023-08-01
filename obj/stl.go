@@ -45,9 +45,6 @@ func (t *triMeshSdf) Evaluate(p v3.Vec) float64 {
 	// Quickly skip checking most triangles by only checking the N closest neighbours (AABB based)
 	neighbors := t.rtree.NearestNeighbors(neighborCount, v3ToPoint(p))
 
-	// To check if all the distances have the same sign.
-	dists := make([]float64, 0, neighborCount)
-
 	for _, neighbor := range neighbors {
 		triangle := neighbor.(*sdf.Triangle3)
 		testPointToTriangle := p.Sub(triangle[0])
@@ -59,7 +56,6 @@ func (t *triMeshSdf) Evaluate(p v3.Vec) float64 {
 			closestTriangle = distToTri
 			signedDistanceResult = signedDistanceToTriPlane
 		}
-		dists = append(dists, signedDistanceToTriPlane)
 	}
 
 	// Does the approach of this paper make sense:
