@@ -41,7 +41,6 @@ func (t *triMeshSdf) Evaluate(p v3.Vec) float64 {
 	dists, signedDistanceResult := t.evaluate(p, neighbors)
 
 	for !sameSign(dists) {
-		// If sign is not consistent, increase the neighbor count and try again.
 		t.numNeighbors += 5
 		neighbors := t.rtree.NearestNeighbors(t.numNeighbors, v3ToPoint(p))
 
