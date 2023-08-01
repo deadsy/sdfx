@@ -29,44 +29,19 @@ type triMeshSdf struct {
 	rtree        *rtreego.Rtree
 	numNeighbors int
 	bb           sdf.Box3
-	numTriangles int
 }
 
 const stlEpsilon = 1e-1
 
 func (t *triMeshSdf) Evaluate(p v3.Vec) float64 {
-	// Quickly skip checking most triangles by only checking the N closest neighbours (AABB based)
-	neighbors := t.rtree.NearestNeighbors(t.numNeighbors, v3ToPoint(p))
-
-	dists, signedDistanceResult := t.evaluate(p, neighbors)
-
-	for !sameSign(dists) {
-		t.numNeighbors += 5
-		neighbors := t.rtree.NearestNeighbors(t.numNeighbors, v3ToPoint(p))
-
-		// Sometimes the sign of the final result is not consistent.
-		dists, signedDistanceResult = t.evaluate(p, neighbors)
-
-		if t.numNeighbors >= t.numTriangles {
-			// The max possible number is number of triangles.
-			break
-		}
-	}
-
-	// Does the approach of this paper make sense:
-	// https://www2.imm.dtu.dk/pubdb/edoc/imm1289.pdf
-	// TODO: If so, try to implement it in the future.
-
-	return signedDistanceResult
-}
-
-func (t *triMeshSdf) evaluate(p v3.Vec, neighbors []rtreego.Spatial) ([]float64, float64) {
-	// To check if all the distances have the same sign.
-	dists := make([]float64, 0, t.numNeighbors)
-
 	// Check all triangle distances
 	signedDistanceResult := 1.
 	closestTriangle := math.MaxFloat64
+	// Quickly skip checking most triangles by only checking the N closest neighbours (AABB based)
+	neighbors := t.rtree.NearestNeighbors(t.numNeighbors, v3ToPoint(p))
+
+	// To check if all the distances have the same sign.
+	dists := make([]float64, 0, t.numNeighbors)
 
 	for _, neighbor := range neighbors {
 		triangle := neighbor.(*sdf.Triangle3)
@@ -82,7 +57,16 @@ func (t *triMeshSdf) evaluate(p v3.Vec, neighbors []rtreego.Spatial) ([]float64,
 		dists = append(dists, signedDistanceToTriPlane)
 	}
 
-	return dists, signedDistanceResult
+	// Does the approach of this paper make sense:
+	// https://www2.imm.dtu.dk/pubdb/edoc/imm1289.pdf
+	// TODO: If so, try to implement it in the future.
+
+	if !sameSign(dists) {
+		// Sometimes the sign of the final result is not consistent.
+		signedDistanceResult = signConsistency(dists, signedDistanceResult)
+	}
+
+	return signedDistanceResult
 }
 
 func sameSign(values []float64) bool {
@@ -104,6 +88,31 @@ func sameSign(values []float64) bool {
 
 	// All values must have been the same sign
 	return true
+}
+
+func signConsistency(values []float64, value float64) float64 {
+	positive := 0
+	negative := 0
+
+	for _, v := range values {
+		if v > 0 {
+			positive++
+		} else if v < 0 {
+			negative++
+		}
+	}
+
+	if positive > negative {
+		if value < 0 {
+			return -value
+		}
+	} else if negative > positive {
+		if value > 0 {
+			return -value
+		}
+	}
+
+	return value
 }
 
 func (t *triMeshSdf) BoundingBox() sdf.Box3 {
@@ -137,7 +146,6 @@ func ImportTriMesh(mesh []*sdf.Triangle3, numNeighbors, minChildren, maxChildren
 		rtree:        rtreego.NewTree(3, minChildren, maxChildren, bulkLoad...),
 		numNeighbors: numNeighbors,
 		bb:           bb,
-		numTriangles: len(mesh),
 	}
 }
 

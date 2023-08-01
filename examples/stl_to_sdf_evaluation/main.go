@@ -3,14 +3,21 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/deadsy/sdfx/obj"
 	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
 func main() {
-	// create the SDF from the STL file mesh
-	inSdf, err := obj.ImportSTL("../../files/teapot.stl", 20, 3, 5)
+	// read the stl file.
+	file, err := os.OpenFile("../../files/teapot.stl", os.O_RDONLY, 0400)
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+
+	// create the SDF from the STL mesh
+	inSdf, err := obj.ImportSTL(file, 20, 3, 5)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
