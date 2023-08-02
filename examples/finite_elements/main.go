@@ -108,14 +108,8 @@ func benchmarkRun(
 	loads []*mesh.Load,
 	elementconfig ElementConfig,
 ) {
-	// read the stl file.
-	file, err := os.OpenFile(stl, os.O_RDONLY, 0400)
-	if err != nil {
-		log.Fatalf("error: %s", err)
-	}
-
 	// create the SDF from the STL mesh
-	inSdf, err := obj.ImportSTL(file, 20, 3, 5)
+	inSdf, err := obj.ImportSTL(stl, 20, 3, 5)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}

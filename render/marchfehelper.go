@@ -3,6 +3,7 @@ package render
 import (
 	"math"
 
+	"github.com/deadsy/sdfx/sdf"
 	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
@@ -282,31 +283,31 @@ func isBadTet10(coords [10]v3.Vec) (bool, float64) {
 func degenerateTriangles(a, b, c, d v3.Vec) bool {
 	// 4 triangles are possible.
 	// Each triangle is a tetrahedron side.
-	t := Triangle3{}
-	t.V[0] = a
-	t.V[1] = b
-	t.V[2] = c
+	t := sdf.Triangle3{}
+	t[0] = a
+	t[1] = b
+	t[2] = c
 	// Use the epsilon value of `vertexbuffer.go`
 	if t.Degenerate(0.0001) {
 		return true
 	}
-	t.V[0] = a
-	t.V[1] = b
-	t.V[2] = d
+	t[0] = a
+	t[1] = b
+	t[2] = d
 	// Use the epsilon value of `vertexbuffer.go`
 	if t.Degenerate(0.0001) {
 		return true
 	}
-	t.V[0] = a
-	t.V[1] = c
-	t.V[2] = d
+	t[0] = a
+	t[1] = c
+	t[2] = d
 	// Use the epsilon value of `vertexbuffer.go`
 	if t.Degenerate(0.0001) {
 		return true
 	}
-	t.V[0] = b
-	t.V[1] = c
-	t.V[2] = d
+	t[0] = b
+	t[1] = c
+	t[2] = d
 	// Use the epsilon value of `vertexbuffer.go`
 	return t.Degenerate(0.0001)
 }
