@@ -1,24 +1,27 @@
-package mesh
-
-import "github.com/deadsy/sdfx/render/finiteelements/buffer"
+package buffer
 
 // Count separate components consisting of disconnected finite elements.
 // They cause FEA solver to throw error.
-func (m *Fem) CountComponents() int {
+func (vg *VoxelGrid) CountComponents() int {
 	// Map key is (x, y, z) index of voxel.
-	visited := make(map[[3]int]bool, m.IBuff.Grid.Len.X*m.IBuff.Grid.Len.Y*m.IBuff.Grid.Len.Z)
+	visited := make(map[[3]int]bool, vg.Len.X*vg.Len.Y*vg.Len.Z)
 	count := 0
-	process := func(x, y, z int, els []*buffer.Element) {
-		if !visited[[3]int{x, y, z}] {
-			count++
-			m.bfs(visited, [3]int{x, y, z})
+	for z := 0; z < vg.Len.Z; z++ {
+		for y := 0; y < vg.Len.Y; y++ {
+			for x := 0; x < vg.Len.X; x++ {
+				if !visited[[3]int{x, y, z}] {
+					count++
+					vg.bfs(visited, [3]int{x, y, z})
+				}
+			}
 		}
 	}
-	m.iterate(process)
 	return count
 }
 
-func (m *Fem) bfs(visited map[[3]int]bool, start [3]int) {
+// Algorithm: breadth-first search (BFS).
+// This is much faster than depth first search (DFS) algorithm.
+func (vg *VoxelGrid) bfs(visited map[[3]int]bool, start [3]int) {
 	queue := [][3]int{start}
 	visited[start] = true
 
@@ -26,7 +29,7 @@ func (m *Fem) bfs(visited map[[3]int]bool, start [3]int) {
 		v := queue[0]
 		queue = queue[1:]
 
-		neighbors := m.getNeighbors(v)
+		neighbors := vg.getNeighbors(v)
 
 		for _, n := range neighbors {
 			if !visited[n] {
@@ -38,7 +41,7 @@ func (m *Fem) bfs(visited map[[3]int]bool, start [3]int) {
 }
 
 // It returns a list of neighbor voxels that are full, i.e. not empty.
-func (m *Fem) getNeighbors(v [3]int) [][3]int {
+func (vg *VoxelGrid) getNeighbors(v [3]int) [][3]int {
 	var neighbors [][3]int
 	for i := -1; i <= 1; i++ {
 		for j := -1; j <= 1; j++ {
@@ -51,16 +54,16 @@ func (m *Fem) getNeighbors(v [3]int) [][3]int {
 				y := v[1] + j
 				z := v[2] + k
 
-				if x >= 0 && x < m.IBuff.Grid.Len.X &&
-					y >= 0 && y < m.IBuff.Grid.Len.Y &&
-					z >= 0 && z < m.IBuff.Grid.Len.Z {
+				if x >= 0 && x < vg.Len.X &&
+					y >= 0 && y < vg.Len.Y &&
+					z >= 0 && z < vg.Len.Z {
 					// Index is valid.
 				} else {
 					continue
 				}
 
 				// Is neighbor voxel empty or not?
-				if len(m.IBuff.Grid.Get(x, y, z)) > 0 {
+				if len(vg.Get(x, y, z)) > 0 {
 					neighbors = append(neighbors, [3]int{x, y, z})
 				}
 			}
