@@ -155,25 +155,7 @@ func (m *Fem) bfs(visited map[[3]int]bool, start [3]int) {
 		v := queue[0]
 		queue = queue[1:]
 
-		neighbors := make([][3]int, 0)
-		for i := -1; i <= +1; i++ {
-			for j := -1; j <= +1; j++ {
-				for k := -1; k <= +1; k++ {
-					x := v[0] + i
-					y := v[1] + j
-					z := v[2] + k
-					if x >= 0 && x < m.IBuff.Grid.Len.X &&
-						y >= 0 && y < m.IBuff.Grid.Len.Y &&
-						z >= 0 && z < m.IBuff.Grid.Len.Z {
-						if x != v[0] && y != v[1] && z != v[2] {
-							// Overlapping voxel.
-						} else {
-							neighbors = append(neighbors, [3]int{x, y, z})
-						}
-					}
-				}
-			}
-		}
+		neighbors := m.getNeighbors(v)
 
 		for _, n := range neighbors {
 			if !visited[n] {
@@ -182,6 +164,37 @@ func (m *Fem) bfs(visited map[[3]int]bool, start [3]int) {
 			}
 		}
 	}
+}
+
+// It returns a list of neighbor voxels that are full, i.e. not empty.
+func (m *Fem) getNeighbors(v [3]int) [][3]int {
+	var neighbors [][3]int
+	for i := -1; i <= 1; i++ {
+		for j := -1; j <= 1; j++ {
+			for k := -1; k <= 1; k++ {
+				if i == 0 && j == 0 && k == 0 {
+					continue
+				}
+
+				x := v[0] + i
+				y := v[1] + j
+				z := v[2] + k
+
+				if x >= 0 && x < m.IBuff.Grid.Len.X &&
+					y >= 0 && y < m.IBuff.Grid.Len.Y &&
+					z >= 0 && z < m.IBuff.Grid.Len.Z {
+					// Index is valid.
+				} else {
+					continue
+				}
+
+				if len(m.IBuff.Grid.Get(x, y, z)) > 0 {
+					neighbors = append(neighbors, [3]int{x, y, z})
+				}
+			}
+		}
+	}
+	return neighbors
 }
 
 //-----------------------------------------------------------------------------
