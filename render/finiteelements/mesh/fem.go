@@ -188,6 +188,7 @@ func (m *Fem) getNeighbors(v [3]int) [][3]int {
 					continue
 				}
 
+				// Is neighbor voxel empty or not?
 				if len(m.IBuff.Grid.Get(x, y, z)) > 0 {
 					neighbors = append(neighbors, [3]int{x, y, z})
 				}
