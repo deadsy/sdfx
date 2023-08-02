@@ -10,6 +10,7 @@ package sdf
 
 import (
 	"fmt"
+	"math"
 
 	v2 "github.com/deadsy/sdfx/vec/v2"
 )
@@ -69,6 +70,71 @@ func qtBuild(level int, box Box2, vInfo []vertexInfo, vSet []int) *qtNode {
 	node.child[2] = qtBuild(level+1, box2, vInfo, vertexFilter(vSet, box2, vInfo))
 	node.child[3] = qtBuild(level+1, box3, vInfo, vertexFilter(vSet, box3, vInfo))
 	return node
+}
+
+// searchOrder returns the child search order for this node.
+// Order by minimum distance to child box.
+func (node *qtNode) searchOrder(p v2.Vec) [4]int {
+	// translate the point so the node box center is at the origin
+	p = p.Sub(node.box.Center())
+	// gradient of box diagonal
+	size := node.box.Size()
+	m := size.Y / size.X
+	if p.X >= 0 {
+		if p.Y >= 0 {
+			// quad3
+			if p.Y >= m*p.X {
+				return [4]int{3, 2, 1, 0}
+			} else {
+				return [4]int{3, 1, 2, 0}
+			}
+		} else {
+			// quad1
+			if p.Y <= -m*p.X {
+				return [4]int{1, 0, 3, 2}
+			} else {
+				return [4]int{1, 3, 0, 2}
+			}
+		}
+	} else {
+		if p.Y >= 0 {
+			// quad2
+			if p.Y >= -m*p.X {
+				return [4]int{2, 3, 0, 1}
+			} else {
+				return [4]int{2, 0, 3, 1}
+			}
+		} else {
+			// quad0
+			if p.Y <= m*p.X {
+				return [4]int{0, 1, 2, 3}
+			} else {
+				return [4]int{0, 2, 1, 3}
+			}
+		}
+	}
+}
+
+func (node *qtNode) minBoxDist2(p v2.Vec) float64 {
+
+	return 0
+}
+
+func (node *qtNode) minDist2(p v2.Vec, dist2 float64) float64 {
+	if node == nil || node.minBoxDist2(p) >= dist2 {
+		return dist2
+	}
+	if node.vInfo != nil {
+		// TODO actual calculation
+		x := 100.0
+		return math.Min(dist2, x)
+	}
+	// search the child nodes
+	order := node.searchOrder(p)
+	for _, i := range order {
+		dist2 = node.child[i].minDist2(p, dist2)
+	}
+	return dist2
 }
 
 func (node *qtNode) countLeaves() int {
