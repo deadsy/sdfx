@@ -1,6 +1,7 @@
 package mesh
 
-// Fix any disconnected finite elements.
+// Count separate components consisting of disconnected finite elements.
 // They cause FEA solver to throw error.
-func (m *Fem) Connect() {
+func (m *Fem) CountComponents() int {
+	return 0
 }
