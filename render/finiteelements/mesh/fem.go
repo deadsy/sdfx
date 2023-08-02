@@ -129,6 +129,20 @@ func (m *Fem) VoxelsIntersecting(points []v3.Vec) ([]v3i.Vec, v3.Vec, v3.Vec) {
 	return m.IBuff.Grid.VoxelsIntersecting(points)
 }
 
+//-----------------------------------------------------------------------------
+
+// Count separate components consisting of disconnected finite elements.
+// They cause FEA solver to throw error.
+func (m *Fem) CountComponents() int {
+	process := func(x, y, z int, els []*buffer.Element) {
+	}
+
+	m.iterate(process)
+	return 0
+}
+
+//-----------------------------------------------------------------------------
+
 // WriteInp writes mesh to ABAQUS or CalculiX `inp` file.
 func (m *Fem) WriteInp(
 	path string,
