@@ -138,7 +138,7 @@ func (dc *dc2) corner(vi v2i.Vec) v2.Vec {
 	return dc.origin.Add(conv.V2iToV2(vi).MulScalar(dc.resolution))
 }
 
-func (dc *dc2) drawNode(node *node2, output chan<- []*Line) {
+func (dc *dc2) drawNode(node *node2, output chan<- []*sdf.Line2) {
 
 	k := int(node.n) * 2
 
@@ -147,16 +147,16 @@ func (dc *dc2) drawNode(node *node2, output chan<- []*Line) {
 	c2 := dc.corner(node.v.Add(v2i.Vec{k, k}))
 	c3 := dc.corner(node.v.Add(v2i.Vec{0, k}))
 
-	l0 := Line{c0, c1}
-	l1 := Line{c1, c2}
-	l2 := Line{c2, c3}
-	l3 := Line{c3, c0}
+	l0 := sdf.Line2{c0, c1}
+	l1 := sdf.Line2{c1, c2}
+	l2 := sdf.Line2{c2, c3}
+	l3 := sdf.Line2{c3, c0}
 
-	output <- []*Line{&l0, &l1, &l2, &l3}
+	output <- []*sdf.Line2{&l0, &l1, &l2, &l3}
 
 }
 
-func (dc *dc2) qtOutput(node *node2, output chan<- []*Line) {
+func (dc *dc2) qtOutput(node *node2, output chan<- []*sdf.Line2) {
 	if node.child != nil {
 		dc.qtOutput(&node.child[0], output)
 		dc.qtOutput(&node.child[1], output)
@@ -171,7 +171,7 @@ func (dc *dc2) qtOutput(node *node2, output chan<- []*Line) {
 }
 
 // dualContouring2D generates line segments for an SDF2 using dual contouring.
-func dualContouring2D(s sdf.SDF2, resolution float64, output chan<- []*Line) {
+func dualContouring2D(s sdf.SDF2, resolution float64, output chan<- []*sdf.Line2) {
 	// Scale the bounding box about the center to make sure the boundaries
 	// aren't on the object surface.
 	bb := s.BoundingBox()
@@ -213,7 +213,7 @@ func (r *DualContouring2D) Info(s sdf.SDF2) string {
 }
 
 // Render produces a 2d line mesh over the bounding area of an sdf2.
-func (r *DualContouring2D) Render(s sdf.SDF2, output chan<- []*Line) {
+func (r *DualContouring2D) Render(s sdf.SDF2, output chan<- []*sdf.Line2) {
 	bbSize := s.BoundingBox().Size()
 	resolution := bbSize.MaxComponent() / float64(r.meshCells)
 	dualContouring2D(s, resolution, output)

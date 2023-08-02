@@ -10,7 +10,6 @@ package main
 
 import (
 	"log"
-	"os"
 
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
@@ -21,14 +20,9 @@ import (
 //-----------------------------------------------------------------------------
 
 func monkeyWithHat() (sdf.SDF3, error) {
-	// read the monkey head stl file.
-	file, err := os.OpenFile("../../files/monkey.stl", os.O_RDONLY, 0400)
-	if err != nil {
-		return nil, err
-	}
 
 	// create the SDF from the mesh (a modified Suzanne from Blender with 366 faces)
-	monkeyImported, err := obj.ImportSTL(file, 20, 3, 5)
+	monkeyImported, err := obj.ImportSTL("../../files/monkey.stl", 20, 3, 5)
 	if err != nil {
 		return nil, err
 	}

@@ -121,7 +121,7 @@ func (d *PNG) Lines(s v2.VecSet) {
 }
 
 // Triangle adds a triangle to a png object.
-func (d *PNG) Triangle(t Triangle2) {
+func (d *PNG) Triangle(t sdf.Triangle2) {
 	d.Lines([]v2.Vec{t[0], t[1], t[2], t[0]})
 }
 

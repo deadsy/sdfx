@@ -66,7 +66,7 @@ func (d *DXF) Points(s v2.VecSet, r float64) {
 }
 
 // Triangle adds a triangle to a dxf drawing object.
-func (d *DXF) Triangle(t Triangle2) {
+func (d *DXF) Triangle(t sdf.Triangle2) {
 	d.Lines([]v2.Vec{t[0], t[1], t[2], t[0]})
 }
 
@@ -82,7 +82,7 @@ func (d *DXF) Save() error {
 //-----------------------------------------------------------------------------
 
 // SaveDXF writes line segments to a DXF file.
-func SaveDXF(path string, mesh []*Line) error {
+func SaveDXF(path string, mesh []*sdf.Line2) error {
 	d := NewDXF(path)
 	d.drawing.ChangeLayer("Lines")
 	for i := range mesh {
@@ -100,14 +100,14 @@ func SaveDXF(path string, mesh []*Line) error {
 //-----------------------------------------------------------------------------
 
 // writeDXF writes a stream of line segments to a DXF file.
-func writeDXF(wg *sync.WaitGroup, path string) (chan<- []*Line, error) {
+func writeDXF(wg *sync.WaitGroup, path string) (chan<- []*sdf.Line2, error) {
 
 	d := NewDXF(path)
 	d.drawing.ChangeLayer("Lines")
 
 	// External code writes line segments to this channel.
 	// This goroutine reads the channel and writes line segments to the file.
-	c := make(chan []*Line)
+	c := make(chan []*sdf.Line2)
 
 	wg.Add(1)
 	go func() {

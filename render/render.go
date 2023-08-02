@@ -21,13 +21,13 @@ import (
 
 // Render3 renders a 3D triangle mesh over the bounding volume of an sdf3.
 type Render3 interface {
-	Render(sdf3 sdf.SDF3, output chan<- []*Triangle3)
+	Render(sdf3 sdf.SDF3, output chan<- []*sdf.Triangle3)
 	Info(sdf3 sdf.SDF3) string
 }
 
 // Render2 renders a 2D line set over the bounding area of an sdf2.
 type Render2 interface {
-	Render(s sdf.SDF2, output chan<- []*Line)
+	Render(s sdf.SDF2, output chan<- []*sdf.Line2)
 	Info(s sdf.SDF2) string
 }
 
@@ -44,11 +44,11 @@ type RenderFE interface {
 func ToTriangles(
 	s sdf.SDF3, // sdf3 to render
 	r Render3, // rendering method
-) []Triangle3 {
-	triangles := make([]Triangle3, 0)
+) []sdf.Triangle3 {
+	triangles := make([]sdf.Triangle3, 0)
 	var wg sync.WaitGroup
 	// To write the triangles.
-	output := writeTriangles(&wg, &triangles)
+	output := sdf.WriteTriangles(&wg, &triangles)
 	// Run the renderer.
 	r.Render(s, output)
 	// Stop the writer reading on the channel.

@@ -74,7 +74,7 @@ func (l *lineCache) get(x, y int) float64 {
 
 //-----------------------------------------------------------------------------
 
-func marchingSquares(s sdf.SDF2, resolution float64) []*Line {
+func marchingSquares(s sdf.SDF2, resolution float64) []*sdf.Line2 {
 	// Scale the bounding box about the center to make sure the boundaries
 	// aren't on the object surface.
 	bb := s.BoundingBox()
@@ -93,7 +93,7 @@ func marchingSquares(s sdf.SDF2, resolution float64) []*Line {
 	nx, ny := steps.X, steps.Y
 	dx, dy := inc.X, inc.Y
 
-	var lines []*Line
+	var lines []*sdf.Line2
 	var p v2.Vec
 	p.X = base.X
 	for x := 0; x < nx; x++ {
@@ -148,7 +148,7 @@ func (r *MarchingSquaresUniform) Info(s sdf.SDF2) string {
 }
 
 // Render produces a 2d line mesh over the bounding area of an sdf2.
-func (r *MarchingSquaresUniform) Render(s sdf.SDF2, output chan<- []*Line) {
+func (r *MarchingSquaresUniform) Render(s sdf.SDF2, output chan<- []*sdf.Line2) {
 	bbSize := s.BoundingBox().Size()
 	resolution := bbSize.MaxComponent() / float64(r.meshCells)
 	output <- marchingSquares(s, resolution)
@@ -157,7 +157,7 @@ func (r *MarchingSquaresUniform) Render(s sdf.SDF2, output chan<- []*Line) {
 //-----------------------------------------------------------------------------
 
 // generate the line segments for a square
-func msToLines(p [4]v2.Vec, v [4]float64, x float64) []*Line {
+func msToLines(p [4]v2.Vec, v [4]float64, x float64) []*sdf.Line2 {
 	// which of the 0..15 patterns do we have?
 	index := 0
 	for i := 0; i < 4; i++ {
@@ -182,9 +182,9 @@ func msToLines(p [4]v2.Vec, v [4]float64, x float64) []*Line {
 	// create the line segments
 	table := msLineTable[index]
 	count := len(table) / 2
-	result := make([]*Line, 0, count)
+	result := make([]*sdf.Line2, 0, count)
 	for i := 0; i < count; i++ {
-		l := Line{}
+		l := sdf.Line2{}
 		l[1] = points[table[i*2+0]]
 		l[0] = points[table[i*2+1]]
 		if !l.Degenerate(0) {

@@ -132,9 +132,9 @@ func (l *layerYZ) Get(x, y, z int) float64 {
 
 //-----------------------------------------------------------------------------
 
-func marchingCubes(s sdf.SDF3, box sdf.Box3, step float64) []*Triangle3 {
+func marchingCubes(s sdf.SDF3, box sdf.Box3, step float64) []*sdf.Triangle3 {
 
-	var triangles []*Triangle3
+	var triangles []*sdf.Triangle3
 	size := box.Size()
 	base := box.Min
 	steps := conv.V3ToV3i(size.DivScalar(step).Ceil())
@@ -194,7 +194,7 @@ func marchingCubes(s sdf.SDF3, box sdf.Box3, step float64) []*Triangle3 {
 
 //-----------------------------------------------------------------------------
 
-func mcToTriangles(p [8]v3.Vec, v [8]float64, x float64) []*Triangle3 {
+func mcToTriangles(p [8]v3.Vec, v [8]float64, x float64) []*sdf.Triangle3 {
 	// which of the 0..255 patterns do we have?
 	index := 0
 	for i := 0; i < 8; i++ {
@@ -219,12 +219,12 @@ func mcToTriangles(p [8]v3.Vec, v [8]float64, x float64) []*Triangle3 {
 	// create the triangles
 	table := mcTriangleTable[index]
 	count := len(table) / 3
-	result := make([]*Triangle3, 0, count)
+	result := make([]*sdf.Triangle3, 0, count)
 	for i := 0; i < count; i++ {
-		t := Triangle3{}
-		t.V[2] = points[table[i*3+0]]
-		t.V[1] = points[table[i*3+1]]
-		t.V[0] = points[table[i*3+2]]
+		t := sdf.Triangle3{}
+		t[2] = points[table[i*3+0]]
+		t[1] = points[table[i*3+1]]
+		t[0] = points[table[i*3+2]]
 		if !t.Degenerate(0) {
 			result = append(result, &t)
 		}
@@ -289,7 +289,7 @@ func (r *MarchingCubesUniform) Info(s sdf.SDF3) string {
 }
 
 // Render produces a 3d triangle mesh over the bounding volume of an sdf3.
-func (r *MarchingCubesUniform) Render(s sdf.SDF3, output chan<- []*Triangle3) {
+func (r *MarchingCubesUniform) Render(s sdf.SDF3, output chan<- []*sdf.Triangle3) {
 	// work out the region we will sample
 	bb0 := s.BoundingBox()
 	bb0Size := bb0.Size()

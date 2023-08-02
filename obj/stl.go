@@ -9,15 +9,19 @@ Closed-surface triangle meshes (and STL files)
 package obj
 
 import (
-	"io"
 	"math"
 
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
 	v3 "github.com/deadsy/sdfx/vec/v3"
 	"github.com/dhconnelly/rtreego"
-	"github.com/hschendel/stl"
 )
+
+//-----------------------------------------------------------------------------
+
+func v3ToPoint(v v3.Vec) rtreego.Point {
+	return rtreego.Point{v.X, v.Y, v.Z}
+}
 
 //-----------------------------------------------------------------------------
 
@@ -34,10 +38,10 @@ func (t *triMeshSdf) Evaluate(p v3.Vec) float64 {
 	signedDistanceResult := 1.
 	closestTriangle := math.MaxFloat64
 	// Quickly skip checking most triangles by only checking the N closest neighbours (AABB based)
-	neighbors := t.rtree.NearestNeighbors(t.numNeighbors, stlToPoint(p))
+	neighbors := t.rtree.NearestNeighbors(t.numNeighbors, v3ToPoint(p))
 	for _, neighbor := range neighbors {
-		triangle := neighbor.(*stlTriangle).Triangle3
-		testPointToTriangle := p.Sub(triangle.V[0])
+		triangle := neighbor.(*sdf.Triangle3)
+		testPointToTriangle := p.Sub(triangle[0])
 		triNormal := triangle.Normal()
 		signedDistanceToTriPlane := triNormal.Dot(testPointToTriangle)
 		// Take this triangle as the source of truth if the projection of the point on the triangle is the closest
@@ -66,36 +70,27 @@ func (t *triMeshSdf) BoundingBox() sdf.Box3 {
 //
 // WARNING: It will only work on non-intersecting closed-surface(s) meshes.
 // NOTE: Fix using blender for intersecting surfaces: Edit mode > P > By loose parts > Add boolean modifier to join them
-func ImportTriMesh(tris chan *render.Triangle3, numNeighbors, minChildren, maxChildren int) sdf.SDF3 {
-	m := &triMeshSdf{
-		rtree:        nil,
-		numNeighbors: numNeighbors,
-		bb: sdf.Box3{
-			Min: v3.Vec{X: math.MaxFloat64, Y: math.MaxFloat64, Z: math.MaxFloat64},
-			Max: v3.Vec{X: -math.MaxFloat64, Y: -math.MaxFloat64, Z: -math.MaxFloat64},
-		},
+func ImportTriMesh(mesh []*sdf.Triangle3, numNeighbors, minChildren, maxChildren int) sdf.SDF3 {
+	if len(mesh) == 0 {
+		return nil
 	}
-
 	// Compute the bounding box
-	bulkLoad := make([]rtreego.Spatial, 0)
-	for triangle := range tris {
-		bulkLoad = append(bulkLoad, &stlTriangle{Triangle3: triangle})
-		for _, vertex := range triangle.V {
-			m.bb = m.bb.Include(vertex)
-		}
+	bulkLoad := make([]rtreego.Spatial, len(mesh))
+	bb := mesh[0].BoundingBox()
+	for i, triangle := range mesh {
+		bulkLoad[i] = triangle
+		bb = bb.Extend(triangle.BoundingBox())
 	}
-	if !m.bb.Contains(m.bb.Min) { // Return a valid bounding box if no vertices are found in the mesh
-		m.bb = sdf.Box3{} // Empty box centered at {0,0,0}
+	return &triMeshSdf{
+		rtree:        rtreego.NewTree(3, minChildren, maxChildren, bulkLoad...),
+		numNeighbors: numNeighbors,
+		bb:           bb,
 	}
-	//m.bb = m.bb.ScaleAboutCenter(1 + 1e-12) // Avoids missing faces due to inaccurate math operations.
-	m.rtree = rtreego.NewTree(3, minChildren, maxChildren, bulkLoad...)
-
-	return m
 }
 
 //-----------------------------------------------------------------------------
 
-func stlPointToTriangleDistSq(p v3.Vec, triangle *render.Triangle3) (float64, bool /* falls outside? */) {
+func stlPointToTriangleDistSq(p v3.Vec, triangle *sdf.Triangle3) (float64, bool /* falls outside? */) {
 	// Compute the closest point
 	closest, fallsOutside := stlClosestTrianglePointTo(p, triangle)
 	// Compute distance to the closest point
@@ -111,23 +106,23 @@ func stlPointToTriangleDistSq(p v3.Vec, triangle *render.Triangle3) (float64, bo
 }
 
 // https://stackoverflow.com/a/47505833
-func stlClosestTrianglePointTo(p v3.Vec, triangle *render.Triangle3) (v3.Vec, bool /* falls outside? */) {
-	edgeAbDelta := triangle.V[1].Sub(triangle.V[0])
-	edgeCaDelta := triangle.V[0].Sub(triangle.V[2])
-	edgeBcDelta := triangle.V[2].Sub(triangle.V[1])
+func stlClosestTrianglePointTo(p v3.Vec, triangle *sdf.Triangle3) (v3.Vec, bool /* falls outside? */) {
+	edgeAbDelta := triangle[1].Sub(triangle[0])
+	edgeCaDelta := triangle[0].Sub(triangle[2])
+	edgeBcDelta := triangle[2].Sub(triangle[1])
 
 	// The closest point may be a vertex
-	uab := stlEdgeProject(triangle.V[0], edgeAbDelta, p)
-	uca := stlEdgeProject(triangle.V[2], edgeCaDelta, p)
+	uab := stlEdgeProject(triangle[0], edgeAbDelta, p)
+	uca := stlEdgeProject(triangle[2], edgeCaDelta, p)
 	if uca > 1 && uab < 0 {
-		return triangle.V[0], true
+		return triangle[0], true
 	}
-	ubc := stlEdgeProject(triangle.V[1], edgeBcDelta, p)
+	ubc := stlEdgeProject(triangle[1], edgeBcDelta, p)
 	if uab > 1 && ubc < 0 {
-		return triangle.V[1], true
+		return triangle[1], true
 	}
 	if ubc > 1 && uca < 0 {
-		return triangle.V[2], true
+		return triangle[2], true
 	}
 
 	// The closest point may be on an edge
@@ -135,18 +130,18 @@ func stlClosestTrianglePointTo(p v3.Vec, triangle *render.Triangle3) (v3.Vec, bo
 	planeAbNormal := triNormal.Cross(edgeAbDelta)
 	planeBcNormal := triNormal.Cross(edgeBcDelta)
 	planeCaNormal := triNormal.Cross(edgeCaDelta)
-	if uab >= 0 && uab <= 1 && !stlPlaneIsAbove(triangle.V[0], planeAbNormal, p) {
-		return stlEdgePointAt(triangle.V[0], edgeAbDelta, uab), true
+	if uab >= 0 && uab <= 1 && !stlPlaneIsAbove(triangle[0], planeAbNormal, p) {
+		return stlEdgePointAt(triangle[0], edgeAbDelta, uab), true
 	}
-	if ubc >= 0 && ubc <= 1 && !stlPlaneIsAbove(triangle.V[1], planeBcNormal, p) {
-		return stlEdgePointAt(triangle.V[1], edgeBcDelta, ubc), true
+	if ubc >= 0 && ubc <= 1 && !stlPlaneIsAbove(triangle[1], planeBcNormal, p) {
+		return stlEdgePointAt(triangle[1], edgeBcDelta, ubc), true
 	}
-	if uca >= 0 && uca <= 1 && !stlPlaneIsAbove(triangle.V[2], planeCaNormal, p) {
-		return stlEdgePointAt(triangle.V[2], edgeCaDelta, uca), true
+	if uca >= 0 && uca <= 1 && !stlPlaneIsAbove(triangle[2], planeCaNormal, p) {
+		return stlEdgePointAt(triangle[2], edgeCaDelta, uca), true
 	}
 
 	// The closest point is in the triangle so project to the plane to find it
-	return stlPlaneProject(triangle.V[0], triNormal, p), false
+	return stlPlaneProject(triangle[0], triNormal, p), false
 }
 
 func stlEdgeProject(edge1, edgeDelta, p v3.Vec) float64 {
@@ -170,43 +165,13 @@ func stlPlaneProject(anyPoint, normal, testPoint v3.Vec) v3.Vec {
 
 //-----------------------------------------------------------------------------
 
-type stlTriangle struct {
-	*render.Triangle3
-}
-
-func (s *stlTriangle) Bounds() *rtreego.Rect {
-	bounds := sdf.Box3{Min: s.V[0], Max: s.V[0]}
-	bounds = bounds.Include(s.V[1])
-	bounds = bounds.Include(s.V[2])
-	points, err := rtreego.NewRectFromPoints(stlToPoint(bounds.Min), stlToPoint(bounds.Max))
-	if err != nil {
-		panic(err) // Implementation error
-	}
-	return points
-}
-
-func stlToPoint(v3 v3.Vec) rtreego.Point {
-	return rtreego.Point{v3.X, v3.Y, v3.Z}
-}
-
-//-----------------------------------------------------------------------------
-
 // ImportSTL converts an STL model into a SDF3 surface. See ImportTriMesh.
-func ImportSTL(reader io.ReadSeeker, numNeighbors, minChildren, maxChildren int) (sdf.SDF3, error) {
-	mesh, err := stl.ReadAll(reader)
+func ImportSTL(path string, numNeighbors, minChildren, maxChildren int) (sdf.SDF3, error) {
+	mesh, err := render.LoadSTL(path)
 	if err != nil {
 		return nil, err
 	}
-	tris := make(chan *render.Triangle3, 128) // Buffer some triangles and send in batches if scheduler prefers it
-	go func() {
-		for _, triangle := range mesh.Triangles {
-			tri := &render.Triangle3{}
-			for i, vertex := range triangle.Vertices {
-				tri.V[i] = v3.Vec{X: float64(vertex[0]), Y: float64(vertex[1]), Z: float64(vertex[2])}
-			}
-			tris <- tri
-		}
-		close(tris)
-	}()
-	return ImportTriMesh(tris, numNeighbors, minChildren, maxChildren), nil
+	return ImportTriMesh(mesh, numNeighbors, minChildren, maxChildren), nil
 }
+
+//-----------------------------------------------------------------------------

@@ -46,6 +46,11 @@ const epsilon = 1e-12
 
 var sdfRand = rand.New(rand.NewSource(1))
 
+// randomRange returns a random float64 [a,b)
+func randomRange(a, b float64) float64 {
+	return a + (b-a)*sdfRand.Float64()
+}
+
 //-----------------------------------------------------------------------------
 
 // DtoR converts degrees to radians
@@ -56,6 +61,22 @@ func DtoR(degrees float64) float64 {
 // RtoD converts radians to degrees
 func RtoD(radians float64) float64 {
 	return (180 / Pi) * radians
+}
+
+//-----------------------------------------------------------------------------
+
+func minInt(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+func maxInt(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
 }
 
 //-----------------------------------------------------------------------------

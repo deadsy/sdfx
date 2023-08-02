@@ -12,7 +12,6 @@ package main
 import (
 	"errors"
 	"log"
-	"os"
 
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
@@ -84,16 +83,8 @@ func gyroidTeapot(cyclesPerSide int) (sdf.SDF3, error) {
 		return nil, errors.New("cycles per side should not be <= 0")
 	}
 
-	stl := "../../files/teapot.stl"
-
-	// read the stl file.
-	file, err := os.OpenFile(stl, os.O_RDONLY, 0400)
-	if err != nil {
-		return nil, err
-	}
-
 	// create the SDF from the STL mesh
-	teapot, err := obj.ImportSTL(file, 20, 3, 5)
+	teapot, err := obj.ImportSTL("../../files/teapot.stl", 20, 3, 5)
 	if err != nil {
 		return nil, err
 	}

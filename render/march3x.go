@@ -101,7 +101,7 @@ func (dc *dcache3) isEmpty(c *cube) bool {
 }
 
 // Process a cube. Generate triangles, or more cubes.
-func (dc *dcache3) processCube(c *cube, output chan<- []*Triangle3) {
+func (dc *dcache3) processCube(c *cube, output chan<- []*sdf.Triangle3) {
 	if !dc.isEmpty(c) {
 		if c.n == 1 {
 			// this cube is at the required resolution
@@ -137,7 +137,7 @@ func (dc *dcache3) processCube(c *cube, output chan<- []*Triangle3) {
 //-----------------------------------------------------------------------------
 
 // marchingCubesOctree generates a triangle mesh for an SDF3 using octree subdivision.
-func marchingCubesOctree(s sdf.SDF3, resolution float64, output chan<- []*Triangle3) {
+func marchingCubesOctree(s sdf.SDF3, resolution float64, output chan<- []*sdf.Triangle3) {
 	// Scale the bounding box about the center to make sure the boundaries
 	// aren't on the object surface.
 	bb := s.BoundingBox()
@@ -177,7 +177,7 @@ func (r *MarchingCubesOctree) Info(s sdf.SDF3) string {
 }
 
 // Render produces a 3d triangle mesh over the bounding volume of an sdf3.
-func (r *MarchingCubesOctree) Render(s sdf.SDF3, output chan<- []*Triangle3) {
+func (r *MarchingCubesOctree) Render(s sdf.SDF3, output chan<- []*sdf.Triangle3) {
 	// work out the sampling resolution to use
 	bbSize := s.BoundingBox().Size()
 	resolution := bbSize.MaxComponent() / float64(r.meshCells)

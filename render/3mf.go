@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/deadsy/sdfx/sdf"
 	v3 "github.com/deadsy/sdfx/vec/v3"
 	"github.com/hpinc/go3mf"
 )
@@ -39,7 +40,7 @@ func toPoint3D(a v3.Vec) go3mf.Point3D {
 //-----------------------------------------------------------------------------
 
 // write3MF writes a stream of triangles to a 3MF file.
-func write3MF(wg *sync.WaitGroup, path string) (chan<- []*Triangle3, error) {
+func write3MF(wg *sync.WaitGroup, path string) (chan<- []*sdf.Triangle3, error) {
 
 	f, err := go3mf.CreateWriter(path)
 	if err != nil {
@@ -48,7 +49,7 @@ func write3MF(wg *sync.WaitGroup, path string) (chan<- []*Triangle3, error) {
 
 	// External code writes triangles to this channel.
 	// This goroutine reads the channel and writes triangles to the file.
-	c := make(chan []*Triangle3)
+	c := make(chan []*sdf.Triangle3)
 
 	var model go3mf.Model
 	var mesh go3mf.Mesh
@@ -69,9 +70,9 @@ func write3MF(wg *sync.WaitGroup, path string) (chan<- []*Triangle3, error) {
 		// read triangles from the channel and add them to the model
 		for ts := range c {
 			for _, t := range ts {
-				v1 := mb.AddVertex(toPoint3D(t.V[0]))
-				v2 := mb.AddVertex(toPoint3D(t.V[1]))
-				v3 := mb.AddVertex(toPoint3D(t.V[2]))
+				v1 := mb.AddVertex(toPoint3D(t[0]))
+				v2 := mb.AddVertex(toPoint3D(t[1]))
+				v3 := mb.AddVertex(toPoint3D(t[2]))
 				mesh.Triangles.Triangle = append(mesh.Triangles.Triangle, go3mf.Triangle{V1: v1, V2: v2, V3: v3})
 			}
 		}
