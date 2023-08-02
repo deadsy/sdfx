@@ -166,13 +166,3 @@ func (vg *VoxelGrid) Iterate(f func(int, int, int, []*Element)) {
 		}
 	}
 }
-
-//-----------------------------------------------------------------------------
-
-// Count separate components consisting of disconnected finite elements.
-// They cause FEA solver to throw error.
-func (vg *VoxelGrid) CountComponents() int {
-	return 0
-}
-
-//-----------------------------------------------------------------------------
