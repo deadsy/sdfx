@@ -4,7 +4,7 @@ package buffer
 // They cause FEA solver to throw error.
 func (vg *VoxelGrid) CountComponents() int {
 	// Map key is (x, y, z) index of voxel.
-	visited := make(map[[3]int]bool, vg.Len.X*vg.Len.Y*vg.Len.Z)
+	visited := make(map[[3]int]bool)
 	count := 0
 	for z := 0; z < vg.Len.Z; z++ {
 		for y := 0; y < vg.Len.Y; y++ {
