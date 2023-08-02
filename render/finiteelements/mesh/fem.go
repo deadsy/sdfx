@@ -134,11 +134,54 @@ func (m *Fem) VoxelsIntersecting(points []v3.Vec) ([]v3i.Vec, v3.Vec, v3.Vec) {
 // Count separate components consisting of disconnected finite elements.
 // They cause FEA solver to throw error.
 func (m *Fem) CountComponents() int {
+	// Map key is (x, y, z) index of voxel.
+	visited := make(map[[3]int]bool, m.IBuff.Grid.Len.X*m.IBuff.Grid.Len.Y*m.IBuff.Grid.Len.Z)
+	count := 0
 	process := func(x, y, z int, els []*buffer.Element) {
+		if !visited[[3]int{x, y, z}] {
+			count++
+			m.bfs(visited, [3]int{x, y, z})
+		}
 	}
-
 	m.iterate(process)
-	return 0
+	return count
+}
+
+func (m *Fem) bfs(visited map[[3]int]bool, start [3]int) {
+	queue := [][3]int{start}
+	visited[start] = true
+
+	for len(queue) > 0 {
+		v := queue[0]
+		queue = queue[1:]
+
+		neighbors := make([][3]int, 0)
+		for i := -1; i <= +1; i++ {
+			for j := -1; j <= +1; j++ {
+				for k := -1; k <= +1; k++ {
+					x := v[0] + i
+					y := v[1] + j
+					z := v[2] + k
+					if x >= 0 && x < m.IBuff.Grid.Len.X &&
+						y >= 0 && y < m.IBuff.Grid.Len.Y &&
+						z >= 0 && z < m.IBuff.Grid.Len.Z {
+						if x != v[0] && y != v[1] && z != v[2] {
+							// Overlapping voxel.
+						} else {
+							neighbors = append(neighbors, [3]int{x, y, z})
+						}
+					}
+				}
+			}
+		}
+
+		for _, n := range neighbors {
+			if !visited[n] {
+				visited[n] = true
+				queue = append(queue, n)
+			}
+		}
+	}
 }
 
 //-----------------------------------------------------------------------------
