@@ -46,60 +46,22 @@ func (vg *VoxelGrid) BFS(visited map[*Element]bool, start *Element, v [3]int) {
 func (vg *VoxelGrid) neighbors(e *Element, v [3]int) []*Element {
 	var neighbors []*Element
 
-	// The 3D directions to iterate over.
-	//
-	// Two voxels could be considered neighbors if:
-	// 1) They share a face.
-	// 2) They share an edge.
-	// 3) They share a corner.
-	//
-	// You'll need to adjust:
-	directions := [][3]int{
-		// Share a face:
-		{1, 0, 0},
-		{-1, 0, 0},
-		{0, 1, 0},
-		{0, -1, 0},
-		{0, 0, 1},
-		{0, 0, -1},
-		// Share an edge:
-		{1, 1, 0},
-		{1, -1, 0},
-		{-1, 1, 0},
-		{-1, -1, 0},
-		{0, 1, 1},
-		{0, 1, -1},
-		{0, -1, 1},
-		{0, -1, -1},
-		{1, 0, 1},
-		{1, 0, -1},
-		{-1, 0, 1},
-		{-1, 0, -1},
-		// Share a corner:
-		{1, 1, 1},
-		{1, 1, -1},
-		{1, -1, 1},
-		{1, -1, -1},
-		{-1, 1, 1},
-		{-1, 1, -1},
-		{-1, -1, 1},
-		{-1, -1, -1},
-		// Center voxel itself:
-		{0, 0, 0},
-	}
+	for i := -1; i <= 1; i++ {
+		for j := -1; j <= 1; j++ {
+			for k := -1; k <= 1; k++ {
+				x := v[0] + i
+				y := v[1] + j
+				z := v[2] + k
 
-	for _, direction := range directions {
-		x := v[0] + direction[0]
-		y := v[1] + direction[1]
-		z := v[2] + direction[2]
+				if !vg.isValid(x, y, z) {
+					continue
+				}
 
-		if !vg.isValid(x, y, z) {
-			continue
-		}
-
-		for _, el := range vg.Get(x, y, z) {
-			if sharesNode(e, el) {
-				neighbors = append(neighbors, el)
+				for _, el := range vg.Get(x, y, z) {
+					if sharesNode(e, el) {
+						neighbors = append(neighbors, el)
+					}
+				}
 			}
 		}
 	}
