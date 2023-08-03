@@ -47,8 +47,13 @@ func (vg *VoxelGrid) neighbors(e *Element, v [3]int) []*Element {
 	var neighbors []*Element
 
 	// The 3D directions to iterate over.
-	// Two voxels are considered neighbors if they share a face,
-	// i.e., they are adjacent along x, y, or z direction.
+	//
+	// Two voxels could be considered neighbors if:
+	// 1) They share a face.
+	// 2) They share an edge.
+	// 3) They share a corner.
+	//
+	// You'll need to adjust:
 	directions := [][3]int{
 		{1, 0, 0},
 		{-1, 0, 0},
