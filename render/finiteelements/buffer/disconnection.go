@@ -20,7 +20,6 @@ func (vg *VoxelGrid) VoxelComponents() int {
 }
 
 // Algorithm: breadth-first search (BFS).
-// This is much faster than depth first search (DFS) algorithm.
 func (vg *VoxelGrid) bfs(visited map[[3]int]bool, start [3]int) {
 	queue := [][3]int{start}
 	visited[start] = true
