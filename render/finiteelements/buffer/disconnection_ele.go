@@ -30,7 +30,7 @@ func (vg *VoxelGrid) BFS(visited map[[3]int]bool, start [3]int) {
 		v := queue[0]
 		queue = queue[1:]
 
-		neighbors := vg.nonemptyNeighbors(v)
+		neighbors := vg.neighbors(v)
 
 		for _, n := range neighbors {
 			if !visited[n] {
