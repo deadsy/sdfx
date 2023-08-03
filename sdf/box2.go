@@ -237,6 +237,57 @@ func (a Box2) MinMaxDist2(p v2.Vec) v2.Vec {
 
 //-----------------------------------------------------------------------------
 
+func (a *Box2) project(p0, p1 v2.Vec) (v2.Vec, error) {
+	// TODO
+	return v2.Vec{0, 0}, nil
+}
+
+// IntersectLine returns a line/box intersection.
+func (a *Box2) IntersectLine(l *Line2) *Line2 {
+
+	in0 := a.Contains(l[0])
+	in1 := a.Contains(l[1])
+
+	if in0 && in1 {
+		// both line segment endpoints are inside the box
+		return l
+	}
+
+	if in0 && !in1 {
+		// project in1 onto a box-side
+		p, _ := a.project(l[1], l[0])
+		if l[0].Equals(p, tolerance) {
+			return nil
+		}
+		return &Line2{l[0], p}
+	}
+
+	if !in0 && in1 {
+		// project in0 onto a box-side
+		p, _ := a.project(l[0], l[1])
+		if l[1].Equals(p, tolerance) {
+			return nil
+		}
+		return &Line2{p, l[1]}
+	}
+
+	// both end-points are outside the box.
+	p0, err := a.project(l[0], l[1])
+	if err != nil {
+		return nil
+	}
+	p1, err := a.project(l[1], l[0])
+	if err != nil {
+		return nil
+	}
+	if p0.Equals(p1, tolerance) {
+		return nil
+	}
+	return &Line2{p0, p1}
+}
+
+//-----------------------------------------------------------------------------
+
 // Random returns a random point within a 2d box.
 func (a *Box2) Random() v2.Vec {
 	return v2.Vec{
