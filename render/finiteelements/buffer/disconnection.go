@@ -30,7 +30,7 @@ func (vg *VoxelGrid) bfs(visited map[[3]int]bool, start [3]int) {
 		v := queue[0]
 		queue = queue[1:]
 
-		neighbors := vg.getNeighbors(v)
+		neighbors := vg.nonemptyNeighbors(v)
 
 		for _, n := range neighbors {
 			if !visited[n] {
@@ -41,8 +41,8 @@ func (vg *VoxelGrid) bfs(visited map[[3]int]bool, start [3]int) {
 	}
 }
 
-// It returns a list of neighbor voxels that are full, i.e. not empty.
-func (vg *VoxelGrid) getNeighbors(v [3]int) [][3]int {
+// It returns a list of neighbor voxels that are non-empty.
+func (vg *VoxelGrid) nonemptyNeighbors(v [3]int) [][3]int {
 	var neighbors [][3]int
 
 	// The 3D directions to iterate over.
