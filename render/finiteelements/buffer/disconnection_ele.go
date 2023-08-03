@@ -4,15 +4,17 @@ package buffer
 // They cause FEA solver to throw error.
 func (vg *VoxelGrid) Components() int {
 	// Map key is (x, y, z) index of voxel.
-	visited := make(map[[3]int]bool)
+	visited := make(map[*Element]bool)
 	count := 0
 	for z := 0; z < vg.Len.Z; z++ {
 		for y := 0; y < vg.Len.Y; y++ {
 			for x := 0; x < vg.Len.X; x++ {
-				// If voxel is not empty and if it's not already visited.
-				if len(vg.Get(x, y, z)) > 0 && !visited[[3]int{x, y, z}] {
-					count++
-					vg.BFS(visited, [3]int{x, y, z})
+				els := vg.Get(x, y, z)
+				for _, el := range els {
+					if !visited[el] {
+						count++
+						vg.BFS(visited, el, [3]int{x, y, z})
+					}
 				}
 			}
 		}
@@ -21,16 +23,15 @@ func (vg *VoxelGrid) Components() int {
 }
 
 // Algorithm: breadth-first search (BFS).
-// This is much faster than depth first search (DFS) algorithm.
-func (vg *VoxelGrid) BFS(visited map[[3]int]bool, start [3]int) {
-	queue := [][3]int{start}
+func (vg *VoxelGrid) BFS(visited map[*Element]bool, start *Element, v [3]int) {
+	queue := []*Element{start}
 	visited[start] = true
 
 	for len(queue) > 0 {
-		v := queue[0]
+		e := queue[0]
 		queue = queue[1:]
 
-		neighbors := vg.neighbors(v)
+		neighbors := vg.neighbors(e, v)
 
 		for _, n := range neighbors {
 			if !visited[n] {
@@ -42,8 +43,8 @@ func (vg *VoxelGrid) BFS(visited map[[3]int]bool, start [3]int) {
 }
 
 // It returns a list of neighbors.
-func (vg *VoxelGrid) neighbors(v [3]int) [][3]int {
-	var neighbors [][3]int
+func (vg *VoxelGrid) neighbors(e *Element, v [3]int) []*Element {
+	var neighbors []*Element
 
 	// The 3D directions to iterate over.
 	// Two voxels are considered neighbors if they share a face,
@@ -66,13 +67,35 @@ func (vg *VoxelGrid) neighbors(v [3]int) [][3]int {
 			continue
 		}
 
-		// Is neighbor voxel non-empty?
-		if len(vg.Get(x, y, z)) > 0 {
-			neighbors = append(neighbors, [3]int{x, y, z})
+		for _, el := range vg.Get(x, y, z) {
+			if sharesNode(e, el) {
+				neighbors = append(neighbors, el)
+			}
 		}
 	}
 
 	return neighbors
+}
+
+func sharesNode(e1, e2 *Element) bool {
+	if len(e1.Nodes) != len(e2.Nodes) {
+		return false
+	}
+	for _, n1 := range e1.Nodes {
+		if contains(e2.Nodes, n1) {
+			return true
+		}
+	}
+	return false
+}
+
+func contains(arr []uint32, i uint32) bool {
+	for _, n := range arr {
+		if n == i {
+			return true
+		}
+	}
+	return false
 }
 
 //-----------------------------------------------------------------------------
