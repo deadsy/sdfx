@@ -55,6 +55,8 @@ func (vg *VoxelGrid) neighbors(e *Element, v [3]int) []*Element {
 	//
 	// You'll need to adjust:
 	directions := [][3]int{
+		// The same voxel.
+		{0, 0, 0},
 		// Share a face:
 		{1, 0, 0},
 		{-1, 0, 0},
