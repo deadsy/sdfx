@@ -9,7 +9,8 @@ func (vg *VoxelGrid) CountComponents() int {
 	for z := 0; z < vg.Len.Z; z++ {
 		for y := 0; y < vg.Len.Y; y++ {
 			for x := 0; x < vg.Len.X; x++ {
-				if !visited[[3]int{x, y, z}] {
+				// If voxel is not empty and if it's not already visited.
+				if len(vg.Get(x, y, z)) > 0 && !visited[[3]int{x, y, z}] {
 					count++
 					vg.bfs(visited, [3]int{x, y, z})
 				}
