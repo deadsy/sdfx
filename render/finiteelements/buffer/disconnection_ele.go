@@ -63,7 +63,19 @@ func (vg *VoxelGrid) neighbors(e *Element, v [3]int) []*Element {
 		{0, 0, 1},
 		{0, 0, -1},
 		// Share an edge:
-		// TODO.
+		{1, 1, 0},
+		{1, -1, 0},
+		{-1, 1, 0},
+		{-1, -1, 0},
+		{0, 1, 1},
+		{0, 1, -1},
+		{0, -1, 1},
+		{0, -1, -1},
+		// Share a corner:
+		{1, 1, 1},
+		{1, -1, -1},
+		{-1, 1, -1},
+		{-1, -1, 1},
 	}
 
 	for _, direction := range directions {
