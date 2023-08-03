@@ -73,24 +73,21 @@ func qtBuild(level int, box Box2, vInfo []vertexInfo, vSet []int) *qtNode {
 }
 
 // searchOrder returns the child search order for this node.
-// Order by minimum distance to child box.
+// Order by minimum distance to the child boxes.
 func (node *qtNode) searchOrder(p v2.Vec) [4]int {
 	// translate the point so the node box center is at the origin
 	p = p.Sub(node.box.Center())
-	// gradient of box diagonal
-	size := node.box.Size()
-	m := size.Y / size.X
 	if p.X >= 0 {
 		if p.Y >= 0 {
 			// quad3
-			if p.Y >= m*p.X {
+			if p.Y >= p.X {
 				return [4]int{3, 2, 1, 0}
 			} else {
 				return [4]int{3, 1, 2, 0}
 			}
 		} else {
 			// quad1
-			if p.Y <= -m*p.X {
+			if p.Y <= -p.X {
 				return [4]int{1, 0, 3, 2}
 			} else {
 				return [4]int{1, 3, 0, 2}
@@ -99,14 +96,14 @@ func (node *qtNode) searchOrder(p v2.Vec) [4]int {
 	} else {
 		if p.Y >= 0 {
 			// quad2
-			if p.Y >= -m*p.X {
+			if p.Y >= -p.X {
 				return [4]int{2, 3, 0, 1}
 			} else {
 				return [4]int{2, 0, 3, 1}
 			}
 		} else {
 			// quad0
-			if p.Y <= m*p.X {
+			if p.Y <= p.X {
 				return [4]int{0, 1, 2, 3}
 			} else {
 				return [4]int{0, 2, 1, 3}
@@ -115,19 +112,49 @@ func (node *qtNode) searchOrder(p v2.Vec) [4]int {
 	}
 }
 
+// minBoxDist2 returns the minimum distance squared from a point to the node box.
+// Inside the box is a zero distance.
 func (node *qtNode) minBoxDist2(p v2.Vec) float64 {
+	// translate the point so the node box center is at the origin
+	// work in a single quadrant
+	p = p.Sub(node.box.Center()).Abs()
+	// half the box side
+	k := 0.5 * (node.box.Max.X - node.box.Min.X)
+	dx := p.X - k
+	dy := p.Y - k
+	// inside the box
+	if dx < 0 && dy < 0 {
+		return 0
+	}
+	if dy < 0 {
+		return dx * dx
+	}
+	if dx < 0 {
+		return dy * dy
+	}
+	return (dx * dx) + (dy * dy)
+}
 
-	return 0
+var leafCount int
+
+// minFeatureDist2 returns the minimum distance squared from a point to the leaf feature.
+func (node *qtNode) minLeafDist2(p v2.Vec) float64 {
+	fmt.Printf("leaf %d\n", leafCount)
+	leafCount += 1
+	return p.Sub(node.vInfo.vertex).Length2()
 }
 
 func (node *qtNode) minDist2(p v2.Vec, dist2 float64) float64 {
+
+	if node != nil {
+		fmt.Printf("%f %d %v\n", dist2, node.level, node.box)
+	}
+
 	if node == nil || node.minBoxDist2(p) >= dist2 {
 		return dist2
 	}
 	if node.vInfo != nil {
-		// TODO actual calculation
-		x := 100.0
-		return math.Min(dist2, x)
+		return math.Min(dist2, node.minLeafDist2(p))
 	}
 	// search the child nodes
 	order := node.searchOrder(p)
@@ -135,34 +162,6 @@ func (node *qtNode) minDist2(p v2.Vec, dist2 float64) float64 {
 		dist2 = node.child[i].minDist2(p, dist2)
 	}
 	return dist2
-}
-
-func (node *qtNode) countLeaves() int {
-	if node == nil {
-		return 0
-	}
-	if node.vInfo != nil {
-		return 1
-	}
-	n := node.child[0].countLeaves()
-	n += node.child[1].countLeaves()
-	n += node.child[2].countLeaves()
-	n += node.child[3].countLeaves()
-	return n
-}
-
-func (node *qtNode) maxLevel() int {
-	if node == nil {
-		return 0
-	}
-	if node.vInfo != nil {
-		return node.level
-	}
-	l0 := node.child[0].maxLevel()
-	l1 := node.child[1].maxLevel()
-	l2 := node.child[2].maxLevel()
-	l3 := node.child[3].maxLevel()
-	return maxInt(maxInt(l0, l1), maxInt(l2, l3))
 }
 
 //-----------------------------------------------------------------------------
@@ -187,8 +186,9 @@ func Mesh2D(mesh []*Line2) (SDF2, error) {
 	for _, edge := range mesh {
 		bb = bb.Include(edge[0]).Include(edge[1])
 	}
-	// scale the bounding box slightly to contain vertices on the max edge
-	bb = bb.ScaleAboutCenter(1.01)
+	// square up the bounding box
+	// scale it slightly to contain vertices on the max edge
+	bb = bb.Square().ScaleAboutCenter(1.01)
 
 	// create the vertex information
 	vIndex := make(map[v2.Vec]int)
@@ -224,14 +224,14 @@ func Mesh2D(mesh []*Line2) (SDF2, error) {
 
 // Evaluate returns the minimum distance for a 2d mesh.
 func (s *MeshSDF2) Evaluate(p v2.Vec) float64 {
+	dist2 := s.qt.minDist2(p, math.MaxFloat64)
+	return math.Sqrt(dist2)
+}
 
-	fmt.Printf("bb: %v\n", s.bb)
-	fmt.Printf("edges: %d\n", len(s.mesh))
-	fmt.Printf("vertices: %d\n", len(s.vInfo))
-	fmt.Printf("leaves: %d\n", s.qt.countLeaves())
-	fmt.Printf("max level: %d\n", s.qt.maxLevel())
-
-	return 0
+// EvaluateSlow returns the minimum distance for a 2d mesh (slowly).
+func (s *MeshSDF2) EvaluateSlow(p v2.Vec) float64 {
+	dist2 := 0.0
+	return math.Sqrt(dist2)
 }
 
 // BoundingBox returns the bounding box of a 2d mesh.

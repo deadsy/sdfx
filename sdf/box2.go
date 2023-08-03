@@ -71,6 +71,12 @@ func (a Box2) Enlarge(v v2.Vec) Box2 {
 	return Box2{a.Min.Sub(v), a.Max.Add(v)}
 }
 
+// Square returns a square box larger than the original box.
+func (a Box2) Square() Box2 {
+	side := a.Size().MaxComponent()
+	return Box2{a.Min, a.Min.Add(v2.Vec{side, side})}
+}
+
 // Contains checks if the 2d box contains the vector.
 // Note: Min boundary is in, Max boundary is out.
 func (a Box2) Contains(v v2.Vec) bool {
