@@ -45,7 +45,9 @@ func (vg *VoxelGrid) bfs(visited map[[3]int]bool, start [3]int) {
 func (vg *VoxelGrid) getNeighbors(v [3]int) [][3]int {
 	var neighbors [][3]int
 
-	// The 3D directions to iterate over
+	// The 3D directions to iterate over.
+	// Two voxels are considered neighbors if they share a face,
+	// i.e., they are adjacent along x, y, or z direction.
 	directions := [][3]int{
 		{1, 0, 0},
 		{-1, 0, 0},
@@ -60,9 +62,7 @@ func (vg *VoxelGrid) getNeighbors(v [3]int) [][3]int {
 		y := v[1] + direction[1]
 		z := v[2] + direction[2]
 
-		if x >= 0 && x < vg.Len.X && y >= 0 && y < vg.Len.Y && z >= 0 && z < vg.Len.Z {
-			// Index is valid.
-		} else {
+		if !vg.isValid(x, y, z) {
 			continue
 		}
 
@@ -73,6 +73,11 @@ func (vg *VoxelGrid) getNeighbors(v [3]int) [][3]int {
 	}
 
 	return neighbors
+}
+
+// Is voxel index inside a valid range?
+func (vg *VoxelGrid) isValid(x, y, z int) bool {
+	return x >= 0 && y >= 0 && z >= 0 && x < vg.Len.X && y < vg.Len.Y && z < vg.Len.Z
 }
 
 //-----------------------------------------------------------------------------
