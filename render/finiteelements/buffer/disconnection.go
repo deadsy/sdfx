@@ -2,7 +2,7 @@ package buffer
 
 // Count separate components consisting of disconnected finite elements.
 // They cause FEA solver to throw error.
-func (vg *VoxelGrid) CountComponents() int {
+func (vg *VoxelGrid) VoxelComponents() int {
 	// Map key is (x, y, z) index of voxel.
 	visited := make(map[[3]int]bool)
 	count := 0
