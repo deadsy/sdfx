@@ -44,32 +44,34 @@ func (vg *VoxelGrid) bfs(visited map[[3]int]bool, start [3]int) {
 // It returns a list of neighbor voxels that are full, i.e. not empty.
 func (vg *VoxelGrid) getNeighbors(v [3]int) [][3]int {
 	var neighbors [][3]int
-	for i := -1; i <= 1; i++ {
-		for j := -1; j <= 1; j++ {
-			for k := -1; k <= 1; k++ {
-				if i == 0 && j == 0 && k == 0 {
-					continue
-				}
 
-				x := v[0] + i
-				y := v[1] + j
-				z := v[2] + k
+	// The 3D directions to iterate over
+	directions := [][3]int{
+		{1, 0, 0},
+		{-1, 0, 0},
+		{0, 1, 0},
+		{0, -1, 0},
+		{0, 0, 1},
+		{0, 0, -1},
+	}
 
-				if x >= 0 && x < vg.Len.X &&
-					y >= 0 && y < vg.Len.Y &&
-					z >= 0 && z < vg.Len.Z {
-					// Index is valid.
-				} else {
-					continue
-				}
+	for _, direction := range directions {
+		x := v[0] + direction[0]
+		y := v[1] + direction[1]
+		z := v[2] + direction[2]
 
-				// Is neighbor voxel empty or not?
-				if len(vg.Get(x, y, z)) > 0 {
-					neighbors = append(neighbors, [3]int{x, y, z})
-				}
-			}
+		if x >= 0 && x < vg.Len.X && y >= 0 && y < vg.Len.Y && z >= 0 && z < vg.Len.Z {
+			// Index is valid.
+		} else {
+			continue
+		}
+
+		// Is neighbor voxel non-empty?
+		if len(vg.Get(x, y, z)) > 0 {
+			neighbors = append(neighbors, [3]int{x, y, z})
 		}
 	}
+
 	return neighbors
 }
 
