@@ -278,7 +278,7 @@ func (inp *Inp) writeElements() error {
 		return err
 	}
 
-	_, err = fC3D10.WriteString(fmt.Sprintf("*ELEMENT, TYPE=%s, ELSET=e3D10\n", "C3D10"))
+	_, err = fC3D10.WriteString(fmt.Sprintf("*ELEMENT, TYPE=%s, ELSET=eC3D10\n", "C3D10"))
 	if err != nil {
 		return err
 	}
@@ -575,7 +575,7 @@ func (inp *Inp) writeFooter(f *os.File) error {
 	}
 
 	// Assign material to all elements
-	_, err = f.WriteString("*SOLID SECTION,MATERIAL=resin,ELSET=e3D10\n")
+	_, err = f.WriteString("*SOLID SECTION,MATERIAL=resin,ELSET=eC3D10\n")
 	if err != nil {
 		return err
 	}
@@ -641,7 +641,7 @@ func (inp *Inp) writeFooter(f *os.File) error {
 	}
 	_, err = f.WriteString(
 		fmt.Sprintf(
-			"e3D10,GRAV,%v,%v,%v,%v\n",
+			"eC3D10,GRAV,%v,%v,%v,%v\n",
 			inp.GravityMagnitude,
 			inp.GravityDirection.X, inp.GravityDirection.Y, inp.GravityDirection.Z,
 		),
