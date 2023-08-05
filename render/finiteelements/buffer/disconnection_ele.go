@@ -60,7 +60,7 @@ func (vg *VoxelGrid) neighbors(e *Element, v [3]int) []*Element {
 				for _, el := range vg.Get(x, y, z) {
 					if i == 0 && j == 0 && k == 0 {
 						// The same voxel: skip the same element.
-						if el != e {
+						if el == e {
 							continue
 						}
 					}
