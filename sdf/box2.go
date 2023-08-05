@@ -195,7 +195,7 @@ func (m *Map2) ToV2i(p v2.Vec) v2i.Vec {
 
 // MinMaxDist2 returns the minimum and maximum dist * dist from a point to a box.
 // Points within the box have minimum distance = 0.
-func (a Box2) MinMaxDist2(p v2.Vec) v2.Vec {
+func (a Box2) MinMaxDist2(p v2.Vec) Interval {
 	maxDist2 := 0.0
 	minDist2 := 0.0
 
@@ -232,7 +232,7 @@ func (a Box2) MinMaxDist2(p v2.Vec) v2.Vec {
 		}
 	}
 
-	return v2.Vec{minDist2, maxDist2}
+	return Interval{minDist2, maxDist2}
 }
 
 //-----------------------------------------------------------------------------
@@ -256,18 +256,12 @@ func (a *Box2) IntersectLine(l *Line2) *Line2 {
 	if in0 && !in1 {
 		// project in1 onto a box-side
 		p, _ := a.project(l[1], l[0])
-		if l[0].Equals(p, tolerance) {
-			return nil
-		}
 		return &Line2{l[0], p}
 	}
 
 	if !in0 && in1 {
 		// project in0 onto a box-side
 		p, _ := a.project(l[0], l[1])
-		if l[1].Equals(p, tolerance) {
-			return nil
-		}
 		return &Line2{p, l[1]}
 	}
 

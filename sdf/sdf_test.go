@@ -721,15 +721,15 @@ func Test_Box2_Distances(t *testing.T) {
 	tests := []struct {
 		b      Box2
 		p      v2.Vec
-		result v2.Vec
+		result Interval
 	}{
-		{b0, v2.Vec{0, 0}, v2.Vec{0, 50}},
-		{b0, v2.Vec{5, 5}, v2.Vec{0, 200}},
-		{b0, v2.Vec{20, 0}, v2.Vec{225, 650}},
-		{b1, v2.Vec{0, 0}, v2.Vec{0, 2225}},
-		{b1, v2.Vec{10, 20}, v2.Vec{0, 625}},
-		{b1, v2.Vec{0, -10}, v2.Vec{100, 3125}},
-		{b1, v2.Vec{0, 5}, v2.Vec{0, 1850}},
+		{b0, v2.Vec{0, 0}, Interval{0, 50}},
+		{b0, v2.Vec{5, 5}, Interval{0, 200}},
+		{b0, v2.Vec{20, 0}, Interval{225, 650}},
+		{b1, v2.Vec{0, 0}, Interval{0, 2225}},
+		{b1, v2.Vec{10, 20}, Interval{0, 625}},
+		{b1, v2.Vec{0, -10}, Interval{100, 3125}},
+		{b1, v2.Vec{0, 5}, Interval{0, 1850}},
 	}
 	for _, v := range tests {
 		x := v.b.MinMaxDist2(v.p)
