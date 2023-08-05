@@ -71,6 +71,12 @@ func (a Box2) Enlarge(v v2.Vec) Box2 {
 	return Box2{a.Min.Sub(v), a.Max.Add(v)}
 }
 
+// Square returns a square box larger than the original box.
+func (a Box2) Square() Box2 {
+	side := a.Size().MaxComponent()
+	return Box2{a.Min, a.Min.Add(v2.Vec{side, side})}
+}
+
 // Contains checks if the 2d box contains the vector.
 // Note: Min boundary is in, Max boundary is out.
 func (a Box2) Contains(v v2.Vec) bool {
@@ -227,6 +233,57 @@ func (a Box2) MinMaxDist2(p v2.Vec) v2.Vec {
 	}
 
 	return v2.Vec{minDist2, maxDist2}
+}
+
+//-----------------------------------------------------------------------------
+
+func (a *Box2) project(p0, p1 v2.Vec) (v2.Vec, error) {
+	// TODO
+	return v2.Vec{0, 0}, nil
+}
+
+// IntersectLine returns a line/box intersection.
+func (a *Box2) IntersectLine(l *Line2) *Line2 {
+
+	in0 := a.Contains(l[0])
+	in1 := a.Contains(l[1])
+
+	if in0 && in1 {
+		// both line segment endpoints are inside the box
+		return l
+	}
+
+	if in0 && !in1 {
+		// project in1 onto a box-side
+		p, _ := a.project(l[1], l[0])
+		if l[0].Equals(p, tolerance) {
+			return nil
+		}
+		return &Line2{l[0], p}
+	}
+
+	if !in0 && in1 {
+		// project in0 onto a box-side
+		p, _ := a.project(l[0], l[1])
+		if l[1].Equals(p, tolerance) {
+			return nil
+		}
+		return &Line2{p, l[1]}
+	}
+
+	// both end-points are outside the box.
+	p0, err := a.project(l[0], l[1])
+	if err != nil {
+		return nil
+	}
+	p1, err := a.project(l[1], l[0])
+	if err != nil {
+		return nil
+	}
+	if p0.Equals(p1, tolerance) {
+		return nil
+	}
+	return &Line2{p0, p1}
 }
 
 //-----------------------------------------------------------------------------
