@@ -77,14 +77,13 @@ func (a Box2) Square() Box2 {
 	return Box2{a.Min, a.Min.Add(v2.Vec{side, side})}
 }
 
-// Contains checks if the 2d box contains the vector.
-// Note: Min boundary is in, Max boundary is out.
+// Contains checks if the 2d box contains the point.
 func (a Box2) Contains(v v2.Vec) bool {
-	return a.Min.X <= v.X && a.Min.Y <= v.Y &&
-		v.X < a.Max.X && v.Y < a.Max.Y
+	return a.Min.X <= v.X && a.Min.Y <= v.Y && v.X <= a.Max.X && v.Y <= a.Max.Y
 }
 
 //-----------------------------------------------------------------------------
+// Box Sub-Quadrants
 
 // Quad0 returns the 0th quadtree box of a box (lower-left/south-west).
 func (a Box2) Quad0() Box2 {
@@ -237,47 +236,68 @@ func (a Box2) MinMaxDist2(p v2.Vec) Interval {
 
 //-----------------------------------------------------------------------------
 
-func (a *Box2) project(p0, p1 v2.Vec) (v2.Vec, error) {
-	// TODO
-	return v2.Vec{0, 0}, nil
-}
-
 // IntersectLine returns a line/box intersection.
 func (a *Box2) IntersectLine(l *Line2) *Line2 {
 
-	in0 := a.Contains(l[0])
-	in1 := a.Contains(l[1])
+	tSet := []float64{0, 1}
 
-	if in0 && in1 {
-		// both line segment endpoints are inside the box
-		return l
-	}
+	u := l[0]
+	v := l[1].Sub(l[0])
 
-	if in0 && !in1 {
-		// project in1 onto a box-side
-		p, _ := a.project(l[1], l[0])
-		return &Line2{l[0], p}
-	}
-
-	if !in0 && in1 {
-		// project in0 onto a box-side
-		p, _ := a.project(l[0], l[1])
-		return &Line2{p, l[1]}
-	}
-
-	// both end-points are outside the box.
-	p0, err := a.project(l[0], l[1])
-	if err != nil {
+	if v.Y == 0 && u.Y == a.Max.Y {
+		// no solutions on the top box edge
 		return nil
 	}
-	p1, err := a.project(l[1], l[0])
-	if err != nil {
+
+	if v.X == 0 && u.X == a.Max.X {
+		// no solutions on the right box edge
 		return nil
 	}
-	if p0.Equals(p1, tolerance) {
+
+	if v.Y != 0 {
+		// consider intersection with y-sides (top/bottom)
+		k := 1.0 / v.Y
+		tSet = append(tSet, (a.Min.Y-u.Y)*k)
+		tSet = append(tSet, (a.Max.Y-u.Y)*k)
+	}
+
+	if v.X != 0 {
+		// consider intersection with x-sides (left/right)
+		k := 1.0 / v.X
+		tSet = append(tSet, (a.Min.X-u.X)*k)
+		tSet = append(tSet, (a.Max.X-u.X)*k)
+	}
+
+	// filter the t-values
+	var pSet []v2.Vec
+	tMap := make(map[float64]bool)
+	for _, t := range tSet {
+		// is the t-value in range
+		if t < 0 || t > 1 {
+			continue
+		}
+		// remove duplicates
+		if _, ok := tMap[t]; ok {
+			continue
+		}
+		tMap[t] = true
+		// is the point in the box?
+		p := u.Add(v.MulScalar(t))
+		if a.Contains(p) {
+			pSet = append(pSet, p)
+		}
+	}
+
+	if len(pSet) != 2 {
 		return nil
 	}
-	return &Line2{p0, p1}
+
+	// make sure it's aligned with the original line
+	vx := pSet[1].Sub(pSet[0])
+	if v.Dot(vx) > 0 {
+		return &Line2{pSet[0], pSet[1]}
+	}
+	return &Line2{pSet[1], pSet[0]}
 }
 
 //-----------------------------------------------------------------------------

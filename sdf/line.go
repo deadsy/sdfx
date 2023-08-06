@@ -73,6 +73,10 @@ func (a *Line2) Reverse() *Line2 {
 	return &Line2{a[1], a[0]}
 }
 
+func (a *Line2) Equals(b *Line2, tolerance float64) bool {
+	return a[0].Equals(b[0], tolerance) && a[1].Equals(b[1], tolerance)
+}
+
 // Degenerate returns true if the line is degenerate.
 func (a Line2) Degenerate(tolerance float64) bool {
 	// check for identical vertices
