@@ -82,34 +82,27 @@ func (node *qtNode) searchOrder(p v2.Vec) [4]int {
 			// quad3
 			if p.Y >= p.X {
 				return [4]int{3, 2, 1, 0}
-			} else {
-				return [4]int{3, 1, 2, 0}
 			}
-		} else {
-			// quad1
-			if p.Y <= -p.X {
-				return [4]int{1, 0, 3, 2}
-			} else {
-				return [4]int{1, 3, 0, 2}
-			}
+			return [4]int{3, 1, 2, 0}
 		}
-	} else {
-		if p.Y >= 0 {
-			// quad2
-			if p.Y >= -p.X {
-				return [4]int{2, 3, 0, 1}
-			} else {
-				return [4]int{2, 0, 3, 1}
-			}
-		} else {
-			// quad0
-			if p.Y <= p.X {
-				return [4]int{0, 1, 2, 3}
-			} else {
-				return [4]int{0, 2, 1, 3}
-			}
+		// quad1
+		if p.Y <= -p.X {
+			return [4]int{1, 0, 3, 2}
 		}
+		return [4]int{1, 3, 0, 2}
 	}
+	if p.Y >= 0 {
+		// quad2
+		if p.Y >= -p.X {
+			return [4]int{2, 3, 0, 1}
+		}
+		return [4]int{2, 0, 3, 1}
+	}
+	// quad0
+	if p.Y <= p.X {
+		return [4]int{0, 1, 2, 3}
+	}
+	return [4]int{0, 2, 1, 3}
 }
 
 // minBoxDist2 returns the minimum distance squared from a point to the node box.
@@ -140,7 +133,7 @@ var leafCount int
 // minFeatureDist2 returns the minimum distance squared from a point to the leaf feature.
 func (node *qtNode) minLeafDist2(p v2.Vec) float64 {
 	fmt.Printf("leaf %d\n", leafCount)
-	leafCount += 1
+	leafCount++
 	return p.Sub(node.vInfo.vertex).Length2()
 }
 
@@ -251,7 +244,7 @@ func PolygonToMesh(p *Polygon) ([]*Line2, error) {
 	// Close the loop (if necessary)
 	if !vertex[0].Equals(vertex[n-1], tolerance) {
 		vertex = append(vertex, vertex[0])
-		n += 1
+		n++
 	}
 	// create the mesh line segments
 	mesh := make([]*Line2, n-1)

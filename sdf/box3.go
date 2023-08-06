@@ -11,7 +11,6 @@ package sdf
 import (
 	"math"
 
-	v2 "github.com/deadsy/sdfx/vec/v2"
 	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
@@ -95,7 +94,7 @@ func (a Box3) Vertices() v3.VecSet {
 
 // MinMaxDist2 returns the minimum and maximum dist * dist from a point to a box.
 // Points within the box have minimum distance = 0.
-func (a Box3) MinMaxDist2(p v3.Vec) v2.Vec {
+func (a Box3) MinMaxDist2(p v3.Vec) Interval {
 	maxDist2 := 0.0
 	minDist2 := 0.0
 
@@ -136,7 +135,7 @@ func (a Box3) MinMaxDist2(p v3.Vec) v2.Vec {
 		}
 	}
 
-	return v2.Vec{minDist2, maxDist2}
+	return Interval{minDist2, maxDist2}
 }
 
 //-----------------------------------------------------------------------------

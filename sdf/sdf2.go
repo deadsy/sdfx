@@ -605,14 +605,14 @@ func Union2D(sdf ...SDF2) SDF2 {
 func (s *UnionSDF2) Evaluate(p v2.Vec) float64 {
 
 	// work out the min/max distance for every bounding box
-	vs := make([]v2.Vec, len(s.sdf))
+	vs := make([]Interval, len(s.sdf))
 	minDist2 := -1.0
 	minIndex := 0
 	for i := range s.sdf {
 		vs[i] = s.sdf[i].BoundingBox().MinMaxDist2(p)
 		// as we go record the sdf with the minimum minimum d2 value
-		if minDist2 < 0 || vs[i].X < minDist2 {
-			minDist2 = vs[i].X
+		if minDist2 < 0 || vs[i][0] < minDist2 {
+			minDist2 = vs[i][0]
 			minIndex = i
 		}
 	}

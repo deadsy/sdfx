@@ -10,10 +10,42 @@ package sdf
 
 import (
 	"fmt"
+	"math"
 
 	v2 "github.com/deadsy/sdfx/vec/v2"
 	"github.com/dhconnelly/rtreego"
 )
+
+//-----------------------------------------------------------------------------
+
+// Interval is a closed interval on real numbers.
+type Interval [2]float64
+
+// Sort sorts the interval endpoints lowest to highest.
+func (a Interval) Sort() Interval {
+	if a[0] <= a[1] {
+		return a
+	}
+	return Interval{a[1], a[0]}
+}
+
+// Equals returns true if a == b within the tolerance limit.
+func (a Interval) Equals(b Interval, tolerance float64) bool {
+	return math.Abs(a[0]-b[0]) <= tolerance && math.Abs(a[1]-b[1]) <= tolerance
+}
+
+// Overlap returns true if two intervals overlap.
+func (a Interval) Overlap(b Interval) bool {
+	return b[0] <= a[1] && a[0] <= b[1]
+}
+
+// Intersect returns the intersection of two intervals.
+func (a Interval) Intersect(b Interval) *Interval {
+	if a.Overlap(b) {
+		return &Interval{math.Max(a[0], b[0]), math.Min(a[1], b[1])}
+	}
+	return nil
+}
 
 //-----------------------------------------------------------------------------
 
@@ -25,21 +57,79 @@ func v2ToPoint(v v2.Vec) rtreego.Point {
 }
 
 // BoundingBox returns a bounding box for the line.
-func (l *Line2) BoundingBox() Box2 {
-	return Box2{Min: l[0], Max: l[0]}.Include(l[1])
+func (a *Line2) BoundingBox() Box2 {
+	return Box2{Min: a[0], Max: a[0]}.Include(a[1])
 }
 
 // Bounds returns a r-tree bounding rectangle for the line.
-func (l *Line2) Bounds() *rtreego.Rect {
-	b := l.BoundingBox()
-	r, _ := rtreego.NewRectFromPoints(v2ToPoint(b.Min), v2ToPoint(b.Max))
+func (a *Line2) Bounds() *rtreego.Rect {
+	bb := a.BoundingBox()
+	r, _ := rtreego.NewRectFromPoints(v2ToPoint(bb.Min), v2ToPoint(bb.Max))
 	return r
 }
 
+// Reverse the direction of a line segment.
+func (a *Line2) Reverse() *Line2 {
+	return &Line2{a[1], a[0]}
+}
+
+func (a *Line2) Equals(b *Line2, tolerance float64) bool {
+	return a[0].Equals(b[0], tolerance) && a[1].Equals(b[1], tolerance)
+}
+
 // Degenerate returns true if the line is degenerate.
-func (l Line2) Degenerate(tolerance float64) bool {
+func (a Line2) Degenerate(tolerance float64) bool {
 	// check for identical vertices
-	return l[0].Equals(l[1], tolerance)
+	return a[0].Equals(a[1], tolerance)
+}
+
+// IntersectLine intersects 2 line segments.
+// https://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect
+func (a *Line2) IntersectLine(b *Line2) []v2.Vec {
+
+	p := a[0]
+	r := a[1].Sub(a[0])
+	q := b[0]
+	s := b[1].Sub(b[0])
+
+	k0 := r.Cross(s)        // r x s
+	k1 := q.Sub(p).Cross(r) // (q - p) x r
+
+	if k0 == 0 {
+		if k1 != 0 {
+			// parallel, non-intersecting
+			return nil
+		}
+
+		// collinear lines
+		k2 := 1.0 / r.Dot(r)
+		t0 := q.Sub(p).Dot(r) * k2
+		t1 := t0 + s.Dot(r)*k2
+
+		t := Interval{t0, t1}.Sort()
+		x := t.Intersect(Interval{0, 1})
+		if x != nil {
+			// collinear, intersecting
+			p0 := p.Add(r.MulScalar(x[0]))
+			if x[0] == x[1] {
+				return []v2.Vec{p0}
+			}
+			p1 := p.Add(r.MulScalar(x[1]))
+			return []v2.Vec{p0, p1}
+		}
+
+		// collinear, non-intersecting
+		return nil
+	}
+	// non-parallel
+	u := k1 / k0
+	t := q.Sub(p).Cross(s) / k0
+	if u >= 0 && u <= 1 && t >= 0 && t <= 1 {
+		p0 := p.Add(r.MulScalar(t))
+		return []v2.Vec{p0}
+	}
+	// non-parallel, non-intersecting
+	return nil
 }
 
 //-----------------------------------------------------------------------------
