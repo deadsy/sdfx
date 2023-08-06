@@ -84,9 +84,9 @@ func (vg *VoxelGrid) neighbors(e *Element, v [3]int) ([]*Element, [][3]int) {
 }
 
 func sharesNode(e1, e2 *Element) bool {
-	if len(e1.Nodes) != len(e2.Nodes) {
-		return false
-	}
+	// The node count doesn't need to be equal for the two elements.
+	// Since, the two elements could be of different types.
+
 	for _, n1 := range e1.Nodes {
 		if contains(e2.Nodes, n1) {
 			return true
