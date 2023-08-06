@@ -23,28 +23,35 @@ func (vg *VoxelGrid) Components() int {
 }
 
 // Algorithm: breadth-first search (BFS).
-func (vg *VoxelGrid) BFS(visited map[*Element]bool, start *Element, v [3]int) {
+func (vg *VoxelGrid) BFS(visited map[*Element]bool, start *Element, startV [3]int) {
 	queue := []*Element{start}
+	quVox := [][3]int{startV} // To store the voxel of each element.
 	visited[start] = true
 
 	for len(queue) > 0 {
 		e := queue[0]
+		v := quVox[0]
 		queue = queue[1:]
+		quVox = quVox[1:]
 
-		neighbors := vg.neighbors(e, v)
+		neighbors, neighVoxs := vg.neighbors(e, v)
 
-		for _, n := range neighbors {
+		for i := range neighbors {
+			n := neighbors[i]
+			nv := neighVoxs[i]
 			if !visited[n] {
 				visited[n] = true
 				queue = append(queue, n)
+				quVox = append(quVox, nv)
 			}
 		}
 	}
 }
 
 // It returns a list of neighbors.
-func (vg *VoxelGrid) neighbors(e *Element, v [3]int) []*Element {
+func (vg *VoxelGrid) neighbors(e *Element, v [3]int) ([]*Element, [][3]int) {
 	var neighbors []*Element
+	var neighVoxs [][3]int
 
 	for i := -1; i <= 1; i++ {
 		for j := -1; j <= 1; j++ {
@@ -66,13 +73,14 @@ func (vg *VoxelGrid) neighbors(e *Element, v [3]int) []*Element {
 					}
 					if sharesNode(e, el) {
 						neighbors = append(neighbors, el)
+						neighVoxs = append(neighVoxs, [3]int{x, y, z})
 					}
 				}
 			}
 		}
 	}
 
-	return neighbors
+	return neighbors, neighVoxs
 }
 
 func sharesNode(e1, e2 *Element) bool {
