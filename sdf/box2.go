@@ -236,8 +236,8 @@ func (a Box2) MinMaxDist2(p v2.Vec) Interval {
 
 //-----------------------------------------------------------------------------
 
-// IntersectLine returns a line/box intersection.
-func (a *Box2) IntersectLine(l *Line2) *Line2 {
+// lineIntersect returns a line/box intersection.
+func (a *Box2) lineIntersect(l *Line2) *Line2 {
 
 	tSet := []float64{0, 1}
 
@@ -252,6 +252,11 @@ func (a *Box2) IntersectLine(l *Line2) *Line2 {
 	if v.X == 0 && u.X == a.Max.X {
 		// no solutions on the right box edge
 		return nil
+	}
+
+	// early exit for a line entirely within the box
+	if a.Contains(l[0]) && a.Contains(l[1]) {
+		return l
 	}
 
 	if v.Y != 0 {
@@ -298,6 +303,18 @@ func (a *Box2) IntersectLine(l *Line2) *Line2 {
 		return &Line2{pSet[0], pSet[1]}
 	}
 	return &Line2{pSet[1], pSet[0]}
+}
+
+// lineFilter returns the intersection of a box and a set of line segments.
+func (a *Box2) lineFilter(lSet []*Line2) []*Line2 {
+	var out []*Line2
+	for _, l := range lSet {
+		x := a.lineIntersect(l)
+		if x != nil {
+			out = append(out, x)
+		}
+	}
+	return out
 }
 
 //-----------------------------------------------------------------------------

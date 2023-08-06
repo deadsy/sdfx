@@ -79,13 +79,11 @@ func test() error {
 		return err
 	}
 
-	x := v2.Vec{0, 0}
-
-	d0 := s.Evaluate(x)
-	log.Printf("fast d0 %f", d0)
-
-	d1 := s.(*sdf.MeshSDF2).EvaluateSlow(x)
-	log.Printf("slow d1 %f", d1)
+	for _, x := range []v2.Vec{{0, 0}, {50, 50}, {-50, -50}} {
+		d0 := s.Evaluate(x)
+		d1 := s.(*sdf.MeshSDF2).EvaluateSlow(x)
+		log.Printf("fast %f slow %f", d0, d1)
+	}
 
 	return nil
 }

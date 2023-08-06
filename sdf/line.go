@@ -83,6 +83,14 @@ func (a Line2) Degenerate(tolerance float64) bool {
 	return a[0].Equals(a[1], tolerance)
 }
 
+// minDistance2 returns the minium distance squared between a point and the line.
+func (a *Line2) minDistance2(p v2.Vec) float64 {
+	d0 := a[0].Sub(p).Length2()
+	d1 := a[1].Sub(p).Length2()
+	// TODO - normal distance
+	return math.Min(d0, d1)
+}
+
 // IntersectLine intersects 2 line segments.
 // https://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect
 func (a *Line2) IntersectLine(b *Line2) []v2.Vec {
