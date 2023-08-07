@@ -1,23 +1,24 @@
 //-----------------------------------------------------------------------------
 /*
 
-Mesh 2D Testing and Benchmarking
 
-*/
+ */
 //-----------------------------------------------------------------------------
 
-package sdf
+package main
 
 import (
-	"testing"
+	"log"
 
+	"github.com/deadsy/sdfx/render"
+	"github.com/deadsy/sdfx/sdf"
 	v2 "github.com/deadsy/sdfx/vec/v2"
 )
 
 //-----------------------------------------------------------------------------
 
-func testPolygon() (*Polygon, error) {
-	b := NewBezier()
+func testPolygon() (*sdf.Polygon, error) {
+	b := sdf.NewBezier()
 	b.Add(-788.571430, 666.647920)
 	b.Add(-788.785400, 813.701340).Mid()
 	b.Add(-759.449240, 1023.568700).Mid()
@@ -61,39 +62,53 @@ func testPolygon() (*Polygon, error) {
 
 //-----------------------------------------------------------------------------
 
-func Test_Mesh2D(t *testing.T) {
+func test() error {
 
 	p, err := testPolygon()
 	if err != nil {
-		t.Fatalf("error: %s", err)
+		return err
 	}
 
-	m, err := PolygonToMesh(p)
+	m, err := sdf.PolygonToMesh(p)
 	if err != nil {
-		t.Fatalf("error: %s", err)
+		return err
 	}
 
-	s0, err := Mesh2D(m)
+	s0, err := sdf.Mesh2D(m)
 	if err != nil {
-		t.Fatalf("error: %s", err)
+		return err
 	}
 
-	s1, err := Mesh2DSlow(m)
+	s1, err := sdf.Mesh2DSlow(m)
 	if err != nil {
-		t.Fatalf("error: %s", err)
+		return err
 	}
 
-	//bb := s0.BoundingBox()
-	//pSet := bb.RandomSet(1000)
-	pSet := []v2.Vec{{-548, 238}}
+	d := render.NewDXF("test.dxf")
+	var ePoints []v2.Vec
 
-	for _, p := range pSet {
+	bb := s0.BoundingBox()
+	for _, p := range bb.RandomSet(100000) {
 		d0 := s0.Evaluate(p)
 		d1 := s1.Evaluate(p)
-		if !EqualFloat64(d0, d1, tolerance) {
-			e := d0 - d1
-			t.Errorf("%v fast %f slow %f error %f", p, d0, d1, e)
+		if !sdf.EqualFloat64(d0, d1, 1e-12) {
+			ePoints = append(ePoints, p)
 		}
+	}
+
+	d.Points(ePoints, 0.2)
+	d.Lines(p.Vertices())
+	d.Save()
+
+	return nil
+}
+
+//-----------------------------------------------------------------------------
+
+func main() {
+	err := test()
+	if err != nil {
+		log.Fatalf("error: %s", err)
 	}
 }
 
