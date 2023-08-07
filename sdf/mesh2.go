@@ -9,7 +9,6 @@
 package sdf
 
 import (
-	"fmt"
 	"math"
 
 	v2 "github.com/deadsy/sdfx/vec/v2"
@@ -17,19 +16,62 @@ import (
 
 //-----------------------------------------------------------------------------
 
-const qtMaxLevel = 15
-
-type leafInfo struct {
-	line []*Line2 // lines stored at this leaf
+// lineInfo stores pre-calculated line information.
+type lineInfo struct {
+	line       *Line2  // line segment
+	unitVector v2.Vec  // unit vector for line segment
+	length     float64 // length of line segment
 }
 
+// newLineInfo pre-calculates the line segment information.
+func newLineInfo(l *Line2) *lineInfo {
+	v := l[1].Sub(l[0])
+	return &lineInfo{
+		line:       l,
+		unitVector: v.Normalize(),
+		length:     v.Length(),
+	}
+}
+
+func convertLines(lSet []*Line2) []*lineInfo {
+	li := make([]*lineInfo, len(lSet))
+	for i := range lSet {
+		li[i] = newLineInfo(lSet[i])
+	}
+	return li
+}
+
+// minDistance2 returns the minium distance squared between a point and the line.
+func (a *lineInfo) minDistance2(p v2.Vec) float64 {
+	var d2 float64
+	pa := p.Sub(a.line[0])
+	// t-parameter of projection onto line
+	t := pa.Dot(a.unitVector)
+	if t < 0 {
+		// distance to vertex 0 of line
+		d2 = a.line[0].Sub(p).Length2()
+	} else if t > a.length {
+		// distance to vertex 1 of line
+		d2 = a.line[1].Sub(p).Length2()
+	} else {
+		// normal distance from p to line
+		dn := pa.Dot(v2.Vec{a.unitVector.Y, -a.unitVector.X})
+		d2 = dn * dn
+	}
+	return d2
+}
+
+//-----------------------------------------------------------------------------
+
+const qtMaxLevel = 15
+
 type qtNode struct {
-	level    int        // quadtree level
-	box      Box2       // bounding box for the node
-	center   v2.Vec     // pre-calculated from box
-	halfSide float64    // pre-calculated from box
-	child    [4]*qtNode // child nodes (sw, se, nw, ne)
-	leaf     *leafInfo  // leaf information (non-nil for a leaf node)
+	level    int         // quadtree level
+	box      Box2        // bounding box for the node
+	center   v2.Vec      // pre-calculated from box
+	halfSide float64     // pre-calculated from box
+	child    [4]*qtNode  // child nodes (sw, se, nw, ne)
+	leaf     []*lineInfo // leaf information (non-nil for a leaf node)
 }
 
 func qtBuild(level int, box Box2, lSet []*Line2) *qtNode {
@@ -49,26 +91,27 @@ func qtBuild(level int, box Box2, lSet []*Line2) *qtNode {
 			box:      box,
 			halfSide: halfSide,
 			center:   center,
-			leaf:     &leafInfo{line: lSet},
+			leaf:     convertLines(lSet),
 		}
 	}
 
 	// non-leaf node
-	node := &qtNode{
-		level:    level,
-		box:      box,
-		halfSide: halfSide,
-		center:   center,
-	}
 	box0 := box.Quad0()
 	box1 := box.Quad1()
 	box2 := box.Quad2()
 	box3 := box.Quad3()
-	node.child[0] = qtBuild(level+1, box0, box0.lineFilter(lSet))
-	node.child[1] = qtBuild(level+1, box1, box1.lineFilter(lSet))
-	node.child[2] = qtBuild(level+1, box2, box2.lineFilter(lSet))
-	node.child[3] = qtBuild(level+1, box3, box3.lineFilter(lSet))
-	return node
+	return &qtNode{
+		level:    level,
+		box:      box,
+		halfSide: halfSide,
+		center:   center,
+		child: [4]*qtNode{
+			qtBuild(level+1, box0, box0.lineFilter(lSet)),
+			qtBuild(level+1, box1, box1.lineFilter(lSet)),
+			qtBuild(level+1, box2, box2.lineFilter(lSet)),
+			qtBuild(level+1, box3, box3.lineFilter(lSet)),
+		},
+	}
 }
 
 // searchOrder returns the child search order for this node.
@@ -125,14 +168,11 @@ func (node *qtNode) minBoxDist2(p v2.Vec) float64 {
 	return (dx * dx) + (dy * dy)
 }
 
-var leafCount int
-
 // minFeatureDist2 returns the minimum distance squared from a point to the leaf feature.
 func (node *qtNode) minLeafDist2(p v2.Vec) float64 {
-	leafCount++
 	dd := math.MaxFloat64
-	for _, l := range node.leaf.line {
-		dd = math.Min(dd, l.minDistance2(p))
+	for _, li := range node.leaf {
+		dd = math.Min(dd, li.minDistance2(p))
 	}
 	return dd
 }
@@ -154,12 +194,12 @@ func (node *qtNode) minDist2(p v2.Vec, dd float64) float64 {
 }
 
 //-----------------------------------------------------------------------------
+// Mesh2D. 2D mesh evaluation with quadtree speedup.
 
 // MeshSDF2 is SDF2 made from a set of line segments.
 type MeshSDF2 struct {
-	mesh []*Line2
-	qt   *qtNode // quadtree root
-	bb   Box2    // bounding box
+	qt *qtNode // quadtree root
+	bb Box2    // bounding box
 }
 
 // Mesh2D returns an SDF2 made from a set of line segments.
@@ -174,41 +214,71 @@ func Mesh2D(mesh []*Line2) (SDF2, error) {
 	for _, edge := range mesh {
 		bb = bb.Include(edge[0]).Include(edge[1])
 	}
-	// square up the bounding box
-	// scale it slightly to contain vertices on the max edge
-	bb = bb.Square().ScaleAboutCenter(1.01)
+
+	// The quadtree box is derived from the bounding box.
+	// Square it up for simpler math.
+	// Scale it slightly to contain line segments on the top/right edges.
+	qtBox := bb.Square().ScaleAboutCenter(1.01)
 
 	// build the quadtree
-	qt := qtBuild(0, bb, mesh)
+	qt := qtBuild(0, qtBox, mesh)
 
 	return &MeshSDF2{
-		mesh: mesh,
-		qt:   qt,
-		bb:   bb,
+		qt: qt,
+		bb: bb,
 	}, nil
-
 }
 
 // Evaluate returns the minimum distance for a 2d mesh.
 func (s *MeshSDF2) Evaluate(p v2.Vec) float64 {
-	leafCount = 0
-	dd := s.qt.minDist2(p, math.MaxFloat64)
-	fmt.Printf("fast evals %d\n", leafCount)
-	return math.Sqrt(dd)
-}
-
-// EvaluateSlow returns the minimum distance for a 2d mesh (slowly).
-func (s *MeshSDF2) EvaluateSlow(p v2.Vec) float64 {
-	dd := math.MaxFloat64
-	for _, l := range s.mesh {
-		dd = math.Min(dd, l.minDistance2(p))
-	}
-	fmt.Printf("slow evals %d\n", len(s.mesh))
-	return math.Sqrt(dd)
+	d2 := s.qt.minDist2(p, math.MaxFloat64)
+	return math.Sqrt(d2)
 }
 
 // BoundingBox returns the bounding box of a 2d mesh.
 func (s *MeshSDF2) BoundingBox() Box2 {
+	return s.bb
+}
+
+//-----------------------------------------------------------------------------
+// Mesh2D Slow. Provided for testing and benchmarking purposes.
+
+// MeshSDF2Slow is SDF2 made from a set of line segments.
+type MeshSDF2Slow struct {
+	mesh []*lineInfo
+	bb   Box2 // bounding box
+}
+
+// Mesh2DSlow returns an SDF2 made from a set of line segments.
+func Mesh2DSlow(mesh []*Line2) (SDF2, error) {
+	n := len(mesh)
+	if n == 0 {
+		return nil, ErrMsg("no 2d line segments")
+	}
+
+	// work out the bounding box
+	bb := mesh[0].BoundingBox()
+	for _, edge := range mesh {
+		bb = bb.Include(edge[0]).Include(edge[1])
+	}
+
+	return &MeshSDF2Slow{
+		mesh: convertLines(mesh),
+		bb:   bb,
+	}, nil
+}
+
+// Evaluate returns the minimum distance for a 2d mesh.
+func (s *MeshSDF2Slow) Evaluate(p v2.Vec) float64 {
+	d2 := math.MaxFloat64
+	for _, li := range s.mesh {
+		d2 = math.Min(d2, li.minDistance2(p))
+	}
+	return math.Sqrt(d2)
+}
+
+// BoundingBox returns the bounding box of a 2d mesh.
+func (s *MeshSDF2Slow) BoundingBox() Box2 {
 	return s.bb
 }
 
