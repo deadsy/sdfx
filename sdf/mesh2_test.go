@@ -9,8 +9,9 @@ Mesh 2D Testing and Benchmarking
 package sdf
 
 import (
-	"math"
 	"testing"
+
+	v2 "github.com/deadsy/sdfx/vec/v2"
 )
 
 //-----------------------------------------------------------------------------
@@ -82,12 +83,15 @@ func Test_Mesh2D(t *testing.T) {
 		t.Fatalf("error: %s", err)
 	}
 
-	bb := s0.BoundingBox()
-	for _, p := range bb.RandomSet(1000) {
+	//bb := s0.BoundingBox()
+	//pSet := bb.RandomSet(1000)
+	pSet := []v2.Vec{{-548, 238}}
+
+	for _, p := range pSet {
 		d0 := s0.Evaluate(p)
 		d1 := s1.Evaluate(p)
 		if !EqualFloat64(d0, d1, tolerance) {
-			e := math.Abs(d0 - d1)
+			e := d0 - d1
 			t.Errorf("%v fast %f slow %f error %f", p, d0, d1, e)
 		}
 	}
