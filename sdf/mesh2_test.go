@@ -1,24 +1,22 @@
 //-----------------------------------------------------------------------------
 /*
 
-Test 2D Meshes
+Mesh 2D Testing and Benchmarking
 
 */
 //-----------------------------------------------------------------------------
 
-package main
+package sdf
 
 import (
-	"log"
-
-	"github.com/deadsy/sdfx/sdf"
-	v2 "github.com/deadsy/sdfx/vec/v2"
+	"math"
+	"testing"
 )
 
 //-----------------------------------------------------------------------------
 
-func testPolygon() (*sdf.Polygon, error) {
-	b := sdf.NewBezier()
+func testPolygon() (*Polygon, error) {
+	b := NewBezier()
 	b.Add(-788.571430, 666.647920)
 	b.Add(-788.785400, 813.701340).Mid()
 	b.Add(-759.449240, 1023.568700).Mid()
@@ -62,40 +60,36 @@ func testPolygon() (*sdf.Polygon, error) {
 
 //-----------------------------------------------------------------------------
 
-func test() error {
+func Test_Mesh2D(t *testing.T) {
 
 	p, err := testPolygon()
 	if err != nil {
-		return err
+		t.Fatalf("error: %s", err)
 	}
 
-	m, err := sdf.PolygonToMesh(p)
+	m, err := PolygonToMesh(p)
 	if err != nil {
-		return err
+		t.Fatalf("error: %s", err)
 	}
 
-	s, err := sdf.Mesh2D(m)
+	s0, err := Mesh2D(m)
 	if err != nil {
-		return err
+		t.Fatalf("error: %s", err)
 	}
 
-	x := v2.Vec{0, 0}
-
-	d0 := s.Evaluate(x)
-	log.Printf("fast d0 %f", d0)
-
-	d1 := s.(*sdf.MeshSDF2).EvaluateSlow(x)
-	log.Printf("slow d1 %f", d1)
-
-	return nil
-}
-
-//-----------------------------------------------------------------------------
-
-func main() {
-	err := test()
+	s1, err := Mesh2DSlow(m)
 	if err != nil {
-		log.Fatalf("error: %s", err)
+		t.Fatalf("error: %s", err)
+	}
+
+	bb := s0.BoundingBox()
+	for _, p := range bb.RandomSet(1000) {
+		d0 := s0.Evaluate(p)
+		d1 := s1.Evaluate(p)
+		if !EqualFloat64(d0, d1, tolerance) {
+			e := math.Abs(d0 - d1)
+			t.Errorf("%v fast %f slow %f error %f", p, d0, d1, e)
+		}
 	}
 }
 

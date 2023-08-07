@@ -85,28 +85,28 @@ func (a Box2) Contains(v v2.Vec) bool {
 //-----------------------------------------------------------------------------
 // Box Sub-Quadrants
 
-// Quad0 returns the 0th quadtree box of a box (lower-left/south-west).
+// Quad0 returns the 0th quadtree box of a box (lower-left).
 func (a Box2) Quad0() Box2 {
 	delta := a.Size().MulScalar(0.5)
 	ll := a.Min
 	return Box2{ll, ll.Add(delta)}
 }
 
-// Quad1 returns the 1st quadtree box of a box (lower-right/south-east).
+// Quad1 returns the 1st quadtree box of a box (lower-right).
 func (a Box2) Quad1() Box2 {
 	delta := a.Size().MulScalar(0.5)
 	ll := v2.Vec{a.Min.X + delta.X, a.Min.Y}
 	return Box2{ll, ll.Add(delta)}
 }
 
-// Quad2 returns the 2nd quadtree box of a box (top-left/north-west).
+// Quad2 returns the 2nd quadtree box of a box (top-left).
 func (a Box2) Quad2() Box2 {
 	delta := a.Size().MulScalar(0.5)
 	ll := v2.Vec{a.Min.X, a.Min.Y + delta.Y}
 	return Box2{ll, ll.Add(delta)}
 }
 
-// Quad3 returns the 3rd quadtree box of a box (top-right/north-east).
+// Quad3 returns the 3rd quadtree box of a box (top-right).
 func (a Box2) Quad3() Box2 {
 	delta := a.Size().MulScalar(0.5)
 	ll := a.Min.Add(delta)
@@ -236,8 +236,8 @@ func (a Box2) MinMaxDist2(p v2.Vec) Interval {
 
 //-----------------------------------------------------------------------------
 
-// IntersectLine returns a line/box intersection.
-func (a *Box2) IntersectLine(l *Line2) *Line2 {
+// lineIntersect returns a line/box intersection.
+func (a *Box2) lineIntersect(l *Line2) *Line2 {
 
 	tSet := []float64{0, 1}
 
@@ -252,6 +252,11 @@ func (a *Box2) IntersectLine(l *Line2) *Line2 {
 	if v.X == 0 && u.X == a.Max.X {
 		// no solutions on the right box edge
 		return nil
+	}
+
+	// early exit for a line entirely within the box
+	if a.Contains(l[0]) && a.Contains(l[1]) {
+		return l
 	}
 
 	if v.Y != 0 {
@@ -298,6 +303,18 @@ func (a *Box2) IntersectLine(l *Line2) *Line2 {
 		return &Line2{pSet[0], pSet[1]}
 	}
 	return &Line2{pSet[1], pSet[0]}
+}
+
+// lineFilter returns the intersection of a box and a set of line segments.
+func (a *Box2) lineFilter(lSet []*Line2) []*Line2 {
+	var out []*Line2
+	for _, l := range lSet {
+		x := a.lineIntersect(l)
+		if x != nil {
+			out = append(out, x)
+		}
+	}
+	return out
 }
 
 //-----------------------------------------------------------------------------

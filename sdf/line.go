@@ -13,7 +13,6 @@ import (
 	"math"
 
 	v2 "github.com/deadsy/sdfx/vec/v2"
-	"github.com/dhconnelly/rtreego"
 )
 
 //-----------------------------------------------------------------------------
@@ -52,20 +51,9 @@ func (a Interval) Intersect(b Interval) *Interval {
 // Line2 is a 2d line defined with end-points.
 type Line2 [2]v2.Vec
 
-func v2ToPoint(v v2.Vec) rtreego.Point {
-	return rtreego.Point{v.X, v.Y}
-}
-
 // BoundingBox returns a bounding box for the line.
 func (a *Line2) BoundingBox() Box2 {
 	return Box2{Min: a[0], Max: a[0]}.Include(a[1])
-}
-
-// Bounds returns a r-tree bounding rectangle for the line.
-func (a *Line2) Bounds() *rtreego.Rect {
-	bb := a.BoundingBox()
-	r, _ := rtreego.NewRectFromPoints(v2ToPoint(bb.Min), v2ToPoint(bb.Max))
-	return r
 }
 
 // Reverse the direction of a line segment.
@@ -73,6 +61,7 @@ func (a *Line2) Reverse() *Line2 {
 	return &Line2{a[1], a[0]}
 }
 
+// Equals returns true if the lines are the same (within tolerance).
 func (a *Line2) Equals(b *Line2, tolerance float64) bool {
 	return a[0].Equals(b[0], tolerance) && a[1].Equals(b[1], tolerance)
 }

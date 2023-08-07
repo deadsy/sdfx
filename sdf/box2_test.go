@@ -16,7 +16,7 @@ import (
 
 //-----------------------------------------------------------------------------
 
-func Test_Box2_IntersectLine(t *testing.T) {
+func Test_Box2_lineIntersect(t *testing.T) {
 
 	testSet := []struct {
 		box    Box2
@@ -59,7 +59,7 @@ func Test_Box2_IntersectLine(t *testing.T) {
 
 		box := test.box
 		line := test.line
-		result := box.IntersectLine(line)
+		result := box.lineIntersect(line)
 
 		if test.result == nil {
 			if result != nil {
