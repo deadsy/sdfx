@@ -10,8 +10,6 @@ package sdf
 
 import (
 	"testing"
-
-	v2 "github.com/deadsy/sdfx/vec/v2"
 )
 
 //-----------------------------------------------------------------------------
@@ -83,9 +81,8 @@ func Test_Mesh2D(t *testing.T) {
 		t.Fatalf("error: %s", err)
 	}
 
-	//bb := s0.BoundingBox()
-	//pSet := bb.RandomSet(1000)
-	pSet := []v2.Vec{{-548, 238}}
+	bb := s0.BoundingBox()
+	pSet := bb.RandomSet(10000)
 
 	for _, p := range pSet {
 		d0 := s0.Evaluate(p)

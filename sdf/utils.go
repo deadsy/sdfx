@@ -323,6 +323,8 @@ func FloatEncode(s int, f uint64, e int) float64 {
 // Floating Point Comparisons
 // See: http://floating-point-gui.de/errors/NearlyEqualsTest.java
 
+/*
+
 const minNormal = 2.2250738585072014e-308 // 2**-1022
 
 // EqualFloat64 compares two float64 values for equality.
@@ -340,6 +342,24 @@ func EqualFloat64(a, b, epsilon float64) bool {
 	}
 	// use relative error
 	return diff/math.Min((absA+absB), math.MaxFloat64) < epsilon
+}
+
+*/
+
+// EqualFloat64 compares two float64 values for equality.
+func EqualFloat64(a, b, epsilon float64) bool {
+	if a == b {
+		return true
+	}
+	return math.Abs(a-b) < epsilon
+}
+
+// SnapFloat64 snaps a float value to b if it is within epsilon of b.
+func SnapFloat64(a, b, epsilon float64) float64 {
+	if EqualFloat64(a, b, epsilon) {
+		return b
+	}
+	return a
 }
 
 //-----------------------------------------------------------------------------

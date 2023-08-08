@@ -63,7 +63,7 @@ func (a *lineInfo) minDistance2(p v2.Vec) float64 {
 
 //-----------------------------------------------------------------------------
 
-const qtMaxLevel = 15
+const qtMaxLevel = 10
 
 type qtNode struct {
 	level    int         // quadtree level
@@ -112,6 +112,22 @@ func qtBuild(level int, box Box2, lSet []*Line2) *qtNode {
 			qtBuild(level+1, box3, box3.lineFilter(lSet)),
 		},
 	}
+}
+
+// boxes returns the set of boxes used by this node.
+func (node *qtNode) boxes() []*Box2 {
+	if node == nil {
+		return nil
+	}
+	if node.leaf != nil {
+		return []*Box2{&node.box}
+	}
+	boxes := []*Box2{&node.box}
+	boxes = append(boxes, node.child[0].boxes()...)
+	boxes = append(boxes, node.child[1].boxes()...)
+	boxes = append(boxes, node.child[2].boxes()...)
+	boxes = append(boxes, node.child[3].boxes()...)
+	return boxes
 }
 
 // searchOrder returns the child search order for this node.
@@ -233,6 +249,11 @@ func Mesh2D(mesh []*Line2) (SDF2, error) {
 func (s *MeshSDF2) Evaluate(p v2.Vec) float64 {
 	d2 := s.qt.minDist2(p, math.MaxFloat64)
 	return math.Sqrt(d2)
+}
+
+// Boxes returns the full set of quadtree boxes.
+func (s *MeshSDF2) Boxes() []*Box2 {
+	return s.qt.boxes()
 }
 
 // BoundingBox returns the bounding box of a 2d mesh.

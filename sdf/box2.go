@@ -79,7 +79,16 @@ func (a Box2) Square() Box2 {
 
 // Contains checks if the 2d box contains the point.
 func (a Box2) Contains(v v2.Vec) bool {
-	return a.Min.X <= v.X && a.Min.Y <= v.Y && v.X <= a.Max.X && v.Y <= a.Max.Y
+	return (v.X >= a.Min.X) && (v.Y >= a.Min.Y) && (v.X <= a.Max.X) && (v.Y <= a.Max.Y)
+}
+
+// Snap a point to the box edges
+func (a *Box2) Snap(p v2.Vec, epsilon float64) v2.Vec {
+	p.X = SnapFloat64(p.X, a.Min.X, epsilon)
+	p.X = SnapFloat64(p.X, a.Max.X, epsilon)
+	p.Y = SnapFloat64(p.Y, a.Min.Y, epsilon)
+	p.Y = SnapFloat64(p.Y, a.Max.Y, epsilon)
+	return p
 }
 
 //-----------------------------------------------------------------------------
@@ -236,10 +245,22 @@ func (a Box2) MinMaxDist2(p v2.Vec) Interval {
 
 //-----------------------------------------------------------------------------
 
+// tAppend appends a t-value to the slice if it is unique and in range.
+func tAppend(set []float64, t float64) []float64 {
+	if t < 0 || t > 1 {
+		// out of range
+		return set
+	}
+	for i := range set {
+		if EqualFloat64(set[i], t, tolerance) {
+			return set
+		}
+	}
+	return append(set, t)
+}
+
 // lineIntersect returns a line/box intersection.
 func (a *Box2) lineIntersect(l *Line2) *Line2 {
-
-	tSet := []float64{0, 1}
 
 	u := l[0]
 	v := l[1].Sub(l[0])
@@ -259,35 +280,28 @@ func (a *Box2) lineIntersect(l *Line2) *Line2 {
 		return l
 	}
 
+	tSet := []float64{0, 1}
+
 	if v.Y != 0 {
 		// consider intersection with y-sides (top/bottom)
 		k := 1.0 / v.Y
-		tSet = append(tSet, (a.Min.Y-u.Y)*k)
-		tSet = append(tSet, (a.Max.Y-u.Y)*k)
+		tSet = tAppend(tSet, (a.Min.Y-u.Y)*k)
+		tSet = tAppend(tSet, (a.Max.Y-u.Y)*k)
 	}
 
 	if v.X != 0 {
 		// consider intersection with x-sides (left/right)
 		k := 1.0 / v.X
-		tSet = append(tSet, (a.Min.X-u.X)*k)
-		tSet = append(tSet, (a.Max.X-u.X)*k)
+		tSet = tAppend(tSet, (a.Min.X-u.X)*k)
+		tSet = tAppend(tSet, (a.Max.X-u.X)*k)
 	}
 
 	// filter the t-values
 	var pSet []v2.Vec
-	tMap := make(map[float64]bool)
 	for _, t := range tSet {
-		// is the t-value in range
-		if t < 0 || t > 1 {
-			continue
-		}
-		// remove duplicates
-		if _, ok := tMap[t]; ok {
-			continue
-		}
-		tMap[t] = true
-		// is the point in the box?
 		p := u.Add(v.MulScalar(t))
+		p = a.Snap(p, tolerance)
+		// is the point in the box?
 		if a.Contains(p) {
 			pSet = append(pSet, p)
 		}

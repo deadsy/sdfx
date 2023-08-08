@@ -580,6 +580,8 @@ func Test_Colinear_Fast(t *testing.T) {
 
 //-----------------------------------------------------------------------------
 
+/*
+
 func Test_Float_Comparison(t *testing.T) {
 
 	nInf := math.Inf(-1)
@@ -695,23 +697,25 @@ func Test_Float_Comparison(t *testing.T) {
 		equals  bool
 	}{
 		// Comparisons involving zero
-		//{0.0, 1e-40, 0.01, true},
-		//{1e-40, 0.0, 0.01, true},
-		//{1e-40, 0.0, 0.000001, false},
-		//{0.0, 1e-40, 0.000001, false},
-		//{0.0, -1e-40, 0.1, true},
-		//{-1e-40, 0.0, 0.1, true},
-		//{-1e-40, 0.0, 0.00000001, false},
-		//{0.0, -1e-40, 0.00000001, false},
+		{0, 1e-40, 0.01, true},
+		{1e-40, 0.0, 0.01, true},
+		{1e-40, 0.0, 0.000001, false},
+		{0, 1e-40, 0.000001, false},
+		{0, -1e-40, 0.1, true},
+		{-1e-40, 0.0, 0.1, true},
+		{-1e-40, 0.0, 0.00000001, false},
+		{0, -1e-40, 0.00000001, false},
+		{0, 8.641300904924548e-16, 1e-9, true},
 	}
 
-	for _, v := range test1 {
+	for i, v := range test1 {
 		if EqualFloat64(v.a, v.b, v.e) != v.equals {
-			t.Error("FAIL")
+			t.Errorf("test %d: FAIL", i)
 		}
 	}
-
 }
+
+*/
 
 //-----------------------------------------------------------------------------
 

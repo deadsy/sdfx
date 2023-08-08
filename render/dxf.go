@@ -70,6 +70,11 @@ func (d *DXF) Triangle(t sdf.Triangle2) {
 	d.Lines([]v2.Vec{t[0], t[1], t[2], t[0]})
 }
 
+// Box adds a box to a dxf drawing object.
+func (d *DXF) Box(a *sdf.Box2) {
+	d.Lines([]v2.Vec{a.Min, v2.Vec{a.Max.X, a.Min.Y}, a.Max, v2.Vec{a.Min.X, a.Max.Y}, a.Min})
+}
+
 // Save writes a dxf drawing object to a file.
 func (d *DXF) Save() error {
 	err := d.drawing.SaveAs(d.name)

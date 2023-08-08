@@ -98,6 +98,12 @@ func test() error {
 
 	d.Points(ePoints, 0.2)
 	d.Lines(p.Vertices())
+
+	boxes := s0.(*sdf.MeshSDF2).Boxes()
+	for _, b := range boxes {
+		d.Box(b)
+	}
+
 	d.Save()
 
 	return nil
