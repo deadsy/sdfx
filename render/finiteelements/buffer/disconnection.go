@@ -1,7 +1,7 @@
 package buffer
 
 // Count separate components consisting of disconnected voxels.
-func (vg *VoxelGrid) VoxelComponents() int {
+func (vg *VoxelGrid) ComponentsByVoxel() int {
 	// Map key is (x, y, z) index of voxel.
 	visited := make(map[[3]int]bool)
 	count := 0
