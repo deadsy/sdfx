@@ -73,9 +73,4 @@ func (vg *VoxelGrid) nonemptyNeighbors(v [3]int) [][3]int {
 	return neighbors
 }
 
-// Is voxel index inside a valid range?
-func (vg *VoxelGrid) isValid(x, y, z int) bool {
-	return x >= 0 && y >= 0 && z >= 0 && x < vg.Len.X && y < vg.Len.Y && z < vg.Len.Z
-}
-
 //-----------------------------------------------------------------------------
