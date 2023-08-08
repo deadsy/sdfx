@@ -18,6 +18,7 @@ func (vg *VoxelGrid) CleanDisconnections(components []*Component) {
 		fmt.Printf("Component %v has the largest voxel count: %v\n", maxComponentIndex, maxVoxelCount)
 	} else {
 		fmt.Printf("No components found.")
+		return
 	}
 
 	// Remove elements inside the voxels of smaller components.
