@@ -1,17 +1,20 @@
 package buffer
 
-// Count separate components consisting of disconnected voxels.
-func (vg *VoxelGrid) ComponentsByVoxel() int {
+// Count separate components consisting of disconnected finite elements.
+// They cause FEA solver to throw error.
+func (vg *VoxelGrid) Components() int {
 	// Map key is (x, y, z) index of voxel.
-	visited := make(map[[3]int]bool)
+	visited := make(map[*Element]bool)
 	count := 0
-	for z := 0; z < vg.Len.Z; z++ {
+	for x := 0; x < vg.Len.X; x++ {
 		for y := 0; y < vg.Len.Y; y++ {
-			for x := 0; x < vg.Len.X; x++ {
-				// If voxel is not empty and if it's not already visited.
-				if len(vg.Get(x, y, z)) > 0 && !visited[[3]int{x, y, z}] {
-					count++
-					vg.bfs(visited, [3]int{x, y, z})
+			for z := 0; z < vg.Len.Z; z++ {
+				els := vg.Get(x, y, z)
+				for _, el := range els {
+					if !visited[el] {
+						count++
+						vg.bfs(visited, el, [3]int{x, y, z})
+					}
 				}
 			}
 		}
@@ -19,63 +22,86 @@ func (vg *VoxelGrid) ComponentsByVoxel() int {
 	return count
 }
 
-// Algorithm: breadth-first search (BFS).
-func (vg *VoxelGrid) bfs(visited map[[3]int]bool, start [3]int) {
-	queue := [][3]int{start}
+// Algorithm: breadth-first search (bfs).
+func (vg *VoxelGrid) bfs(visited map[*Element]bool, start *Element, startV [3]int) {
+	queue := []*Element{start}
+	quVox := [][3]int{startV} // To store the voxel of each element.
 	visited[start] = true
 
 	for len(queue) > 0 {
-		v := queue[0]
+		e := queue[0]
+		v := quVox[0]
 		queue = queue[1:]
+		quVox = quVox[1:]
 
-		neighbors := vg.nonemptyNeighbors(v)
+		neighbors, neighVoxs := vg.neighbors(e, v)
 
-		for _, n := range neighbors {
+		for i := range neighbors {
+			n := neighbors[i]
+			nv := neighVoxs[i]
 			if !visited[n] {
 				visited[n] = true
 				queue = append(queue, n)
+				quVox = append(quVox, nv)
 			}
 		}
 	}
 }
 
-// It returns a list of neighbor voxels that are non-empty.
-func (vg *VoxelGrid) nonemptyNeighbors(v [3]int) [][3]int {
-	var neighbors [][3]int
+// It returns a list of neighbors.
+func (vg *VoxelGrid) neighbors(e *Element, v [3]int) ([]*Element, [][3]int) {
+	var neighbors []*Element
+	var neighVoxs [][3]int
 
-	// The 3D directions to iterate over.
-	// Two voxels are considered neighbors if they share a face,
-	// i.e., they are adjacent along x, y, or z direction.
-	directions := [][3]int{
-		{1, 0, 0},
-		{-1, 0, 0},
-		{0, 1, 0},
-		{0, -1, 0},
-		{0, 0, 1},
-		{0, 0, -1},
+	for i := -1; i <= 1; i++ {
+		for j := -1; j <= 1; j++ {
+			for k := -1; k <= 1; k++ {
+				x := v[0] + i
+				y := v[1] + j
+				z := v[2] + k
+
+				if !vg.isValid(x, y, z) {
+					continue
+				}
+
+				for _, el := range vg.Get(x, y, z) {
+					if i == 0 && j == 0 && k == 0 {
+						// The same voxel: skip the same element.
+						if el == e {
+							continue
+						}
+					}
+					if sharesNode(e, el) {
+						neighbors = append(neighbors, el)
+						neighVoxs = append(neighVoxs, [3]int{x, y, z})
+					}
+				}
+			}
+		}
 	}
 
-	for _, direction := range directions {
-		x := v[0] + direction[0]
-		y := v[1] + direction[1]
-		z := v[2] + direction[2]
-
-		if !vg.isValid(x, y, z) {
-			continue
-		}
-
-		// Is neighbor voxel non-empty?
-		if len(vg.Get(x, y, z)) > 0 {
-			neighbors = append(neighbors, [3]int{x, y, z})
-		}
-	}
-
-	return neighbors
+	return neighbors, neighVoxs
 }
 
-// Is voxel index inside a valid range?
-func (vg *VoxelGrid) isValid(x, y, z int) bool {
-	return x >= 0 && y >= 0 && z >= 0 && x < vg.Len.X && y < vg.Len.Y && z < vg.Len.Z
+func sharesNode(e1, e2 *Element) bool {
+	// The node count doesn't need to be equal for the two elements.
+	// Since, the two elements could be of different types.
+
+	for _, n1 := range e1.Nodes {
+		if contains(e2.Nodes, n1) {
+			return true
+		}
+	}
+	return false
+}
+
+func contains(arr []uint32, i uint32) bool {
+	for _, n := range arr {
+		if n == i {
+			return true
+		}
+	}
+	return false
 }
 
 //-----------------------------------------------------------------------------
