@@ -219,7 +219,10 @@ func fe(s sdf.SDF3, resolution int, order render.Order, shape render.Shape, pth 
 	// Create a mesh out of finite elements.
 	m, _ := mesh.NewFem(s, render.NewMarchingCubesFEUniform(resolution, order, shape))
 	components := m.Components()
-	fmt.Printf("components count: %v\n", components)
+	fmt.Printf("components count: %v\n", len(components))
+	for i, component := range components {
+		fmt.Printf("component %v voxel count: %v\n", i, len(component.Voxels))
+	}
 
 	// Write all layers of mesh to file.
 	return m.WriteInp(pth, 7.85e-9, 210000, 0.3, restraints, loads, v3.Vec{X: 0, Y: 0, Z: -1}, 9810)
@@ -236,7 +239,10 @@ func feLayers(s sdf.SDF3, resolution int, order render.Order, shape render.Shape
 	// Create a mesh out of finite elements.
 	m, _ := mesh.NewFem(s, render.NewMarchingCubesFEUniform(resolution, order, shape))
 	components := m.Components()
-	fmt.Printf("components count: %v\n", components)
+	fmt.Printf("components count: %v\n", len(components))
+	for i, component := range components {
+		fmt.Printf("component %v voxel count: %v\n", i, len(component.Voxels))
+	}
 
 	// Write just some layers of mesh to file.
 	return m.WriteInpLayers(pth, layerStart, layerEnd, 7.85e-9, 210000, 0.3, restraints, loads, v3.Vec{X: 0, Y: 0, Z: -1}, 9810)

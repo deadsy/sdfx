@@ -1,27 +1,41 @@
 package buffer
 
+// Component represents a set of connected elements.
+type Component struct {
+	Voxels map[[3]int]struct{} // A map avoids repeated voxels.
+}
+
+func (c *Component) VoxelCount() int {
+	return len(c.Voxels)
+}
+
 // Count separate components consisting of disconnected finite elements.
 // They cause FEA solver to throw error.
-func (vg *VoxelGrid) Components() int {
+func (vg *VoxelGrid) Components() []*Component {
 	visited := make(map[*Element]bool)
-	count := 0
+	components := make([]*Component, 0)
 	process := func(x, y, z int, els []*Element) {
 		for _, el := range els {
 			if !visited[el] {
-				count++
-				vg.bfs(visited, el, [3]int{x, y, z})
+				component := vg.bfs(visited, el, [3]int{x, y, z})
+				components = append(components, component)
 			}
 		}
 	}
 	vg.Iterate(process)
-	return count
+	return components
 }
 
 // Algorithm: breadth-first search (bfs).
-func (vg *VoxelGrid) bfs(visited map[*Element]bool, start *Element, startV [3]int) {
+func (vg *VoxelGrid) bfs(visited map[*Element]bool, start *Element, startV [3]int) *Component {
 	queue := []*Element{start}
 	quVox := [][3]int{startV} // To store the voxel of each element.
 	visited[start] = true
+
+	component := &Component{
+		Voxels: make(map[[3]int]struct{}, 0),
+	}
+	component.Voxels[startV] = struct{}{}
 
 	for len(queue) > 0 {
 		e := queue[0]
@@ -38,9 +52,13 @@ func (vg *VoxelGrid) bfs(visited map[*Element]bool, start *Element, startV [3]in
 				visited[n] = true
 				queue = append(queue, n)
 				quVox = append(quVox, nv)
+
+				component.Voxels[nv] = struct{}{}
 			}
 		}
 	}
+
+	return component
 }
 
 // It returns a list of neighbors.

@@ -26,6 +26,11 @@ func (ib *IB) AddFE(x, y, z int, nodes []uint32) {
 	ib.Grid.Append(x, y, z, NewElement(nodes))
 }
 
+// To delete all elements off of a voxel.
+func (ib *IB) DelAll(x, y, z int) {
+	ib.Grid.DelAll(x, y, z)
+}
+
 // To iterate over all voxels and get elements inside each voxel and do stuff with them.
 func (ib *IB) Iterate(f func(int, int, int, []*Element)) {
 	ib.Grid.Iterate(f)

@@ -112,6 +112,12 @@ func (vg *VoxelGrid) Append(x, y, z int, value *Element) {
 	vg.Voxels[vg.index3Dto1D(x, y, z)].data = append(vg.Voxels[vg.index3Dto1D(x, y, z)].data, value)
 }
 
+// To delete all elements off of a voxel.
+func (vg *VoxelGrid) DelAll(x, y, z int) {
+	vg.Voxels[vg.index3Dto1D(x, y, z)].data = nil
+	vg.Voxels[vg.index3Dto1D(x, y, z)].data = make([]*Element, 0)
+}
+
 // Compute the bounding box of all the input points.
 // Return all the voxels that are intersecting with that bounding box.
 func (vg *VoxelGrid) VoxelsIntersecting(points []v3.Vec) ([]v3i.Vec, v3.Vec, v3.Vec) {

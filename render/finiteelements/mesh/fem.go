@@ -133,7 +133,7 @@ func (m *Fem) VoxelsIntersecting(points []v3.Vec) ([]v3i.Vec, v3.Vec, v3.Vec) {
 
 // Count separate components consisting of disconnected finite elements.
 // They cause FEA solver to throw error.
-func (m *Fem) Components() int {
+func (m *Fem) Components() []*buffer.Component {
 	return m.IBuff.Grid.Components()
 }
 
