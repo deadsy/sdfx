@@ -57,19 +57,47 @@ func testPolygon() (*Polygon, error) {
 	return b.Polygon()
 }
 
+func getMesh() []*Line2 {
+	p, _ := testPolygon()
+	m, _ := PolygonToMesh(p)
+	return m
+}
+
+//-----------------------------------------------------------------------------
+
+func Benchmark_Mesh2D(b *testing.B) {
+	m := getMesh()
+	s0, err := Mesh2D(m)
+	if err != nil {
+		b.Fatalf("error: %s", err)
+	}
+	bb := s0.BoundingBox()
+	b.Run("Mesh2D", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = s0.Evaluate(bb.Random())
+		}
+	})
+}
+
+func Benchmark_Mesh2DSlow(b *testing.B) {
+	m := getMesh()
+	s0, err := Mesh2DSlow(m)
+	if err != nil {
+		b.Fatalf("error: %s", err)
+	}
+	bb := s0.BoundingBox()
+	b.Run("Mesh2DSlow", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = s0.Evaluate(bb.Random())
+		}
+	})
+}
+
 //-----------------------------------------------------------------------------
 
 func Test_Mesh2D(t *testing.T) {
 
-	p, err := testPolygon()
-	if err != nil {
-		t.Fatalf("error: %s", err)
-	}
-
-	m, err := PolygonToMesh(p)
-	if err != nil {
-		t.Fatalf("error: %s", err)
-	}
+	m := getMesh()
 
 	s0, err := Mesh2D(m)
 	if err != nil {

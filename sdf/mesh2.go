@@ -63,7 +63,7 @@ func (a *lineInfo) minDistance2(p v2.Vec) float64 {
 
 //-----------------------------------------------------------------------------
 
-const qtMaxLevel = 10
+const qtMaxLevel = 3
 
 type qtNode struct {
 	level    int         // quadtree level
