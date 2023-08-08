@@ -221,7 +221,7 @@ func fe(s sdf.SDF3, resolution int, order render.Order, shape render.Shape, pth 
 	components := m.Components()
 	fmt.Printf("components count: %v\n", len(components))
 	for i, component := range components {
-		fmt.Printf("component %v voxel count: %v\n", i, len(component.Voxels))
+		fmt.Printf("component %v voxel count: %v\n", i, component.VoxelCount())
 	}
 
 	// Write all layers of mesh to file.
@@ -241,7 +241,7 @@ func feLayers(s sdf.SDF3, resolution int, order render.Order, shape render.Shape
 	components := m.Components()
 	fmt.Printf("components count: %v\n", len(components))
 	for i, component := range components {
-		fmt.Printf("component %v voxel count: %v\n", i, len(component.Voxels))
+		fmt.Printf("component %v voxel count: %v\n", i, component.VoxelCount())
 	}
 
 	// Write just some layers of mesh to file.
