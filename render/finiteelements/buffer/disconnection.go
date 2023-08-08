@@ -3,22 +3,17 @@ package buffer
 // Count separate components consisting of disconnected finite elements.
 // They cause FEA solver to throw error.
 func (vg *VoxelGrid) Components() int {
-	// Map key is (x, y, z) index of voxel.
 	visited := make(map[*Element]bool)
 	count := 0
-	for x := 0; x < vg.Len.X; x++ {
-		for y := 0; y < vg.Len.Y; y++ {
-			for z := 0; z < vg.Len.Z; z++ {
-				els := vg.Get(x, y, z)
-				for _, el := range els {
-					if !visited[el] {
-						count++
-						vg.bfs(visited, el, [3]int{x, y, z})
-					}
-				}
+	process := func(x, y, z int, els []*Element) {
+		for _, el := range els {
+			if !visited[el] {
+				count++
+				vg.bfs(visited, el, [3]int{x, y, z})
 			}
 		}
 	}
+	vg.Iterate(process)
 	return count
 }
 
