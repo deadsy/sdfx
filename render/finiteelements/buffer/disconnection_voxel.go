@@ -5,17 +5,14 @@ func (vg *VoxelGrid) ComponentsByVoxel() int {
 	// Map key is (x, y, z) index of voxel.
 	visited := make(map[[3]int]bool)
 	count := 0
-	for z := 0; z < vg.Len.Z; z++ {
-		for y := 0; y < vg.Len.Y; y++ {
-			for x := 0; x < vg.Len.X; x++ {
-				// If voxel is not empty and if it's not already visited.
-				if len(vg.Get(x, y, z)) > 0 && !visited[[3]int{x, y, z}] {
-					count++
-					vg.bfsByVoxel(visited, [3]int{x, y, z})
-				}
-			}
+	process := func(x, y, z int, els []*Element) {
+		// If voxel is not empty and if it's not already visited.
+		if len(els) > 0 && !visited[[3]int{x, y, z}] {
+			count++
+			vg.bfsByVoxel(visited, [3]int{x, y, z})
 		}
 	}
+	vg.Iterate(process)
 	return count
 }
 
