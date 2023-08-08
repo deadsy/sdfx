@@ -137,6 +137,10 @@ func (m *Fem) Components() []*buffer.Component {
 	return m.IBuff.Grid.Components()
 }
 
+func (m *Fem) CleanDisconnections(components []*buffer.Component) {
+	m.IBuff.Grid.CleanDisconnections(components)
+}
+
 //-----------------------------------------------------------------------------
 
 // WriteInp writes mesh to ABAQUS or CalculiX `inp` file.
