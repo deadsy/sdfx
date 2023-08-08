@@ -218,7 +218,7 @@ func fe(s sdf.SDF3, resolution int, order render.Order, shape render.Shape, pth 
 ) error {
 	// Create a mesh out of finite elements.
 	m, _ := mesh.NewFem(s, render.NewMarchingCubesFEUniform(resolution, order, shape))
-	components := m.CountComponents()
+	components := m.Components()
 	fmt.Printf("components count: %v\n", components)
 
 	// Write all layers of mesh to file.
@@ -235,7 +235,7 @@ func feLayers(s sdf.SDF3, resolution int, order render.Order, shape render.Shape
 ) error {
 	// Create a mesh out of finite elements.
 	m, _ := mesh.NewFem(s, render.NewMarchingCubesFEUniform(resolution, order, shape))
-	components := m.CountComponents()
+	components := m.Components()
 	fmt.Printf("components count: %v\n", components)
 
 	// Write just some layers of mesh to file.
