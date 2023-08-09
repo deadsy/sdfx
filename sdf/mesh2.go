@@ -96,10 +96,10 @@ func qtBuild(level int, box Box2, lSet []*Line2) *qtNode {
 	}
 
 	// non-leaf node
-	box0 := box.Quad0()
-	box1 := box.Quad1()
-	box2 := box.Quad2()
-	box3 := box.Quad3()
+	box0 := box.quad0()
+	box1 := box.quad1()
+	box2 := box.quad2()
+	box3 := box.quad3()
 	return &qtNode{
 		level:    level,
 		box:      box,

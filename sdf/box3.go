@@ -27,11 +27,6 @@ func NewBox3(center, size v3.Vec) Box3 {
 	return Box3{center.Sub(half), center.Add(half)}
 }
 
-// Equals test the equality of 3d boxes.
-func (a Box3) Equals(b Box3, tolerance float64) bool {
-	return (a.Min.Equals(b.Min, tolerance) && a.Max.Equals(b.Max, tolerance))
-}
-
 // Extend returns a box enclosing two 3d boxes.
 func (a Box3) Extend(b Box3) Box3 {
 	return Box3{a.Min.Min(b.Min), a.Max.Max(b.Max)}
@@ -68,25 +63,101 @@ func (a Box3) Enlarge(v v3.Vec) Box3 {
 	return Box3{a.Min.Sub(v), a.Max.Add(v)}
 }
 
-// Contains checks if the 3d box contains the vector.
-// Note: Min boundary is in, Max boundary is out.
+// Cube returns a cubical box larger than the original box.
+func (a Box3) Cube() Box3 {
+	side := a.Size().MaxComponent()
+	return Box3{a.Min, a.Min.Add(v3.Vec{side, side, side})}
+}
+
+// Contains checks if the 3d box contains the point.
 func (a Box3) Contains(v v3.Vec) bool {
-	return a.Min.X <= v.X && a.Min.Y <= v.Y && a.Min.Z <= v.Z &&
-		v.X < a.Max.X && v.Y < a.Max.Y && v.Z < a.Max.Z
+	return a.Min.X <= v.X &&
+		a.Min.Y <= v.Y &&
+		a.Min.Z <= v.Z &&
+		v.X <= a.Max.X &&
+		v.Y <= a.Max.Y &&
+		v.Z <= a.Max.Z
 }
 
 // Vertices returns a slice of 3d box corner vertices.
 func (a Box3) Vertices() v3.VecSet {
-	v := make([]v3.Vec, 8)
-	v[0] = a.Min
-	v[1] = v3.Vec{a.Min.X, a.Min.Y, a.Max.Z}
-	v[2] = v3.Vec{a.Min.X, a.Max.Y, a.Min.Z}
-	v[3] = v3.Vec{a.Min.X, a.Max.Y, a.Max.Z}
-	v[4] = v3.Vec{a.Max.X, a.Min.Y, a.Min.Z}
-	v[5] = v3.Vec{a.Max.X, a.Min.Y, a.Max.Z}
-	v[6] = v3.Vec{a.Max.X, a.Max.Y, a.Min.Z}
-	v[7] = a.Max
-	return v
+	return []v3.Vec{
+		a.Min,
+		v3.Vec{a.Min.X, a.Min.Y, a.Max.Z},
+		v3.Vec{a.Min.X, a.Max.Y, a.Min.Z},
+		v3.Vec{a.Min.X, a.Max.Y, a.Max.Z},
+		v3.Vec{a.Max.X, a.Min.Y, a.Min.Z},
+		v3.Vec{a.Max.X, a.Min.Y, a.Max.Z},
+		v3.Vec{a.Max.X, a.Max.Y, a.Min.Z},
+		a.Max,
+	}
+}
+
+// Snap a point to the box edges
+func (a *Box3) Snap(p v3.Vec, epsilon float64) v3.Vec {
+	p.X = SnapFloat64(p.X, a.Min.X, epsilon)
+	p.X = SnapFloat64(p.X, a.Max.X, epsilon)
+	p.Y = SnapFloat64(p.Y, a.Min.Y, epsilon)
+	p.Y = SnapFloat64(p.Y, a.Max.Y, epsilon)
+	p.Z = SnapFloat64(p.Z, a.Min.Z, epsilon)
+	p.Z = SnapFloat64(p.Z, a.Max.Z, epsilon)
+	return p
+}
+
+// equals test the equality of 3d boxes.
+func (a Box3) equals(b Box3, delta float64) bool {
+	return a.Min.Equals(b.Min, delta) && a.Max.Equals(b.Max, delta)
+}
+
+//-----------------------------------------------------------------------------
+// Box Sub-Octants
+
+func (a Box3) oct0() Box3 {
+	delta := a.Size().MulScalar(0.5)
+	ll := a.Min
+	return Box3{ll, ll.Add(delta)}
+}
+
+func (a Box3) oct1() Box3 {
+	delta := a.Size().MulScalar(0.5)
+	ll := v3.Vec{a.Min.X + delta.X, a.Min.Y, a.Min.Z}
+	return Box3{ll, ll.Add(delta)}
+}
+
+func (a Box3) oct2() Box3 {
+	delta := a.Size().MulScalar(0.5)
+	ll := v3.Vec{a.Min.X, a.Min.Y + delta.Y, a.Min.Z}
+	return Box3{ll, ll.Add(delta)}
+}
+
+func (a Box3) oct3() Box3 {
+	delta := a.Size().MulScalar(0.5)
+	ll := v3.Vec{a.Min.X + delta.X, a.Min.Y + delta.Y, a.Min.Z}
+	return Box3{ll, ll.Add(delta)}
+}
+
+func (a Box3) oct4() Box3 {
+	delta := a.Size().MulScalar(0.5)
+	ll := v3.Vec{a.Min.X, a.Min.Y, a.Min.Z + delta.Z}
+	return Box3{ll, ll.Add(delta)}
+}
+
+func (a Box3) oct5() Box3 {
+	delta := a.Size().MulScalar(0.5)
+	ll := v3.Vec{a.Min.X + delta.X, a.Min.Y, a.Min.Z + delta.Z}
+	return Box3{ll, ll.Add(delta)}
+}
+
+func (a Box3) oct6() Box3 {
+	delta := a.Size().MulScalar(0.5)
+	ll := v3.Vec{a.Min.X, a.Min.Y + delta.Y, a.Min.Z + delta.Z}
+	return Box3{ll, ll.Add(delta)}
+}
+
+func (a Box3) oct7() Box3 {
+	delta := a.Size().MulScalar(0.5)
+	ll := a.Min.Add(delta)
+	return Box3{ll, ll.Add(delta)}
 }
 
 //-----------------------------------------------------------------------------

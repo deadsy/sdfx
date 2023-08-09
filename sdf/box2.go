@@ -30,11 +30,6 @@ func NewBox2(center, size v2.Vec) Box2 {
 	return Box2{center.Sub(half), center.Add(half)}
 }
 
-// Equals test the equality of 2d boxes.
-func (a Box2) Equals(b Box2, tolerance float64) bool {
-	return (a.Min.Equals(b.Min, tolerance) && a.Max.Equals(b.Max, tolerance))
-}
-
 // Extend returns a box enclosing two 2d boxes.
 func (a Box2) Extend(b Box2) Box2 {
 	return Box2{a.Min.Min(b.Min), a.Max.Max(b.Max)}
@@ -79,44 +74,62 @@ func (a Box2) Square() Box2 {
 
 // Contains checks if the 2d box contains the point.
 func (a Box2) Contains(v v2.Vec) bool {
-	return (v.X >= a.Min.X) && (v.Y >= a.Min.Y) && (v.X <= a.Max.X) && (v.Y <= a.Max.Y)
+	return v.X >= a.Min.X &&
+		v.Y >= a.Min.Y &&
+		v.X <= a.Max.X &&
+		v.Y <= a.Max.Y
+}
+
+// Vertices returns a slice of 2d box corner vertices.
+func (a Box2) Vertices() v2.VecSet {
+	return []v2.Vec{
+		a.Min,                    // bl
+		v2.Vec{a.Max.X, a.Min.Y}, // br
+		v2.Vec{a.Min.X, a.Max.Y}, // tl
+		a.Max,                    // tr
+	}
 }
 
 // Snap a point to the box edges
-func (a *Box2) Snap(p v2.Vec, epsilon float64) v2.Vec {
-	p.X = SnapFloat64(p.X, a.Min.X, epsilon)
-	p.X = SnapFloat64(p.X, a.Max.X, epsilon)
-	p.Y = SnapFloat64(p.Y, a.Min.Y, epsilon)
-	p.Y = SnapFloat64(p.Y, a.Max.Y, epsilon)
+func (a *Box2) Snap(p v2.Vec, delta float64) v2.Vec {
+	p.X = SnapFloat64(p.X, a.Min.X, delta)
+	p.X = SnapFloat64(p.X, a.Max.X, delta)
+	p.Y = SnapFloat64(p.Y, a.Min.Y, delta)
+	p.Y = SnapFloat64(p.Y, a.Max.Y, delta)
 	return p
+}
+
+// equals test the equality of 2d boxes.
+func (a Box2) equals(b Box2, delta float64) bool {
+	return (a.Min.Equals(b.Min, delta) && a.Max.Equals(b.Max, delta))
 }
 
 //-----------------------------------------------------------------------------
 // Box Sub-Quadrants
 
-// Quad0 returns the 0th quadtree box of a box (lower-left).
-func (a Box2) Quad0() Box2 {
+// quad0 returns the 0th quadtree box of a box (lower-left).
+func (a Box2) quad0() Box2 {
 	delta := a.Size().MulScalar(0.5)
 	ll := a.Min
 	return Box2{ll, ll.Add(delta)}
 }
 
-// Quad1 returns the 1st quadtree box of a box (lower-right).
-func (a Box2) Quad1() Box2 {
+// quad1 returns the 1st quadtree box of a box (lower-right).
+func (a Box2) quad1() Box2 {
 	delta := a.Size().MulScalar(0.5)
 	ll := v2.Vec{a.Min.X + delta.X, a.Min.Y}
 	return Box2{ll, ll.Add(delta)}
 }
 
-// Quad2 returns the 2nd quadtree box of a box (top-left).
-func (a Box2) Quad2() Box2 {
+// quad2 returns the 2nd quadtree box of a box (top-left).
+func (a Box2) quad2() Box2 {
 	delta := a.Size().MulScalar(0.5)
 	ll := v2.Vec{a.Min.X, a.Min.Y + delta.Y}
 	return Box2{ll, ll.Add(delta)}
 }
 
-// Quad3 returns the 3rd quadtree box of a box (top-right).
-func (a Box2) Quad3() Box2 {
+// quad3 returns the 3rd quadtree box of a box (top-right).
+func (a Box2) quad3() Box2 {
 	delta := a.Size().MulScalar(0.5)
 	ll := a.Min.Add(delta)
 	return Box2{ll, ll.Add(delta)}
@@ -124,27 +137,15 @@ func (a Box2) Quad3() Box2 {
 
 //-----------------------------------------------------------------------------
 
-// Vertices returns a slice of 2d box corner vertices.
-func (a Box2) Vertices() v2.VecSet {
-	v := make([]v2.Vec, 4)
-	v[0] = a.Min                    // bl
-	v[1] = v2.Vec{a.Max.X, a.Min.Y} // br
-	v[2] = v2.Vec{a.Min.X, a.Max.Y} // tl
-	v[3] = a.Max                    // tr
-	return v
-}
-
-// BottomLeft returns the bottom left corner of a 2d bounding box.
-func (a Box2) BottomLeft() v2.Vec {
+// bottomLeft returns the bottom-left corner of a 2d bounding box.
+func (a Box2) bottomLeft() v2.Vec {
 	return a.Min
 }
 
-// TopLeft returns the top left corner of a 2d bounding box.
-func (a Box2) TopLeft() v2.Vec {
+// topLeft returns the top-left corner of a 2d bounding box.
+func (a Box2) topLeft() v2.Vec {
 	return v2.Vec{a.Min.X, a.Max.Y}
 }
-
-//-----------------------------------------------------------------------------
 
 // Map2 maps a 2d region to integer grid coordinates.
 type Map2 struct {
@@ -178,10 +179,10 @@ func (m *Map2) ToV2(p v2i.Vec) v2.Vec {
 	ofs := conv.V2iToV2(p).AddScalar(0.5).Mul(m.delta)
 	var origin v2.Vec
 	if m.flipy {
-		origin = m.bb.TopLeft()
+		origin = m.bb.topLeft()
 		ofs.Y = -ofs.Y
 	} else {
-		origin = m.bb.BottomLeft()
+		origin = m.bb.bottomLeft()
 	}
 	return origin.Add(ofs)
 }
@@ -190,10 +191,10 @@ func (m *Map2) ToV2(p v2i.Vec) v2.Vec {
 func (m *Map2) ToV2i(p v2.Vec) v2i.Vec {
 	var v v2.Vec
 	if m.flipy {
-		v = p.Sub(m.bb.TopLeft())
+		v = p.Sub(m.bb.topLeft())
 		v.Y = -v.Y
 	} else {
-		v = p.Sub(m.bb.BottomLeft())
+		v = p.Sub(m.bb.bottomLeft())
 	}
 	return conv.V2ToV2i(v.Div(m.delta))
 }

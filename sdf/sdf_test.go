@@ -64,30 +64,7 @@ func Test_Inverse(t *testing.T) {
 
 //-----------------------------------------------------------------------------
 
-func Test_MulBox(t *testing.T) {
-
-	// 2D boxes
-	b2d := Box2{v2.Vec{-1, -1}, v2.Vec{1, 1}}
-	for i := 0; i < 100; i++ {
-		b := NewBox2(v2.Vec{0, 0}, v2.Vec{10, 10})
-		v := b.Random()
-		// translating
-		m0 := Translate2d(v)
-		m1 := Translate2d(v.Neg())
-		b1 := m0.MulBox(b2d)
-		b2 := m1.MulBox(b1)
-		if b2d.Equals(b2, tolerance) == false {
-			t.Error("FAIL")
-		}
-		// scaling
-		m0 = Scale2d(v)
-		m1 = Scale2d(v2.Vec{1 / v.X, 1 / v.Y})
-		b1 = m0.MulBox(b2d)
-		b2 = m1.MulBox(b1)
-		if b2d.Equals(b2, tolerance) == false {
-			t.Error("FAIL")
-		}
-	}
+func Test_Box3_MulBox(t *testing.T) {
 
 	// 3D boxes
 	b3d := Box3{v3.Vec{-1, -1, -1}, v3.Vec{1, 1, 1}}
@@ -99,7 +76,7 @@ func Test_MulBox(t *testing.T) {
 		m1 := Translate3d(v.Neg())
 		b1 := m0.MulBox(b3d)
 		b2 := m1.MulBox(b1)
-		if b3d.Equals(b2, tolerance) == false {
+		if b3d.equals(b2, tolerance) == false {
 			t.Error("FAIL")
 		}
 		// scaling
@@ -107,7 +84,7 @@ func Test_MulBox(t *testing.T) {
 		m1 = Scale3d(v3.Vec{1 / v.X, 1 / v.Y, 1 / v.Z})
 		b1 = m0.MulBox(b3d)
 		b2 = m1.MulBox(b1)
-		if b3d.Equals(b2, tolerance) == false {
+		if b3d.equals(b2, tolerance) == false {
 			t.Error("FAIL")
 		}
 	}
@@ -115,11 +92,11 @@ func Test_MulBox(t *testing.T) {
 
 //-----------------------------------------------------------------------------
 
-func Test_ScaleBox(t *testing.T) {
+func Test_Box3_ScaleBox(t *testing.T) {
 	b0 := Box3{v3.Vec{-1, -1, -1}, v3.Vec{1, 1, 1}}
 	b1 := Box3{v3.Vec{-2, -2, -2}, v3.Vec{2, 2, 2}}
 	b2 := NewBox3(b0.Center(), b0.Size().MulScalar(2))
-	if b1.Equals(b2, tolerance) == false {
+	if b1.equals(b2, tolerance) == false {
 		t.Error("FAIL")
 	}
 }
@@ -213,14 +190,14 @@ func Test_Polygon1(t *testing.T) {
 	s, _ := Polygon2D([]v2.Vec{{0, 0}, {1, 0}, {0, 1}})
 	b := s.BoundingBox()
 	b0 := Box2{v2.Vec{0, 0}, v2.Vec{1, 1}}
-	if b.Equals(b0, tolerance) == false {
+	if b.equals(b0, tolerance) == false {
 		t.Error("FAIL")
 	}
 
 	s, _ = Polygon2D([]v2.Vec{{0, -2}, {1, 1}, {-2, 2}})
 	b = s.BoundingBox()
 	b0 = Box2{v2.Vec{-2, -2}, v2.Vec{1, 2}}
-	if b.Equals(b0, tolerance) == false {
+	if b.equals(b0, tolerance) == false {
 		t.Error("FAIL")
 	}
 
@@ -231,10 +208,9 @@ func Test_Polygon1(t *testing.T) {
 	}
 
 	s, _ = Polygon2D(points)
-
 	b = s.BoundingBox()
 	b0 = Box2{v2.Vec{-1, -1}, v2.Vec{1, 1}}
-	if b.Equals(b0, tolerance) == false {
+	if b.equals(b0, tolerance) == false {
 		t.Error("FAIL")
 	}
 
@@ -716,33 +692,6 @@ func Test_Float_Comparison(t *testing.T) {
 }
 
 */
-
-//-----------------------------------------------------------------------------
-
-func Test_Box2_Distances(t *testing.T) {
-	b0 := NewBox2(v2.Vec{0, 0}, v2.Vec{10, 10})
-	b1 := NewBox2(v2.Vec{10, 20}, v2.Vec{30, 40})
-	tests := []struct {
-		b      Box2
-		p      v2.Vec
-		result Interval
-	}{
-		{b0, v2.Vec{0, 0}, Interval{0, 50}},
-		{b0, v2.Vec{5, 5}, Interval{0, 200}},
-		{b0, v2.Vec{20, 0}, Interval{225, 650}},
-		{b1, v2.Vec{0, 0}, Interval{0, 2225}},
-		{b1, v2.Vec{10, 20}, Interval{0, 625}},
-		{b1, v2.Vec{0, -10}, Interval{100, 3125}},
-		{b1, v2.Vec{0, 5}, Interval{0, 1850}},
-	}
-	for _, v := range tests {
-		x := v.b.MinMaxDist2(v.p)
-		if !x.Equals(v.result, tolerance) {
-			t.Logf("expected %v, actual %v\n", v.result, x)
-			t.Error("FAIL")
-		}
-	}
-}
 
 //-----------------------------------------------------------------------------
 
