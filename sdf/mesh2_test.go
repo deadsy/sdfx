@@ -9,7 +9,6 @@ Mesh 2D Testing and Benchmarking
 package sdf
 
 import (
-	"math"
 	"testing"
 )
 
@@ -117,7 +116,7 @@ func Test_Mesh2D(t *testing.T) {
 
 	for _, p := range pSet {
 		d0 := s0.Evaluate(p)
-		d1 := math.Abs(s1.Evaluate(p))
+		d1 := s1.Evaluate(p)
 		if !EqualFloat64(d0, d1, tolerance) {
 			e := d0 - d1
 			t.Errorf("%v fast %f slow %f error %f", p, d0, d1, e)

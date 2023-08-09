@@ -61,6 +61,28 @@ func (a *lineInfo) minDistance2(p v2.Vec) float64 {
 	return d2
 }
 
+// winding returns a winding number increment for a line segment.
+// The line segment must be to the right of p (+ve x-axis from p).
+func (a *lineInfo) winding(p v2.Vec) int {
+	ay := a.line[0].Y
+	by := a.line[1].Y
+	dn := p.Sub(a.line[0]).Dot(v2.Vec{a.unitVector.Y, -a.unitVector.X})
+	if ay <= p.Y {
+		if by > p.Y { // upward crossing
+			if dn < 0 { // p is to the left of the line segment
+				return 1
+			}
+		}
+	} else {
+		if by <= p.Y { // downward crossing
+			if dn > 0 { // p is to the left of the line segment
+				return -1
+			}
+		}
+	}
+	return 0
+}
+
 //-----------------------------------------------------------------------------
 
 const qtMaxLevel = 3
@@ -163,6 +185,23 @@ func (node *qtNode) searchOrder(p v2.Vec) [4]int {
 	return [4]int{0, 2, 1, 3}
 }
 
+// windingOrder returns child search order for this node.
+// This is based on a positive x-axis vector from p.
+func (node *qtNode) windingOrder(p v2.Vec) []int {
+	// translate the point so the node box center is at the origin
+	p = p.Sub(node.center)
+	if p.X < 0 {
+		if p.Y < 0 {
+			return []int{0, 1}
+		}
+		return []int{2, 3}
+	}
+	if p.Y < 0 {
+		return []int{1}
+	}
+	return []int{3}
+}
+
 // minBoxDist2 returns the minimum distance squared from a point to the node box.
 // Inside the box is a zero distance.
 func (node *qtNode) minBoxDist2(p v2.Vec) float64 {
@@ -209,6 +248,23 @@ func (node *qtNode) minDist2(p v2.Vec, dd float64) float64 {
 	return dd
 }
 
+// winding returns the winding number for the quadtree node
+func (node *qtNode) winding(p v2.Vec, wn int) int {
+	if node == nil {
+		return wn
+	}
+	if node.leaf != nil {
+		for _, li := range node.leaf {
+			wn += li.winding(p)
+		}
+		return wn
+	}
+	for _, i := range node.windingOrder(p) {
+		wn = node.child[i].winding(p, wn)
+	}
+	return wn
+}
+
 //-----------------------------------------------------------------------------
 // Mesh2D. 2D mesh evaluation with quadtree speedup.
 
@@ -248,7 +304,14 @@ func Mesh2D(mesh []*Line2) (SDF2, error) {
 // Evaluate returns the minimum distance for a 2d mesh.
 func (s *MeshSDF2) Evaluate(p v2.Vec) float64 {
 	d2 := s.qt.minDist2(p, math.MaxFloat64)
-	return math.Sqrt(d2)
+	wn := s.qt.winding(p, 0)
+	// normalise d*d to d
+	d := math.Sqrt(d2)
+	if wn != 0 {
+		// p is inside the polygon
+		return -d
+	}
+	return d
 }
 
 // Boxes returns the full set of quadtree boxes.
