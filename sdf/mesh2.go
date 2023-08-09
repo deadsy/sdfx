@@ -291,11 +291,37 @@ func Mesh2DSlow(mesh []*Line2) (SDF2, error) {
 
 // Evaluate returns the minimum distance for a 2d mesh.
 func (s *MeshSDF2Slow) Evaluate(p v2.Vec) float64 {
-	d2 := math.MaxFloat64
+	d2 := math.MaxFloat64 // d^2 to mesh (>0)
+	wn := 0               // winding number (inside/outside)
 	for _, li := range s.mesh {
 		d2 = math.Min(d2, li.minDistance2(p))
+		// Is the point in the polygon?
+		// See: http://geomalgorithms.com/a03-_inclusion.html
+		a := li.line[0]
+		b := li.line[1]
+		// normal distance from p to line
+		dn := p.Sub(a).Dot(v2.Vec{li.unitVector.Y, -li.unitVector.X})
+		if a.Y <= p.Y {
+			if b.Y > p.Y { // upward crossing
+				if dn < 0 { // p is to the left of the line segment
+					wn++ // up intersect
+				}
+			}
+		} else {
+			if b.Y <= p.Y { // downward crossing
+				if dn > 0 { // p is to the left of the line segment
+					wn-- // down intersect
+				}
+			}
+		}
 	}
-	return math.Sqrt(d2)
+	// normalise d*d to d
+	d := math.Sqrt(d2)
+	if wn != 0 {
+		// p is inside the polygon
+		return -d
+	}
+	return d
 }
 
 // BoundingBox returns the bounding box of a 2d mesh.
