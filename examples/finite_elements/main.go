@@ -47,7 +47,7 @@ const (
 // Written file can be used by ABAQUS or CalculiX.
 func main() {
 	benchmark := Square
-	elementconfig := Hex20Tet10
+	elementconfig := Hex8Tet4
 
 	// Optional argument from 1 to 4 to specify the benchmark to run.
 	if len(os.Args) > 1 {
