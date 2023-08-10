@@ -223,9 +223,6 @@ func fe(s sdf.SDF3, resolution int, order render.Order, shape render.Shape, pth 
 	for i, component := range components {
 		fmt.Printf("component %v voxel count: %v\n", i, component.VoxelCount())
 	}
-	m.CleanDisconnections(components)
-	components = m.Components()
-	fmt.Printf("components count after clean up: %v\n", len(components))
 
 	// Write all layers of mesh to file.
 	return m.WriteInp(pth, 7.85e-9, 210000, 0.3, restraints, loads, v3.Vec{X: 0, Y: 0, Z: -1}, 9810)
@@ -246,9 +243,6 @@ func feLayers(s sdf.SDF3, resolution int, order render.Order, shape render.Shape
 	for i, component := range components {
 		fmt.Printf("component %v voxel count: %v\n", i, component.VoxelCount())
 	}
-	m.CleanDisconnections(components)
-	components = m.Components()
-	fmt.Printf("components count after clean up: %v\n", len(components))
 
 	// Write just some layers of mesh to file.
 	return m.WriteInpLayers(pth, layerStart, layerEnd, 7.85e-9, 210000, 0.3, restraints, loads, v3.Vec{X: 0, Y: 0, Z: -1}, 9810)
