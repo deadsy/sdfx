@@ -61,9 +61,31 @@ func (a *lineInfo) minDistance2(p v2.Vec) float64 {
 	return d2
 }
 
+// winding returns a winding number increment for a line segment.
+// The line segment must be to the right of p (+ve x-axis from p).
+func (a *lineInfo) winding(p v2.Vec) int {
+	ay := a.line[0].Y
+	by := a.line[1].Y
+	dn := p.Sub(a.line[0]).Dot(v2.Vec{a.unitVector.Y, -a.unitVector.X})
+	if ay <= p.Y {
+		if by > p.Y { // upward crossing
+			if dn < 0 { // p is to the left of the line segment
+				return 1
+			}
+		}
+	} else {
+		if by <= p.Y { // downward crossing
+			if dn > 0 { // p is to the left of the line segment
+				return -1
+			}
+		}
+	}
+	return 0
+}
+
 //-----------------------------------------------------------------------------
 
-const qtMaxLevel = 15
+const qtMaxLevel = 3
 
 type qtNode struct {
 	level    int         // quadtree level
@@ -96,10 +118,10 @@ func qtBuild(level int, box Box2, lSet []*Line2) *qtNode {
 	}
 
 	// non-leaf node
-	box0 := box.Quad0()
-	box1 := box.Quad1()
-	box2 := box.Quad2()
-	box3 := box.Quad3()
+	box0 := box.quad0()
+	box1 := box.quad1()
+	box2 := box.quad2()
+	box3 := box.quad3()
 	return &qtNode{
 		level:    level,
 		box:      box,
@@ -112,6 +134,22 @@ func qtBuild(level int, box Box2, lSet []*Line2) *qtNode {
 			qtBuild(level+1, box3, box3.lineFilter(lSet)),
 		},
 	}
+}
+
+// boxes returns the set of boxes used by this node.
+func (node *qtNode) boxes() []*Box2 {
+	if node == nil {
+		return nil
+	}
+	if node.leaf != nil {
+		return []*Box2{&node.box}
+	}
+	boxes := []*Box2{&node.box}
+	boxes = append(boxes, node.child[0].boxes()...)
+	boxes = append(boxes, node.child[1].boxes()...)
+	boxes = append(boxes, node.child[2].boxes()...)
+	boxes = append(boxes, node.child[3].boxes()...)
+	return boxes
 }
 
 // searchOrder returns the child search order for this node.
@@ -145,6 +183,23 @@ func (node *qtNode) searchOrder(p v2.Vec) [4]int {
 		return [4]int{0, 1, 2, 3}
 	}
 	return [4]int{0, 2, 1, 3}
+}
+
+// windingOrder returns child search order for this node.
+// This is based on a positive x-axis vector from p.
+func (node *qtNode) windingOrder(p v2.Vec) []int {
+	// translate the point so the node box center is at the origin
+	p = p.Sub(node.center)
+	if p.X < 0 {
+		if p.Y < 0 {
+			return []int{0, 1}
+		}
+		return []int{2, 3}
+	}
+	if p.Y < 0 {
+		return []int{1}
+	}
+	return []int{3}
 }
 
 // minBoxDist2 returns the minimum distance squared from a point to the node box.
@@ -193,6 +248,23 @@ func (node *qtNode) minDist2(p v2.Vec, dd float64) float64 {
 	return dd
 }
 
+// winding returns the winding number for the quadtree node
+func (node *qtNode) winding(p v2.Vec, wn int) int {
+	if node == nil {
+		return wn
+	}
+	if node.leaf != nil {
+		for _, li := range node.leaf {
+			wn += li.winding(p)
+		}
+		return wn
+	}
+	for _, i := range node.windingOrder(p) {
+		wn = node.child[i].winding(p, wn)
+	}
+	return wn
+}
+
 //-----------------------------------------------------------------------------
 // Mesh2D. 2D mesh evaluation with quadtree speedup.
 
@@ -232,7 +304,19 @@ func Mesh2D(mesh []*Line2) (SDF2, error) {
 // Evaluate returns the minimum distance for a 2d mesh.
 func (s *MeshSDF2) Evaluate(p v2.Vec) float64 {
 	d2 := s.qt.minDist2(p, math.MaxFloat64)
-	return math.Sqrt(d2)
+	wn := s.qt.winding(p, 0)
+	// normalise d*d to d
+	d := math.Sqrt(d2)
+	if wn != 0 {
+		// p is inside the polygon
+		return -d
+	}
+	return d
+}
+
+// Boxes returns the full set of quadtree boxes.
+func (s *MeshSDF2) Boxes() []*Box2 {
+	return s.qt.boxes()
 }
 
 // BoundingBox returns the bounding box of a 2d mesh.
@@ -270,11 +354,37 @@ func Mesh2DSlow(mesh []*Line2) (SDF2, error) {
 
 // Evaluate returns the minimum distance for a 2d mesh.
 func (s *MeshSDF2Slow) Evaluate(p v2.Vec) float64 {
-	d2 := math.MaxFloat64
+	d2 := math.MaxFloat64 // d^2 to mesh (>0)
+	wn := 0               // winding number (inside/outside)
 	for _, li := range s.mesh {
 		d2 = math.Min(d2, li.minDistance2(p))
+		// Is the point in the polygon?
+		// See: http://geomalgorithms.com/a03-_inclusion.html
+		a := li.line[0]
+		b := li.line[1]
+		// normal distance from p to line
+		dn := p.Sub(a).Dot(v2.Vec{li.unitVector.Y, -li.unitVector.X})
+		if a.Y <= p.Y {
+			if b.Y > p.Y { // upward crossing
+				if dn < 0 { // p is to the left of the line segment
+					wn++ // up intersect
+				}
+			}
+		} else {
+			if b.Y <= p.Y { // downward crossing
+				if dn > 0 { // p is to the left of the line segment
+					wn-- // down intersect
+				}
+			}
+		}
 	}
-	return math.Sqrt(d2)
+	// normalise d*d to d
+	d := math.Sqrt(d2)
+	if wn != 0 {
+		// p is inside the polygon
+		return -d
+	}
+	return d
 }
 
 // BoundingBox returns the bounding box of a 2d mesh.

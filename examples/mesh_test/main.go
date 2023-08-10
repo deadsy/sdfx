@@ -60,19 +60,17 @@ func testPolygon() (*sdf.Polygon, error) {
 	return b.Polygon()
 }
 
+func getMesh() []*sdf.Line2 {
+	p, _ := testPolygon()
+	m, _ := sdf.PolygonToMesh(p)
+	return m
+}
+
 //-----------------------------------------------------------------------------
 
-func test() error {
+func test1() error {
 
-	p, err := testPolygon()
-	if err != nil {
-		return err
-	}
-
-	m, err := sdf.PolygonToMesh(p)
-	if err != nil {
-		return err
-	}
+	m := getMesh()
 
 	s0, err := sdf.Mesh2D(m)
 	if err != nil {
@@ -96,8 +94,18 @@ func test() error {
 		}
 	}
 
-	d.Points(ePoints, 0.2)
-	d.Lines(p.Vertices())
+	d.Lines(m)
+
+	boxes := s0.(*sdf.MeshSDF2).Boxes()
+	for _, b := range boxes {
+		d.Box(b)
+	}
+
+	log.Printf("%d distance errors", len(ePoints))
+	if len(ePoints) != 0 {
+		d.Points(ePoints, 0.2)
+	}
+
 	d.Save()
 
 	return nil
@@ -105,11 +113,39 @@ func test() error {
 
 //-----------------------------------------------------------------------------
 
+func test2() error {
+
+	m := getMesh()
+
+	s0, err := sdf.Mesh2D(m)
+	if err != nil {
+		return err
+	}
+
+	s1, err := sdf.Mesh2DSlow(m)
+	if err != nil {
+		return err
+	}
+
+	sdf.BenchmarkSDF2("Mesh2D", s0)
+	sdf.BenchmarkSDF2("Mesh2DSlow", s1)
+
+	return nil
+}
+
+//-----------------------------------------------------------------------------
+
 func main() {
-	err := test()
+	err := test1()
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
+
+	err = test2()
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+
 }
 
 //-----------------------------------------------------------------------------

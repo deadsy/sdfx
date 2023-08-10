@@ -83,3 +83,59 @@ func Test_Box2_lineIntersect(t *testing.T) {
 }
 
 //-----------------------------------------------------------------------------
+
+func Test_Box2_MulBox(t *testing.T) {
+
+	// 2D boxes
+	b2d := Box2{v2.Vec{-1, -1}, v2.Vec{1, 1}}
+	for i := 0; i < 100; i++ {
+		b := NewBox2(v2.Vec{0, 0}, v2.Vec{10, 10})
+		v := b.Random()
+		// translating
+		m0 := Translate2d(v)
+		m1 := Translate2d(v.Neg())
+		b1 := m0.MulBox(b2d)
+		b2 := m1.MulBox(b1)
+		if b2d.equals(b2, tolerance) == false {
+			t.Error("FAIL")
+		}
+		// scaling
+		m0 = Scale2d(v)
+		m1 = Scale2d(v2.Vec{1 / v.X, 1 / v.Y})
+		b1 = m0.MulBox(b2d)
+		b2 = m1.MulBox(b1)
+		if b2d.equals(b2, tolerance) == false {
+			t.Error("FAIL")
+		}
+	}
+
+}
+
+//-----------------------------------------------------------------------------
+
+func Test_Box2_Distances(t *testing.T) {
+	b0 := NewBox2(v2.Vec{0, 0}, v2.Vec{10, 10})
+	b1 := NewBox2(v2.Vec{10, 20}, v2.Vec{30, 40})
+	tests := []struct {
+		b      Box2
+		p      v2.Vec
+		result Interval
+	}{
+		{b0, v2.Vec{0, 0}, Interval{0, 50}},
+		{b0, v2.Vec{5, 5}, Interval{0, 200}},
+		{b0, v2.Vec{20, 0}, Interval{225, 650}},
+		{b1, v2.Vec{0, 0}, Interval{0, 2225}},
+		{b1, v2.Vec{10, 20}, Interval{0, 625}},
+		{b1, v2.Vec{0, -10}, Interval{100, 3125}},
+		{b1, v2.Vec{0, 5}, Interval{0, 1850}},
+	}
+	for _, v := range tests {
+		x := v.b.MinMaxDist2(v.p)
+		if !x.Equals(v.result, tolerance) {
+			t.Logf("expected %v, actual %v\n", v.result, x)
+			t.Error("FAIL")
+		}
+	}
+}
+
+//-----------------------------------------------------------------------------

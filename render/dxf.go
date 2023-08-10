@@ -41,19 +41,15 @@ func NewDXF(name string) *DXF {
 }
 
 // Line adds a line to a dxf drawing object.
-func (d *DXF) Line(p0, p1 v2.Vec) {
+func (d *DXF) Line(line *sdf.Line2) {
 	d.drawing.ChangeLayer("Lines")
-	d.drawing.Line(p0.X, p0.Y, 0, p1.X, p1.Y, 0)
+	d.drawing.Line(line[0].X, line[0].Y, 0, line[1].X, line[1].Y, 0)
 }
 
 // Lines adds a set of lines to a dxf drawing object.
-func (d *DXF) Lines(s v2.VecSet) {
-	d.drawing.ChangeLayer("Lines")
-	p1 := s[0]
-	for i := 0; i < len(s)-1; i++ {
-		p0 := p1
-		p1 = s[i+1]
-		d.drawing.Line(p0.X, p0.Y, 0, p1.X, p1.Y, 0)
+func (d *DXF) Lines(lines []*sdf.Line2) {
+	for _, l := range lines {
+		d.Line(l)
 	}
 }
 
@@ -67,7 +63,19 @@ func (d *DXF) Points(s v2.VecSet, r float64) {
 
 // Triangle adds a triangle to a dxf drawing object.
 func (d *DXF) Triangle(t sdf.Triangle2) {
-	d.Lines([]v2.Vec{t[0], t[1], t[2], t[0]})
+	l0 := sdf.Line2{t[0], t[1]}
+	l1 := sdf.Line2{t[1], t[2]}
+	l2 := sdf.Line2{t[2], t[0]}
+	d.Lines([]*sdf.Line2{&l0, &l1, &l2})
+}
+
+// Box adds a box to a dxf drawing object.
+func (d *DXF) Box(a *sdf.Box2) {
+	l0 := sdf.Line2{a.Min, v2.Vec{a.Max.X, a.Min.Y}}
+	l1 := sdf.Line2{l0[1], a.Max}
+	l2 := sdf.Line2{l1[1], v2.Vec{a.Min.X, a.Max.Y}}
+	l3 := sdf.Line2{l2[1], l0[0]}
+	d.Lines([]*sdf.Line2{&l0, &l1, &l2, &l3})
 }
 
 // Save writes a dxf drawing object to a file.
@@ -143,16 +151,14 @@ func Poly(p *sdf.Polygon, path string) error {
 	d := NewDXF(path)
 
 	for i := 0; i < len(vlist)-1; i++ {
-		p0 := vlist[i]
-		p1 := vlist[i+1]
-		d.Line(p0, p1)
+		d.Line(&sdf.Line2{vlist[i], vlist[i+1]})
 	}
 
 	if p.Closed() {
 		p0 := vlist[len(vlist)-1]
 		p1 := vlist[0]
 		if !p0.Equals(p1, tolerance) {
-			d.Line(p0, p1)
+			d.Line(&sdf.Line2{p0, p1})
 		}
 	}
 
