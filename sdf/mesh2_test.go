@@ -59,7 +59,7 @@ func testPolygon() (*Polygon, error) {
 
 func getMesh() []*Line2 {
 	p, _ := testPolygon()
-	m, _ := PolygonToMesh(p)
+	m, _ := p.Mesh()
 	return m
 }
 
@@ -120,36 +120,6 @@ func Test_Mesh2D(t *testing.T) {
 		if !EqualFloat64(d0, d1, tolerance) {
 			e := d0 - d1
 			t.Errorf("%v fast %f slow %f error %f", p, d0, d1, e)
-		}
-	}
-}
-
-//-----------------------------------------------------------------------------
-
-func Test_Mesh2DSlow(t *testing.T) {
-
-	p, _ := testPolygon()
-	m, _ := PolygonToMesh(p)
-
-	s0, err := Mesh2DSlow(m)
-	if err != nil {
-		t.Fatalf("error: %s", err)
-	}
-
-	s1, err := Polygon2D(p.Vertices())
-	if err != nil {
-		t.Fatalf("error: %s", err)
-	}
-
-	bb := s0.BoundingBox()
-	pSet := bb.RandomSet(nPoints)
-
-	for _, p := range pSet {
-		d0 := s0.Evaluate(p)
-		d1 := s1.Evaluate(p)
-		if !EqualFloat64(d0, d1, tolerance) {
-			e := d0 - d1
-			t.Errorf("%v slow %f poly %f error %f", p, d0, d1, e)
 		}
 	}
 }

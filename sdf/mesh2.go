@@ -383,25 +383,3 @@ func (s *MeshSDF2Slow) BoundingBox() Box2 {
 }
 
 //-----------------------------------------------------------------------------
-
-// PolygonToMesh converts a polygon into a mesh (line segment) representation.
-func PolygonToMesh(p *Polygon) ([]*Line2, error) {
-	vertex := p.Vertices()
-	n := len(vertex)
-	if n < 3 {
-		return nil, ErrMsg("number of vertices < 3")
-	}
-	// Close the loop (if necessary)
-	if !vertex[0].Equals(vertex[n-1], tolerance) {
-		vertex = append(vertex, vertex[0])
-		n++
-	}
-	// create the mesh line segments
-	mesh := make([]*Line2, n-1)
-	for i := range mesh {
-		mesh[i] = &Line2{vertex[i], vertex[i+1]}
-	}
-	return mesh, nil
-}
-
-//-----------------------------------------------------------------------------

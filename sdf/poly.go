@@ -342,6 +342,26 @@ func (p *Polygon) Vertices() []v2.Vec {
 	return v
 }
 
+// Mesh returns the line segment mesh for the polygon.
+func (p *Polygon) Mesh() ([]*Line2, error) {
+	vertex := p.Vertices()
+	n := len(vertex)
+	if n < 3 {
+		return nil, ErrMsg("number of vertices < 3")
+	}
+	// Close the loop (if necessary)
+	if !vertex[0].Equals(vertex[n-1], tolerance) {
+		vertex = append(vertex, vertex[0])
+		n++
+	}
+	// create the mesh line segments
+	mesh := make([]*Line2, n-1)
+	for i := range mesh {
+		mesh[i] = &Line2{vertex[i], vertex[i+1]}
+	}
+	return mesh, nil
+}
+
 //-----------------------------------------------------------------------------
 
 // Nagon return the vertices of a N sided regular polygon.
