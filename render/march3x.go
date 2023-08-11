@@ -101,7 +101,7 @@ func (dc *dcache3) isEmpty(c *cube) bool {
 }
 
 // Process a cube. Generate triangles, or more cubes.
-func (dc *dcache3) processCube(c *cube, output chan<- []*sdf.Triangle3) {
+func (dc *dcache3) processCube(c *cube, output sdf.Triangle3Writer) {
 	if !dc.isEmpty(c) {
 		if c.n == 1 {
 			// this cube is at the required resolution
@@ -116,7 +116,7 @@ func (dc *dcache3) processCube(c *cube, output chan<- []*sdf.Triangle3) {
 			corners := [8]v3.Vec{c0, c1, c2, c3, c4, c5, c6, c7}
 			values := [8]float64{d0, d1, d2, d3, d4, d5, d6, d7}
 			// output the triangle(s) for this cube
-			output <- mcToTriangles(corners, values, 0)
+			output.Write(mcToTriangles(corners, values, 0))
 		} else {
 			// process the sub cubes
 			n := c.n - 1
@@ -137,7 +137,7 @@ func (dc *dcache3) processCube(c *cube, output chan<- []*sdf.Triangle3) {
 //-----------------------------------------------------------------------------
 
 // marchingCubesOctree generates a triangle mesh for an SDF3 using octree subdivision.
-func marchingCubesOctree(s sdf.SDF3, resolution float64, output chan<- []*sdf.Triangle3) {
+func marchingCubesOctree(s sdf.SDF3, resolution float64, output sdf.Triangle3Writer) {
 	// Scale the bounding box about the center to make sure the boundaries
 	// aren't on the object surface.
 	bb := s.BoundingBox()
@@ -152,6 +152,7 @@ func marchingCubesOctree(s sdf.SDF3, resolution float64, output chan<- []*sdf.Tr
 	dc := newDcache3(s, bb.Min, resolution, levels)
 	// process the octree, start at the top level
 	dc.processCube(&cube{v3i.Vec{0, 0, 0}, levels - 1}, output)
+	output.Close()
 }
 
 //-----------------------------------------------------------------------------
@@ -177,7 +178,7 @@ func (r *MarchingCubesOctree) Info(s sdf.SDF3) string {
 }
 
 // Render produces a 3d triangle mesh over the bounding volume of an sdf3.
-func (r *MarchingCubesOctree) Render(s sdf.SDF3, output chan<- []*sdf.Triangle3) {
+func (r *MarchingCubesOctree) Render(s sdf.SDF3, output sdf.Triangle3Writer) {
 	// work out the sampling resolution to use
 	bbSize := s.BoundingBox().Size()
 	resolution := bbSize.MaxComponent() / float64(r.meshCells)

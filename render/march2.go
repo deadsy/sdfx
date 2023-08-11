@@ -74,7 +74,7 @@ func (l *lineCache) get(x, y int) float64 {
 
 //-----------------------------------------------------------------------------
 
-func marchingSquares(s sdf.SDF2, resolution float64) []*sdf.Line2 {
+func marchingSquares(s sdf.SDF2, resolution float64, output sdf.Line2Writer) {
 	// Scale the bounding box about the center to make sure the boundaries
 	// aren't on the object surface.
 	bb := s.BoundingBox()
@@ -93,7 +93,6 @@ func marchingSquares(s sdf.SDF2, resolution float64) []*sdf.Line2 {
 	nx, ny := steps.X, steps.Y
 	dx, dy := inc.X, inc.Y
 
-	var lines []*sdf.Line2
 	var p v2.Vec
 	p.X = base.X
 	for x := 0; x < nx; x++ {
@@ -116,13 +115,12 @@ func marchingSquares(s sdf.SDF2, resolution float64) []*sdf.Line2 {
 				l.get(1, y+1),
 				l.get(0, y+1),
 			}
-			lines = append(lines, msToLines(corners, values, 0)...)
+			output.Write(msToLines(corners, values, 0))
 			p.Y += dy
 		}
 		p.X += dx
 	}
-
-	return lines
+	output.Close()
 }
 
 //-----------------------------------------------------------------------------
@@ -148,10 +146,10 @@ func (r *MarchingSquaresUniform) Info(s sdf.SDF2) string {
 }
 
 // Render produces a 2d line mesh over the bounding area of an sdf2.
-func (r *MarchingSquaresUniform) Render(s sdf.SDF2, output chan<- []*sdf.Line2) {
+func (r *MarchingSquaresUniform) Render(s sdf.SDF2, output sdf.Line2Writer) {
 	bbSize := s.BoundingBox().Size()
 	resolution := bbSize.MaxComponent() / float64(r.meshCells)
-	output <- marchingSquares(s, resolution)
+	marchingSquares(s, resolution, output)
 }
 
 //-----------------------------------------------------------------------------

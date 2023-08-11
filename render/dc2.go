@@ -138,7 +138,7 @@ func (dc *dc2) corner(vi v2i.Vec) v2.Vec {
 	return dc.origin.Add(conv.V2iToV2(vi).MulScalar(dc.resolution))
 }
 
-func (dc *dc2) drawNode(node *node2, output chan<- []*sdf.Line2) {
+func (dc *dc2) drawNode(node *node2, output sdf.Line2Writer) {
 
 	k := int(node.n) * 2
 
@@ -152,11 +152,10 @@ func (dc *dc2) drawNode(node *node2, output chan<- []*sdf.Line2) {
 	l2 := sdf.Line2{c2, c3}
 	l3 := sdf.Line2{c3, c0}
 
-	output <- []*sdf.Line2{&l0, &l1, &l2, &l3}
-
+	output.Write([]*sdf.Line2{&l0, &l1, &l2, &l3})
 }
 
-func (dc *dc2) qtOutput(node *node2, output chan<- []*sdf.Line2) {
+func (dc *dc2) qtOutput(node *node2, output sdf.Line2Writer) {
 	if node.child != nil {
 		dc.qtOutput(&node.child[0], output)
 		dc.qtOutput(&node.child[1], output)
@@ -171,7 +170,7 @@ func (dc *dc2) qtOutput(node *node2, output chan<- []*sdf.Line2) {
 }
 
 // dualContouring2D generates line segments for an SDF2 using dual contouring.
-func dualContouring2D(s sdf.SDF2, resolution float64, output chan<- []*sdf.Line2) {
+func dualContouring2D(s sdf.SDF2, resolution float64, output sdf.Line2Writer) {
 	// Scale the bounding box about the center to make sure the boundaries
 	// aren't on the object surface.
 	bb := s.BoundingBox()
@@ -188,6 +187,7 @@ func dualContouring2D(s sdf.SDF2, resolution float64, output chan<- []*sdf.Line2
 	topNode := node2{v: v2i.Vec{0, 0}, n: levels - 1}
 	dc.processNode(&topNode)
 	dc.qtOutput(&topNode, output)
+	output.Close()
 }
 
 //-----------------------------------------------------------------------------
@@ -213,7 +213,7 @@ func (r *DualContouring2D) Info(s sdf.SDF2) string {
 }
 
 // Render produces a 2d line mesh over the bounding area of an sdf2.
-func (r *DualContouring2D) Render(s sdf.SDF2, output chan<- []*sdf.Line2) {
+func (r *DualContouring2D) Render(s sdf.SDF2, output sdf.Line2Writer) {
 	bbSize := s.BoundingBox().Size()
 	resolution := bbSize.MaxComponent() / float64(r.meshCells)
 	dualContouring2D(s, resolution, output)
