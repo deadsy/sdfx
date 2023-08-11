@@ -62,22 +62,17 @@ func (a *lineInfo) minDistance2(p v2.Vec) float64 {
 }
 
 // winding returns a winding number increment for a line segment.
-// The line segment must be to the right of p (+ve x-axis from p).
 func (a *lineInfo) winding(p v2.Vec) int {
 	ay := a.line[0].Y
 	by := a.line[1].Y
 	dn := p.Sub(a.line[0]).Dot(v2.Vec{a.unitVector.Y, -a.unitVector.X})
 	if ay <= p.Y {
-		if by > p.Y { // upward crossing
-			if dn < 0 { // p is to the left of the line segment
-				return 1
-			}
+		if by > p.Y && dn < 0 { // upward crossing
+			return 1
 		}
 	} else {
-		if by <= p.Y { // downward crossing
-			if dn > 0 { // p is to the left of the line segment
-				return -1
-			}
+		if by <= p.Y && dn > 0 { // downward crossing
+			return -1
 		}
 	}
 	return 0
@@ -185,23 +180,6 @@ func (node *qtNode) searchOrder(p v2.Vec) [4]int {
 	return [4]int{0, 2, 1, 3}
 }
 
-// windingOrder returns child search order for this node.
-// This is based on a positive x-axis vector from p.
-func (node *qtNode) windingOrder(p v2.Vec) []int {
-	// translate the point so the node box center is at the origin
-	p = p.Sub(node.center)
-	if p.X < 0 {
-		if p.Y < 0 {
-			return []int{0, 1}
-		}
-		return []int{2, 3}
-	}
-	if p.Y < 0 {
-		return []int{1}
-	}
-	return []int{3}
-}
-
 // minBoxDist2 returns the minimum distance squared from a point to the node box.
 // Inside the box is a zero distance.
 func (node *qtNode) minBoxDist2(p v2.Vec) float64 {
@@ -253,14 +231,30 @@ func (node *qtNode) winding(p v2.Vec, wn int) int {
 	if node == nil {
 		return wn
 	}
+	// leaf node
 	if node.leaf != nil {
 		for _, li := range node.leaf {
 			wn += li.winding(p)
 		}
 		return wn
 	}
-	for _, i := range node.windingOrder(p) {
-		wn = node.child[i].winding(p, wn)
+	// child nodes: explore in +ve x-axis order
+	// translate the point so the node box center is at the origin
+	q := p.Sub(node.center)
+	if q.X < 0 {
+		if q.Y < 0 {
+			wn = node.child[0].winding(p, wn)
+			wn = node.child[1].winding(p, wn)
+		} else {
+			wn = node.child[2].winding(p, wn)
+			wn = node.child[3].winding(p, wn)
+		}
+	} else {
+		if q.Y < 0 {
+			wn = node.child[1].winding(p, wn)
+		} else {
+			wn = node.child[3].winding(p, wn)
+		}
 	}
 	return wn
 }
@@ -365,16 +359,12 @@ func (s *MeshSDF2Slow) Evaluate(p v2.Vec) float64 {
 		// normal distance from p to line
 		dn := p.Sub(a).Dot(v2.Vec{li.unitVector.Y, -li.unitVector.X})
 		if a.Y <= p.Y {
-			if b.Y > p.Y { // upward crossing
-				if dn < 0 { // p is to the left of the line segment
-					wn++ // up intersect
-				}
+			if b.Y > p.Y && dn < 0 { // upward crossing
+				wn++
 			}
 		} else {
-			if b.Y <= p.Y { // downward crossing
-				if dn > 0 { // p is to the left of the line segment
-					wn-- // down intersect
-				}
+			if b.Y <= p.Y && dn > 0 { // downward crossing
+				wn--
 			}
 		}
 	}
@@ -390,28 +380,6 @@ func (s *MeshSDF2Slow) Evaluate(p v2.Vec) float64 {
 // BoundingBox returns the bounding box of a 2d mesh.
 func (s *MeshSDF2Slow) BoundingBox() Box2 {
 	return s.bb
-}
-
-//-----------------------------------------------------------------------------
-
-// PolygonToMesh converts a polygon into a mesh (line segment) representation.
-func PolygonToMesh(p *Polygon) ([]*Line2, error) {
-	vertex := p.Vertices()
-	n := len(vertex)
-	if n < 3 {
-		return nil, ErrMsg("number of vertices < 3")
-	}
-	// Close the loop (if necessary)
-	if !vertex[0].Equals(vertex[n-1], tolerance) {
-		vertex = append(vertex, vertex[0])
-		n++
-	}
-	// create the mesh line segments
-	mesh := make([]*Line2, n-1)
-	for i := range mesh {
-		mesh[i] = &Line2{vertex[i], vertex[i+1]}
-	}
-	return mesh, nil
 }
 
 //-----------------------------------------------------------------------------
