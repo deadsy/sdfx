@@ -80,14 +80,14 @@ func blockOffPlate() (sdf.SDF3, error) {
 	}
 
 	posn := []v2.Vec{
-		v2.Vec{dX, dY0},
-		v2.Vec{-dX, -dY0},
-		v2.Vec{dX, -dY0},
-		v2.Vec{-dX, dY0},
-		v2.Vec{dX, dY1},
-		v2.Vec{-dX, -dY1},
-		v2.Vec{dX, -dY1},
-		v2.Vec{-dX, dY1},
+		{dX, dY0},
+		{-dX, -dY0},
+		{dX, -dY0},
+		{-dX, dY0},
+		{dX, dY1},
+		{-dX, -dY1},
+		{dX, -dY1},
+		{-dX, dY1},
 	}
 	holes := sdf.Multi2D(hole, posn)
 

@@ -84,10 +84,10 @@ func gfHoles(r, h, zOfs float64) sdf.SDF3 {
 	const ofs = 0.5*gfMaleSize - (gfMaleH0 + gfMaleH2 + gfHoleOffset)
 	hole, _ := sdf.Cylinder3D(h, r, 0)
 	posn := []v3.Vec{
-		v3.Vec{ofs, ofs, zOfs},
-		v3.Vec{-ofs, ofs, zOfs},
-		v3.Vec{ofs, -ofs, zOfs},
-		v3.Vec{-ofs, -ofs, zOfs},
+		{ofs, ofs, zOfs},
+		{-ofs, ofs, zOfs},
+		{ofs, -ofs, zOfs},
+		{-ofs, -ofs, zOfs},
 	}
 	return sdf.Multi3D(hole, posn)
 }

@@ -83,12 +83,12 @@ func (a Box3) Contains(v v3.Vec) bool {
 func (a Box3) Vertices() v3.VecSet {
 	return []v3.Vec{
 		a.Min,
-		v3.Vec{a.Min.X, a.Min.Y, a.Max.Z},
-		v3.Vec{a.Min.X, a.Max.Y, a.Min.Z},
-		v3.Vec{a.Min.X, a.Max.Y, a.Max.Z},
-		v3.Vec{a.Max.X, a.Min.Y, a.Min.Z},
-		v3.Vec{a.Max.X, a.Min.Y, a.Max.Z},
-		v3.Vec{a.Max.X, a.Max.Y, a.Min.Z},
+		{a.Min.X, a.Min.Y, a.Max.Z},
+		{a.Min.X, a.Max.Y, a.Min.Z},
+		{a.Min.X, a.Max.Y, a.Max.Z},
+		{a.Max.X, a.Min.Y, a.Min.Z},
+		{a.Max.X, a.Min.Y, a.Max.Z},
+		{a.Max.X, a.Max.Y, a.Min.Z},
 		a.Max,
 	}
 }

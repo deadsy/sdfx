@@ -83,10 +83,10 @@ func (a Box2) Contains(v v2.Vec) bool {
 // Vertices returns a slice of 2d box corner vertices.
 func (a Box2) Vertices() v2.VecSet {
 	return []v2.Vec{
-		a.Min,                    // bl
-		v2.Vec{a.Max.X, a.Min.Y}, // br
-		v2.Vec{a.Min.X, a.Max.Y}, // tl
-		a.Max,                    // tr
+		a.Min,              // bl
+		{a.Max.X, a.Min.Y}, // br
+		{a.Min.X, a.Max.Y}, // tl
+		a.Max,              // tr
 	}
 }
 
