@@ -76,7 +76,7 @@ func (r *MarchingCubesFeUniform) RenderFe(s sdf.SDF3, output sdf.FeWriter) {
 //-----------------------------------------------------------------------------
 
 // To get the voxel count, dimension, and min/max corner which are consistent with loops of marching algorithm.
-// This func loops are exactly like `marchingCubesFE` loops. We have to be consistant.
+// This func loops are exactly like `marchingCubesFe` loops. We have to be consistant.
 func (r *MarchingCubesFeUniform) Voxels(s sdf.SDF3) (v3i.Vec, v3.Vec, []v3.Vec, []v3.Vec) {
 	// work out the region we will sample
 	bb0 := s.BoundingBox()
