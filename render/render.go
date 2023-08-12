@@ -33,7 +33,7 @@ type Render2 interface {
 
 // RenderFE renders a finite element mesh over the bounding volume of an sdf3.
 type RenderFE interface {
-	RenderFE(sdf3 sdf.SDF3, output chan<- []*Fe)
+	RenderFE(sdf3 sdf.SDF3, output sdf.FeWriter)
 	Info(sdf3 sdf.SDF3) string
 	Voxels(sdf3 sdf.SDF3) (v3i.Vec, v3.Vec, []v3.Vec, []v3.Vec)
 }
@@ -65,22 +65,22 @@ func ToTriangles(
 func ToFem(
 	s sdf.SDF3, // sdf3 to render
 	r RenderFE, // rendering method
-) []Fe {
+) []sdf.Fe {
 	fmt.Printf("rendering %s\n", r.Info(s))
 
 	voxelCount, _, _, _ := r.Voxels(s)
 	fmt.Printf("voxel counts of marching algorithm are: (%v x %v x %v)\n", voxelCount.X, voxelCount.Y, voxelCount.Z)
 
 	// Will be filled by the rendering.
-	fes := make([]Fe, 0)
+	fes := make([]sdf.Fe, 0)
 
 	var wg sync.WaitGroup
 
-	// Get the channel to be written to.
-	output := writeFe(&wg, &fes)
+	// To write the finite elements.
+	output := sdf.WriteFes(&wg, &fes)
 
 	// run the renderer
-	r.RenderFE(s, output)
+	r.RenderFE(s, sdf.NewFeBuffer(output))
 	// stop the writer reading on the channel
 	close(output)
 	// wait for the file write to complete

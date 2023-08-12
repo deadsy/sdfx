@@ -4,8 +4,8 @@ import (
 	"math"
 
 	"github.com/deadsy/sdfx/render"
-	"github.com/deadsy/sdfx/render/finiteelements/buffer"
 	"github.com/deadsy/sdfx/sdf"
+	"github.com/deadsy/sdfx/sdf/finiteelements/buffer"
 	v3 "github.com/deadsy/sdfx/vec/v3"
 	"github.com/deadsy/sdfx/vec/v3i"
 )

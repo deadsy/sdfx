@@ -61,7 +61,7 @@ func (r *MarchingCubesFEUniform) Info(s sdf.SDF3) string {
 
 // Render produces a finite elements mesh over the bounding volume of an sdf3.
 // Order and shape of finite elements are selectable.
-func (r *MarchingCubesFEUniform) RenderFE(s sdf.SDF3, output chan<- []*Fe) {
+func (r *MarchingCubesFEUniform) RenderFE(s sdf.SDF3, output sdf.FeWriter) {
 	// work out the region we will sample
 	bb0 := s.BoundingBox()
 	bb0Size := bb0.Size()
@@ -70,7 +70,7 @@ func (r *MarchingCubesFEUniform) RenderFE(s sdf.SDF3, output chan<- []*Fe) {
 	bb1Size = bb1Size.Ceil().AddScalar(1)
 	bb1Size = bb1Size.MulScalar(meshInc)
 	bb := sdf.NewBox3(bb0.Center(), bb1Size)
-	output <- marchingCubesFE(s, bb, meshInc, r.order, r.shape)
+	marchingCubesFE(s, bb, meshInc, r.order, r.shape, output)
 }
 
 //-----------------------------------------------------------------------------

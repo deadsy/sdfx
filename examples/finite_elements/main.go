@@ -17,8 +17,8 @@ import (
 
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
-	"github.com/deadsy/sdfx/render/finiteelements/mesh"
 	"github.com/deadsy/sdfx/sdf"
+	"github.com/deadsy/sdfx/sdf/finiteelements/mesh"
 	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 

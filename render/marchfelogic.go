@@ -6,8 +6,7 @@ import (
 	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
-func marchingCubesFE(s sdf.SDF3, box sdf.Box3, step float64, order Order, shape Shape) []*Fe {
-	var fes []*Fe
+func marchingCubesFE(s sdf.SDF3, box sdf.Box3, step float64, order Order, shape Shape, output sdf.FeWriter) {
 	size := box.Size()
 	base := box.Min
 	steps := conv.V3ToV3i(size.DivScalar(step).Ceil())
@@ -54,21 +53,19 @@ func marchingCubesFE(s sdf.SDF3, box sdf.Box3, step float64, order Order, shape 
 					l.Get(1, y, z+1),
 					l.Get(1, y+1, z+1),
 					l.Get(0, y+1, z+1)}
-				fes = append(fes, mcToFE(corners, values, x, y, z, order, shape)...)
+				output.Write(mcToFE(corners, values, x, y, z, order, shape))
 				p.Z += dz
 			}
 			p.Y += dy
 		}
 		p.X += dx
 	}
-
-	return fes
 }
 
 //-----------------------------------------------------------------------------
 
-func mcToFE(corners [8]v3.Vec, values [8]float64, x, y, z int, order Order, shape Shape) []*Fe {
-	var fes []*Fe
+func mcToFE(corners [8]v3.Vec, values [8]float64, x, y, z int, order Order, shape Shape) []*sdf.Fe {
+	var fes []*sdf.Fe
 	switch order {
 	case Linear:
 		{
@@ -125,8 +122,8 @@ func mcToFE(corners [8]v3.Vec, values [8]float64, x, y, z int, order Order, shap
 
 //-----------------------------------------------------------------------------
 
-func mcToHex8(p [8]v3.Vec, v [8]float64, x float64, layerX, layerY, layerZ int) []*Fe {
-	result := make([]*Fe, 0)
+func mcToHex8(p [8]v3.Vec, v [8]float64, x float64, layerX, layerY, layerZ int) []*sdf.Fe {
+	result := make([]*sdf.Fe, 0)
 
 	anyPositive := false
 	for i := 0; i < 8; i++ {
@@ -140,7 +137,7 @@ func mcToHex8(p [8]v3.Vec, v [8]float64, x float64, layerX, layerY, layerZ int) 
 	// Finite element is inside the 3D model if all values are non-positive.
 
 	if !anyPositive {
-		fe := Fe{
+		fe := sdf.Fe{
 			V: make([]v3.Vec, 8),
 			X: layerX,
 			Y: layerY,
@@ -166,8 +163,8 @@ func mcToHex8(p [8]v3.Vec, v [8]float64, x float64, layerX, layerY, layerZ int) 
 
 //-----------------------------------------------------------------------------
 
-func mcToHex20(p [8]v3.Vec, v [8]float64, x float64, layerX, layerY, layerZ int) []*Fe {
-	result := make([]*Fe, 0)
+func mcToHex20(p [8]v3.Vec, v [8]float64, x float64, layerX, layerY, layerZ int) []*sdf.Fe {
+	result := make([]*sdf.Fe, 0)
 
 	anyPositive := false
 	for i := 0; i < 8; i++ {
@@ -181,7 +178,7 @@ func mcToHex20(p [8]v3.Vec, v [8]float64, x float64, layerX, layerY, layerZ int)
 	// Finite element is inside the 3D model if all values are non-positive.
 
 	if !anyPositive {
-		fe := Fe{
+		fe := sdf.Fe{
 			V: make([]v3.Vec, 20),
 			X: layerX,
 			Y: layerY,
@@ -225,7 +222,7 @@ func mcToHex20(p [8]v3.Vec, v [8]float64, x float64, layerX, layerY, layerZ int)
 
 //-----------------------------------------------------------------------------
 
-func mcToTet4(p [8]v3.Vec, v [8]float64, x float64, layerX, layerY, layerZ int) []*Fe {
+func mcToTet4(p [8]v3.Vec, v [8]float64, x float64, layerX, layerY, layerZ int) []*sdf.Fe {
 	// which of the 0..255 patterns do we have?
 	index := 0
 	for i := 0; i < 8; i++ {
@@ -248,9 +245,9 @@ func mcToTet4(p [8]v3.Vec, v [8]float64, x float64, layerX, layerY, layerZ int) 
 	// Create the tetrahedra.
 	table := mcTetrahedronTable[index]
 	count := len(table) / 4
-	result := make([]*Fe, 0, count)
+	result := make([]*sdf.Fe, 0, count)
 	for i := 0; i < count; i++ {
-		t := Fe{
+		t := sdf.Fe{
 			V: make([]v3.Vec, 4),
 			X: layerX,
 			Y: layerY,
@@ -280,7 +277,7 @@ func mcToTet4(p [8]v3.Vec, v [8]float64, x float64, layerX, layerY, layerZ int) 
 
 //-----------------------------------------------------------------------------
 
-func mcToTet10(p [8]v3.Vec, v [8]float64, x float64, layerX, layerY, layerZ int) []*Fe {
+func mcToTet10(p [8]v3.Vec, v [8]float64, x float64, layerX, layerY, layerZ int) []*sdf.Fe {
 	// which of the 0..255 patterns do we have?
 	index := 0
 	for i := 0; i < 8; i++ {
@@ -303,9 +300,9 @@ func mcToTet10(p [8]v3.Vec, v [8]float64, x float64, layerX, layerY, layerZ int)
 	// Create the tetrahedra.
 	table := mcTetrahedronTable[index]
 	count := len(table) / 4
-	result := make([]*Fe, 0, count)
+	result := make([]*sdf.Fe, 0, count)
 	for i := 0; i < count; i++ {
-		t := Fe{
+		t := sdf.Fe{
 			V: make([]v3.Vec, 10),
 			X: layerX,
 			Y: layerY,
