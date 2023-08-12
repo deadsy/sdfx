@@ -56,8 +56,10 @@ type FeWriter interface {
 // size the buffer to avoid re-allocations when appending.
 const feBufferSize = 256
 
+// marching cubes produces 0 or 1 finite element type of hex.
+// marching cubes produces 0 to less than 20 finite element of type tet.
 // TODO: can value be further calibrated?
-const feBufferMargin = 20 // marching cubes produces 0 to less than 20 finite elements. Depending upon element type.
+const feBufferMargin = 20
 
 // FeBuffer buffers finite elements before writing them to a channel.
 type FeBuffer struct {
