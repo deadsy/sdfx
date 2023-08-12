@@ -6,7 +6,7 @@ import (
 	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
-func marchingCubesFE(s sdf.SDF3, box sdf.Box3, step float64, order Order, shape Shape, output sdf.FeWriter) {
+func marchingCubesFe(s sdf.SDF3, box sdf.Box3, step float64, order Order, shape Shape, output sdf.FeWriter) {
 	size := box.Size()
 	base := box.Min
 	steps := conv.V3ToV3i(size.DivScalar(step).Ceil())

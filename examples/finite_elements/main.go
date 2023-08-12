@@ -217,7 +217,7 @@ func fe(s sdf.SDF3, resolution int, order render.Order, shape render.Shape, pth 
 	loads []*mesh.Load,
 ) error {
 	// Create a mesh out of finite elements.
-	m, _ := mesh.NewFem(s, render.NewMarchingCubesFEUniform(resolution, order, shape))
+	m, _ := mesh.NewFem(s, render.NewMarchingCubesFeUniform(resolution, order, shape))
 	components := m.Components()
 	fmt.Printf("components count: %v\n", len(components))
 	for i, component := range components {
@@ -237,7 +237,7 @@ func feLayers(s sdf.SDF3, resolution int, order render.Order, shape render.Shape
 	layerStart, layerEnd int,
 ) error {
 	// Create a mesh out of finite elements.
-	m, _ := mesh.NewFem(s, render.NewMarchingCubesFEUniform(resolution, order, shape))
+	m, _ := mesh.NewFem(s, render.NewMarchingCubesFeUniform(resolution, order, shape))
 	components := m.Components()
 	fmt.Printf("components count: %v\n", len(components))
 	for i, component := range components {

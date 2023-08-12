@@ -32,16 +32,16 @@ const (
 
 //-----------------------------------------------------------------------------
 
-// MarchingCubesFEUniform renders using marching cubes with uniform space sampling.
-type MarchingCubesFEUniform struct {
+// MarchingCubesFeUniform renders using marching cubes with uniform space sampling.
+type MarchingCubesFeUniform struct {
 	meshCells int   // number of cells on the longest axis of bounding box. e.g 200
 	order     Order // Linear or quadratic.
 	shape     Shape // Hexahedral, tetrahedral, or both.
 }
 
-// NewMarchingCubesFEUniform returns a RenderHex8 object.
-func NewMarchingCubesFEUniform(meshCells int, order Order, shape Shape) *MarchingCubesFEUniform {
-	return &MarchingCubesFEUniform{
+// NewMarchingCubesFeUniform returns a RenderHex8 object.
+func NewMarchingCubesFeUniform(meshCells int, order Order, shape Shape) *MarchingCubesFeUniform {
+	return &MarchingCubesFeUniform{
 		meshCells: meshCells,
 		order:     order,
 		shape:     shape,
@@ -49,7 +49,7 @@ func NewMarchingCubesFEUniform(meshCells int, order Order, shape Shape) *Marchin
 }
 
 // Info returns a string describing the rendered volume.
-func (r *MarchingCubesFEUniform) Info(s sdf.SDF3) string {
+func (r *MarchingCubesFeUniform) Info(s sdf.SDF3) string {
 	bb0 := s.BoundingBox()
 	bb0Size := bb0.Size()
 	meshInc := bb0Size.MaxComponent() / float64(r.meshCells)
@@ -61,7 +61,7 @@ func (r *MarchingCubesFEUniform) Info(s sdf.SDF3) string {
 
 // Render produces a finite elements mesh over the bounding volume of an sdf3.
 // Order and shape of finite elements are selectable.
-func (r *MarchingCubesFEUniform) RenderFE(s sdf.SDF3, output sdf.FeWriter) {
+func (r *MarchingCubesFeUniform) RenderFe(s sdf.SDF3, output sdf.FeWriter) {
 	// work out the region we will sample
 	bb0 := s.BoundingBox()
 	bb0Size := bb0.Size()
@@ -70,14 +70,14 @@ func (r *MarchingCubesFEUniform) RenderFE(s sdf.SDF3, output sdf.FeWriter) {
 	bb1Size = bb1Size.Ceil().AddScalar(1)
 	bb1Size = bb1Size.MulScalar(meshInc)
 	bb := sdf.NewBox3(bb0.Center(), bb1Size)
-	marchingCubesFE(s, bb, meshInc, r.order, r.shape, output)
+	marchingCubesFe(s, bb, meshInc, r.order, r.shape, output)
 }
 
 //-----------------------------------------------------------------------------
 
 // To get the voxel count, dimension, and min/max corner which are consistent with loops of marching algorithm.
 // This func loops are exactly like `marchingCubesFE` loops. We have to be consistant.
-func (r *MarchingCubesFEUniform) Voxels(s sdf.SDF3) (v3i.Vec, v3.Vec, []v3.Vec, []v3.Vec) {
+func (r *MarchingCubesFeUniform) Voxels(s sdf.SDF3) (v3i.Vec, v3.Vec, []v3.Vec, []v3.Vec) {
 	// work out the region we will sample
 	bb0 := s.BoundingBox()
 	bb0Size := bb0.Size()

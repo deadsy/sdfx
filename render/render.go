@@ -31,9 +31,9 @@ type Render2 interface {
 	Info(s sdf.SDF2) string
 }
 
-// RenderFE renders a finite element mesh over the bounding volume of an sdf3.
-type RenderFE interface {
-	RenderFE(sdf3 sdf.SDF3, output sdf.FeWriter)
+// RenderFe renders a finite element mesh over the bounding volume of an sdf3.
+type RenderFe interface {
+	RenderFe(sdf3 sdf.SDF3, output sdf.FeWriter)
 	Info(sdf3 sdf.SDF3) string
 	Voxels(sdf3 sdf.SDF3) (v3i.Vec, v3.Vec, []v3.Vec, []v3.Vec)
 }
@@ -64,7 +64,7 @@ func ToTriangles(
 // ToFem renders an SDF3 to finite elements in the shape of 4-node tetrahedra.
 func ToFem(
 	s sdf.SDF3, // sdf3 to render
-	r RenderFE, // rendering method
+	r RenderFe, // rendering method
 ) []sdf.Fe {
 	fmt.Printf("rendering %s\n", r.Info(s))
 
@@ -80,7 +80,7 @@ func ToFem(
 	output := sdf.WriteFes(&wg, &fes)
 
 	// run the renderer
-	r.RenderFE(s, sdf.NewFeBuffer(output))
+	r.RenderFe(s, sdf.NewFeBuffer(output))
 	// stop the writer reading on the channel
 	close(output)
 	// wait for the file write to complete

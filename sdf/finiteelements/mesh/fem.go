@@ -22,7 +22,7 @@ type Fem struct {
 }
 
 // NewFem returns a new mesh and number of its layers along Z-axis.
-func NewFem(s sdf.SDF3, r render.RenderFE) (*Fem, int) {
+func NewFem(s sdf.SDF3, r render.RenderFe) (*Fem, int) {
 	fes := render.ToFem(s, r)
 
 	voxelLen, voxelDim, mins, maxs := r.Voxels(s)
