@@ -78,7 +78,7 @@ func mcToFE(corners [8]v3.Vec, values [8]float64, x, y, z int, order Order, shap
 				{
 					fes = append(fes, mcToTet4(corners, values, 0, x, y, z)...)
 				}
-			case Both:
+			case HexAndTet:
 				{
 					// If all cube corners are inside surface mesh, a single hexahedral element is generated.
 					// If all cube corners are outside surface mesh, no element is generated.
@@ -102,7 +102,7 @@ func mcToFE(corners [8]v3.Vec, values [8]float64, x, y, z int, order Order, shap
 				{
 					fes = append(fes, mcToTet10(corners, values, 0, x, y, z)...)
 				}
-			case Both:
+			case HexAndTet:
 				{
 					// If all cube corners are inside surface mesh, a single hexahedral element is generated.
 					// If all cube corners are outside surface mesh, no element is generated.

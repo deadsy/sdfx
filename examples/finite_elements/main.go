@@ -180,12 +180,12 @@ func benchmarkRun(
 		}
 	case Hex8Tet4:
 		{
-			err = fe(inSdf, resolution, render.Linear, render.Both, "hex8tet4.inp", restraints, loads)
+			err = fe(inSdf, resolution, render.Linear, render.HexAndTet, "hex8tet4.inp", restraints, loads)
 			if err != nil {
 				log.Fatalf("error: %s", err)
 			}
 
-			err = feLayers(inSdf, resolution, render.Linear, render.Both,
+			err = feLayers(inSdf, resolution, render.Linear, render.HexAndTet,
 				fmt.Sprintf("hex8tet4--layers-%v-to-%v.inp", layerStart, layerEnd),
 				restraints, loads, layerStart, layerEnd,
 			)
@@ -195,12 +195,12 @@ func benchmarkRun(
 		}
 	case Hex20Tet10:
 		{
-			err = fe(inSdf, resolution, render.Quadratic, render.Both, "hex20tet10.inp", restraints, loads)
+			err = fe(inSdf, resolution, render.Quadratic, render.HexAndTet, "hex20tet10.inp", restraints, loads)
 			if err != nil {
 				log.Fatalf("error: %s", err)
 			}
 
-			err = feLayers(inSdf, resolution, render.Quadratic, render.Both,
+			err = feLayers(inSdf, resolution, render.Quadratic, render.HexAndTet,
 				fmt.Sprintf("hex20tet10--layers-%v-to-%v.inp", layerStart, layerEnd),
 				restraints, loads, layerStart, layerEnd,
 			)

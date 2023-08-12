@@ -27,7 +27,7 @@ type Shape int
 const (
 	Hexahedral Shape = iota + 1
 	Tetrahedral
-	Both
+	HexAndTet
 )
 
 //-----------------------------------------------------------------------------
