@@ -58,6 +58,8 @@ const feBufferSize = 256
 
 // marching cubes produces 0 or 1 finite element type of hex.
 // marching cubes produces 0 to less than 20 finite element of type tet.
+// According to https://github.com/Megidd/tetrahedron-table
+//
 // TODO: can value be further calibrated?
 const feBufferMargin = 20
 
