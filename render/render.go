@@ -61,7 +61,7 @@ func ToTriangles(
 
 //-----------------------------------------------------------------------------
 
-// ToFem renders an SDF3 to finite elements in the shape of 4-node tetrahedra.
+// ToFem renders an SDF3 to finite elements.
 func ToFem(
 	s sdf.SDF3, // sdf3 to render
 	r RenderFe, // rendering method
