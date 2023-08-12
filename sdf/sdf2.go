@@ -9,7 +9,6 @@
 package sdf
 
 import (
-	"errors"
 	"math"
 
 	"github.com/deadsy/sdfx/vec/conv"
@@ -25,32 +24,6 @@ import (
 type SDF2 interface {
 	Evaluate(p v2.Vec) float64
 	BoundingBox() Box2
-}
-
-//-----------------------------------------------------------------------------
-// SDF2 Evaluation Caching (experimental)
-
-type sdf2Cache struct {
-	cache map[v2.Vec]float64
-	hits  uint
-}
-
-func (c *sdf2Cache) lookup(p v2.Vec) (float64, error) {
-	if d, ok := c.cache[p]; ok {
-		c.hits++
-		return d, nil
-	}
-	return 0, errors.New("not found")
-}
-
-func (c *sdf2Cache) store(p v2.Vec, d float64) {
-	c.cache[p] = d
-}
-
-func newSdf2Cache() *sdf2Cache {
-	c := sdf2Cache{}
-	c.cache = make(map[v2.Vec]float64)
-	return &c
 }
 
 //-----------------------------------------------------------------------------

@@ -21,13 +21,13 @@ import (
 
 // Render3 renders a 3D triangle mesh over the bounding volume of an sdf3.
 type Render3 interface {
-	Render(sdf3 sdf.SDF3, output chan<- []*sdf.Triangle3)
+	Render(sdf3 sdf.SDF3, output sdf.Triangle3Writer)
 	Info(sdf3 sdf.SDF3) string
 }
 
 // Render2 renders a 2D line set over the bounding area of an sdf2.
 type Render2 interface {
-	Render(s sdf.SDF2, output chan<- []*sdf.Line2)
+	Render(s sdf.SDF2, output sdf.Line2Writer)
 	Info(s sdf.SDF2) string
 }
 
@@ -50,7 +50,7 @@ func ToTriangles(
 	// To write the triangles.
 	output := sdf.WriteTriangles(&wg, &triangles)
 	// Run the renderer.
-	r.Render(s, output)
+	r.Render(s, sdf.NewTriangle3Buffer(output))
 	// Stop the writer reading on the channel.
 	close(output)
 	// Wait for the write to complete.
@@ -106,7 +106,7 @@ func ToSTL(
 		return
 	}
 	// run the renderer
-	r.Render(s, output)
+	r.Render(s, sdf.NewTriangle3Buffer(output))
 	// stop the STL writer reading on the channel
 	close(output)
 	// wait for the file write to complete
@@ -130,7 +130,7 @@ func To3MF(
 		return
 	}
 	// run the renderer
-	r.Render(s, output)
+	r.Render(s, sdf.NewTriangle3Buffer(output))
 	// stop the STL writer reading on the channel
 	close(output)
 	// wait for the file write to complete
@@ -154,7 +154,7 @@ func ToDXF(
 		return
 	}
 	// run the renderer
-	r.Render(s, output)
+	r.Render(s, sdf.NewLine2Buffer(output))
 	// stop the DXF writer reading on the channel
 	close(output)
 	// wait for the file write to complete
@@ -179,7 +179,7 @@ func ToSVG(
 		fmt.Printf("%s", err)
 	}
 	// run the renderer
-	r.Render(s, output)
+	r.Render(s, sdf.NewLine2Buffer(output))
 	// stop the SVG writer reading on the channel
 	close(output)
 	// wait for the file write to complete

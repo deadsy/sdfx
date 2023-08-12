@@ -59,7 +59,7 @@ func testPolygon() (*Polygon, error) {
 
 func getMesh() []*Line2 {
 	p, _ := testPolygon()
-	m, _ := PolygonToMesh(p)
+	m, _ := p.Mesh()
 	return m
 }
 
@@ -126,17 +126,16 @@ func Test_Mesh2D(t *testing.T) {
 
 //-----------------------------------------------------------------------------
 
-func Test_Mesh2DSlow(t *testing.T) {
+func Test_Mesh2D_Cache(t *testing.T) {
 
-	p, _ := testPolygon()
-	m, _ := PolygonToMesh(p)
+	m := getMesh()
 
-	s0, err := Mesh2DSlow(m)
+	s0, err := Mesh2D(m)
 	if err != nil {
 		t.Fatalf("error: %s", err)
 	}
 
-	s1, err := Polygon2D(p.Vertices())
+	s1, err := Cache2D(s0)
 	if err != nil {
 		t.Fatalf("error: %s", err)
 	}
@@ -144,14 +143,18 @@ func Test_Mesh2DSlow(t *testing.T) {
 	bb := s0.BoundingBox()
 	pSet := bb.RandomSet(nPoints)
 
-	for _, p := range pSet {
-		d0 := s0.Evaluate(p)
-		d1 := s1.Evaluate(p)
-		if !EqualFloat64(d0, d1, tolerance) {
-			e := d0 - d1
-			t.Errorf("%v slow %f poly %f error %f", p, d0, d1, e)
+	for i := 0; i < 4; i++ {
+		for _, p := range pSet {
+			d0 := s0.Evaluate(p)
+			d1 := s1.Evaluate(p)
+			if !EqualFloat64(d0, d1, tolerance) {
+				e := d0 - d1
+				t.Errorf("%v no-cache %f cache %f error %f", p, d0, d1, e)
+			}
 		}
 	}
+
+	t.Logf("%s", s1.(*CacheSDF2).String())
 }
 
 //-----------------------------------------------------------------------------

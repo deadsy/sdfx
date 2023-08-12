@@ -97,7 +97,7 @@ func (dc *dcache2) isEmpty(c *square) bool {
 }
 
 // Process a square. Generate line segments, or more squares.
-func (dc *dcache2) processSquare(c *square, output chan<- []*sdf.Line2) {
+func (dc *dcache2) processSquare(c *square, output sdf.Line2Writer) {
 	if !dc.isEmpty(c) {
 		if c.n == 1 {
 			// this square is at the required resolution
@@ -108,7 +108,7 @@ func (dc *dcache2) processSquare(c *square, output chan<- []*sdf.Line2) {
 			corners := [4]v2.Vec{c0, c1, c2, c3}
 			values := [4]float64{d0, d1, d2, d3}
 			// output the line(s) for this square
-			output <- msToLines(corners, values, 0)
+			output.Write(msToLines(corners, values, 0))
 		} else {
 			// process the sub squares
 			n := c.n - 1
@@ -125,7 +125,7 @@ func (dc *dcache2) processSquare(c *square, output chan<- []*sdf.Line2) {
 //-----------------------------------------------------------------------------
 
 // marchingSquaresQuadtree generates line segments for an SDF2 using quadtree subdivision.
-func marchingSquaresQuadtree(s sdf.SDF2, resolution float64, output chan<- []*sdf.Line2) {
+func marchingSquaresQuadtree(s sdf.SDF2, resolution float64, output sdf.Line2Writer) {
 	// Scale the bounding box about the center to make sure the boundaries
 	// aren't on the object surface.
 	bb := s.BoundingBox()
@@ -140,6 +140,7 @@ func marchingSquaresQuadtree(s sdf.SDF2, resolution float64, output chan<- []*sd
 	dc := newDcache2(s, bb.Min, resolution, levels)
 	// process the quadtree, start at the top level
 	dc.processSquare(&square{v2i.Vec{0, 0}, levels - 1}, output)
+	output.Close()
 }
 
 //-----------------------------------------------------------------------------
@@ -165,7 +166,7 @@ func (r *MarchingSquaresQuadtree) Info(s sdf.SDF2) string {
 }
 
 // Render produces a 2d line mesh over the bounding area of an sdf2.
-func (r *MarchingSquaresQuadtree) Render(s sdf.SDF2, output chan<- []*sdf.Line2) {
+func (r *MarchingSquaresQuadtree) Render(s sdf.SDF2, output sdf.Line2Writer) {
 	bbSize := s.BoundingBox().Size()
 	resolution := bbSize.MaxComponent() / float64(r.meshCells)
 	marchingSquaresQuadtree(s, resolution, output)

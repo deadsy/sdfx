@@ -173,3 +173,59 @@ func WriteTriangles(wg *sync.WaitGroup, triangles *[]Triangle3) chan<- []*Triang
 }
 
 //-----------------------------------------------------------------------------
+// Triangle3 Buffering
+
+// We write triangles to a channel to decouple the rendering routines from the
+// routine that writes file output. We have a lot of triangles and channels
+// are not very fast, so it's best to bundle many triangles into a single channel
+// write. The renderer doesn't naturally do that, so we buffer triangles before
+// writing them to the channel.
+
+// Triangle3Writer is the interface of a triangle writer/closer object.
+type Triangle3Writer interface {
+	Write(in []*Triangle3) error
+	Close() error
+}
+
+// size the buffer to avoid re-allocations when appending.
+const tBufferSize = 256
+const tBufferMargin = 8 // marching cubes produces 0 to 5 triangles
+
+// Triangle3Buffer buffers triangles before writing them to a channel.
+type Triangle3Buffer struct {
+	buf  []*Triangle3        // triangle buffer
+	out  chan<- []*Triangle3 // output channel
+	lock sync.Mutex          // lock the the buffer during access
+}
+
+// NewTriangle3Buffer returns a Triangle3Buffer.
+func NewTriangle3Buffer(out chan<- []*Triangle3) Triangle3Writer {
+	return &Triangle3Buffer{
+		buf: make([]*Triangle3, 0, tBufferSize+tBufferMargin),
+		out: out,
+	}
+}
+
+func (a *Triangle3Buffer) Write(in []*Triangle3) error {
+	a.lock.Lock()
+	a.buf = append(a.buf, in...)
+	if len(a.buf) >= tBufferSize {
+		a.out <- a.buf
+		a.buf = make([]*Triangle3, 0, tBufferSize+tBufferMargin)
+	}
+	a.lock.Unlock()
+	return nil
+}
+
+// Close flushes out any remaining triangles in the buffer.
+func (a *Triangle3Buffer) Close() error {
+	a.lock.Lock()
+	if len(a.buf) != 0 {
+		a.out <- a.buf
+		a.buf = nil
+	}
+	a.lock.Unlock()
+	return nil
+}
+
+//-----------------------------------------------------------------------------

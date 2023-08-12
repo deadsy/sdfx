@@ -132,9 +132,8 @@ func (l *layerYZ) Get(x, y, z int) float64 {
 
 //-----------------------------------------------------------------------------
 
-func marchingCubes(s sdf.SDF3, box sdf.Box3, step float64) []*sdf.Triangle3 {
+func marchingCubes(s sdf.SDF3, box sdf.Box3, step float64, output sdf.Triangle3Writer) {
 
-	var triangles []*sdf.Triangle3
 	size := box.Size()
 	base := box.Min
 	steps := conv.V3ToV3i(size.DivScalar(step).Ceil())
@@ -181,15 +180,13 @@ func marchingCubes(s sdf.SDF3, box sdf.Box3, step float64) []*sdf.Triangle3 {
 					l.Get(1, y, z+1),
 					l.Get(1, y+1, z+1),
 					l.Get(0, y+1, z+1)}
-				triangles = append(triangles, mcToTriangles(corners, values, 0)...)
+				output.Write(mcToTriangles(corners, values, 0))
 				p.Z += dz
 			}
 			p.Y += dy
 		}
 		p.X += dx
 	}
-
-	return triangles
 }
 
 //-----------------------------------------------------------------------------
@@ -289,7 +286,7 @@ func (r *MarchingCubesUniform) Info(s sdf.SDF3) string {
 }
 
 // Render produces a 3d triangle mesh over the bounding volume of an sdf3.
-func (r *MarchingCubesUniform) Render(s sdf.SDF3, output chan<- []*sdf.Triangle3) {
+func (r *MarchingCubesUniform) Render(s sdf.SDF3, output sdf.Triangle3Writer) {
 	// work out the region we will sample
 	bb0 := s.BoundingBox()
 	bb0Size := bb0.Size()
@@ -298,7 +295,8 @@ func (r *MarchingCubesUniform) Render(s sdf.SDF3, output chan<- []*sdf.Triangle3
 	bb1Size = bb1Size.Ceil().AddScalar(1)
 	bb1Size = bb1Size.MulScalar(meshInc)
 	bb := sdf.NewBox3(bb0.Center(), bb1Size)
-	output <- marchingCubes(s, bb, meshInc)
+	marchingCubes(s, bb, meshInc, output)
+	output.Close()
 }
 
 //-----------------------------------------------------------------------------

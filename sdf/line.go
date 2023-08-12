@@ -11,6 +11,7 @@ package sdf
 import (
 	"fmt"
 	"math"
+	"sync"
 
 	v2 "github.com/deadsy/sdfx/vec/v2"
 )
@@ -118,6 +119,62 @@ func (a *Line2) IntersectLine(b *Line2) []v2.Vec {
 		return []v2.Vec{p0}
 	}
 	// non-parallel, non-intersecting
+	return nil
+}
+
+//-----------------------------------------------------------------------------
+// Line2 Buffering
+
+// We write lines to a channel to decouple the rendering routines from the
+// routine that writes file output. We have a lot of lines and channels
+// are not very fast, so it's best to bundle many lines into a single channel
+// write. The renderer doesn't naturally do that, so we buffer lines before
+// writing them to the channel.
+
+// Line2Writer is the interface of a line writer/closer object.
+type Line2Writer interface {
+	Write(in []*Line2) error
+	Close() error
+}
+
+// size the buffer to avoid re-allocations when appending.
+const lBufferSize = 128
+const lBufferMargin = 4 // marching squares produces 0 to 2 lines
+
+// Line2Buffer buffers lines before writing them to a channel.
+type Line2Buffer struct {
+	buf  []*Line2        // line buffer
+	out  chan<- []*Line2 // output channel
+	lock sync.Mutex      // lock the the buffer during access
+}
+
+// NewLine2Buffer returns a Line2Buffer.
+func NewLine2Buffer(out chan<- []*Line2) Line2Writer {
+	return &Line2Buffer{
+		buf: make([]*Line2, 0, lBufferSize+lBufferMargin),
+		out: out,
+	}
+}
+
+func (a *Line2Buffer) Write(in []*Line2) error {
+	a.lock.Lock()
+	a.buf = append(a.buf, in...)
+	if len(a.buf) >= lBufferSize {
+		a.out <- a.buf
+		a.buf = make([]*Line2, 0, lBufferSize+lBufferMargin)
+	}
+	a.lock.Unlock()
+	return nil
+}
+
+// Close flushes out any remaining lines in the buffer.
+func (a *Line2Buffer) Close() error {
+	a.lock.Lock()
+	if len(a.buf) != 0 {
+		a.out <- a.buf
+		a.buf = nil
+	}
+	a.lock.Unlock()
 	return nil
 }
 

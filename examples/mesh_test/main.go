@@ -62,7 +62,7 @@ func testPolygon() (*sdf.Polygon, error) {
 
 func getMesh() []*sdf.Line2 {
 	p, _ := testPolygon()
-	m, _ := sdf.PolygonToMesh(p)
+	m, _ := p.Mesh()
 	return m
 }
 
