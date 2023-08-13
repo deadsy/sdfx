@@ -89,7 +89,17 @@ func glyphCurve(g *truetype.GlyphBuf, n int) (SDF2, bool, error) {
 		return nil, false, err
 	}
 
-	s, err := Polygon2D(p.Vertices())
+	m, err := p.Mesh()
+	if err != nil {
+		return nil, false, err
+	}
+
+	s, err := Mesh2D(m)
+	if err != nil {
+		return nil, false, err
+	}
+	s, err = Cache2D(s)
+
 	return s, sum > 0, err
 }
 
