@@ -60,17 +60,17 @@ func testPolygon() (*sdf.Polygon, error) {
 	return b.Polygon()
 }
 
-func getMesh() []*sdf.Line2 {
+func getLines() []*sdf.Line2 {
 	p, _ := testPolygon()
-	m, _ := p.Mesh()
-	return m
+	l, _ := p.Lines()
+	return l
 }
 
 //-----------------------------------------------------------------------------
 
 func test1() error {
 
-	m := getMesh()
+	m := getLines()
 
 	s0, err := sdf.Mesh2D(m)
 	if err != nil {
@@ -115,7 +115,7 @@ func test1() error {
 
 func test2() error {
 
-	m := getMesh()
+	m := getLines()
 
 	s0, err := sdf.Mesh2D(m)
 	if err != nil {

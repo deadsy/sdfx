@@ -57,16 +57,16 @@ func testPolygon() (*Polygon, error) {
 	return b.Polygon()
 }
 
-func getMesh() []*Line2 {
+func getLines() []*Line2 {
 	p, _ := testPolygon()
-	m, _ := p.Mesh()
-	return m
+	l, _ := p.Lines()
+	return l
 }
 
 //-----------------------------------------------------------------------------
 
 func Benchmark_Mesh2D(b *testing.B) {
-	m := getMesh()
+	m := getLines()
 	s0, err := Mesh2D(m)
 	if err != nil {
 		b.Fatalf("error: %s", err)
@@ -80,7 +80,7 @@ func Benchmark_Mesh2D(b *testing.B) {
 }
 
 func Benchmark_Mesh2DSlow(b *testing.B) {
-	m := getMesh()
+	m := getLines()
 	s0, err := Mesh2DSlow(m)
 	if err != nil {
 		b.Fatalf("error: %s", err)
@@ -99,7 +99,7 @@ const nPoints = 20000
 
 func Test_Mesh2D(t *testing.T) {
 
-	m := getMesh()
+	m := getLines()
 
 	s0, err := Mesh2D(m)
 	if err != nil {
@@ -128,7 +128,7 @@ func Test_Mesh2D(t *testing.T) {
 
 func Test_Mesh2D_Cache(t *testing.T) {
 
-	m := getMesh()
+	m := getLines()
 
 	s0, err := Mesh2D(m)
 	if err != nil {

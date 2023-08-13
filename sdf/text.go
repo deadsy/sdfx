@@ -84,21 +84,10 @@ func glyphCurve(g *truetype.GlyphBuf, n int) (SDF2, bool, error) {
 	}
 	b.Close()
 
-	p, err := b.Polygon()
+	s, err := b.Mesh2D()
 	if err != nil {
 		return nil, false, err
 	}
-
-	m, err := p.Mesh()
-	if err != nil {
-		return nil, false, err
-	}
-
-	s, err := Mesh2D(m)
-	if err != nil {
-		return nil, false, err
-	}
-	s, err = Cache2D(s)
 
 	return s, sum > 0, err
 }
@@ -184,8 +173,8 @@ func LoadFont(fname string) (*truetype.Font, error) {
 	return truetype.Parse(b)
 }
 
-// TextSDF2 returns a sized SDF2 for a text object.
-func TextSDF2(f *truetype.Font, t *Text, h float64) (SDF2, error) {
+// Text2D returns a sized SDF2 for a text object.
+func Text2D(f *truetype.Font, t *Text, h float64) (SDF2, error) {
 	scale := fixed.Int26_6(f.FUnitsPerEm())
 	lines := strings.Split(t.s, "\n")
 	yOfs := 0.0

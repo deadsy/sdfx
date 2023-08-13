@@ -30,19 +30,22 @@ func main() {
 	t := sdf.NewText("SDFX!\nHello,\nWorld!")
 	//t := sdf.NewText("相同的不同")
 
-	s2d, err := sdf.TextSDF2(f, t, 10.0)
+	s0, err := sdf.Text2D(f, t, 10.0)
 	if err != nil {
-		log.Fatalf("can't generate text sdf2 %s\n", err)
+		log.Fatalf("can't generate text %s\n", err)
 	}
 
-	render.ToDXF(s2d, "shape.dxf", render.NewMarchingSquaresQuadtree(600))
-	render.ToSVG(s2d, "shape.svg", render.NewMarchingSquaresQuadtree(600))
+	// cache the sdf for an evaluation speedup
+	s0 = sdf.Cache2D(s0)
 
-	s3d, err := sdf.ExtrudeRounded3D(s2d, 1.0, 0.2)
+	render.ToDXF(s0, "shape.dxf", render.NewMarchingSquaresQuadtree(600))
+	render.ToSVG(s0, "shape.svg", render.NewMarchingSquaresQuadtree(600))
+
+	s1, err := sdf.ExtrudeRounded3D(s0, 1.0, 0.2)
 	if err != nil {
 		log.Fatal(err)
 	}
-	render.ToSTL(s3d, "shape.stl", render.NewMarchingCubesOctree(600))
+	render.ToSTL(s1, "shape.stl", render.NewMarchingCubesOctree(600))
 }
 
 //-----------------------------------------------------------------------------

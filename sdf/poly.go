@@ -342,8 +342,8 @@ func (p *Polygon) Vertices() []v2.Vec {
 	return v
 }
 
-// Mesh returns the line segment mesh for the polygon.
-func (p *Polygon) Mesh() ([]*Line2, error) {
+// Lines returns the line segment set for the polygon.
+func (p *Polygon) Lines() ([]*Line2, error) {
 	vertex := p.Vertices()
 	n := len(vertex)
 	if n < 3 {
@@ -360,6 +360,15 @@ func (p *Polygon) Mesh() ([]*Line2, error) {
 		mesh[i] = &Line2{vertex[i], vertex[i+1]}
 	}
 	return mesh, nil
+}
+
+// Mesh2D returns the Mesh2D for the polygon.
+func (p *Polygon) Mesh2D() (SDF2, error) {
+	lines, err := p.Lines()
+	if err != nil {
+		return nil, err
+	}
+	return Mesh2D(lines)
 }
 
 //-----------------------------------------------------------------------------
