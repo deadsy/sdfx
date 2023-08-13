@@ -321,6 +321,12 @@ func (s *MeshSDF2) BoundingBox() Box2 {
 //-----------------------------------------------------------------------------
 // Mesh2D Slow. Provided for testing and benchmarking purposes.
 
+// Note: Mesh2DSlow should produce the same distance results as Mesh2D but there
+// may be small floating point differences because Mesh2D is breaking the line
+// segments into smaller pieces to contain them within the quadtree nodes.
+// Experimentally these deltas are very small, but can result in different STL
+// and DXF files.
+
 // MeshSDF2Slow is SDF2 made from a set of line segments.
 type MeshSDF2Slow struct {
 	mesh []*lineInfo
