@@ -178,12 +178,34 @@ func (a VecSet) Max() Vec {
 	return vmax
 }
 
+// IsClosed returns true if the last vertex == the first vertex.
+func (a VecSet) IsClosed(tolerance float64) bool {
+	n := len(a)
+	if n <= 1 {
+		// Note: an empty/nil vector set is considered closed.
+		return true
+	}
+	return a[0].Equals(a[n-1], tolerance)
+}
+
+// Close a vector set (last vertex == first vertex)
+func (a VecSet) Close(tolerance float64) VecSet {
+	if a.IsClosed(tolerance) {
+		return a
+	}
+	return append(a, a[0])
+}
+
+//-----------------------------------------------------------------------------
+
 // VecSetByX sorts the vector set by X value
 type VecSetByX VecSet
 
 func (a VecSetByX) Len() int           { return len(a) }
 func (a VecSetByX) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a VecSetByX) Less(i, j int) bool { return a[i].X < a[j].X }
+
+//-----------------------------------------------------------------------------
 
 // VecSetByXY sorts the vector set by X then Y
 type VecSetByXY VecSet
