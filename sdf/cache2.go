@@ -29,11 +29,11 @@ type CacheSDF2 struct {
 }
 
 // Cache2D wraps the passed SDF2 with an evaluation cache.
-func Cache2D(sdf SDF2) (SDF2, error) {
+func Cache2D(sdf SDF2) SDF2 {
 	return &CacheSDF2{
 		sdf:   sdf,
 		cache: make(map[v2.Vec]float64),
-	}, nil
+	}
 }
 
 func (s *CacheSDF2) String() string {

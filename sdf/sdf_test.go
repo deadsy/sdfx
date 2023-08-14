@@ -76,7 +76,7 @@ func Test_Box3_MulBox(t *testing.T) {
 		m1 := Translate3d(v.Neg())
 		b1 := m0.MulBox(b3d)
 		b2 := m1.MulBox(b1)
-		if b3d.equals(b2, tolerance) == false {
+		if b3d.Equals(b2, tolerance) == false {
 			t.Error("FAIL")
 		}
 		// scaling
@@ -84,7 +84,7 @@ func Test_Box3_MulBox(t *testing.T) {
 		m1 = Scale3d(v3.Vec{1 / v.X, 1 / v.Y, 1 / v.Z})
 		b1 = m0.MulBox(b3d)
 		b2 = m1.MulBox(b1)
-		if b3d.equals(b2, tolerance) == false {
+		if b3d.Equals(b2, tolerance) == false {
 			t.Error("FAIL")
 		}
 	}
@@ -96,7 +96,7 @@ func Test_Box3_ScaleBox(t *testing.T) {
 	b0 := Box3{v3.Vec{-1, -1, -1}, v3.Vec{1, 1, 1}}
 	b1 := Box3{v3.Vec{-2, -2, -2}, v3.Vec{2, 2, 2}}
 	b2 := NewBox3(b0.Center(), b0.Size().MulScalar(2))
-	if b1.equals(b2, tolerance) == false {
+	if b1.Equals(b2, tolerance) == false {
 		t.Error("FAIL")
 	}
 }
@@ -190,14 +190,14 @@ func Test_Polygon1(t *testing.T) {
 	s, _ := Polygon2D([]v2.Vec{{0, 0}, {1, 0}, {0, 1}})
 	b := s.BoundingBox()
 	b0 := Box2{v2.Vec{0, 0}, v2.Vec{1, 1}}
-	if b.equals(b0, tolerance) == false {
+	if b.Equals(b0, tolerance) == false {
 		t.Error("FAIL")
 	}
 
 	s, _ = Polygon2D([]v2.Vec{{0, -2}, {1, 1}, {-2, 2}})
 	b = s.BoundingBox()
 	b0 = Box2{v2.Vec{-2, -2}, v2.Vec{1, 2}}
-	if b.equals(b0, tolerance) == false {
+	if b.Equals(b0, tolerance) == false {
 		t.Error("FAIL")
 	}
 
@@ -210,7 +210,7 @@ func Test_Polygon1(t *testing.T) {
 	s, _ = Polygon2D(points)
 	b = s.BoundingBox()
 	b0 = Box2{v2.Vec{-1, -1}, v2.Vec{1, 1}}
-	if b.equals(b0, tolerance) == false {
+	if b.Equals(b0, tolerance) == false {
 		t.Error("FAIL")
 	}
 

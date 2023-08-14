@@ -104,8 +104,8 @@ func (a *Box3) Snap(p v3.Vec, epsilon float64) v3.Vec {
 	return p
 }
 
-// equals test the equality of 3d boxes.
-func (a Box3) equals(b Box3, delta float64) bool {
+// Equals test the equality of 3d boxes.
+func (a Box3) Equals(b Box3, delta float64) bool {
 	return a.Min.Equals(b.Min, delta) && a.Max.Equals(b.Max, delta)
 }
 

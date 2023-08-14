@@ -27,11 +27,7 @@ func bowlingPin() error {
 	b.Add(0, 15).HandleRev(sdf.DtoR(0), 1)
 	b.Close()
 
-	p, err := b.Polygon()
-	if err != nil {
-		return err
-	}
-	s0, err := sdf.Polygon2D(p.Vertices())
+	s0, err := b.Mesh2D()
 	if err != nil {
 		return err
 	}
@@ -51,11 +47,7 @@ func egg1() error {
 	b.Add(0, 16).HandleRev(sdf.DtoR(0), 5)
 	b.Close()
 
-	p, err := b.Polygon()
-	if err != nil {
-		return err
-	}
-	s0, err := sdf.Polygon2D(p.Vertices())
+	s0, err := b.Mesh2D()
 	if err != nil {
 		return err
 	}
@@ -79,11 +71,7 @@ func egg2() error {
 	b.Add(0, h).HandleRev(sdf.DtoR(0), r/3)
 	b.Close()
 
-	p, err := b.Polygon()
-	if err != nil {
-		return err
-	}
-	s0, err := sdf.Polygon2D(p.Vertices())
+	s0, err := b.Mesh2D()
 	if err != nil {
 		return err
 	}
@@ -129,11 +117,7 @@ func bowl() error {
 	b.Add(0.000000, 101.890120)
 	b.Close()
 
-	p, err := b.Polygon()
-	if err != nil {
-		return err
-	}
-	s0, err := sdf.Polygon2D(p.Vertices())
+	s0, err := b.Mesh2D()
 	if err != nil {
 		return err
 	}
@@ -177,11 +161,7 @@ func vase() error {
 	b.Add(0.000000, 98.928570)
 	b.Close()
 
-	p, err := b.Polygon()
-	if err != nil {
-		return err
-	}
-	s0, err := sdf.Polygon2D(p.Vertices())
+	s0, err := b.Mesh2D()
 	if err != nil {
 		return err
 	}
@@ -236,11 +216,8 @@ func shape() error {
 	b.Add(-788.357460, 519.594510).Mid()
 	b.Add(-788.571430, 666.647920)
 	b.Close()
-	p, err := b.Polygon()
-	if err != nil {
-		return err
-	}
-	s0, err := sdf.Polygon2D(p.Vertices())
+
+	s0, err := b.Mesh2D()
 	if err != nil {
 		return err
 	}
@@ -260,11 +237,8 @@ func shape() error {
 	b.Add(100.484720, 615.963150).Mid()
 	b.Add(37.142857, 663.790780)
 	b.Close()
-	p, err = b.Polygon()
-	if err != nil {
-		return err
-	}
-	s1, err := sdf.Polygon2D(p.Vertices())
+
+	s1, err := b.Mesh2D()
 	if err != nil {
 		return err
 	}
@@ -284,11 +258,8 @@ func shape() error {
 	b.Add(138.745800, -449.674940).Mid()
 	b.Add(105.714290, -381.923510)
 	b.Close()
-	p, err = b.Polygon()
-	if err != nil {
-		return err
-	}
-	s2, err := sdf.Polygon2D(p.Vertices())
+
+	s2, err := b.Mesh2D()
 	if err != nil {
 		return err
 	}
@@ -308,11 +279,8 @@ func shape() error {
 	b.Add(-654.277770, -322.779580).Mid()
 	b.Add(-668.571430, -247.637800)
 	b.Close()
-	p, err = b.Polygon()
-	if err != nil {
-		return err
-	}
-	s3, err := sdf.Polygon2D(p.Vertices())
+
+	s3, err := b.Mesh2D()
 	if err != nil {
 		return err
 	}
@@ -332,11 +300,8 @@ func shape() error {
 	b.Add(-647.965630, 501.345600).Mid()
 	b.Add(-697.142850, 569.505060)
 	b.Close()
-	p, err = b.Polygon()
-	if err != nil {
-		return err
-	}
-	s4, err := sdf.Polygon2D(p.Vertices())
+
+	s4, err := b.Mesh2D()
 	if err != nil {
 		return err
 	}
@@ -356,11 +321,8 @@ func shape() error {
 	b.Add(-239.593570, 50.378315).Mid()
 	b.Add(-288.571430, 106.647920)
 	b.Close()
-	p, err = b.Polygon()
-	if err != nil {
-		return err
-	}
-	s5, err := sdf.Polygon2D(p.Vertices())
+
+	s5, err := b.Mesh2D()
 	if err != nil {
 		return err
 	}

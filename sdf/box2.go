@@ -99,8 +99,8 @@ func (a *Box2) Snap(p v2.Vec, delta float64) v2.Vec {
 	return p
 }
 
-// equals test the equality of 2d boxes.
-func (a Box2) equals(b Box2, delta float64) bool {
+// Equals test the equality of 2d boxes.
+func (a Box2) Equals(b Box2, delta float64) bool {
 	return (a.Min.Equals(b.Min, delta) && a.Max.Equals(b.Max, delta))
 }
 

@@ -489,4 +489,13 @@ func (b *Bezier) Polygon() (*Polygon, error) {
 	return p, nil
 }
 
+// Mesh2D returns the Mesh2D for the bezier curve.
+func (b *Bezier) Mesh2D() (SDF2, error) {
+	p, err := b.Polygon()
+	if err != nil {
+		return nil, err
+	}
+	return p.Mesh2D()
+}
+
 //-----------------------------------------------------------------------------

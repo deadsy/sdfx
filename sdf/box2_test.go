@@ -96,7 +96,7 @@ func Test_Box2_MulBox(t *testing.T) {
 		m1 := Translate2d(v.Neg())
 		b1 := m0.MulBox(b2d)
 		b2 := m1.MulBox(b1)
-		if b2d.equals(b2, tolerance) == false {
+		if b2d.Equals(b2, tolerance) == false {
 			t.Error("FAIL")
 		}
 		// scaling
@@ -104,7 +104,7 @@ func Test_Box2_MulBox(t *testing.T) {
 		m1 = Scale2d(v2.Vec{1 / v.X, 1 / v.Y})
 		b1 = m0.MulBox(b2d)
 		b2 = m1.MulBox(b1)
-		if b2d.equals(b2, tolerance) == false {
+		if b2d.Equals(b2, tolerance) == false {
 			t.Error("FAIL")
 		}
 	}
