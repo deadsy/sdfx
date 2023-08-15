@@ -62,8 +62,7 @@ func testPolygon() (*sdf.Polygon, error) {
 
 func getLines() []*sdf.Line2 {
 	p, _ := testPolygon()
-	l, _ := p.Lines()
-	return l
+	return sdf.VertexToLine(p.Vertices(), true)
 }
 
 //-----------------------------------------------------------------------------

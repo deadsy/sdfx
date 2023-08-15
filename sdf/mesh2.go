@@ -358,21 +358,7 @@ func (s *MeshSDF2Slow) Evaluate(p v2.Vec) float64 {
 	wn := 0               // winding number (inside/outside)
 	for _, li := range s.mesh {
 		d2 = math.Min(d2, li.minDistance2(p))
-		// Is the point in the polygon?
-		// See: http://geomalgorithms.com/a03-_inclusion.html
-		a := li.line[0]
-		b := li.line[1]
-		// normal distance from p to line
-		dn := p.Sub(a).Dot(v2.Vec{li.unitVector.Y, -li.unitVector.X})
-		if a.Y <= p.Y {
-			if b.Y > p.Y && dn < 0 { // upward crossing
-				wn++
-			}
-		} else {
-			if b.Y <= p.Y && dn > 0 { // downward crossing
-				wn--
-			}
-		}
+		wn += li.winding(p)
 	}
 	// normalise d*d to d
 	d := math.Sqrt(d2)
