@@ -5,7 +5,6 @@
 package sdf
 
 import (
-	"fmt"
 	"math"
 	"reflect"
 	"testing"
@@ -127,8 +126,7 @@ func Test_Line(t *testing.T) {
 	for _, p := range points {
 		d := l.Distance(p.p)
 		if math.Abs(d-p.d) > tolerance {
-			fmt.Printf("%+v %f (expected) %f (actual)\n", p.p, p.d, d)
-			t.Error("FAIL")
+			t.Errorf("%+v %f (expected) %f (actual)\n", p.p, p.d, d)
 		}
 	}
 
@@ -151,17 +149,15 @@ func Test_Line(t *testing.T) {
 		t0, t1, err := l0.Intersect(l1)
 		if err != nil {
 			if err.Error() != test.err {
-				fmt.Printf("l0: %+v\n", l0)
-				fmt.Printf("l1: %+v\n", l1)
-				fmt.Printf("error: %s\n", err)
-				t.Error("FAIL")
+				t.Logf("l0: %+v\n", l0)
+				t.Logf("l1: %+v\n", l1)
+				t.Errorf("error: %s\n", err)
 			}
 		} else {
 			if math.Abs(test.t0-t0) > tolerance || math.Abs(test.t1-t1) > tolerance {
-				fmt.Printf("l0: %+v\n", l0)
-				fmt.Printf("l1: %+v\n", l1)
-				fmt.Printf("%f %f (expected) %f %f (actual)\n", test.t0, test.t1, t0, t1)
-				t.Error("FAIL")
+				t.Logf("l0: %+v\n", l0)
+				t.Logf("l1: %+v\n", l1)
+				t.Errorf("%f %f (expected) %f %f (actual)\n", test.t0, test.t1, t0, t1)
 			}
 		}
 	}
@@ -177,8 +173,8 @@ func Test_Line(t *testing.T) {
 		i0 := l0.Position(t0)
 		i1 := l1.Position(t1)
 		if !i0.Equals(i1, tolerance) {
-			fmt.Printf("l0: %+v\n", l0)
-			fmt.Printf("l1: %+v\n", l1)
+			t.Logf("l0: %+v\n", l0)
+			t.Logf("l1: %+v\n", l1)
 			t.Error("FAIL")
 		}
 	}
@@ -201,11 +197,7 @@ func Test_Polygon1(t *testing.T) {
 		t.Error("FAIL")
 	}
 
-	points := []v2.Vec{
-		{0, -1},
-		{1, 1},
-		{-1, 1},
-	}
+	points := []v2.Vec{{0, -1}, {1, 1}, {-1, 1}}
 
 	s, _ = Polygon2D(points)
 	b = s.BoundingBox()
@@ -231,11 +223,10 @@ func Test_Polygon1(t *testing.T) {
 		{v2.Vec{-3, 0}, math.Sqrt(5)},
 	}
 
-	for _, p := range testPoints {
+	for i, p := range testPoints {
 		d := s.Evaluate(p.p)
-		if d != p.d {
-			fmt.Printf("%+v %f (expected) %f (actual)\n", p.p, p.d, d)
-			t.Error("FAIL")
+		if !EqualFloat64(d, p.d, tolerance) {
+			t.Errorf("test %d: %+v %f (expected) %f (actual)\n", i, p.p, p.d, d)
 		}
 	}
 }
