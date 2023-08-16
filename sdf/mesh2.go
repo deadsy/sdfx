@@ -320,22 +320,32 @@ func (s *MeshSDF2) BoundingBox() Box2 {
 
 //-----------------------------------------------------------------------------
 
-// Polygon2D returns a Mesh2D built with polygon vertices.
-func Polygon2D(vertex []v2.Vec) (SDF2, error) {
+// VertexToLine converts a set of vertices into a set of line segments.
+func VertexToLine(vertex []v2.Vec, closed bool) []*Line2 {
 	n := len(vertex)
-	if n < 3 {
-		return nil, ErrMsg("number of vertices < 3")
+	if n < 2 {
+		return nil
 	}
-	// Close the loop (if necessary)
-	if !vertex[0].Equals(vertex[n-1], tolerance) {
-		vertex = append(vertex, vertex[0])
+	if closed {
+		if !vertex[0].Equals(vertex[n-1], tolerance) {
+			vertex = append(vertex, vertex[0])
+		}
 	}
 	// create the segments
 	line := make([]*Line2, len(vertex)-1)
 	for i := range line {
 		line[i] = &Line2{vertex[i], vertex[i+1]}
 	}
-	return Mesh2DSlow(line)
+	return line
+}
+
+// Polygon2D returns a Mesh2D built with polygon vertices.
+func Polygon2D(vertex []v2.Vec) (SDF2, error) {
+	n := len(vertex)
+	if n < 3 {
+		return nil, ErrMsg("number of vertices < 3")
+	}
+	return Mesh2D(VertexToLine(vertex, true))
 }
 
 //-----------------------------------------------------------------------------

@@ -342,27 +342,9 @@ func (p *Polygon) Vertices() []v2.Vec {
 	return v
 }
 
-// VertexToLine converts a set of vertices into a set of line segments.
-func VertexToLine(vertex v2.VecSet, closed bool) []*Line2 {
-	n := len(vertex)
-	if n < 2 {
-		return nil
-	}
-	if closed {
-		vertex.Close(tolerance)
-	}
-	// create the segments
-	line := make([]*Line2, n-1)
-	for i := range line {
-		line[i] = &Line2{vertex[i], vertex[i+1]}
-	}
-	return line
-}
-
 // Mesh2D returns the Mesh2D for the polygon.
 func (p *Polygon) Mesh2D() (SDF2, error) {
-	mesh := VertexToLine(p.Vertices(), true)
-	return Mesh2D(mesh)
+	return Polygon2D(p.Vertices())
 }
 
 //-----------------------------------------------------------------------------
