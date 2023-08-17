@@ -178,12 +178,16 @@ func (a VecSet) Max() Vec {
 	return vmax
 }
 
+//-----------------------------------------------------------------------------
+
 // VecSetByX sorts the vector set by X value
 type VecSetByX VecSet
 
 func (a VecSetByX) Len() int           { return len(a) }
 func (a VecSetByX) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a VecSetByX) Less(i, j int) bool { return a[i].X < a[j].X }
+
+//-----------------------------------------------------------------------------
 
 // VecSetByXY sorts the vector set by X then Y
 type VecSetByXY VecSet

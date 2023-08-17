@@ -1,3 +1,11 @@
+//-----------------------------------------------------------------------------
+/*
+
+Test 2D float64 vectors
+
+*/
+//-----------------------------------------------------------------------------
+
 package v2
 
 import (
@@ -6,6 +14,61 @@ import (
 
 	"github.com/stretchr/testify/assert"
 )
+
+//-----------------------------------------------------------------------------
+
+func Test_IsClosed(t *testing.T) {
+	tests := []struct {
+		v      VecSet
+		result bool
+	}{
+		{nil, true},
+		{VecSet{}, true},
+		{VecSet{{1, 2}}, true},
+		{VecSet{{1, 2}, {2, 3}}, false},
+		{VecSet{{1, 2}, {2, 3}, {1, 2}}, true},
+	}
+
+	const tolerance = 1e-12
+
+	for i, test := range tests {
+		result := test.v.IsClosed(tolerance)
+		if test.result != result {
+			t.Errorf("test %d: %v expected %v, got %v", i, test.v, test.result, result)
+		}
+	}
+}
+
+func Test_Close(t *testing.T) {
+	tests := []struct {
+		v      VecSet
+		result VecSet
+	}{
+		{nil, nil},
+		{VecSet{}, VecSet{}},
+		{VecSet{{1, 2}}, VecSet{{1, 2}}},
+		{VecSet{{1, 2}, {2, 3}}, VecSet{{1, 2}, {2, 3}, {1, 2}}},
+		{VecSet{{1, 2}, {2, 3}, {1, 2}}, VecSet{{1, 2}, {2, 3}, {1, 2}}},
+	}
+
+	const tolerance = 1e-12
+
+	for i, test := range tests {
+		result := test.v.Close(tolerance)
+		if len(result) != len(test.result) {
+			t.Errorf("test %d: %v expected %v, got %v", i, test.v, test.result, result)
+			continue
+		}
+		for j := range result {
+			if !result[j].Equals(test.result[j], tolerance) {
+				t.Errorf("test %d: %v expected %v, got %v", i, test.v, test.result, result)
+				continue
+			}
+		}
+	}
+}
+
+//-----------------------------------------------------------------------------
 
 func TestCompareToZero(t *testing.T) {
 	tests := []struct {
@@ -39,6 +102,8 @@ func TestCompareToZero(t *testing.T) {
 	}
 }
 
+//-----------------------------------------------------------------------------
+
 func TestClamp(t *testing.T) {
 	a := Vec{12.3, 45.6}
 	b := Vec{123.4, 156.7}
@@ -57,12 +122,16 @@ func TestClamp(t *testing.T) {
 	}
 }
 
+//-----------------------------------------------------------------------------
+
 func TestMatrixOps(t *testing.T) {
 	a := Vec{3.0, 5.0}
 	b := Vec{11.0, 13.0}
 	assert.Equal(t, 3.0*11.0+5.0*13.0, a.Dot(b), "a.b works")
 	assert.Equal(t, 3.0*13.0-5.0*11.0, a.Cross(b), "axb works")
 }
+
+//-----------------------------------------------------------------------------
 
 func TestScalarOps(t *testing.T) {
 	a := 42.0
@@ -73,13 +142,19 @@ func TestScalarOps(t *testing.T) {
 	assert.Equal(t, Vec{0.0 / a, 1.0 / a}, v.DivScalar(a), "v/a works")
 }
 
+//-----------------------------------------------------------------------------
+
 func TestAbs(t *testing.T) {
 	assert.Equal(t, Vec{1.0, 2.0}, Vec{-1.0, -2.0}.Abs(), "abs(v) works")
 }
 
+//-----------------------------------------------------------------------------
+
 func TestCeil(t *testing.T) {
 	assert.Equal(t, Vec{math.Ceil(1.1), math.Ceil(2.2)}, Vec{1.1, 2.2}.Ceil(), "ceil(v) works")
 }
+
+//-----------------------------------------------------------------------------
 
 func TestOps(t *testing.T) {
 	a := Vec{2.0, 11.0}
@@ -107,6 +182,8 @@ func TestOps(t *testing.T) {
 	assert.Equal(t, Vec{-7.0, -3.0}, b.Neg(), "-b works")
 }
 
+//-----------------------------------------------------------------------------
+
 func TestSetOps(t *testing.T) {
 	v2s := VecSet{
 		{1.0, 99.0},
@@ -117,6 +194,8 @@ func TestSetOps(t *testing.T) {
 	assert.Equal(t, Vec{1.0, 7.0}, v2s.Min(), "min(vs) works")
 	assert.Equal(t, Vec{95.0, 99.0}, v2s.Max(), "max(vs) works")
 }
+
+//-----------------------------------------------------------------------------
 
 func TestVectorOps(t *testing.T) {
 	d := math.Sqrt(2.0*2.0 + 3.0*3.0)
@@ -129,3 +208,5 @@ func TestVectorOps(t *testing.T) {
 	assert.Equal(t, Vec{2.0 / d, 3.0 / d}, Vec{2.0, 3.0}.Normalize(), "normalize(v) works")
 	assert.InDelta(t, Vec{2.0, 3.0}.Normalize().Length(), 1.0, 0.0001, "length(normalize(v)) == 1")
 }
+
+//-----------------------------------------------------------------------------

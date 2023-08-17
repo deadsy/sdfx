@@ -59,8 +59,7 @@ func testPolygon() (*Polygon, error) {
 
 func getLines() []*Line2 {
 	p, _ := testPolygon()
-	l, _ := p.Lines()
-	return l
+	return VertexToLine(p.Vertices(), true)
 }
 
 //-----------------------------------------------------------------------------
@@ -135,10 +134,7 @@ func Test_Mesh2D_Cache(t *testing.T) {
 		t.Fatalf("error: %s", err)
 	}
 
-	s1, err := Cache2D(s0)
-	if err != nil {
-		t.Fatalf("error: %s", err)
-	}
+	s1 := Cache2D(s0)
 
 	bb := s0.BoundingBox()
 	pSet := bb.RandomSet(nPoints)

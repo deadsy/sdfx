@@ -319,6 +319,36 @@ func (s *MeshSDF2) BoundingBox() Box2 {
 }
 
 //-----------------------------------------------------------------------------
+
+// VertexToLine converts a set of vertices into a set of line segments.
+func VertexToLine(vertex []v2.Vec, closed bool) []*Line2 {
+	n := len(vertex)
+	if n < 2 {
+		return nil
+	}
+	if closed {
+		if !vertex[0].Equals(vertex[n-1], tolerance) {
+			vertex = append(vertex, vertex[0])
+		}
+	}
+	// create the segments
+	line := make([]*Line2, len(vertex)-1)
+	for i := range line {
+		line[i] = &Line2{vertex[i], vertex[i+1]}
+	}
+	return line
+}
+
+// Polygon2D returns a Mesh2D built with polygon vertices.
+func Polygon2D(vertex []v2.Vec) (SDF2, error) {
+	n := len(vertex)
+	if n < 3 {
+		return nil, ErrMsg("number of vertices < 3")
+	}
+	return Mesh2D(VertexToLine(vertex, true))
+}
+
+//-----------------------------------------------------------------------------
 // Mesh2D Slow. Provided for testing and benchmarking purposes.
 
 // Note: Mesh2DSlow should produce the same distance results as Mesh2D but there
@@ -358,21 +388,7 @@ func (s *MeshSDF2Slow) Evaluate(p v2.Vec) float64 {
 	wn := 0               // winding number (inside/outside)
 	for _, li := range s.mesh {
 		d2 = math.Min(d2, li.minDistance2(p))
-		// Is the point in the polygon?
-		// See: http://geomalgorithms.com/a03-_inclusion.html
-		a := li.line[0]
-		b := li.line[1]
-		// normal distance from p to line
-		dn := p.Sub(a).Dot(v2.Vec{li.unitVector.Y, -li.unitVector.X})
-		if a.Y <= p.Y {
-			if b.Y > p.Y && dn < 0 { // upward crossing
-				wn++
-			}
-		} else {
-			if b.Y <= p.Y && dn > 0 { // downward crossing
-				wn--
-			}
-		}
+		wn += li.winding(p)
 	}
 	// normalise d*d to d
 	d := math.Sqrt(d2)
