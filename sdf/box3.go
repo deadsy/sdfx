@@ -220,6 +220,15 @@ func (a *Box3) Random() v3.Vec {
 	}
 }
 
+// RandomTriangle returns a random triangle that lies within the box
+func (a *Box3) RandomTriangle() Triangle3 {
+	return Triangle3{
+		a.Random(),
+		a.Random(),
+		a.Random(),
+	}
+}
+
 // RandomSet returns a set of random points from within a 3d box.
 func (a *Box3) RandomSet(n int) v3.VecSet {
 	s := make([]v3.Vec, n)

@@ -80,7 +80,7 @@ func (t *Triangle3) rotateToXY() M44 {
 	// u maps to the x-axis
 	u := b.Normalize()
 	// w maps to the z-axis (normal to the triangle plane)
-	w := u.Cross(c).Normalize()
+	w := c.Cross(u).Normalize()
 	// v maps to the xy-plane (in the plane of the triangle)
 	v := u.Cross(w)
 
