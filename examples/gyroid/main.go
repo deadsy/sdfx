@@ -125,6 +125,13 @@ func main() {
 		log.Fatalf("error: %s", err)
 	}
 	render.ToSTL(s2, "gyroid_teapot.stl", render.NewMarchingCubesUniform(200))
+
+	m2v := render.ToTriangles(s2, render.NewMarchingCubesUniform(200))
+	m2 := make([]*sdf.Triangle3, len(m2v))
+	for i, t := range m2v {
+		m2[i] = &t
+	}
+	render.SaveSTL("gyroid_teapot_mesh.stl", m2)
 }
 
 //-----------------------------------------------------------------------------
