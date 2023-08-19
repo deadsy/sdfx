@@ -48,6 +48,7 @@ func (t *Triangle3) BoundingBox() Box3 {
 	return Box3{Min: t[0], Max: t[0]}.Include(t[1]).Include(t[2])
 }
 
+// Equals tests if two triangles are equal within tolerance.
 func (t *Triangle3) Equals(a *Triangle3, tolerance float64) bool {
 	return t[0].Equals(a[0], tolerance) &&
 		t[1].Equals(a[1], tolerance) &&
@@ -70,7 +71,7 @@ func (t *Triangle3) Bounds() *rtreego.Rect {
 //-----------------------------------------------------------------------------
 
 // rotateToXY returns the transformation matrix that maps
-// t[0] to the origin, t[1] to the x axis, t[2] to the xy plane
+// t[0] to the origin, t[1] to the x axis (x > 0), t[2] to the xy plane (y > 0)
 func (t *Triangle3) rotateToXY() M44 {
 
 	a := t[0]        // maps to the origin
