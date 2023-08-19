@@ -55,6 +55,11 @@ func (t *Triangle3) Equals(a *Triangle3, tolerance float64) bool {
 		t[2].Equals(a[2], tolerance)
 }
 
+// rotateVertex rotates the vertices of a triangle
+func (t *Triangle3) rotateVertex() Triangle3 {
+	return Triangle3{t[2], t[0], t[1]}
+}
+
 //-----------------------------------------------------------------------------
 
 func v3ToPoint(v v3.Vec) rtreego.Point {
