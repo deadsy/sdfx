@@ -124,8 +124,10 @@ func main() {
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
+	// Rendering to STL is fine:
 	render.ToSTL(s2, "gyroid_teapot.stl", render.NewMarchingCubesUniform(200))
 
+	// Rendering to triangles and then saving the STL, the output file is not as expected:
 	m2v := render.ToTriangles(s2, render.NewMarchingCubesUniform(200))
 	m2 := make([]*sdf.Triangle3, len(m2v))
 	for i, t := range m2v {
