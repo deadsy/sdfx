@@ -3,9 +3,6 @@
 
 3D Mesh, 3d triangles connected to create manifold objects.
 
-See:
-
-
 */
 //-----------------------------------------------------------------------------
 
@@ -20,7 +17,7 @@ import (
 
 // triangleInfo stores pre-calculated triangle information.
 type triangleInfo struct {
-	m M44       // rotate to XY matrix
+	m M44       // rotate/translate to XY matrix
 	t [3]v2.Vec // transformed triangle vertices
 	e [3]v2.Vec // anti-clockwise (from +z) unit edge vectors
 	n [3]v2.Vec // outward pointing unit normals to edge vectors
