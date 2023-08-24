@@ -102,6 +102,47 @@ func (t *Triangle3) rotateToXY() M44 {
 }
 
 //-----------------------------------------------------------------------------
+// https://en.wikipedia.org/wiki/Möller–Trumbore_intersection_algorithm
+
+func (t *Triangle3) intersectRay(rp, rv v3.Vec) []v3.Vec {
+
+	e1 := t[1].Sub(t[0])
+	e2 := t[2].Sub(t[0])
+	h := rv.Cross(e2)
+	a := e1.Dot(h)
+
+	if EqualFloat64(a, 0, epsilon) {
+		// This ray is parallel to this triangle.
+		return nil
+	}
+
+	f := 1.0 / a
+	s := rp.Sub(t[0])
+	u := f * s.Dot(h)
+
+	if u < 0 || u > 1 {
+		return nil
+	}
+
+	q := s.Cross(e1)
+	v := f * rv.Dot(q)
+
+	if v < 0 || u+v > 1 {
+		return nil
+	}
+
+	// At this stage we can compute t to find out where the intersection point is on the line.
+	rt := f * e2.Dot(q)
+
+	if rt > epsilon {
+		return []v3.Vec{rp.Add(rv.MulScalar(rt))}
+	}
+
+	// This means that there is a line intersection but not a ray intersection.
+	return nil
+}
+
+//-----------------------------------------------------------------------------
 
 // WriteTriangles writes a stream of triangles to a slice.
 func WriteTriangles(wg *sync.WaitGroup, triangles *[]*Triangle3) chan<- []*Triangle3 {
