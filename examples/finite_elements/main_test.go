@@ -282,12 +282,12 @@ func teapotSpecs() error {
 }
 
 type Restraint struct {
-	LocationX float64
-	LocationY float64
-	LocationZ float64
-	IsFixedX  bool
-	IsFixedY  bool
-	IsFixedZ  bool
+	LocX     float64
+	LocY     float64
+	LocZ     float64
+	IsFixedX bool
+	IsFixedY bool
+	IsFixedZ bool
 }
 
 func bmsRestraints() error {
@@ -297,12 +297,12 @@ func bmsRestraints() error {
 	var y float64
 	for y <= 17.32 {
 		restraint := Restraint{
-			LocationX: 0,
-			LocationY: y,
-			LocationZ: 0,
-			IsFixedX:  true,
-			IsFixedY:  true,
-			IsFixedZ:  true,
+			LocX:     0,
+			LocY:     y,
+			LocZ:     0,
+			IsFixedX: true,
+			IsFixedY: true,
+			IsFixedZ: true,
 		}
 		restraints = append(restraints, restraint)
 		y += gap
@@ -311,12 +311,12 @@ func bmsRestraints() error {
 	y = 0
 	for y <= 17.32 {
 		restraint := Restraint{
-			LocationX: 200,
-			LocationY: y,
-			LocationZ: 0,
-			IsFixedX:  false,
-			IsFixedY:  true,
-			IsFixedZ:  true,
+			LocX:     200,
+			LocY:     y,
+			LocZ:     0,
+			IsFixedX: false,
+			IsFixedY: true,
+			IsFixedZ: true,
 		}
 		restraints = append(restraints, restraint)
 		y += gap
@@ -332,86 +332,16 @@ func bmsRestraints() error {
 
 func bmcRestraints() error {
 	restraints := []Restraint{
-		{
-			LocationX: 0,
-			LocationY: 0,
-			LocationZ: 0,
-			IsFixedX:  true,
-			IsFixedY:  true,
-			IsFixedZ:  true,
-		},
-		{
-			LocationX: 0,
-			LocationY: -2.0313,
-			LocationZ: 0.213498,
-			IsFixedX:  true,
-			IsFixedY:  true,
-			IsFixedZ:  true,
-		},
-		{
-			LocationX: 0,
-			LocationY: -3.97382,
-			LocationZ: 0.844661,
-			IsFixedX:  true,
-			IsFixedY:  true,
-			IsFixedZ:  true,
-		},
-		{
-			LocationX: 0,
-			LocationY: 2.0313,
-			LocationZ: 0.213498,
-			IsFixedX:  true,
-			IsFixedY:  true,
-			IsFixedZ:  true,
-		},
-		{
-			LocationX: 0,
-			LocationY: 3.97382,
-			LocationZ: 0.844661,
-			IsFixedX:  true,
-			IsFixedY:  true,
-			IsFixedZ:  true,
-		},
-		{
-			LocationX: 200,
-			LocationY: 0,
-			LocationZ: 0,
-			IsFixedX:  false,
-			IsFixedY:  true,
-			IsFixedZ:  true,
-		},
-		{
-			LocationX: 200,
-			LocationY: -2.0313,
-			LocationZ: 0.213498,
-			IsFixedX:  false,
-			IsFixedY:  true,
-			IsFixedZ:  true,
-		},
-		{
-			LocationX: 200,
-			LocationY: -3.97382,
-			LocationZ: 0.844661,
-			IsFixedX:  false,
-			IsFixedY:  true,
-			IsFixedZ:  true,
-		},
-		{
-			LocationX: 200,
-			LocationY: 2.0313,
-			LocationZ: 0.213498,
-			IsFixedX:  false,
-			IsFixedY:  true,
-			IsFixedZ:  true,
-		},
-		{
-			LocationX: 200,
-			LocationY: 3.97382,
-			LocationZ: 0.844661,
-			IsFixedX:  false,
-			IsFixedY:  true,
-			IsFixedZ:  true,
-		},
+		{LocX: 0, LocY: 0, LocZ: 0, IsFixedX: true, IsFixedY: true, IsFixedZ: true},
+		{LocX: 0, LocY: -2.0313, LocZ: 0.213498, IsFixedX: true, IsFixedY: true, IsFixedZ: true},
+		{LocX: 0, LocY: -3.97382, LocZ: 0.844661, IsFixedX: true, IsFixedY: true, IsFixedZ: true},
+		{LocX: 0, LocY: 2.0313, LocZ: 0.213498, IsFixedX: true, IsFixedY: true, IsFixedZ: true},
+		{LocX: 0, LocY: 3.97382, LocZ: 0.844661, IsFixedX: true, IsFixedY: true, IsFixedZ: true},
+		{LocX: 200, LocY: 0, LocZ: 0, IsFixedX: false, IsFixedY: true, IsFixedZ: true},
+		{LocX: 200, LocY: -2.0313, LocZ: 0.213498, IsFixedX: false, IsFixedY: true, IsFixedZ: true},
+		{LocX: 200, LocY: -3.97382, LocZ: 0.844661, IsFixedX: false, IsFixedY: true, IsFixedZ: true},
+		{LocX: 200, LocY: 2.0313, LocZ: 0.213498, IsFixedX: false, IsFixedY: true, IsFixedZ: true},
+		{LocX: 200, LocY: 3.97382, LocZ: 0.844661, IsFixedX: false, IsFixedY: true, IsFixedZ: true},
 	}
 
 	jsonData, err := json.MarshalIndent(restraints, "", "    ")
