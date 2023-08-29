@@ -24,6 +24,12 @@ var bmpSpecsPth string = filepath.Join(os.TempDir(), "bmp-specs.json")
 var bmiSpecsPth string = filepath.Join(os.TempDir(), "bmi-specs.json")
 var teapotSpecsPth string = filepath.Join(os.TempDir(), "teapot-specs.json")
 
+var bmsLoadsPth string = filepath.Join(os.TempDir(), "bms-loads.json")
+var bmcLoadsPth string = filepath.Join(os.TempDir(), "bmc-loads.json")
+var bmpLoadsPth string = filepath.Join(os.TempDir(), "bmp-loads.json")
+var bmiLoadsPth string = filepath.Join(os.TempDir(), "bmi-loads.json")
+var teapotLoadsPth string = filepath.Join(os.TempDir(), "teapot-loads.json")
+
 var bmsRestraintsPth string = filepath.Join(os.TempDir(), "bms-restraints.json")
 var bmcRestraintsPth string = filepath.Join(os.TempDir(), "bmc-restraints.json")
 var bmpRestraintsPth string = filepath.Join(os.TempDir(), "bmp-restraints.json")
@@ -42,9 +48,7 @@ func Test_main(t *testing.T) {
 		name          string
 		pthStl        string
 		pthSpecs      string
-		pthLoadPoints string
-		pthLoadDirs   string
-		pthLoadMags   string
+		pthLoads      string
 		pthRestraints string
 	}{
 		{
@@ -52,9 +56,7 @@ func Test_main(t *testing.T) {
 			name:          "benchmarkSquare",
 			pthStl:        "../../files/benchmark-square.stl",
 			pthSpecs:      bmsSpecsPth,
-			pthLoadPoints: "",
-			pthLoadDirs:   "",
-			pthLoadMags:   "",
+			pthLoads:      bmsLoadsPth,
 			pthRestraints: bmsRestraintsPth,
 		},
 		{
@@ -62,9 +64,7 @@ func Test_main(t *testing.T) {
 			name:          "benchmarkCircle",
 			pthStl:        "../../files/benchmark-circle.stl",
 			pthSpecs:      bmcSpecsPth,
-			pthLoadPoints: "",
-			pthLoadDirs:   "",
-			pthLoadMags:   "",
+			pthLoads:      bmcLoadsPth,
 			pthRestraints: bmcRestraintsPth,
 		},
 		{
@@ -72,9 +72,7 @@ func Test_main(t *testing.T) {
 			name:          "benchmarkPipe",
 			pthStl:        "../../files/benchmark-pipe.stl",
 			pthSpecs:      bmpSpecsPth,
-			pthLoadPoints: "",
-			pthLoadDirs:   "",
-			pthLoadMags:   "",
+			pthLoads:      bmpLoadsPth,
 			pthRestraints: bmpRestraintsPth,
 		},
 		{
@@ -82,9 +80,7 @@ func Test_main(t *testing.T) {
 			name:          "benchmarkI",
 			pthStl:        "../../files/benchmark-I.stl",
 			pthSpecs:      bmiSpecsPth,
-			pthLoadPoints: "",
-			pthLoadDirs:   "",
-			pthLoadMags:   "",
+			pthLoads:      bmiLoadsPth,
 			pthRestraints: bmiRestraintsPth,
 		},
 		{
@@ -92,9 +88,7 @@ func Test_main(t *testing.T) {
 			name:          "teapot",
 			pthStl:        "../../files/teapot.stl",
 			pthSpecs:      teapotSpecsPth,
-			pthLoadPoints: "",
-			pthLoadDirs:   "",
-			pthLoadMags:   "",
+			pthLoads:      teapotLoadsPth,
 			pthRestraints: teapotRestraintsPth,
 		},
 	}
@@ -142,7 +136,27 @@ func setup() error {
 	if err != nil {
 		return err
 	}
-	return teapotRestraints()
+	err = teapotRestraints()
+	if err != nil {
+		return err
+	}
+	err = bmsLoads()
+	if err != nil {
+		return err
+	}
+	err = bmcLoads()
+	if err != nil {
+		return err
+	}
+	err = bmpLoads()
+	if err != nil {
+		return err
+	}
+	err = bmiLoads()
+	if err != nil {
+		return err
+	}
+	return teapotLoads()
 }
 
 type Specs struct {
@@ -427,4 +441,113 @@ func teapotRestraints() error {
 	}
 
 	return os.WriteFile(teapotRestraintsPth, jsonData, 0644)
+}
+
+type Load struct {
+	LocX float64
+	LocY float64
+	LocZ float64
+	MagX float64
+	MagY float64
+	MagZ float64
+}
+
+func bmsLoads() error {
+	loads := []Load{
+		{
+			LocX: 0,
+			LocY: 0,
+			LocZ: 0,
+			MagX: 0,
+			MagY: 0,
+			MagZ: 0,
+		},
+	}
+
+	jsonData, err := json.MarshalIndent(loads, "", "    ")
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(bmsLoadsPth, jsonData, 0644)
+}
+
+func bmcLoads() error {
+	loads := []Load{
+		{
+			LocX: 0,
+			LocY: 0,
+			LocZ: 0,
+			MagX: 0,
+			MagY: 0,
+			MagZ: 0,
+		},
+	}
+
+	jsonData, err := json.MarshalIndent(loads, "", "    ")
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(bmcLoadsPth, jsonData, 0644)
+}
+
+func bmpLoads() error {
+	loads := []Load{
+		{
+			LocX: 0,
+			LocY: 0,
+			LocZ: 0,
+			MagX: 0,
+			MagY: 0,
+			MagZ: 0,
+		},
+	}
+
+	jsonData, err := json.MarshalIndent(loads, "", "    ")
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(bmpLoadsPth, jsonData, 0644)
+}
+
+func bmiLoads() error {
+	loads := []Load{
+		{
+			LocX: 0,
+			LocY: 0,
+			LocZ: 0,
+			MagX: 0,
+			MagY: 0,
+			MagZ: 0,
+		},
+	}
+
+	jsonData, err := json.MarshalIndent(loads, "", "    ")
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(bmiLoadsPth, jsonData, 0644)
+}
+
+func teapotLoads() error {
+	loads := []Load{
+		{
+			LocX: 0,
+			LocY: 0,
+			LocZ: 8,
+			MagX: 0,
+			MagY: 0,
+			MagZ: -10,
+		},
+	}
+
+	jsonData, err := json.MarshalIndent(loads, "", "    ")
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(teapotLoadsPth, jsonData, 0644)
 }
