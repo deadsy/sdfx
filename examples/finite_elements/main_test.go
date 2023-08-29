@@ -103,25 +103,39 @@ func setup() {
 	teapotSpecs()
 }
 
+type Specs struct {
+	MassDensity            float64
+	YoungModulus           float64
+	PoissonRatio           float64
+	GravityConsidered      bool
+	GravityDirectionX      float64
+	GravityDirectionY      float64
+	GravityDirectionZ      float64
+	GravityMagnitude       float64
+	Resolution             int
+	LayersAllConsidered    bool
+	LayerStart             int
+	LayerEnd               int
+	NonlinearConsidered    bool
+	ExactSurfaceConsidered bool
+}
+
 func bmsSpecs() {
-	specs := map[string]float64{
-		"massDensity":       7.85e-9,
-		"youngModulus":      210000,
-		"poissonRatio":      0.3,
-		"gravityConsidered": 1, // 0 or 1
-		"gravityDirectionX": 0,
-		"gravityDirectionY": 0,
-		"gravityDirectionZ": -1,
-		"gravityMagnitude":  9810,
-		"resolution":        50,
-		"layerStart":        -1, // Negative means all layers.
-		"layerEnd":          -1, // Negative means all layers.
-		"Tet4":              0,
-		"Tet10":             0,
-		"Hex8":              0,
-		"Hex20":             0,
-		"Hex8Tet4":          1,
-		"Hex20Tet10":        0,
+	specs := Specs{
+		MassDensity:            7.85e-9,
+		YoungModulus:           210000,
+		PoissonRatio:           0.3,
+		GravityConsidered:      true,
+		GravityDirectionX:      0,
+		GravityDirectionY:      0,
+		GravityDirectionZ:      -1,
+		GravityMagnitude:       9810,
+		Resolution:             50,
+		LayersAllConsidered:    true,
+		LayerStart:             -1, // Negative means all layers.
+		LayerEnd:               -1, // Negative means all layers.
+		NonlinearConsidered:    false,
+		ExactSurfaceConsidered: true,
 	}
 
 	jsonData, err := json.MarshalIndent(specs, "", "    ")
@@ -138,24 +152,21 @@ func bmsSpecs() {
 }
 
 func bmcSpecs() {
-	specs := map[string]float64{
-		"massDensity":       7.85e-9,
-		"youngModulus":      210000,
-		"poissonRatio":      0.3,
-		"gravityConsidered": 1, // 0 or 1
-		"gravityDirectionX": 0,
-		"gravityDirectionY": 0,
-		"gravityDirectionZ": -1,
-		"gravityMagnitude":  9810,
-		"resolution":        50,
-		"layerStart":        -1, // Negative means all layers.
-		"layerEnd":          -1, // Negative means all layers.
-		"Tet4":              0,
-		"Tet10":             0,
-		"Hex8":              0,
-		"Hex20":             0,
-		"Hex8Tet4":          1,
-		"Hex20Tet10":        0,
+	specs := Specs{
+		MassDensity:            7.85e-9,
+		YoungModulus:           210000,
+		PoissonRatio:           0.3,
+		GravityConsidered:      true,
+		GravityDirectionX:      0,
+		GravityDirectionY:      0,
+		GravityDirectionZ:      -1,
+		GravityMagnitude:       9810,
+		Resolution:             50,
+		LayersAllConsidered:    true,
+		LayerStart:             -1, // Negative means all layers.
+		LayerEnd:               -1, // Negative means all layers.
+		NonlinearConsidered:    false,
+		ExactSurfaceConsidered: true,
 	}
 
 	jsonData, err := json.MarshalIndent(specs, "", "    ")
@@ -172,24 +183,21 @@ func bmcSpecs() {
 }
 
 func bmpSpecs() {
-	specs := map[string]float64{
-		"massDensity":       7.85e-9,
-		"youngModulus":      210000,
-		"poissonRatio":      0.3,
-		"gravityConsidered": 1, // 0 or 1
-		"gravityDirectionX": 0,
-		"gravityDirectionY": 0,
-		"gravityDirectionZ": -1,
-		"gravityMagnitude":  9810,
-		"resolution":        50,
-		"layerStart":        -1, // Negative means all layers.
-		"layerEnd":          -1, // Negative means all layers.
-		"Tet4":              0,
-		"Tet10":             0,
-		"Hex8":              0,
-		"Hex20":             0,
-		"Hex8Tet4":          1,
-		"Hex20Tet10":        0,
+	specs := Specs{
+		MassDensity:            7.85e-9,
+		YoungModulus:           210000,
+		PoissonRatio:           0.3,
+		GravityConsidered:      true,
+		GravityDirectionX:      0,
+		GravityDirectionY:      0,
+		GravityDirectionZ:      -1,
+		GravityMagnitude:       9810,
+		Resolution:             50,
+		LayersAllConsidered:    true,
+		LayerStart:             -1, // Negative means all layers.
+		LayerEnd:               -1, // Negative means all layers.
+		NonlinearConsidered:    false,
+		ExactSurfaceConsidered: true,
 	}
 
 	jsonData, err := json.MarshalIndent(specs, "", "    ")
@@ -206,24 +214,21 @@ func bmpSpecs() {
 }
 
 func bmiSpecs() {
-	specs := map[string]float64{
-		"massDensity":       7.85e-9,
-		"youngModulus":      210000,
-		"poissonRatio":      0.3,
-		"gravityConsidered": 1, // 0 or 1
-		"gravityDirectionX": 0,
-		"gravityDirectionY": 0,
-		"gravityDirectionZ": -1,
-		"gravityMagnitude":  9810,
-		"resolution":        50,
-		"layerStart":        -1, // Negative means all layers.
-		"layerEnd":          -1, // Negative means all layers.
-		"Tet4":              0,
-		"Tet10":             0,
-		"Hex8":              0,
-		"Hex20":             0,
-		"Hex8Tet4":          1,
-		"Hex20Tet10":        0,
+	specs := Specs{
+		MassDensity:            7.85e-9,
+		YoungModulus:           210000,
+		PoissonRatio:           0.3,
+		GravityConsidered:      true,
+		GravityDirectionX:      0,
+		GravityDirectionY:      0,
+		GravityDirectionZ:      -1,
+		GravityMagnitude:       9810,
+		Resolution:             50,
+		LayersAllConsidered:    true,
+		LayerStart:             -1, // Negative means all layers.
+		LayerEnd:               -1, // Negative means all layers.
+		NonlinearConsidered:    false,
+		ExactSurfaceConsidered: true,
 	}
 
 	jsonData, err := json.MarshalIndent(specs, "", "    ")
@@ -240,24 +245,21 @@ func bmiSpecs() {
 }
 
 func teapotSpecs() {
-	specs := map[string]float64{
-		"massDensity":       7.85e-9,
-		"youngModulus":      210000,
-		"poissonRatio":      0.3,
-		"gravityConsidered": 1, // 0 or 1
-		"gravityDirectionX": 0,
-		"gravityDirectionY": 0,
-		"gravityDirectionZ": -1,
-		"gravityMagnitude":  9810,
-		"resolution":        50,
-		"layerStart":        -1, // Negative means all layers.
-		"layerEnd":          -1, // Negative means all layers.
-		"Tet4":              0,
-		"Tet10":             0,
-		"Hex8":              0,
-		"Hex20":             0,
-		"Hex8Tet4":          1,
-		"Hex20Tet10":        0,
+	specs := Specs{
+		MassDensity:            7.85e-9,
+		YoungModulus:           210000,
+		PoissonRatio:           0.3,
+		GravityConsidered:      true,
+		GravityDirectionX:      0,
+		GravityDirectionY:      0,
+		GravityDirectionZ:      -1,
+		GravityMagnitude:       9810,
+		Resolution:             50,
+		LayersAllConsidered:    true,
+		LayerStart:             -1, // Negative means all layers.
+		LayerEnd:               -1, // Negative means all layers.
+		NonlinearConsidered:    false,
+		ExactSurfaceConsidered: true,
 	}
 
 	jsonData, err := json.MarshalIndent(specs, "", "    ")
