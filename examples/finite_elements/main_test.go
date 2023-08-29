@@ -13,7 +13,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -26,7 +25,12 @@ var bmiSpecsPth string = filepath.Join(os.TempDir(), "bmi-specs.json")
 var teapotSpecsPth string = filepath.Join(os.TempDir(), "teapot-specs.json")
 
 func Test_main(t *testing.T) {
-	setup()
+	err := setup()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
 	tests := []struct {
 		skip          bool
 		name          string
@@ -95,12 +99,24 @@ func Test_main(t *testing.T) {
 	}
 }
 
-func setup() {
-	bmsSpecs()
-	bmcSpecs()
-	bmpSpecs()
-	bmiSpecs()
-	teapotSpecs()
+func setup() error {
+	err := bmsSpecs()
+	if err != nil {
+		return err
+	}
+	err = bmcSpecs()
+	if err != nil {
+		return err
+	}
+	err = bmpSpecs()
+	if err != nil {
+		return err
+	}
+	err = bmiSpecs()
+	if err != nil {
+		return err
+	}
+	return teapotSpecs()
 }
 
 type Specs struct {
@@ -120,7 +136,7 @@ type Specs struct {
 	ExactSurfaceConsidered bool
 }
 
-func bmsSpecs() {
+func bmsSpecs() error {
 	specs := Specs{
 		MassDensity:            7.85e-9,
 		YoungModulus:           210000,
@@ -140,18 +156,13 @@ func bmsSpecs() {
 
 	jsonData, err := json.MarshalIndent(specs, "", "    ")
 	if err != nil {
-		fmt.Println("Failed to marshal JSON:", err)
-		return
+		return err
 	}
 
-	err = os.WriteFile(bmsSpecsPth, jsonData, 0644)
-	if err != nil {
-		fmt.Println("Failed to write JSON file:", err)
-		return
-	}
+	return os.WriteFile(bmsSpecsPth, jsonData, 0644)
 }
 
-func bmcSpecs() {
+func bmcSpecs() error {
 	specs := Specs{
 		MassDensity:            7.85e-9,
 		YoungModulus:           210000,
@@ -171,18 +182,13 @@ func bmcSpecs() {
 
 	jsonData, err := json.MarshalIndent(specs, "", "    ")
 	if err != nil {
-		fmt.Println("Failed to marshal JSON:", err)
-		return
+		return err
 	}
 
-	err = os.WriteFile(bmcSpecsPth, jsonData, 0644)
-	if err != nil {
-		fmt.Println("Failed to write JSON file:", err)
-		return
-	}
+	return os.WriteFile(bmcSpecsPth, jsonData, 0644)
 }
 
-func bmpSpecs() {
+func bmpSpecs() error {
 	specs := Specs{
 		MassDensity:            7.85e-9,
 		YoungModulus:           210000,
@@ -202,18 +208,13 @@ func bmpSpecs() {
 
 	jsonData, err := json.MarshalIndent(specs, "", "    ")
 	if err != nil {
-		fmt.Println("Failed to marshal JSON:", err)
-		return
+		return err
 	}
 
-	err = os.WriteFile(bmpSpecsPth, jsonData, 0644)
-	if err != nil {
-		fmt.Println("Failed to write JSON file:", err)
-		return
-	}
+	return os.WriteFile(bmpSpecsPth, jsonData, 0644)
 }
 
-func bmiSpecs() {
+func bmiSpecs() error {
 	specs := Specs{
 		MassDensity:            7.85e-9,
 		YoungModulus:           210000,
@@ -233,18 +234,13 @@ func bmiSpecs() {
 
 	jsonData, err := json.MarshalIndent(specs, "", "    ")
 	if err != nil {
-		fmt.Println("Failed to marshal JSON:", err)
-		return
+		return err
 	}
 
-	err = os.WriteFile(bmiSpecsPth, jsonData, 0644)
-	if err != nil {
-		fmt.Println("Failed to write JSON file:", err)
-		return
-	}
+	return os.WriteFile(bmiSpecsPth, jsonData, 0644)
 }
 
-func teapotSpecs() {
+func teapotSpecs() error {
 	specs := Specs{
 		MassDensity:            7.85e-9,
 		YoungModulus:           210000,
@@ -264,13 +260,8 @@ func teapotSpecs() {
 
 	jsonData, err := json.MarshalIndent(specs, "", "    ")
 	if err != nil {
-		fmt.Println("Failed to marshal JSON:", err)
-		return
+		return err
 	}
 
-	err = os.WriteFile(teapotSpecsPth, jsonData, 0644)
-	if err != nil {
-		fmt.Println("Failed to write JSON file:", err)
-		return
-	}
+	return os.WriteFile(teapotSpecsPth, jsonData, 0644)
 }
