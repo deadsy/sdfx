@@ -159,23 +159,6 @@ func setup() error {
 	return teapotLoads()
 }
 
-type Specs struct {
-	MassDensity            float64
-	YoungModulus           float64
-	PoissonRatio           float64
-	GravityConsidered      bool
-	GravityDirectionX      float64
-	GravityDirectionY      float64
-	GravityDirectionZ      float64
-	GravityMagnitude       float64
-	Resolution             int
-	LayersAllConsidered    bool
-	LayerStart             int
-	LayerEnd               int
-	NonlinearConsidered    bool
-	ExactSurfaceConsidered bool
-}
-
 func bmsSpecs() error {
 	specs := Specs{
 		MassDensity:            7.85e-9,
@@ -306,15 +289,6 @@ func teapotSpecs() error {
 	return os.WriteFile(teapotSpecsPth, jsonData, 0644)
 }
 
-type Restraint struct {
-	LocX     float64
-	LocY     float64
-	LocZ     float64
-	IsFixedX bool
-	IsFixedY bool
-	IsFixedZ bool
-}
-
 func bmsRestraints() error {
 	restraints := make([]Restraint, 0)
 
@@ -441,15 +415,6 @@ func teapotRestraints() error {
 	}
 
 	return os.WriteFile(teapotRestraintsPth, jsonData, 0644)
-}
-
-type Load struct {
-	LocX float64
-	LocY float64
-	LocZ float64
-	MagX float64
-	MagY float64
-	MagZ float64
 }
 
 func bmsLoads() error {

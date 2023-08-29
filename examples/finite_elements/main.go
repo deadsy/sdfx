@@ -42,6 +42,41 @@ const (
 	Hex20Tet10                          // hex20 and tet10
 )
 
+type Specs struct {
+	MassDensity            float64
+	YoungModulus           float64
+	PoissonRatio           float64
+	GravityConsidered      bool
+	GravityDirectionX      float64
+	GravityDirectionY      float64
+	GravityDirectionZ      float64
+	GravityMagnitude       float64
+	Resolution             int
+	LayersAllConsidered    bool
+	LayerStart             int
+	LayerEnd               int
+	NonlinearConsidered    bool
+	ExactSurfaceConsidered bool
+}
+
+type Restraint struct {
+	LocX     float64
+	LocY     float64
+	LocZ     float64
+	IsFixedX bool
+	IsFixedY bool
+	IsFixedZ bool
+}
+
+type Load struct {
+	LocX float64
+	LocY float64
+	LocZ float64
+	MagX float64
+	MagY float64
+	MagZ float64
+}
+
 // Render SDF3 to finite elements.
 // Write finite elements to an `inp` file.
 // Written file can be used by ABAQUS or CalculiX.
