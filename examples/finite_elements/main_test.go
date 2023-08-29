@@ -95,7 +95,7 @@ func Test_main(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			os.Args = []string{
-				"executable-name",
+				"executable-name-dummy",
 				tt.pthStl,
 				tt.pthSpecs,
 				tt.pthLoads,
