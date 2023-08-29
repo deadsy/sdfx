@@ -131,6 +131,10 @@ func setup() error {
 		return err
 	}
 	err = bmcRestraints()
+	if err != nil {
+		return err
+	}
+	err = bmpRestraints()
 	return err
 }
 
@@ -350,4 +354,26 @@ func bmcRestraints() error {
 	}
 
 	return os.WriteFile(bmcRestraintsPth, jsonData, 0644)
+}
+
+func bmpRestraints() error {
+	restraints := []Restraint{
+		{LocX: 0, LocY: 0, LocZ: 0, IsFixedX: true, IsFixedY: true, IsFixedZ: true},
+		{LocX: 0, LocY: -2.0313, LocZ: 0.213498, IsFixedX: true, IsFixedY: true, IsFixedZ: true},
+		{LocX: 0, LocY: -3.97382, LocZ: 0.844661, IsFixedX: true, IsFixedY: true, IsFixedZ: true},
+		{LocX: 0, LocY: 2.0313, LocZ: 0.213498, IsFixedX: true, IsFixedY: true, IsFixedZ: true},
+		{LocX: 0, LocY: 3.97382, LocZ: 0.844661, IsFixedX: true, IsFixedY: true, IsFixedZ: true},
+		{LocX: 200, LocY: 0, LocZ: 0, IsFixedX: false, IsFixedY: true, IsFixedZ: true},
+		{LocX: 200, LocY: -2.0313, LocZ: 0.213498, IsFixedX: false, IsFixedY: true, IsFixedZ: true},
+		{LocX: 200, LocY: -3.97382, LocZ: 0.844661, IsFixedX: false, IsFixedY: true, IsFixedZ: true},
+		{LocX: 200, LocY: 2.0313, LocZ: 0.213498, IsFixedX: false, IsFixedY: true, IsFixedZ: true},
+		{LocX: 200, LocY: 3.97382, LocZ: 0.844661, IsFixedX: false, IsFixedY: true, IsFixedZ: true},
+	}
+
+	jsonData, err := json.MarshalIndent(restraints, "", "    ")
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(bmpRestraintsPth, jsonData, 0644)
 }
