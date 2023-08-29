@@ -139,7 +139,10 @@ func setup() error {
 		return err
 	}
 	err = bmiRestraints()
-	return err
+	if err != nil {
+		return err
+	}
+	return teapotRestraints()
 }
 
 type Specs struct {
@@ -404,4 +407,24 @@ func bmiRestraints() error {
 	}
 
 	return os.WriteFile(bmiRestraintsPth, jsonData, 0644)
+}
+
+func teapotRestraints() error {
+	restraints := []Restraint{
+		{
+			LocX:     0,
+			LocY:     0,
+			LocZ:     0,
+			IsFixedX: true,
+			IsFixedY: true,
+			IsFixedZ: true,
+		},
+	}
+
+	jsonData, err := json.MarshalIndent(restraints, "", "    ")
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(teapotRestraintsPth, jsonData, 0644)
 }
