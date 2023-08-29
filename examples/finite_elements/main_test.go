@@ -94,6 +94,13 @@ func Test_main(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			os.Args = []string{
+				"executable-name",
+				tt.pthStl,
+				tt.pthSpecs,
+				tt.pthLoads,
+				tt.pthRestraints,
+			}
 			main()
 		})
 	}
@@ -399,14 +406,10 @@ func bmiRestraints() error {
 
 func teapotRestraints() error {
 	restraints := []Restraint{
-		{
-			LocX:     0,
-			LocY:     0,
-			LocZ:     0,
-			IsFixedX: true,
-			IsFixedY: true,
-			IsFixedZ: true,
-		},
+		{LocX: -2.5, LocY: 2.5, LocZ: 0.3, IsFixedX: true, IsFixedY: true, IsFixedZ: true},
+		{LocX: 2.5, LocY: 2.5, LocZ: 0.3, IsFixedX: true, IsFixedY: true, IsFixedZ: true},
+		{LocX: 2.5, LocY: -2.5, LocZ: 0.3, IsFixedX: true, IsFixedY: true, IsFixedZ: true},
+		{LocX: -2.5, LocY: -2.5, LocZ: 0.3, IsFixedX: true, IsFixedY: true, IsFixedZ: true},
 	}
 
 	jsonData, err := json.MarshalIndent(restraints, "", "    ")
@@ -502,7 +505,7 @@ func teapotLoads() error {
 		{
 			LocX: 0,
 			LocY: 0,
-			LocZ: 8,
+			LocZ: 8.0,
 			MagX: 0,
 			MagY: 0,
 			MagZ: -10,
