@@ -26,17 +26,17 @@ type Specs struct {
 	MassDensity            float64
 	YoungModulus           float64
 	PoissonRatio           float64
-	GravityConsidered      bool
+	GravityConsidered      bool // If false, gravity direction and magnitude are ignored.
 	GravityDirectionX      float64
 	GravityDirectionY      float64
 	GravityDirectionZ      float64
 	GravityMagnitude       float64
-	Resolution             int
-	LayersAllConsidered    bool
+	Resolution             int  // Number of voxels on the longest axis of 3D model AABB.
+	LayersAllConsidered    bool // If true, layer start and layer end are ignored.
 	LayerStart             int
 	LayerEnd               int
-	NonlinearConsidered    bool
-	ExactSurfaceConsidered bool
+	NonlinearConsidered    bool // If true, nonlinear finite elements are generated.
+	ExactSurfaceConsidered bool // Exact surface is approximated by tetrahedral finite elements.
 }
 
 type Restraint struct {
