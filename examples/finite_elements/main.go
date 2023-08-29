@@ -69,7 +69,7 @@ func main() {
 	pthSpecs := os.Args[2]
 	pthLoads := os.Args[3]
 	pthRestraints := os.Args[4]
-	pthOut := os.Args[5]
+	pthResult := os.Args[5]
 
 	jsonData, err := os.ReadFile(pthSpecs)
 	if err != nil {
@@ -104,7 +104,7 @@ func main() {
 		log.Fatalf("%s", err)
 	}
 
-	Run(pthStl, specs, restraints, loads, pthOut)
+	Run(pthStl, specs, restraints, loads, pthResult)
 }
 
 func Run(
@@ -112,7 +112,7 @@ func Run(
 	specs Specs,
 	restraints []Restraint,
 	loads []Load,
-	pthOut string,
+	pthResult string,
 ) {
 	// create the SDF from the STL mesh
 	_, err := obj.ImportSTL(pthStl, 20, 3, 5)

@@ -36,11 +36,11 @@ var bmpRestraintsPth string = filepath.Join(os.TempDir(), "bmp-restraints.json")
 var bmiRestraintsPth string = filepath.Join(os.TempDir(), "bmi-restraints.json")
 var teapotRestraintsPth string = filepath.Join(os.TempDir(), "teapot-restraints.json")
 
-var bmsOutPth string = filepath.Join(os.TempDir(), "bms-out.inp")
-var bmcOutPth string = filepath.Join(os.TempDir(), "bmc-out.inp")
-var bmpOutPth string = filepath.Join(os.TempDir(), "bmp-out.inp")
-var bmiOutPth string = filepath.Join(os.TempDir(), "bmi-out.inp")
-var teapotOutPth string = filepath.Join(os.TempDir(), "teapot-out.inp")
+var bmsResultPth string = filepath.Join(os.TempDir(), "bms-result.inp")
+var bmcResultPth string = filepath.Join(os.TempDir(), "bmc-result.inp")
+var bmpResultPth string = filepath.Join(os.TempDir(), "bmp-result.inp")
+var bmiResultPth string = filepath.Join(os.TempDir(), "bmi-result.inp")
+var teapotResultPth string = filepath.Join(os.TempDir(), "teapot-result.inp")
 
 // Benchmark reference:
 // https://github.com/calculix/CalculiX-Examples/tree/master/NonLinear/Sections
@@ -58,7 +58,7 @@ func Test_main(t *testing.T) {
 		pthSpecs      string
 		pthLoads      string
 		pthRestraints string
-		pthOut        string
+		pthResult     string
 	}{
 		{
 			skip:          false,
@@ -67,7 +67,7 @@ func Test_main(t *testing.T) {
 			pthSpecs:      bmsSpecsPth,
 			pthLoads:      bmsLoadsPth,
 			pthRestraints: bmsRestraintsPth,
-			pthOut:        bmsOutPth,
+			pthResult:     bmsResultPth,
 		},
 		{
 			skip:          false,
@@ -76,7 +76,7 @@ func Test_main(t *testing.T) {
 			pthSpecs:      bmcSpecsPth,
 			pthLoads:      bmcLoadsPth,
 			pthRestraints: bmcRestraintsPth,
-			pthOut:        bmcOutPth,
+			pthResult:     bmcResultPth,
 		},
 		{
 			skip:          false,
@@ -85,7 +85,7 @@ func Test_main(t *testing.T) {
 			pthSpecs:      bmpSpecsPth,
 			pthLoads:      bmpLoadsPth,
 			pthRestraints: bmpRestraintsPth,
-			pthOut:        bmpOutPth,
+			pthResult:     bmpResultPth,
 		},
 		{
 			skip:          false,
@@ -94,7 +94,7 @@ func Test_main(t *testing.T) {
 			pthSpecs:      bmiSpecsPth,
 			pthLoads:      bmiLoadsPth,
 			pthRestraints: bmiRestraintsPth,
-			pthOut:        bmiOutPth,
+			pthResult:     bmiResultPth,
 		},
 		{
 			skip:          false,
@@ -103,7 +103,7 @@ func Test_main(t *testing.T) {
 			pthSpecs:      teapotSpecsPth,
 			pthLoads:      teapotLoadsPth,
 			pthRestraints: teapotRestraintsPth,
-			pthOut:        teapotOutPth,
+			pthResult:     teapotResultPth,
 		},
 	}
 	for _, tt := range tests {
@@ -114,7 +114,7 @@ func Test_main(t *testing.T) {
 				tt.pthSpecs,
 				tt.pthLoads,
 				tt.pthRestraints,
-				tt.pthOut,
+				tt.pthResult,
 			}
 			main()
 		})
