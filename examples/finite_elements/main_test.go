@@ -36,6 +36,14 @@ var bmpRestraintsPth string = filepath.Join(os.TempDir(), "bmp-restraints.json")
 var bmiRestraintsPth string = filepath.Join(os.TempDir(), "bmi-restraints.json")
 var teapotRestraintsPth string = filepath.Join(os.TempDir(), "teapot-restraints.json")
 
+var bmsOutPth string = filepath.Join(os.TempDir(), "bms-out.inp")
+var bmcOutPth string = filepath.Join(os.TempDir(), "bmc-out.inp")
+var bmpOutPth string = filepath.Join(os.TempDir(), "bmp-out.inp")
+var bmiOutPth string = filepath.Join(os.TempDir(), "bmi-out.inp")
+var teapotOutPth string = filepath.Join(os.TempDir(), "teapot-out.inp")
+
+// Benchmark reference:
+// https://github.com/calculix/CalculiX-Examples/tree/master/NonLinear/Sections
 func Test_main(t *testing.T) {
 	err := setup()
 	if err != nil {
@@ -50,6 +58,7 @@ func Test_main(t *testing.T) {
 		pthSpecs      string
 		pthLoads      string
 		pthRestraints string
+		pthOut        string
 	}{
 		{
 			skip:          false,
@@ -58,6 +67,7 @@ func Test_main(t *testing.T) {
 			pthSpecs:      bmsSpecsPth,
 			pthLoads:      bmsLoadsPth,
 			pthRestraints: bmsRestraintsPth,
+			pthOut:        bmsOutPth,
 		},
 		{
 			skip:          false,
@@ -66,6 +76,7 @@ func Test_main(t *testing.T) {
 			pthSpecs:      bmcSpecsPth,
 			pthLoads:      bmcLoadsPth,
 			pthRestraints: bmcRestraintsPth,
+			pthOut:        bmcOutPth,
 		},
 		{
 			skip:          false,
@@ -74,6 +85,7 @@ func Test_main(t *testing.T) {
 			pthSpecs:      bmpSpecsPth,
 			pthLoads:      bmpLoadsPth,
 			pthRestraints: bmpRestraintsPth,
+			pthOut:        bmpOutPth,
 		},
 		{
 			skip:          false,
@@ -82,6 +94,7 @@ func Test_main(t *testing.T) {
 			pthSpecs:      bmiSpecsPth,
 			pthLoads:      bmiLoadsPth,
 			pthRestraints: bmiRestraintsPth,
+			pthOut:        bmiOutPth,
 		},
 		{
 			skip:          false,
@@ -90,6 +103,7 @@ func Test_main(t *testing.T) {
 			pthSpecs:      teapotSpecsPth,
 			pthLoads:      teapotLoadsPth,
 			pthRestraints: teapotRestraintsPth,
+			pthOut:        teapotOutPth,
 		},
 	}
 	for _, tt := range tests {
@@ -100,6 +114,7 @@ func Test_main(t *testing.T) {
 				tt.pthSpecs,
 				tt.pthLoads,
 				tt.pthRestraints,
+				tt.pthOut,
 			}
 			main()
 		})
