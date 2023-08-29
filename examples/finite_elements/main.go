@@ -36,7 +36,7 @@ type Specs struct {
 	LayerStart             int
 	LayerEnd               int
 	NonlinearConsidered    bool // If true, nonlinear finite elements are generated.
-	ExactSurfaceConsidered bool // Exact surface is approximated by tetrahedral finite elements.
+	ExactSurfaceConsidered bool // If true, surface is approximated by tetrahedral finite elements.
 }
 
 type Restraint struct {
