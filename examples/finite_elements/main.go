@@ -117,7 +117,7 @@ func Run(
 	// create the SDF from the STL mesh
 	_, err := obj.ImportSTL(pthStl, 20, 3, 5)
 	if err != nil {
-		log.Fatalf("error: %s", err)
+		log.Fatalf("%s", err)
 	}
 }
 
