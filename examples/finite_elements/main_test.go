@@ -24,6 +24,12 @@ var bmpSpecsPth string = filepath.Join(os.TempDir(), "bmp-specs.json")
 var bmiSpecsPth string = filepath.Join(os.TempDir(), "bmi-specs.json")
 var teapotSpecsPth string = filepath.Join(os.TempDir(), "teapot-specs.json")
 
+var bmsRestraintsPth string = filepath.Join(os.TempDir(), "bms-restraints.json")
+var bmcRestraintsPth string = filepath.Join(os.TempDir(), "bmc-restraints.json")
+var bmpRestraintsPth string = filepath.Join(os.TempDir(), "bmp-restraints.json")
+var bmiRestraintsPth string = filepath.Join(os.TempDir(), "bmi-restraints.json")
+var teapotRestraintsPth string = filepath.Join(os.TempDir(), "teapot-restraints.json")
+
 func Test_main(t *testing.T) {
 	err := setup()
 	if err != nil {
@@ -49,7 +55,7 @@ func Test_main(t *testing.T) {
 			pthLoadPoints: "",
 			pthLoadDirs:   "",
 			pthLoadMags:   "",
-			pthRestraints: "",
+			pthRestraints: bmsRestraintsPth,
 		},
 		{
 			skip:          false,
@@ -59,7 +65,7 @@ func Test_main(t *testing.T) {
 			pthLoadPoints: "",
 			pthLoadDirs:   "",
 			pthLoadMags:   "",
-			pthRestraints: "",
+			pthRestraints: bmcRestraintsPth,
 		},
 		{
 			skip:          false,
@@ -69,7 +75,7 @@ func Test_main(t *testing.T) {
 			pthLoadPoints: "",
 			pthLoadDirs:   "",
 			pthLoadMags:   "",
-			pthRestraints: "",
+			pthRestraints: bmpRestraintsPth,
 		},
 		{
 			skip:          false,
@@ -79,7 +85,7 @@ func Test_main(t *testing.T) {
 			pthLoadPoints: "",
 			pthLoadDirs:   "",
 			pthLoadMags:   "",
-			pthRestraints: "",
+			pthRestraints: bmiRestraintsPth,
 		},
 		{
 			skip:          false,
@@ -89,7 +95,7 @@ func Test_main(t *testing.T) {
 			pthLoadPoints: "",
 			pthLoadDirs:   "",
 			pthLoadMags:   "",
-			pthRestraints: "",
+			pthRestraints: teapotRestraintsPth,
 		},
 	}
 	for _, tt := range tests {
@@ -116,7 +122,12 @@ func setup() error {
 	if err != nil {
 		return err
 	}
-	return teapotSpecs()
+	err = teapotSpecs()
+	if err != nil {
+		return err
+	}
+	err = bmsRestraints()
+	return err
 }
 
 type Specs struct {
@@ -264,4 +275,53 @@ func teapotSpecs() error {
 	}
 
 	return os.WriteFile(teapotSpecsPth, jsonData, 0644)
+}
+
+type Restraint struct {
+	LocationX float64
+	LocationY float64
+	LocationZ float64
+	IsFixedX  bool
+	IsFixedY  bool
+	IsFixedZ  bool
+}
+
+func bmsRestraints() error {
+	restraints := make([]Restraint, 0)
+
+	gap := 1.0
+	var y float64
+	for y <= 17.32 {
+		restraint := Restraint{
+			LocationX: 0,
+			LocationY: y,
+			LocationZ: 0,
+			IsFixedX:  true,
+			IsFixedY:  true,
+			IsFixedZ:  true,
+		}
+		restraints = append(restraints, restraint)
+		y += gap
+	}
+
+	y = 0
+	for y <= 17.32 {
+		restraint := Restraint{
+			LocationX: 200,
+			LocationY: y,
+			LocationZ: 0,
+			IsFixedX:  false,
+			IsFixedY:  true,
+			IsFixedZ:  true,
+		}
+		restraints = append(restraints, restraint)
+		y += gap
+	}
+
+	jsonData, err := json.MarshalIndent(restraints, "", "    ")
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(bmsRestraintsPth, jsonData, 0644)
 }
