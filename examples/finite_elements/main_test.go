@@ -135,6 +135,10 @@ func setup() error {
 		return err
 	}
 	err = bmpRestraints()
+	if err != nil {
+		return err
+	}
+	err = bmiRestraints()
 	return err
 }
 
@@ -376,4 +380,28 @@ func bmpRestraints() error {
 	}
 
 	return os.WriteFile(bmpRestraintsPth, jsonData, 0644)
+}
+
+func bmiRestraints() error {
+	restraints := make([]Restraint, 0)
+
+	gap := 1.0
+	var y float64
+	for y <= 25 {
+		restraints = append(restraints, Restraint{LocX: 0, LocY: y, LocZ: 0, IsFixedX: true, IsFixedY: true, IsFixedZ: true})
+		y += gap
+	}
+
+	y = 0
+	for y <= 25 {
+		restraints = append(restraints, Restraint{LocX: 200, LocY: y, LocZ: 0, IsFixedX: false, IsFixedY: true, IsFixedZ: true})
+		y += gap
+	}
+
+	jsonData, err := json.MarshalIndent(restraints, "", "    ")
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(bmiRestraintsPth, jsonData, 0644)
 }
