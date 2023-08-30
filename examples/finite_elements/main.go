@@ -25,7 +25,6 @@ type Specs struct {
 	MassDensity            float64
 	YoungModulus           float64
 	PoissonRatio           float64
-	GravityConsidered      bool // If false, gravity direction and magnitude are ignored.
 	GravityDirectionX      float64
 	GravityDirectionY      float64
 	GravityDirectionZ      float64
