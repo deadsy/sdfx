@@ -17,7 +17,6 @@ import (
 
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
-	"github.com/deadsy/sdfx/sdf"
 	"github.com/deadsy/sdfx/sdf/finiteelements/mesh"
 	v3 "github.com/deadsy/sdfx/vec/v3"
 )
@@ -104,7 +103,10 @@ func main() {
 		log.Fatalf("%s", err)
 	}
 
-	Run(pthStl, specs, restraints, loads, pthResult)
+	err = Run(pthStl, specs, restraints, loads, pthResult)
+	if err != nil {
+		log.Fatalf("%s", err)
+	}
 }
 
 func Run(
@@ -113,47 +115,74 @@ func Run(
 	restraints []Restraint,
 	loads []Load,
 	pthResult string,
-) {
+) error {
 	// create the SDF from the STL mesh
-	_, err := obj.ImportSTL(pthStl, 20, 3, 5)
+	inSdf, err := obj.ImportSTL(pthStl, 20, 3, 5)
 	if err != nil {
 		log.Fatalf("%s", err)
 	}
-}
 
-// Generate finite elements.
-func fe(s sdf.SDF3, resolution int, order render.Order, shape render.Shape, pth string,
-	restraints []*mesh.Restraint,
-	loads []*mesh.Load,
-) error {
-	// Create a mesh out of finite elements.
-	m, _ := mesh.NewFem(s, render.NewMarchingCubesFeUniform(resolution, order, shape))
+	var order render.Order
+	if specs.NonlinearConsidered {
+		order = render.Quadratic
+	} else {
+		order = render.Linear
+	}
+
+	var shape render.Shape
+	if specs.ExactSurfaceConsidered {
+		shape = render.HexAndTet
+	} else {
+		shape = render.Hexahedral
+	}
+
+	// Create a mesh of finite elements.
+	m, _ := mesh.NewFem(inSdf, render.NewMarchingCubesFeUniform(specs.Resolution, order, shape))
+
 	components := m.Components()
 	fmt.Printf("components count: %v\n", len(components))
 	for i, component := range components {
 		fmt.Printf("component %v voxel count: %v\n", i, component.VoxelCount())
 	}
 
-	// Write all layers of mesh to file.
-	return m.WriteInp(pth, 7.85e-9, 210000, 0.3, restraints, loads, v3.Vec{X: 0, Y: 0, Z: -1}, 9810)
+	if specs.LayersAllConsidered {
+		// Write all layers of mesh to file.
+		return m.WriteInp(pthResult,
+			float32(specs.MassDensity), float32(specs.YoungModulus), float32(specs.PoissonRatio),
+			restraintsConvert(restraints),
+			loadsConvert(loads),
+			v3.Vec{X: specs.GravityDirectionX, Y: specs.GravityDirectionY, Z: specs.GravityDirectionZ}, specs.GravityMagnitude,
+		)
+	} else {
+		// Write just some layers of mesh to file.
+		// Generate finite elements.
+		// Only from a start layer to an end layer along the Z axis.
+		// Applicable to 3D print analysis that is done layer-by-layer.
+		return m.WriteInpLayers(
+			pthResult,
+			specs.LayerStart, specs.LayerEnd,
+			float32(specs.MassDensity), float32(specs.YoungModulus), float32(specs.PoissonRatio),
+			restraintsConvert(restraints),
+			loadsConvert(loads),
+			v3.Vec{X: specs.GravityDirectionX, Y: specs.GravityDirectionY, Z: specs.GravityDirectionZ}, specs.GravityMagnitude,
+		)
+	}
 }
 
-// Generate finite elements.
-// Only from a start layer to an end layer along the Z axis.
-// Applicable to 3D print analysis that is done layer-by-layer.
-func feLayers(s sdf.SDF3, resolution int, order render.Order, shape render.Shape, pth string,
-	restraints []*mesh.Restraint,
-	loads []*mesh.Load,
-	layerStart, layerEnd int,
-) error {
-	// Create a mesh out of finite elements.
-	m, _ := mesh.NewFem(s, render.NewMarchingCubesFeUniform(resolution, order, shape))
-	components := m.Components()
-	fmt.Printf("components count: %v\n", len(components))
-	for i, component := range components {
-		fmt.Printf("component %v voxel count: %v\n", i, component.VoxelCount())
+func restraintsConvert(rs []Restraint) []*mesh.Restraint {
+	restraints := make([]*mesh.Restraint, len(rs))
+	for i, r := range rs {
+		restraint := mesh.NewRestraint([]v3.Vec{{X: r.LocX, Y: r.LocY, Z: r.LocZ}}, r.IsFixedX, r.IsFixedY, r.IsFixedZ)
+		restraints[i] = restraint
 	}
+	return restraints
+}
 
-	// Write just some layers of mesh to file.
-	return m.WriteInpLayers(pth, layerStart, layerEnd, 7.85e-9, 210000, 0.3, restraints, loads, v3.Vec{X: 0, Y: 0, Z: -1}, 9810)
+func loadsConvert(ls []Load) []*mesh.Load {
+	loads := make([]*mesh.Load, len(ls))
+	for i, l := range ls {
+		load := mesh.NewLoad([]v3.Vec{{X: l.LocX, Y: l.LocY, Z: l.LocZ}}, v3.Vec{X: l.MagX, Y: l.MagY, Z: l.MagZ})
+		loads[i] = load
+	}
+	return loads
 }
