@@ -122,66 +122,66 @@ func Test_main(t *testing.T) {
 }
 
 func setup() error {
-	err := bmsSpecs()
+	err := bmsSpecs(bmsSpecsPth)
 	if err != nil {
 		return err
 	}
-	err = bmcSpecs()
+	err = bmcSpecs(bmcSpecsPth)
 	if err != nil {
 		return err
 	}
-	err = bmpSpecs()
+	err = bmpSpecs(bmpSpecsPth)
 	if err != nil {
 		return err
 	}
-	err = bmiSpecs()
+	err = bmiSpecs(bmiSpecsPth)
 	if err != nil {
 		return err
 	}
-	err = teapotSpecs()
+	err = teapotSpecs(teapotSpecsPth)
 	if err != nil {
 		return err
 	}
-	err = bmsRestraints()
+	err = bmsRestraints(bmsRestraintsPth)
 	if err != nil {
 		return err
 	}
-	err = bmcRestraints()
+	err = bmcRestraints(bmcRestraintsPth)
 	if err != nil {
 		return err
 	}
-	err = bmpRestraints()
+	err = bmpRestraints(bmpRestraintsPth)
 	if err != nil {
 		return err
 	}
-	err = bmiRestraints()
+	err = bmiRestraints(bmiRestraintsPth)
 	if err != nil {
 		return err
 	}
-	err = teapotRestraints()
+	err = teapotRestraints(teapotRestraintsPth)
 	if err != nil {
 		return err
 	}
-	err = bmsLoads()
+	err = bmsLoads(bmsLoadsPth)
 	if err != nil {
 		return err
 	}
-	err = bmcLoads()
+	err = bmcLoads(bmcLoadsPth)
 	if err != nil {
 		return err
 	}
-	err = bmpLoads()
+	err = bmpLoads(bmpLoadsPth)
 	if err != nil {
 		return err
 	}
-	err = bmiLoads()
+	err = bmiLoads(bmiLoadsPth)
 	if err != nil {
 		return err
 	}
-	return teapotLoads()
+	return teapotLoads(teapotLoadsPth)
 }
 
-func bmsSpecs() error {
+func bmsSpecs(pth string) error {
 	specs := Specs{
 		MassDensity:            7.85e-9,
 		YoungModulus:           210000,
@@ -203,10 +203,10 @@ func bmsSpecs() error {
 		return err
 	}
 
-	return os.WriteFile(bmsSpecsPth, jsonData, 0644)
+	return os.WriteFile(pth, jsonData, 0644)
 }
 
-func bmcSpecs() error {
+func bmcSpecs(pth string) error {
 	specs := Specs{
 		MassDensity:            7.85e-9,
 		YoungModulus:           210000,
@@ -228,10 +228,10 @@ func bmcSpecs() error {
 		return err
 	}
 
-	return os.WriteFile(bmcSpecsPth, jsonData, 0644)
+	return os.WriteFile(pth, jsonData, 0644)
 }
 
-func bmpSpecs() error {
+func bmpSpecs(pth string) error {
 	specs := Specs{
 		MassDensity:            7.85e-9,
 		YoungModulus:           210000,
@@ -253,10 +253,10 @@ func bmpSpecs() error {
 		return err
 	}
 
-	return os.WriteFile(bmpSpecsPth, jsonData, 0644)
+	return os.WriteFile(pth, jsonData, 0644)
 }
 
-func bmiSpecs() error {
+func bmiSpecs(pth string) error {
 	specs := Specs{
 		MassDensity:            7.85e-9,
 		YoungModulus:           210000,
@@ -278,10 +278,10 @@ func bmiSpecs() error {
 		return err
 	}
 
-	return os.WriteFile(bmiSpecsPth, jsonData, 0644)
+	return os.WriteFile(pth, jsonData, 0644)
 }
 
-func teapotSpecs() error {
+func teapotSpecs(pth string) error {
 	specs := Specs{
 		MassDensity:            7.85e-9,
 		YoungModulus:           210000,
@@ -303,10 +303,10 @@ func teapotSpecs() error {
 		return err
 	}
 
-	return os.WriteFile(teapotSpecsPth, jsonData, 0644)
+	return os.WriteFile(pth, jsonData, 0644)
 }
 
-func bmsRestraints() error {
+func bmsRestraints(pth string) error {
 	restraints := make([]Restraint, 0)
 
 	gap := 1.0
@@ -343,10 +343,10 @@ func bmsRestraints() error {
 		return err
 	}
 
-	return os.WriteFile(bmsRestraintsPth, jsonData, 0644)
+	return os.WriteFile(pth, jsonData, 0644)
 }
 
-func bmcRestraints() error {
+func bmcRestraints(pth string) error {
 	restraints := []Restraint{
 		{LocX: 0, LocY: 0, LocZ: 0, IsFixedX: true, IsFixedY: true, IsFixedZ: true},
 		{LocX: 0, LocY: -2.0313, LocZ: 0.213498, IsFixedX: true, IsFixedY: true, IsFixedZ: true},
@@ -365,10 +365,10 @@ func bmcRestraints() error {
 		return err
 	}
 
-	return os.WriteFile(bmcRestraintsPth, jsonData, 0644)
+	return os.WriteFile(pth, jsonData, 0644)
 }
 
-func bmpRestraints() error {
+func bmpRestraints(pth string) error {
 	restraints := []Restraint{
 		{LocX: 0, LocY: 0, LocZ: 0, IsFixedX: true, IsFixedY: true, IsFixedZ: true},
 		{LocX: 0, LocY: -2.0313, LocZ: 0.213498, IsFixedX: true, IsFixedY: true, IsFixedZ: true},
@@ -387,10 +387,10 @@ func bmpRestraints() error {
 		return err
 	}
 
-	return os.WriteFile(bmpRestraintsPth, jsonData, 0644)
+	return os.WriteFile(pth, jsonData, 0644)
 }
 
-func bmiRestraints() error {
+func bmiRestraints(pth string) error {
 	restraints := make([]Restraint, 0)
 
 	gap := 1.0
@@ -411,10 +411,10 @@ func bmiRestraints() error {
 		return err
 	}
 
-	return os.WriteFile(bmiRestraintsPth, jsonData, 0644)
+	return os.WriteFile(pth, jsonData, 0644)
 }
 
-func teapotRestraints() error {
+func teapotRestraints(pth string) error {
 	restraints := []Restraint{
 		{LocX: -2.5, LocY: 2.5, LocZ: 0.3, IsFixedX: true, IsFixedY: true, IsFixedZ: true},
 		{LocX: 2.5, LocY: 2.5, LocZ: 0.3, IsFixedX: true, IsFixedY: true, IsFixedZ: true},
@@ -427,10 +427,10 @@ func teapotRestraints() error {
 		return err
 	}
 
-	return os.WriteFile(teapotRestraintsPth, jsonData, 0644)
+	return os.WriteFile(pth, jsonData, 0644)
 }
 
-func bmsLoads() error {
+func bmsLoads(pth string) error {
 	loads := []Load{
 		{
 			LocX: 0,
@@ -447,10 +447,10 @@ func bmsLoads() error {
 		return err
 	}
 
-	return os.WriteFile(bmsLoadsPth, jsonData, 0644)
+	return os.WriteFile(pth, jsonData, 0644)
 }
 
-func bmcLoads() error {
+func bmcLoads(pth string) error {
 	loads := []Load{
 		{
 			LocX: 0,
@@ -467,10 +467,10 @@ func bmcLoads() error {
 		return err
 	}
 
-	return os.WriteFile(bmcLoadsPth, jsonData, 0644)
+	return os.WriteFile(pth, jsonData, 0644)
 }
 
-func bmpLoads() error {
+func bmpLoads(pth string) error {
 	loads := []Load{
 		{
 			LocX: 0,
@@ -487,10 +487,10 @@ func bmpLoads() error {
 		return err
 	}
 
-	return os.WriteFile(bmpLoadsPth, jsonData, 0644)
+	return os.WriteFile(pth, jsonData, 0644)
 }
 
-func bmiLoads() error {
+func bmiLoads(pth string) error {
 	loads := []Load{
 		{
 			LocX: 0,
@@ -507,10 +507,10 @@ func bmiLoads() error {
 		return err
 	}
 
-	return os.WriteFile(bmiLoadsPth, jsonData, 0644)
+	return os.WriteFile(pth, jsonData, 0644)
 }
 
-func teapotLoads() error {
+func teapotLoads(pth string) error {
 	loads := []Load{
 		{
 			LocX: 0,
@@ -527,5 +527,5 @@ func teapotLoads() error {
 		return err
 	}
 
-	return os.WriteFile(teapotLoadsPth, jsonData, 0644)
+	return os.WriteFile(pth, jsonData, 0644)
 }
