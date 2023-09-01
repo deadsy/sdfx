@@ -30,8 +30,8 @@ func Test_main(t *testing.T) {
 		pthRestraints string
 		pthResult     string
 		specs         Specs
-		restraints    []Restraint
 		loads         []Load
+		restraints    []Restraint
 	}{
 		{
 			skip:          false,
@@ -55,6 +55,16 @@ func Test_main(t *testing.T) {
 				LayerEnd:               -1, // Negative means all layers.
 				NonlinearConsidered:    false,
 				ExactSurfaceConsidered: true,
+			},
+			loads: []Load{
+				{
+					LocX: 0,
+					LocY: 0,
+					LocZ: 0,
+					MagX: 0,
+					MagY: 0,
+					MagZ: 0,
+				},
 			},
 			restraints: func() []Restraint {
 				restraints := make([]Restraint, 0)
@@ -89,16 +99,6 @@ func Test_main(t *testing.T) {
 				}
 				return restraints
 			}(),
-			loads: []Load{
-				{
-					LocX: 0,
-					LocY: 0,
-					LocZ: 0,
-					MagX: 0,
-					MagY: 0,
-					MagZ: 0,
-				},
-			},
 		},
 		{
 			skip:          false,
@@ -123,6 +123,16 @@ func Test_main(t *testing.T) {
 				NonlinearConsidered:    false,
 				ExactSurfaceConsidered: true,
 			},
+			loads: []Load{
+				{
+					LocX: 0,
+					LocY: 0,
+					LocZ: 0,
+					MagX: 0,
+					MagY: 0,
+					MagZ: 0,
+				},
+			},
 			restraints: []Restraint{
 				{LocX: 0, LocY: 0, LocZ: 0, IsFixedX: true, IsFixedY: true, IsFixedZ: true},
 				{LocX: 0, LocY: -2.0313, LocZ: 0.213498, IsFixedX: true, IsFixedY: true, IsFixedZ: true},
@@ -134,16 +144,6 @@ func Test_main(t *testing.T) {
 				{LocX: 200, LocY: -3.97382, LocZ: 0.844661, IsFixedX: false, IsFixedY: true, IsFixedZ: true},
 				{LocX: 200, LocY: 2.0313, LocZ: 0.213498, IsFixedX: false, IsFixedY: true, IsFixedZ: true},
 				{LocX: 200, LocY: 3.97382, LocZ: 0.844661, IsFixedX: false, IsFixedY: true, IsFixedZ: true},
-			},
-			loads: []Load{
-				{
-					LocX: 0,
-					LocY: 0,
-					LocZ: 0,
-					MagX: 0,
-					MagY: 0,
-					MagZ: 0,
-				},
 			},
 		},
 		{
@@ -169,6 +169,16 @@ func Test_main(t *testing.T) {
 				NonlinearConsidered:    false,
 				ExactSurfaceConsidered: true,
 			},
+			loads: []Load{
+				{
+					LocX: 0,
+					LocY: 0,
+					LocZ: 0,
+					MagX: 0,
+					MagY: 0,
+					MagZ: 0,
+				},
+			},
 			restraints: []Restraint{
 				{LocX: 0, LocY: 0, LocZ: 0, IsFixedX: true, IsFixedY: true, IsFixedZ: true},
 				{LocX: 0, LocY: -2.0313, LocZ: 0.213498, IsFixedX: true, IsFixedY: true, IsFixedZ: true},
@@ -180,16 +190,6 @@ func Test_main(t *testing.T) {
 				{LocX: 200, LocY: -3.97382, LocZ: 0.844661, IsFixedX: false, IsFixedY: true, IsFixedZ: true},
 				{LocX: 200, LocY: 2.0313, LocZ: 0.213498, IsFixedX: false, IsFixedY: true, IsFixedZ: true},
 				{LocX: 200, LocY: 3.97382, LocZ: 0.844661, IsFixedX: false, IsFixedY: true, IsFixedZ: true},
-			},
-			loads: []Load{
-				{
-					LocX: 0,
-					LocY: 0,
-					LocZ: 0,
-					MagX: 0,
-					MagY: 0,
-					MagZ: 0,
-				},
 			},
 		},
 		{
@@ -215,6 +215,16 @@ func Test_main(t *testing.T) {
 				NonlinearConsidered:    false,
 				ExactSurfaceConsidered: true,
 			},
+			loads: []Load{
+				{
+					LocX: 0,
+					LocY: 0,
+					LocZ: 0,
+					MagX: 0,
+					MagY: 0,
+					MagZ: 0,
+				},
+			},
 			restraints: func() []Restraint {
 				restraints := make([]Restraint, 0)
 
@@ -233,16 +243,6 @@ func Test_main(t *testing.T) {
 
 				return restraints
 			}(),
-			loads: []Load{
-				{
-					LocX: 0,
-					LocY: 0,
-					LocZ: 0,
-					MagX: 0,
-					MagY: 0,
-					MagZ: 0,
-				},
-			},
 		},
 		{
 			skip:          false,
@@ -267,12 +267,6 @@ func Test_main(t *testing.T) {
 				NonlinearConsidered:    false,
 				ExactSurfaceConsidered: true,
 			},
-			restraints: []Restraint{
-				{LocX: -2.5, LocY: 2.5, LocZ: 0.3, IsFixedX: true, IsFixedY: true, IsFixedZ: true},
-				{LocX: 2.5, LocY: 2.5, LocZ: 0.3, IsFixedX: true, IsFixedY: true, IsFixedZ: true},
-				{LocX: 2.5, LocY: -2.5, LocZ: 0.3, IsFixedX: true, IsFixedY: true, IsFixedZ: true},
-				{LocX: -2.5, LocY: -2.5, LocZ: 0.3, IsFixedX: true, IsFixedY: true, IsFixedZ: true},
-			},
 			loads: []Load{
 				{
 					LocX: 0,
@@ -282,6 +276,12 @@ func Test_main(t *testing.T) {
 					MagY: 0,
 					MagZ: -10,
 				},
+			},
+			restraints: []Restraint{
+				{LocX: -2.5, LocY: 2.5, LocZ: 0.3, IsFixedX: true, IsFixedY: true, IsFixedZ: true},
+				{LocX: 2.5, LocY: 2.5, LocZ: 0.3, IsFixedX: true, IsFixedY: true, IsFixedZ: true},
+				{LocX: 2.5, LocY: -2.5, LocZ: 0.3, IsFixedX: true, IsFixedY: true, IsFixedZ: true},
+				{LocX: -2.5, LocY: -2.5, LocZ: 0.3, IsFixedX: true, IsFixedY: true, IsFixedZ: true},
 			},
 		},
 	}
@@ -299,18 +299,6 @@ func Test_main(t *testing.T) {
 				return
 			}
 
-			jsonData, err = json.MarshalIndent(tt.restraints, "", "    ")
-			if err != nil {
-				t.Error(err)
-				return
-			}
-
-			err = os.WriteFile(tt.pthRestraints, jsonData, 0644)
-			if err != nil {
-				t.Error(err)
-				return
-			}
-
 			jsonData, err = json.MarshalIndent(tt.loads, "", "    ")
 			if err != nil {
 				t.Error(err)
@@ -318,6 +306,18 @@ func Test_main(t *testing.T) {
 			}
 
 			err = os.WriteFile(tt.pthLoads, jsonData, 0644)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			jsonData, err = json.MarshalIndent(tt.restraints, "", "    ")
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			err = os.WriteFile(tt.pthRestraints, jsonData, 0644)
 			if err != nil {
 				t.Error(err)
 				return
