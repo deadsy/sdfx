@@ -18,39 +18,9 @@ import (
 	"testing"
 )
 
-var bmsSpecsPth string = filepath.Join(os.TempDir(), "bms-specs.json")
-var bmcSpecsPth string = filepath.Join(os.TempDir(), "bmc-specs.json")
-var bmpSpecsPth string = filepath.Join(os.TempDir(), "bmp-specs.json")
-var bmiSpecsPth string = filepath.Join(os.TempDir(), "bmi-specs.json")
-var teapotSpecsPth string = filepath.Join(os.TempDir(), "teapot-specs.json")
-
-var bmsLoadsPth string = filepath.Join(os.TempDir(), "bms-loads.json")
-var bmcLoadsPth string = filepath.Join(os.TempDir(), "bmc-loads.json")
-var bmpLoadsPth string = filepath.Join(os.TempDir(), "bmp-loads.json")
-var bmiLoadsPth string = filepath.Join(os.TempDir(), "bmi-loads.json")
-var teapotLoadsPth string = filepath.Join(os.TempDir(), "teapot-loads.json")
-
-var bmsRestraintsPth string = filepath.Join(os.TempDir(), "bms-restraints.json")
-var bmcRestraintsPth string = filepath.Join(os.TempDir(), "bmc-restraints.json")
-var bmpRestraintsPth string = filepath.Join(os.TempDir(), "bmp-restraints.json")
-var bmiRestraintsPth string = filepath.Join(os.TempDir(), "bmi-restraints.json")
-var teapotRestraintsPth string = filepath.Join(os.TempDir(), "teapot-restraints.json")
-
-var bmsResultPth string = filepath.Join(os.TempDir(), "bms-result.inp")
-var bmcResultPth string = filepath.Join(os.TempDir(), "bmc-result.inp")
-var bmpResultPth string = filepath.Join(os.TempDir(), "bmp-result.inp")
-var bmiResultPth string = filepath.Join(os.TempDir(), "bmi-result.inp")
-var teapotResultPth string = filepath.Join(os.TempDir(), "teapot-result.inp")
-
 // Benchmark reference:
 // https://github.com/calculix/CalculiX-Examples/tree/master/NonLinear/Sections
 func Test_main(t *testing.T) {
-	err := setup()
-	if err != nil {
-		t.Error(err)
-		return
-	}
-
 	tests := []struct {
 		skip          bool
 		name          string
@@ -63,51 +33,58 @@ func Test_main(t *testing.T) {
 		{
 			skip:          false,
 			name:          "benchmarkSquare",
-			pthStl:        "../../files/benchmark-square.stl",
-			pthSpecs:      bmsSpecsPth,
-			pthLoads:      bmsLoadsPth,
-			pthRestraints: bmsRestraintsPth,
-			pthResult:     bmsResultPth,
+			pthStl:        filepath.Join("..", "..", "files", "benchmark-square.stl"),
+			pthSpecs:      filepath.Join(os.TempDir(), "bms-specs.json"),
+			pthLoads:      filepath.Join(os.TempDir(), "bms-loads.json"),
+			pthRestraints: filepath.Join(os.TempDir(), "bms-restraints.json"),
+			pthResult:     filepath.Join(os.TempDir(), "bms-result.inp"),
 		},
 		{
 			skip:          false,
 			name:          "benchmarkCircle",
-			pthStl:        "../../files/benchmark-circle.stl",
-			pthSpecs:      bmcSpecsPth,
-			pthLoads:      bmcLoadsPth,
-			pthRestraints: bmcRestraintsPth,
-			pthResult:     bmcResultPth,
+			pthStl:        filepath.Join("..", "..", "files", "benchmark-circle.stl"),
+			pthSpecs:      filepath.Join(os.TempDir(), "bmc-specs.json"),
+			pthLoads:      filepath.Join(os.TempDir(), "bmc-loads.json"),
+			pthRestraints: filepath.Join(os.TempDir(), "bmc-restraints.json"),
+			pthResult:     filepath.Join(os.TempDir(), "bmc-result.inp"),
 		},
 		{
 			skip:          false,
 			name:          "benchmarkPipe",
-			pthStl:        "../../files/benchmark-pipe.stl",
-			pthSpecs:      bmpSpecsPth,
-			pthLoads:      bmpLoadsPth,
-			pthRestraints: bmpRestraintsPth,
-			pthResult:     bmpResultPth,
+			pthStl:        filepath.Join("..", "..", "files", "benchmark-pipe.stl"),
+			pthSpecs:      filepath.Join(os.TempDir(), "bmp-specs.json"),
+			pthLoads:      filepath.Join(os.TempDir(), "bmp-loads.json"),
+			pthRestraints: filepath.Join(os.TempDir(), "bmp-restraints.json"),
+			pthResult:     filepath.Join(os.TempDir(), "bmp-result.inp"),
 		},
 		{
 			skip:          false,
 			name:          "benchmarkI",
-			pthStl:        "../../files/benchmark-I.stl",
-			pthSpecs:      bmiSpecsPth,
-			pthLoads:      bmiLoadsPth,
-			pthRestraints: bmiRestraintsPth,
-			pthResult:     bmiResultPth,
+			pthStl:        filepath.Join("..", "..", "files", "benchmark-I.stl"),
+			pthSpecs:      filepath.Join(os.TempDir(), "bmi-specs.json"),
+			pthLoads:      filepath.Join(os.TempDir(), "bmi-loads.json"),
+			pthRestraints: filepath.Join(os.TempDir(), "bmi-restraints.json"),
+			pthResult:     filepath.Join(os.TempDir(), "bmi-result.inp"),
 		},
 		{
 			skip:          false,
 			name:          "teapot",
-			pthStl:        "../../files/teapot.stl",
-			pthSpecs:      teapotSpecsPth,
-			pthLoads:      teapotLoadsPth,
-			pthRestraints: teapotRestraintsPth,
-			pthResult:     teapotResultPth,
+			pthStl:        filepath.Join("..", "..", "files", "teapot.stl"),
+			pthSpecs:      filepath.Join(os.TempDir(), "teapot-specs.json"),
+			pthLoads:      filepath.Join(os.TempDir(), "teapot-loads.json"),
+			pthRestraints: filepath.Join(os.TempDir(), "teapot-restraints.json"),
+			pthResult:     filepath.Join(os.TempDir(), "teapot-result.inp"),
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			err := setup()
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
 			os.Args = []string{
 				"executable-name-dummy",
 				tt.pthStl,
