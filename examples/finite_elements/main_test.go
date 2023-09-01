@@ -30,7 +30,7 @@ func Test_main(t *testing.T) {
 		pthRestraints string // To be created by test.
 		pthResult     string // Result file, consumable by ABAQUS or CalculiX.
 		specs         Specs
-		loads         []Load
+		loads         []Load // If load is zero, gravity would be the dominant force.
 		restraints    []Restraint
 	}{
 		{
