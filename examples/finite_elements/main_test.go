@@ -3,7 +3,7 @@
 /*
 
 Finite elements from triangle mesh.
-Output `inp` file is consumable by ABAQUS or CalculiX.
+The result `inp` file is consumable by ABAQUS or CalculiX.
 
 */
 
@@ -24,11 +24,11 @@ func Test_main(t *testing.T) {
 	tests := []struct {
 		skip          bool
 		name          string
-		pthStl        string
-		pthSpecs      string
-		pthLoads      string
-		pthRestraints string
-		pthResult     string
+		pthStl        string // Input STL file.
+		pthSpecs      string // To be created by test.
+		pthLoads      string // To be created by test.
+		pthRestraints string // To be created by test.
+		pthResult     string // Result file, consumable by ABAQUS or CalculiX.
 		specs         Specs
 		loads         []Load
 		restraints    []Restraint

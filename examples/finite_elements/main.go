@@ -2,7 +2,7 @@
 /*
 
 Finite elements from triangle mesh.
-Output `inp` file is consumable by ABAQUS or CalculiX.
+The result `inp` file is consumable by ABAQUS or CalculiX.
 
 */
 //-----------------------------------------------------------------------------
