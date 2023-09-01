@@ -1,6 +1,7 @@
 package render
 
 import (
+	"github.com/Megidd/tetrahedron-table/src/gotable"
 	"github.com/deadsy/sdfx/sdf"
 	"github.com/deadsy/sdfx/vec/conv"
 	v3 "github.com/deadsy/sdfx/vec/v3"
@@ -243,7 +244,7 @@ func mcToTet4(p [8]v3.Vec, v [8]float64, x float64, layerX, layerY, layerZ int) 
 	}
 
 	// Create the tetrahedra.
-	table := mcTetrahedronTable[index]
+	table := gotable.TetrahedronTable[index]
 	count := len(table) / 4
 	result := make([]*sdf.Fe, 0, count)
 	for i := 0; i < count; i++ {
@@ -298,7 +299,7 @@ func mcToTet10(p [8]v3.Vec, v [8]float64, x float64, layerX, layerY, layerZ int)
 	}
 
 	// Create the tetrahedra.
-	table := mcTetrahedronTable[index]
+	table := gotable.TetrahedronTable[index]
 	count := len(table) / 4
 	result := make([]*sdf.Fe, 0, count)
 	for i := 0; i < count; i++ {
