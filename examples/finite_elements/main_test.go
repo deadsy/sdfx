@@ -29,6 +29,7 @@ func Test_main(t *testing.T) {
 		pthLoads      string // To be created by test.
 		pthRestraints string // To be created by test.
 		pthResult     string // Result file, consumable by ABAQUS or CalculiX.
+		pthResultInfo string // Result details and info.
 		specs         Specs
 		loads         []Load // If load is zero, gravity would be the dominant force.
 		restraints    []Restraint
@@ -41,6 +42,7 @@ func Test_main(t *testing.T) {
 			pthLoads:      filepath.Join(os.TempDir(), "bms-loads.json"),
 			pthRestraints: filepath.Join(os.TempDir(), "bms-restraints.json"),
 			pthResult:     filepath.Join(os.TempDir(), "bms-result.inp"),
+			pthResultInfo: filepath.Join(os.TempDir(), "bms-result-info.json"),
 			specs: Specs{
 				MassDensity:            7.85e-9,
 				YoungModulus:           210000,
@@ -108,6 +110,7 @@ func Test_main(t *testing.T) {
 			pthLoads:      filepath.Join(os.TempDir(), "bmc-loads.json"),
 			pthRestraints: filepath.Join(os.TempDir(), "bmc-restraints.json"),
 			pthResult:     filepath.Join(os.TempDir(), "bmc-result.inp"),
+			pthResultInfo: filepath.Join(os.TempDir(), "bmc-result-info.json"),
 			specs: Specs{
 				MassDensity:            7.85e-9,
 				YoungModulus:           210000,
@@ -154,6 +157,7 @@ func Test_main(t *testing.T) {
 			pthLoads:      filepath.Join(os.TempDir(), "bmp-loads.json"),
 			pthRestraints: filepath.Join(os.TempDir(), "bmp-restraints.json"),
 			pthResult:     filepath.Join(os.TempDir(), "bmp-result.inp"),
+			pthResultInfo: filepath.Join(os.TempDir(), "bmp-result-info.json"),
 			specs: Specs{
 				MassDensity:            7.85e-9,
 				YoungModulus:           210000,
@@ -200,6 +204,7 @@ func Test_main(t *testing.T) {
 			pthLoads:      filepath.Join(os.TempDir(), "bmi-loads.json"),
 			pthRestraints: filepath.Join(os.TempDir(), "bmi-restraints.json"),
 			pthResult:     filepath.Join(os.TempDir(), "bmi-result.inp"),
+			pthResultInfo: filepath.Join(os.TempDir(), "bmi-result-info.json"),
 			specs: Specs{
 				MassDensity:            7.85e-9,
 				YoungModulus:           210000,
@@ -252,6 +257,7 @@ func Test_main(t *testing.T) {
 			pthLoads:      filepath.Join(os.TempDir(), "teapot-loads.json"),
 			pthRestraints: filepath.Join(os.TempDir(), "teapot-restraints.json"),
 			pthResult:     filepath.Join(os.TempDir(), "teapot-result.inp"),
+			pthResultInfo: filepath.Join(os.TempDir(), "teapot-result-info.json"),
 			specs: Specs{
 				MassDensity:            7.85e-9,
 				YoungModulus:           210000,
@@ -330,6 +336,7 @@ func Test_main(t *testing.T) {
 				tt.pthLoads,
 				tt.pthRestraints,
 				tt.pthResult,
+				tt.pthResultInfo,
 			}
 			main()
 		})

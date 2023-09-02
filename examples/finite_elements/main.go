@@ -59,7 +59,7 @@ type Load struct {
 // Write finite elements to an `inp` file.
 // Written file can be used by ABAQUS or CalculiX.
 func main() {
-	if len(os.Args) != 6 {
+	if len(os.Args) != 7 {
 		log.Fatalf("usage: wrong argument count")
 	}
 
@@ -68,6 +68,7 @@ func main() {
 	pthLoads := os.Args[3]
 	pthRestraints := os.Args[4]
 	pthResult := os.Args[5]
+	pthResultInfo := os.Args[6]
 
 	jsonData, err := os.ReadFile(pthSpecs)
 	if err != nil {
@@ -102,7 +103,7 @@ func main() {
 		log.Fatalf("%s", err)
 	}
 
-	err = Run(pthStl, specs, restraints, loads, pthResult)
+	err = Run(pthStl, specs, restraints, loads, pthResult, pthResultInfo)
 	if err != nil {
 		log.Fatalf("%s", err)
 	}
@@ -114,6 +115,7 @@ func Run(
 	restraints []Restraint,
 	loads []Load,
 	pthResult string,
+	pthResultInfo string,
 ) error {
 	// create the SDF from the STL mesh
 	inSdf, err := obj.ImportSTL(pthStl, 20, 3, 5)
