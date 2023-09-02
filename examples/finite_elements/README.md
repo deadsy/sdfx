@@ -14,7 +14,7 @@ In the final `inp` file, the boundary is defined by the point restraints inside 
 
 ## Modification
 
-Currently, a convenient way for adjusting loading and boundary conditions is provided. Simply modify the load and restraint JSON files.
+Currently, a convenient way for making adjustments is provided. Simply modify the load, restraint, and specification JSON files.
 
 # CCX and CGX
 
