@@ -124,7 +124,7 @@ func Run(
 	// create the SDF from the STL mesh
 	inSdf, err := obj.ImportSTL(pthStl, 20, 3, 5)
 	if err != nil {
-		log.Fatalf("%s", err)
+		return err
 	}
 
 	var order render.Order
@@ -155,11 +155,11 @@ func Run(
 
 	jsonData, err := json.MarshalIndent(components, "", "    ")
 	if err != nil {
-		log.Fatalf(err.Error())
+		return err
 	}
 	err = os.WriteFile(pthResultInfo, jsonData, 0644)
 	if err != nil {
-		log.Fatalf(err.Error())
+		return err
 	}
 
 	if specs.LayersAllConsidered {
