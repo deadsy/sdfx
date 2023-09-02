@@ -54,9 +54,13 @@ type Load struct {
 	MagZ float64
 }
 
+type Component struct {
+	VoxelCount int
+}
+
 type ResultInfo struct {
 	ComponentCount int
-	Components     []struct{ VoxelCount int }
+	Components     []Component
 }
 
 // Render STL to SDF3 to finite elements.
@@ -147,10 +151,10 @@ func Run(
 	components := m.Components()
 	ri := ResultInfo{
 		ComponentCount: len(components),
-		Components:     make([]struct{ VoxelCount int }, len(components)),
+		Components:     make([]Component, len(components)),
 	}
 	for i, component := range components {
-		ri.Components[i] = struct{ VoxelCount int }{VoxelCount: component.VoxelCount()}
+		ri.Components[i] = Component{VoxelCount: component.VoxelCount()}
 	}
 
 	jsonData, err := json.MarshalIndent(components, "", "    ")
