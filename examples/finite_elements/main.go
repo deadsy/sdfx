@@ -76,40 +76,40 @@ func main() {
 
 	jsonData, err := os.ReadFile(pthSpecs)
 	if err != nil {
-		log.Fatalf("%s", err)
+		log.Fatalf(err.Error())
 	}
 
 	var specs Specs
 	err = json.Unmarshal(jsonData, &specs)
 	if err != nil {
-		log.Fatalf("%s", err)
+		log.Fatalf(err.Error())
 	}
 
 	jsonData, err = os.ReadFile(pthLoads)
 	if err != nil {
-		log.Fatalf("%s", err)
+		log.Fatalf(err.Error())
 	}
 
 	var loads []Load
 	err = json.Unmarshal(jsonData, &loads)
 	if err != nil {
-		log.Fatalf("%s", err)
+		log.Fatalf(err.Error())
 	}
 
 	jsonData, err = os.ReadFile(pthRestraints)
 	if err != nil {
-		log.Fatalf("%s", err)
+		log.Fatalf(err.Error())
 	}
 
 	var restraints []Restraint
 	err = json.Unmarshal(jsonData, &restraints)
 	if err != nil {
-		log.Fatalf("%s", err)
+		log.Fatalf(err.Error())
 	}
 
 	err = Run(pthStl, specs, restraints, loads, pthResult, pthResultInfo)
 	if err != nil {
-		log.Fatalf("%s", err)
+		log.Fatalf(err.Error())
 	}
 }
 
