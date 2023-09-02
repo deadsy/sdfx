@@ -6,15 +6,15 @@ Output is generated as `inp` files for ABAQUS or CalculiX. Nodes and elements ar
 
 ## Loading
 
-The final `inp` file applies a distributed *weight* load to all elements. This load is calculated according to the material density. This load is in `+Z` direction. Assuming the 3D model will be 3D printed upside-down by SLA technology.
+The final `inp` file applies a distributed *gravity* load to all elements. Additional point loads are defined by a JSON file.
 
 ## Boundary
 
-In the final `inp` file, the boundary is defined by the first few layers at the bottom of the 3D model. Assuming the 3D model will be 3D printed upside-down by SLA technology.
+In the final `inp` file, the boundary is defined by the point restraints inside a JSON file.
 
 ## Modification
 
-Currently, no convenient ways are provided here for adjusting loading and boundary conditions. However, they may be developed and offered in the future.
+Currently, a convenient way for adjusting loading and boundary conditions is provided. Simply modify the load and restraint JSON files.
 
 # CCX and CGX
 
