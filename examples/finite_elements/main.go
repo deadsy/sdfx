@@ -157,7 +157,7 @@ func Run(
 		ri.Components[i] = Component{VoxelCount: component.VoxelCount()}
 	}
 
-	jsonData, err := json.MarshalIndent(components, "", "    ")
+	jsonData, err := json.MarshalIndent(ri, "", "    ")
 	if err != nil {
 		return err
 	}
