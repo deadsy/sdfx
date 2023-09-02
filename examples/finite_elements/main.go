@@ -11,7 +11,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"os"
 
@@ -53,6 +52,11 @@ type Load struct {
 	MagX float64
 	MagY float64
 	MagZ float64
+}
+
+type ResultInfo struct {
+	ComponentCount int
+	Components     []struct{ VoxelCount int }
 }
 
 // Render STL to SDF3 to finite elements.
@@ -141,9 +145,21 @@ func Run(
 	m, _ := mesh.NewFem(inSdf, render.NewMarchingCubesFeUniform(specs.Resolution, order, shape))
 
 	components := m.Components()
-	fmt.Printf("components count: %v\n", len(components))
+	ri := ResultInfo{
+		ComponentCount: len(components),
+		Components:     make([]struct{ VoxelCount int }, len(components)),
+	}
 	for i, component := range components {
-		fmt.Printf("component %v voxel count: %v\n", i, component.VoxelCount())
+		ri.Components[i] = struct{ VoxelCount int }{VoxelCount: component.VoxelCount()}
+	}
+
+	jsonData, err := json.MarshalIndent(components, "", "    ")
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
+	err = os.WriteFile(pthResultInfo, jsonData, 0644)
+	if err != nil {
+		log.Fatalf(err.Error())
 	}
 
 	if specs.LayersAllConsidered {
