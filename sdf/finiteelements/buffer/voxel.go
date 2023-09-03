@@ -172,3 +172,20 @@ func (vg *VoxelGrid) Iterate(f func(int, int, int, []*Element)) {
 		}
 	}
 }
+
+//-----------------------------------------------------------------------------
+
+func (vg *VoxelGrid) VoxelsOn1stLayerZ() []v3i.Vec {
+	voxels := make([]v3i.Vec, 0)
+	z := 0 // 1st layer along Z axis.
+	for y := 0; y < vg.Len.Y; y++ {
+		for x := 0; x < vg.Len.X; x++ {
+			elements := vg.Get(x, y, z)
+			if len(elements) < 1 {
+				continue
+			}
+			voxels = append(voxels, v3i.Vec{X: x, Y: y, Z: z})
+		}
+	}
+	return voxels
+}

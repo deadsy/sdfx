@@ -40,6 +40,16 @@ func NewRestraint(location []v3.Vec, isFixedX, isFixedY, isFixedZ bool) *Restrai
 	}
 }
 
+func NewRestraintByVoxel(voxels []v3i.Vec, isFixedX, isFixedY, isFixedZ bool) *Restraint {
+	return &Restraint{
+		Location: []v3.Vec{},
+		IsFixedX: isFixedX,
+		IsFixedY: isFixedY,
+		IsFixedZ: isFixedZ,
+		voxels:   voxels,
+	}
+}
+
 func NewLoad(location []v3.Vec, magnitude v3.Vec) *Load {
 	return &Load{
 		Location:  location,

@@ -361,7 +361,11 @@ func (inp *Inp) writeBoundary() error {
 
 	// Figure out reference node and voxels for each restraint.
 	for _, r := range inp.Restraints {
-		r.voxels, _, _ = inp.Mesh.VoxelsIntersecting(r.Location)
+		// Only set voxels only if they are not already set.
+		// If voxels are already set, it means the caller has decided about voxels.
+		if len(r.voxels) < 1 {
+			r.voxels, _, _ = inp.Mesh.VoxelsIntersecting(r.Location)
+		}
 	}
 
 	for i, r := range inp.Restraints {
