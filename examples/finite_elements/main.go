@@ -37,7 +37,7 @@ type Specs struct {
 	GravityMagnitude               float64
 	Resolution                     int    // Number of voxels on the longest axis of 3D model AABB.
 	LayerByLayerfor3dPrintAnalysis bool   // If true, multiple results will be created layer-by-layer to simulated 3D print process.
-	PathResultLayerByLayer         string // Only relevant if layer-by-layer is true. Must include "#" character as placeholder for layer number.
+	LayerByLayerPathResult         string // Only relevant if layer-by-layer is true. Must include "#" character as placeholder for layer number.
 	NonlinearConsidered            bool   // If true, nonlinear finite elements are generated.
 	ExactSurfaceConsidered         bool   // If true, surface is approximated by tetrahedral finite elements.
 }
@@ -190,7 +190,7 @@ func Run(
 		// The first few layers are ignored.
 		for z := 3; z < voxelsZ; z++ {
 			err = m.WriteInpLayers(
-				strings.Replace(specs.PathResultLayerByLayer, "#", fmt.Sprintf("%d", z), 1),
+				strings.Replace(specs.LayerByLayerPathResult, "#", fmt.Sprintf("%d", z), 1),
 				0, z,
 				float32(specs.MassDensity), float32(specs.YoungModulus), float32(specs.PoissonRatio),
 				restraintsConvert(restraints),
