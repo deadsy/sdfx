@@ -21,6 +21,9 @@ import (
 )
 
 type Specs struct {
+	PathStl                string // Input STL file.
+	PathResult             string // Result file, consumable by ABAQUS or CalculiX.
+	PathResultInfo         string // Result details and info.
 	MassDensity            float64
 	YoungModulus           float64
 	PoissonRatio           float64
@@ -67,16 +70,13 @@ type ResultInfo struct {
 // Write finite elements to an `inp` file.
 // Written file can be used by ABAQUS or CalculiX.
 func main() {
-	if len(os.Args) != 7 {
+	if len(os.Args) != 4 {
 		log.Fatalf("usage: wrong argument count")
 	}
 
-	pthStl := os.Args[1]
-	pthSpecs := os.Args[2]
-	pthLoads := os.Args[3]
-	pthRestraints := os.Args[4]
-	pthResult := os.Args[5]
-	pthResultInfo := os.Args[6]
+	pthSpecs := os.Args[1]
+	pthLoads := os.Args[2]
+	pthRestraints := os.Args[3]
 
 	jsonData, err := os.ReadFile(pthSpecs)
 	if err != nil {
@@ -111,22 +111,19 @@ func main() {
 		log.Fatalf(err.Error())
 	}
 
-	err = Run(pthStl, specs, restraints, loads, pthResult, pthResultInfo)
+	err = Run(specs, restraints, loads)
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
 }
 
 func Run(
-	pthStl string,
 	specs Specs,
 	restraints []Restraint,
 	loads []Load,
-	pthResult string,
-	pthResultInfo string,
 ) error {
 	// create the SDF from the STL mesh
-	inSdf, err := obj.ImportSTL(pthStl, 20, 3, 5)
+	inSdf, err := obj.ImportSTL(specs.PathStl, 20, 3, 5)
 	if err != nil {
 		return err
 	}
@@ -161,14 +158,14 @@ func Run(
 	if err != nil {
 		return err
 	}
-	err = os.WriteFile(pthResultInfo, jsonData, 0644)
+	err = os.WriteFile(specs.PathResultInfo, jsonData, 0644)
 	if err != nil {
 		return err
 	}
 
 	if specs.LayersAllConsidered {
 		// Write all layers of mesh to file.
-		return m.WriteInp(pthResult,
+		return m.WriteInp(specs.PathResult,
 			float32(specs.MassDensity), float32(specs.YoungModulus), float32(specs.PoissonRatio),
 			restraintsConvert(restraints),
 			loadsConvert(loads),
@@ -180,7 +177,7 @@ func Run(
 		// Only from a start layer to an end layer along the Z axis.
 		// Applicable to 3D print analysis that is done layer-by-layer.
 		return m.WriteInpLayers(
-			pthResult,
+			specs.PathResult,
 			specs.LayerStart, specs.LayerEnd,
 			float32(specs.MassDensity), float32(specs.YoungModulus), float32(specs.PoissonRatio),
 			restraintsConvert(restraints),

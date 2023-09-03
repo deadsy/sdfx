@@ -24,12 +24,9 @@ func Test_main(t *testing.T) {
 	tests := []struct {
 		skip          bool
 		name          string
-		pthStl        string // Input STL file.
-		pthSpecs      string // To be created by test.
-		pthLoads      string // To be created by test.
-		pthRestraints string // To be created by test.
-		pthResult     string // Result file, consumable by ABAQUS or CalculiX.
-		pthResultInfo string // Result details and info.
+		pthSpecs      string // File to be created by test.
+		pthLoads      string // File to be created by test.
+		pthRestraints string // File to be created by test.
 		specs         Specs
 		loads         []Load // If load is zero, gravity would be the dominant force.
 		restraints    []Restraint
@@ -37,13 +34,13 @@ func Test_main(t *testing.T) {
 		{
 			skip:          false,
 			name:          "benchmarkSquare",
-			pthStl:        filepath.Join("..", "..", "files", "benchmark-square.stl"),
 			pthSpecs:      filepath.Join(os.TempDir(), "bms-specs.json"),
 			pthLoads:      filepath.Join(os.TempDir(), "bms-loads.json"),
 			pthRestraints: filepath.Join(os.TempDir(), "bms-restraints.json"),
-			pthResult:     filepath.Join(os.TempDir(), "bms-result.inp"),
-			pthResultInfo: filepath.Join(os.TempDir(), "bms-result-info.json"),
 			specs: Specs{
+				PathStl:                filepath.Join("..", "..", "files", "benchmark-square.stl"),
+				PathResult:             filepath.Join(os.TempDir(), "bms-result.inp"),
+				PathResultInfo:         filepath.Join(os.TempDir(), "bms-result-info.json"),
 				MassDensity:            7.85e-9,
 				YoungModulus:           210000,
 				PoissonRatio:           0.3,
@@ -105,13 +102,13 @@ func Test_main(t *testing.T) {
 		{
 			skip:          false,
 			name:          "benchmarkCircle",
-			pthStl:        filepath.Join("..", "..", "files", "benchmark-circle.stl"),
 			pthSpecs:      filepath.Join(os.TempDir(), "bmc-specs.json"),
 			pthLoads:      filepath.Join(os.TempDir(), "bmc-loads.json"),
 			pthRestraints: filepath.Join(os.TempDir(), "bmc-restraints.json"),
-			pthResult:     filepath.Join(os.TempDir(), "bmc-result.inp"),
-			pthResultInfo: filepath.Join(os.TempDir(), "bmc-result-info.json"),
 			specs: Specs{
+				PathStl:                filepath.Join("..", "..", "files", "benchmark-circle.stl"),
+				PathResult:             filepath.Join(os.TempDir(), "bmc-result.inp"),
+				PathResultInfo:         filepath.Join(os.TempDir(), "bmc-result-info.json"),
 				MassDensity:            7.85e-9,
 				YoungModulus:           210000,
 				PoissonRatio:           0.3,
@@ -152,13 +149,13 @@ func Test_main(t *testing.T) {
 		{
 			skip:          false,
 			name:          "benchmarkPipe",
-			pthStl:        filepath.Join("..", "..", "files", "benchmark-pipe.stl"),
 			pthSpecs:      filepath.Join(os.TempDir(), "bmp-specs.json"),
 			pthLoads:      filepath.Join(os.TempDir(), "bmp-loads.json"),
 			pthRestraints: filepath.Join(os.TempDir(), "bmp-restraints.json"),
-			pthResult:     filepath.Join(os.TempDir(), "bmp-result.inp"),
-			pthResultInfo: filepath.Join(os.TempDir(), "bmp-result-info.json"),
 			specs: Specs{
+				PathStl:                filepath.Join("..", "..", "files", "benchmark-pipe.stl"),
+				PathResult:             filepath.Join(os.TempDir(), "bmp-result.inp"),
+				PathResultInfo:         filepath.Join(os.TempDir(), "bmp-result-info.json"),
 				MassDensity:            7.85e-9,
 				YoungModulus:           210000,
 				PoissonRatio:           0.3,
@@ -199,13 +196,13 @@ func Test_main(t *testing.T) {
 		{
 			skip:          false,
 			name:          "benchmarkI",
-			pthStl:        filepath.Join("..", "..", "files", "benchmark-I.stl"),
 			pthSpecs:      filepath.Join(os.TempDir(), "bmi-specs.json"),
 			pthLoads:      filepath.Join(os.TempDir(), "bmi-loads.json"),
 			pthRestraints: filepath.Join(os.TempDir(), "bmi-restraints.json"),
-			pthResult:     filepath.Join(os.TempDir(), "bmi-result.inp"),
-			pthResultInfo: filepath.Join(os.TempDir(), "bmi-result-info.json"),
 			specs: Specs{
+				PathStl:                filepath.Join("..", "..", "files", "benchmark-I.stl"),
+				PathResult:             filepath.Join(os.TempDir(), "bmi-result.inp"),
+				PathResultInfo:         filepath.Join(os.TempDir(), "bmi-result-info.json"),
 				MassDensity:            7.85e-9,
 				YoungModulus:           210000,
 				PoissonRatio:           0.3,
@@ -252,13 +249,13 @@ func Test_main(t *testing.T) {
 		{
 			skip:          false,
 			name:          "teapot",
-			pthStl:        filepath.Join("..", "..", "files", "teapot.stl"),
 			pthSpecs:      filepath.Join(os.TempDir(), "teapot-specs.json"),
 			pthLoads:      filepath.Join(os.TempDir(), "teapot-loads.json"),
 			pthRestraints: filepath.Join(os.TempDir(), "teapot-restraints.json"),
-			pthResult:     filepath.Join(os.TempDir(), "teapot-result.inp"),
-			pthResultInfo: filepath.Join(os.TempDir(), "teapot-result-info.json"),
 			specs: Specs{
+				PathStl:                filepath.Join("..", "..", "files", "teapot.stl"),
+				PathResult:             filepath.Join(os.TempDir(), "teapot-result.inp"),
+				PathResultInfo:         filepath.Join(os.TempDir(), "teapot-result-info.json"),
 				MassDensity:            7.85e-9,
 				YoungModulus:           210000,
 				PoissonRatio:           0.3,
@@ -331,12 +328,9 @@ func Test_main(t *testing.T) {
 
 			os.Args = []string{
 				"executable-name-dummy",
-				tt.pthStl,
 				tt.pthSpecs,
 				tt.pthLoads,
 				tt.pthRestraints,
-				tt.pthResult,
-				tt.pthResultInfo,
 			}
 			main()
 		})
