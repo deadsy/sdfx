@@ -11,10 +11,8 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"os"
-	"strings"
 
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
@@ -23,23 +21,21 @@ import (
 )
 
 type Specs struct {
-	PathStl                        string // Input STL file.
-	PathLoadPoints                 string // File containing point loads.
-	PathRestraintPoints            string // File containing point restraints.
-	PathResult                     string // Result file, consumable by ABAQUS or CalculiX.
-	PathResultInfo                 string // Result details and info.
-	MassDensity                    float64
-	YoungModulus                   float64
-	PoissonRatio                   float64
-	GravityDirectionX              float64
-	GravityDirectionY              float64
-	GravityDirectionZ              float64
-	GravityMagnitude               float64
-	Resolution                     int    // Number of voxels on the longest axis of 3D model AABB.
-	LayerByLayerfor3dPrintAnalysis bool   // If true, multiple results will be created layer-by-layer to simulated 3D print process.
-	LayerByLayerPathResult         string // Only relevant if layer-by-layer is true. Must include "#" character as placeholder for layer number.
-	NonlinearConsidered            bool   // If true, nonlinear finite elements are generated.
-	ExactSurfaceConsidered         bool   // If true, surface is approximated by tetrahedral finite elements.
+	PathStl                string // Input STL file.
+	PathLoadPoints         string // File containing point loads.
+	PathRestraintPoints    string // File containing point restraints.
+	PathResult             string // Result file, consumable by ABAQUS or CalculiX.
+	PathResultInfo         string // Result details and info.
+	MassDensity            float64
+	YoungModulus           float64
+	PoissonRatio           float64
+	GravityDirectionX      float64
+	GravityDirectionY      float64
+	GravityDirectionZ      float64
+	GravityMagnitude       float64
+	Resolution             int  // Number of voxels on the longest axis of 3D model AABB.
+	NonlinearConsidered    bool // If true, nonlinear finite elements are generated.
+	ExactSurfaceConsidered bool // If true, surface is approximated by tetrahedral finite elements.
 }
 
 type Restraint struct {
@@ -159,53 +155,18 @@ func main() {
 		log.Fatalf(err.Error())
 	}
 
-	if !specs.LayerByLayerfor3dPrintAnalysis {
-		// Generate finite elements for all layers of mesh.
-		err = m.WriteInp(
-			specs.PathResult,
-			float32(specs.MassDensity), float32(specs.YoungModulus), float32(specs.PoissonRatio),
-			restraintsConvert(restraints),
-			loadsConvert(loads),
-			v3.Vec{X: specs.GravityDirectionX, Y: specs.GravityDirectionY, Z: specs.GravityDirectionZ}, specs.GravityMagnitude,
-		)
-	} else {
-		err = LayerByLayer(specs, restraints, loads, m, voxelsZ)
-	}
+	// Generate finite elements for all layers of mesh.
+	err = m.WriteInp(
+		specs.PathResult,
+		float32(specs.MassDensity), float32(specs.YoungModulus), float32(specs.PoissonRatio),
+		restraintsConvert(restraints),
+		loadsConvert(loads),
+		v3.Vec{X: specs.GravityDirectionX, Y: specs.GravityDirectionY, Z: specs.GravityDirectionZ}, specs.GravityMagnitude,
+	)
+
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
-}
-
-// Generate finite elements layer-by-layer.
-// Applicable to 3D print analysis that is done layer-by-layer.
-func LayerByLayer(
-	specs Specs,
-	restraints []Restraint,
-	loads []Load,
-	m *mesh.Fem,
-	voxelsZ int,
-) error {
-	if voxelsZ < 8 {
-		return fmt.Errorf("not enough voxel layers along the Z axis %d", voxelsZ)
-	}
-
-	// The first few layers are ignored.
-	for z := 3; z < voxelsZ; z++ {
-		err := m.WriteInpLayers(
-			strings.Replace(specs.LayerByLayerPathResult, "#", fmt.Sprintf("%d", z), 1),
-			0, z,
-			float32(specs.MassDensity), float32(specs.YoungModulus), float32(specs.PoissonRatio),
-			restraintsConvert(restraints),
-			loadsConvert(loads),
-			v3.Vec{X: specs.GravityDirectionX, Y: specs.GravityDirectionY, Z: specs.GravityDirectionZ}, specs.GravityMagnitude,
-		)
-		if err != nil {
-			return err
-		}
-		fmt.Printf("Finite elements are generated from layer 0 to layer %v out of %v total.\n", z, voxelsZ-1)
-	}
-
-	return nil
 }
 
 func restraintsConvert(rs []Restraint) []*mesh.Restraint {
@@ -225,6 +186,3 @@ func loadsConvert(ls []Load) []*mesh.Load {
 	}
 	return loads
 }
-
-// TODO: For 3D print analysis, all the voxels at the same Z layer are considered as restraint.
-// Since, the 3D print floor is at the same Z level.
