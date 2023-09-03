@@ -11,8 +11,10 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
@@ -21,24 +23,23 @@ import (
 )
 
 type Specs struct {
-	PathStl                string // Input STL file.
-	PathLoadPoints         string // File containing point loads.
-	PathRestraintPoints    string // File containing point restraints.
-	PathResult             string // Result file, consumable by ABAQUS or CalculiX.
-	PathResultInfo         string // Result details and info.
-	MassDensity            float64
-	YoungModulus           float64
-	PoissonRatio           float64
-	GravityDirectionX      float64
-	GravityDirectionY      float64
-	GravityDirectionZ      float64
-	GravityMagnitude       float64
-	Resolution             int  // Number of voxels on the longest axis of 3D model AABB.
-	LayersAllConsidered    bool // If true, layer start and layer end are ignored.
-	LayerStart             int
-	LayerEnd               int
-	NonlinearConsidered    bool // If true, nonlinear finite elements are generated.
-	ExactSurfaceConsidered bool // If true, surface is approximated by tetrahedral finite elements.
+	PathStl                        string // Input STL file.
+	PathLoadPoints                 string // File containing point loads.
+	PathRestraintPoints            string // File containing point restraints.
+	PathResult                     string // Result file, consumable by ABAQUS or CalculiX.
+	PathResultInfo                 string // Result details and info.
+	MassDensity                    float64
+	YoungModulus                   float64
+	PoissonRatio                   float64
+	GravityDirectionX              float64
+	GravityDirectionY              float64
+	GravityDirectionZ              float64
+	GravityMagnitude               float64
+	Resolution                     int    // Number of voxels on the longest axis of 3D model AABB.
+	LayerByLayerfor3dPrintAnalysis bool   // If true, multiple results will be created layer-by-layer to simulated 3D print process.
+	PathResultLayerByLayer         string // Only relevant if layer-by-layer is true. Must include "#" character as placeholder for layer number.
+	NonlinearConsidered            bool   // If true, nonlinear finite elements are generated.
+	ExactSurfaceConsidered         bool   // If true, surface is approximated by tetrahedral finite elements.
 }
 
 type Restraint struct {
@@ -169,7 +170,7 @@ func Run(
 		return err
 	}
 
-	if specs.LayersAllConsidered {
+	if !specs.LayerByLayerfor3dPrintAnalysis {
 		// Write all layers of mesh to file.
 		return m.WriteInp(specs.PathResult,
 			float32(specs.MassDensity), float32(specs.YoungModulus), float32(specs.PoissonRatio),
@@ -178,19 +179,31 @@ func Run(
 			v3.Vec{X: specs.GravityDirectionX, Y: specs.GravityDirectionY, Z: specs.GravityDirectionZ}, specs.GravityMagnitude,
 		)
 	} else {
-		// Write just some layers of mesh to file.
-		// Generate finite elements.
-		// Only from a start layer to an end layer along the Z axis.
+		// Write layer by layer.
+		// From first layer to the last layer along the Z axis.
 		// Applicable to 3D print analysis that is done layer-by-layer.
-		return m.WriteInpLayers(
-			specs.PathResult,
-			specs.LayerStart, specs.LayerEnd,
-			float32(specs.MassDensity), float32(specs.YoungModulus), float32(specs.PoissonRatio),
-			restraintsConvert(restraints),
-			loadsConvert(loads),
-			v3.Vec{X: specs.GravityDirectionX, Y: specs.GravityDirectionY, Z: specs.GravityDirectionZ}, specs.GravityMagnitude,
-		)
+
+		if voxelsZ < 8 {
+			return fmt.Errorf("not enough voxel layers along the Z axis %d", voxelsZ)
+		}
+
+		// The first few layers are ignored.
+		for z := 3; z < voxelsZ; z++ {
+			err = m.WriteInpLayers(
+				strings.Replace(specs.PathResultLayerByLayer, "#", fmt.Sprintf("%d", z), 1),
+				0, z,
+				float32(specs.MassDensity), float32(specs.YoungModulus), float32(specs.PoissonRatio),
+				restraintsConvert(restraints),
+				loadsConvert(loads),
+				v3.Vec{X: specs.GravityDirectionX, Y: specs.GravityDirectionY, Z: specs.GravityDirectionZ}, specs.GravityMagnitude,
+			)
+			if err != nil {
+				return err
+			}
+		}
 	}
+
+	return nil
 }
 
 func restraintsConvert(rs []Restraint) []*mesh.Restraint {
