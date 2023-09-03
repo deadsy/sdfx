@@ -24,15 +24,15 @@ func Test_main(t *testing.T) {
 	tests := []struct {
 		skip       bool
 		name       string
-		pthSpecs   string // File to be created by test.
+		pathSpecs  string // File to be created by test.
 		specs      Specs
 		loads      []Load // If load is zero, gravity would be the dominant force.
 		restraints []Restraint
 	}{
 		{
-			skip:     false,
-			name:     "benchmarkSquare",
-			pthSpecs: filepath.Join(os.TempDir(), "bms-specs.json"),
+			skip:      false,
+			name:      "benchmarkSquare",
+			pathSpecs: filepath.Join(os.TempDir(), "bms-specs.json"),
 			specs: Specs{
 				PathStl:                filepath.Join("..", "..", "files", "benchmark-square.stl"),
 				PathLoadPoints:         filepath.Join(os.TempDir(), "bms-load-points.json"),
@@ -98,9 +98,9 @@ func Test_main(t *testing.T) {
 			}(),
 		},
 		{
-			skip:     false,
-			name:     "benchmarkCircle",
-			pthSpecs: filepath.Join(os.TempDir(), "bmc-specs.json"),
+			skip:      false,
+			name:      "benchmarkCircle",
+			pathSpecs: filepath.Join(os.TempDir(), "bmc-specs.json"),
 			specs: Specs{
 				PathStl:                filepath.Join("..", "..", "files", "benchmark-circle.stl"),
 				PathLoadPoints:         filepath.Join(os.TempDir(), "bmc-load-points.json"),
@@ -145,9 +145,9 @@ func Test_main(t *testing.T) {
 			},
 		},
 		{
-			skip:     false,
-			name:     "benchmarkPipe",
-			pthSpecs: filepath.Join(os.TempDir(), "bmp-specs.json"),
+			skip:      false,
+			name:      "benchmarkPipe",
+			pathSpecs: filepath.Join(os.TempDir(), "bmp-specs.json"),
 			specs: Specs{
 				PathStl:                filepath.Join("..", "..", "files", "benchmark-pipe.stl"),
 				PathLoadPoints:         filepath.Join(os.TempDir(), "bmp-load-points.json"),
@@ -192,9 +192,9 @@ func Test_main(t *testing.T) {
 			},
 		},
 		{
-			skip:     false,
-			name:     "benchmarkI",
-			pthSpecs: filepath.Join(os.TempDir(), "bmi-specs.json"),
+			skip:      false,
+			name:      "benchmarkI",
+			pathSpecs: filepath.Join(os.TempDir(), "bmi-specs.json"),
 			specs: Specs{
 				PathStl:                filepath.Join("..", "..", "files", "benchmark-I.stl"),
 				PathLoadPoints:         filepath.Join(os.TempDir(), "bmi-load-points.json"),
@@ -245,9 +245,9 @@ func Test_main(t *testing.T) {
 			}(),
 		},
 		{
-			skip:     false,
-			name:     "teapot",
-			pthSpecs: filepath.Join(os.TempDir(), "teapot-specs.json"),
+			skip:      false,
+			name:      "teapot",
+			pathSpecs: filepath.Join(os.TempDir(), "teapot-specs.json"),
 			specs: Specs{
 				PathStl:                filepath.Join("..", "..", "files", "teapot.stl"),
 				PathLoadPoints:         filepath.Join(os.TempDir(), "teapot-load-points.json"),
@@ -294,7 +294,7 @@ func Test_main(t *testing.T) {
 				t.Error(err)
 				return
 			}
-			err = os.WriteFile(tt.pthSpecs, jsonData, 0644)
+			err = os.WriteFile(tt.pathSpecs, jsonData, 0644)
 			if err != nil {
 				t.Error(err)
 				return
@@ -326,7 +326,7 @@ func Test_main(t *testing.T) {
 
 			os.Args = []string{
 				"executable-name-dummy",
-				tt.pthSpecs,
+				tt.pathSpecs,
 			}
 			main()
 		})
