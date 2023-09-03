@@ -200,6 +200,7 @@ func Run(
 			if err != nil {
 				return err
 			}
+			fmt.Printf("Finite elements are generated from layer 0 to layer %v out of %v total.\n", z, voxelsZ-1)
 		}
 	}
 
