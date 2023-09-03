@@ -115,21 +115,10 @@ func main() {
 		log.Fatalf(err.Error())
 	}
 
-	err = Run(specs, restraints, loads)
-	if err != nil {
-		log.Fatalf(err.Error())
-	}
-}
-
-func Run(
-	specs Specs,
-	restraints []Restraint,
-	loads []Load,
-) error {
 	// create the SDF from the STL mesh
 	inSdf, err := obj.ImportSTL(specs.PathStl, 20, 3, 5)
 	if err != nil {
-		return err
+		log.Fatalf(err.Error())
 	}
 
 	var order render.Order
@@ -150,7 +139,7 @@ func Run(
 	m, voxelsX, voxelsY, voxelsZ := mesh.NewFem(inSdf, render.NewMarchingCubesFeUniform(specs.Resolution, order, shape))
 
 	components := m.Components()
-	ri := ResultInfo{
+	info := ResultInfo{
 		VoxelsX:        voxelsX,
 		VoxelsY:        voxelsY,
 		VoxelsZ:        voxelsZ,
@@ -158,50 +147,62 @@ func Run(
 		Components:     make([]Component, len(components)),
 	}
 	for i, component := range components {
-		ri.Components[i] = Component{VoxelCount: component.VoxelCount()}
+		info.Components[i] = Component{VoxelCount: component.VoxelCount()}
 	}
 
-	jsonData, err := json.MarshalIndent(ri, "", "    ")
+	jsonData, err = json.MarshalIndent(info, "", "    ")
 	if err != nil {
-		return err
+		log.Fatalf(err.Error())
 	}
 	err = os.WriteFile(specs.PathResultInfo, jsonData, 0644)
 	if err != nil {
-		return err
+		log.Fatalf(err.Error())
 	}
 
 	if !specs.LayerByLayerfor3dPrintAnalysis {
-		// Write all layers of mesh to file.
-		return m.WriteInp(specs.PathResult,
+		// Generate finite elements for all layers of mesh.
+		err = m.WriteInp(
+			specs.PathResult,
 			float32(specs.MassDensity), float32(specs.YoungModulus), float32(specs.PoissonRatio),
 			restraintsConvert(restraints),
 			loadsConvert(loads),
 			v3.Vec{X: specs.GravityDirectionX, Y: specs.GravityDirectionY, Z: specs.GravityDirectionZ}, specs.GravityMagnitude,
 		)
 	} else {
-		// Write layer by layer.
-		// From first layer to the last layer along the Z axis.
-		// Applicable to 3D print analysis that is done layer-by-layer.
+		err = LayerByLayer(specs, restraints, loads, m, voxelsZ)
+	}
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
+}
 
-		if voxelsZ < 8 {
-			return fmt.Errorf("not enough voxel layers along the Z axis %d", voxelsZ)
-		}
+// Generate finite elements layer-by-layer.
+// Applicable to 3D print analysis that is done layer-by-layer.
+func LayerByLayer(
+	specs Specs,
+	restraints []Restraint,
+	loads []Load,
+	m *mesh.Fem,
+	voxelsZ int,
+) error {
+	if voxelsZ < 8 {
+		return fmt.Errorf("not enough voxel layers along the Z axis %d", voxelsZ)
+	}
 
-		// The first few layers are ignored.
-		for z := 3; z < voxelsZ; z++ {
-			err = m.WriteInpLayers(
-				strings.Replace(specs.LayerByLayerPathResult, "#", fmt.Sprintf("%d", z), 1),
-				0, z,
-				float32(specs.MassDensity), float32(specs.YoungModulus), float32(specs.PoissonRatio),
-				restraintsConvert(restraints),
-				loadsConvert(loads),
-				v3.Vec{X: specs.GravityDirectionX, Y: specs.GravityDirectionY, Z: specs.GravityDirectionZ}, specs.GravityMagnitude,
-			)
-			if err != nil {
-				return err
-			}
-			fmt.Printf("Finite elements are generated from layer 0 to layer %v out of %v total.\n", z, voxelsZ-1)
+	// The first few layers are ignored.
+	for z := 3; z < voxelsZ; z++ {
+		err := m.WriteInpLayers(
+			strings.Replace(specs.LayerByLayerPathResult, "#", fmt.Sprintf("%d", z), 1),
+			0, z,
+			float32(specs.MassDensity), float32(specs.YoungModulus), float32(specs.PoissonRatio),
+			restraintsConvert(restraints),
+			loadsConvert(loads),
+			v3.Vec{X: specs.GravityDirectionX, Y: specs.GravityDirectionY, Z: specs.GravityDirectionZ}, specs.GravityMagnitude,
+		)
+		if err != nil {
+			return err
 		}
+		fmt.Printf("Finite elements are generated from layer 0 to layer %v out of %v total.\n", z, voxelsZ-1)
 	}
 
 	return nil
