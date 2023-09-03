@@ -21,8 +21,8 @@ type Fem struct {
 	VBuff *buffer.VB
 }
 
-// NewFem returns a new mesh and number of its layers along Z-axis.
-func NewFem(s sdf.SDF3, r render.RenderFe) (*Fem, int) {
+// NewFem returns a new mesh and number of its voxel layers along X, Y, Z axis.
+func NewFem(s sdf.SDF3, r render.RenderFe) (*Fem, int, int, int) {
 	fes := render.ToFem(s, r)
 
 	voxelLen, voxelDim, mins, maxs := r.Voxels(s)
@@ -36,7 +36,7 @@ func NewFem(s sdf.SDF3, r render.RenderFe) (*Fem, int) {
 
 	defer m.VBuff.DestroyHashTable()
 
-	return m, voxelLen.Z
+	return m, voxelLen.X, voxelLen.Y, voxelLen.Z
 }
 
 func newFem(voxelLen v3i.Vec, voxelDim v3.Vec, mins, maxs []v3.Vec) *Fem {
