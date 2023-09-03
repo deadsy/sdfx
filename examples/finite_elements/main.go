@@ -22,6 +22,8 @@ import (
 
 type Specs struct {
 	PathStl                string // Input STL file.
+	PathLoadPoints         string // File containing point loads.
+	PathRestraintPoints    string // File containing point restraints.
 	PathResult             string // Result file, consumable by ABAQUS or CalculiX.
 	PathResultInfo         string // Result details and info.
 	MassDensity            float64
@@ -70,13 +72,11 @@ type ResultInfo struct {
 // Write finite elements to an `inp` file.
 // Written file can be used by ABAQUS or CalculiX.
 func main() {
-	if len(os.Args) != 4 {
+	if len(os.Args) != 2 {
 		log.Fatalf("usage: wrong argument count")
 	}
 
 	pthSpecs := os.Args[1]
-	pthLoads := os.Args[2]
-	pthRestraints := os.Args[3]
 
 	jsonData, err := os.ReadFile(pthSpecs)
 	if err != nil {
@@ -89,7 +89,7 @@ func main() {
 		log.Fatalf(err.Error())
 	}
 
-	jsonData, err = os.ReadFile(pthLoads)
+	jsonData, err = os.ReadFile(specs.PathLoadPoints)
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
@@ -100,7 +100,7 @@ func main() {
 		log.Fatalf(err.Error())
 	}
 
-	jsonData, err = os.ReadFile(pthRestraints)
+	jsonData, err = os.ReadFile(specs.PathRestraintPoints)
 	if err != nil {
 		log.Fatalf(err.Error())
 	}

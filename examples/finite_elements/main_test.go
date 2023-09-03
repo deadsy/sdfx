@@ -22,23 +22,21 @@ import (
 // https://github.com/calculix/CalculiX-Examples/tree/master/NonLinear/Sections
 func Test_main(t *testing.T) {
 	tests := []struct {
-		skip          bool
-		name          string
-		pthSpecs      string // File to be created by test.
-		pthLoads      string // File to be created by test.
-		pthRestraints string // File to be created by test.
-		specs         Specs
-		loads         []Load // If load is zero, gravity would be the dominant force.
-		restraints    []Restraint
+		skip       bool
+		name       string
+		pthSpecs   string // File to be created by test.
+		specs      Specs
+		loads      []Load // If load is zero, gravity would be the dominant force.
+		restraints []Restraint
 	}{
 		{
-			skip:          false,
-			name:          "benchmarkSquare",
-			pthSpecs:      filepath.Join(os.TempDir(), "bms-specs.json"),
-			pthLoads:      filepath.Join(os.TempDir(), "bms-loads.json"),
-			pthRestraints: filepath.Join(os.TempDir(), "bms-restraints.json"),
+			skip:     false,
+			name:     "benchmarkSquare",
+			pthSpecs: filepath.Join(os.TempDir(), "bms-specs.json"),
 			specs: Specs{
 				PathStl:                filepath.Join("..", "..", "files", "benchmark-square.stl"),
+				PathLoadPoints:         filepath.Join(os.TempDir(), "bms-load-points.json"),
+				PathRestraintPoints:    filepath.Join(os.TempDir(), "bms-restraint-points.json"),
 				PathResult:             filepath.Join(os.TempDir(), "bms-result.inp"),
 				PathResultInfo:         filepath.Join(os.TempDir(), "bms-result-info.json"),
 				MassDensity:            7.85e-9,
@@ -100,13 +98,13 @@ func Test_main(t *testing.T) {
 			}(),
 		},
 		{
-			skip:          false,
-			name:          "benchmarkCircle",
-			pthSpecs:      filepath.Join(os.TempDir(), "bmc-specs.json"),
-			pthLoads:      filepath.Join(os.TempDir(), "bmc-loads.json"),
-			pthRestraints: filepath.Join(os.TempDir(), "bmc-restraints.json"),
+			skip:     false,
+			name:     "benchmarkCircle",
+			pthSpecs: filepath.Join(os.TempDir(), "bmc-specs.json"),
 			specs: Specs{
 				PathStl:                filepath.Join("..", "..", "files", "benchmark-circle.stl"),
+				PathLoadPoints:         filepath.Join(os.TempDir(), "bmc-load-points.json"),
+				PathRestraintPoints:    filepath.Join(os.TempDir(), "bmc-restraint-points.json"),
 				PathResult:             filepath.Join(os.TempDir(), "bmc-result.inp"),
 				PathResultInfo:         filepath.Join(os.TempDir(), "bmc-result-info.json"),
 				MassDensity:            7.85e-9,
@@ -147,13 +145,13 @@ func Test_main(t *testing.T) {
 			},
 		},
 		{
-			skip:          false,
-			name:          "benchmarkPipe",
-			pthSpecs:      filepath.Join(os.TempDir(), "bmp-specs.json"),
-			pthLoads:      filepath.Join(os.TempDir(), "bmp-loads.json"),
-			pthRestraints: filepath.Join(os.TempDir(), "bmp-restraints.json"),
+			skip:     false,
+			name:     "benchmarkPipe",
+			pthSpecs: filepath.Join(os.TempDir(), "bmp-specs.json"),
 			specs: Specs{
 				PathStl:                filepath.Join("..", "..", "files", "benchmark-pipe.stl"),
+				PathLoadPoints:         filepath.Join(os.TempDir(), "bmp-load-points.json"),
+				PathRestraintPoints:    filepath.Join(os.TempDir(), "bmp-restraint-points.json"),
 				PathResult:             filepath.Join(os.TempDir(), "bmp-result.inp"),
 				PathResultInfo:         filepath.Join(os.TempDir(), "bmp-result-info.json"),
 				MassDensity:            7.85e-9,
@@ -194,13 +192,13 @@ func Test_main(t *testing.T) {
 			},
 		},
 		{
-			skip:          false,
-			name:          "benchmarkI",
-			pthSpecs:      filepath.Join(os.TempDir(), "bmi-specs.json"),
-			pthLoads:      filepath.Join(os.TempDir(), "bmi-loads.json"),
-			pthRestraints: filepath.Join(os.TempDir(), "bmi-restraints.json"),
+			skip:     false,
+			name:     "benchmarkI",
+			pthSpecs: filepath.Join(os.TempDir(), "bmi-specs.json"),
 			specs: Specs{
 				PathStl:                filepath.Join("..", "..", "files", "benchmark-I.stl"),
+				PathLoadPoints:         filepath.Join(os.TempDir(), "bmi-load-points.json"),
+				PathRestraintPoints:    filepath.Join(os.TempDir(), "bmi-restraint-points.json"),
 				PathResult:             filepath.Join(os.TempDir(), "bmi-result.inp"),
 				PathResultInfo:         filepath.Join(os.TempDir(), "bmi-result-info.json"),
 				MassDensity:            7.85e-9,
@@ -247,13 +245,13 @@ func Test_main(t *testing.T) {
 			}(),
 		},
 		{
-			skip:          false,
-			name:          "teapot",
-			pthSpecs:      filepath.Join(os.TempDir(), "teapot-specs.json"),
-			pthLoads:      filepath.Join(os.TempDir(), "teapot-loads.json"),
-			pthRestraints: filepath.Join(os.TempDir(), "teapot-restraints.json"),
+			skip:     false,
+			name:     "teapot",
+			pthSpecs: filepath.Join(os.TempDir(), "teapot-specs.json"),
 			specs: Specs{
 				PathStl:                filepath.Join("..", "..", "files", "teapot.stl"),
+				PathLoadPoints:         filepath.Join(os.TempDir(), "teapot-load-points.json"),
+				PathRestraintPoints:    filepath.Join(os.TempDir(), "teapot-restraint-points.json"),
 				PathResult:             filepath.Join(os.TempDir(), "teapot-result.inp"),
 				PathResultInfo:         filepath.Join(os.TempDir(), "teapot-result-info.json"),
 				MassDensity:            7.85e-9,
@@ -308,7 +306,7 @@ func Test_main(t *testing.T) {
 				return
 			}
 
-			err = os.WriteFile(tt.pthLoads, jsonData, 0644)
+			err = os.WriteFile(tt.specs.PathLoadPoints, jsonData, 0644)
 			if err != nil {
 				t.Error(err)
 				return
@@ -320,7 +318,7 @@ func Test_main(t *testing.T) {
 				return
 			}
 
-			err = os.WriteFile(tt.pthRestraints, jsonData, 0644)
+			err = os.WriteFile(tt.specs.PathRestraintPoints, jsonData, 0644)
 			if err != nil {
 				t.Error(err)
 				return
@@ -329,8 +327,6 @@ func Test_main(t *testing.T) {
 			os.Args = []string{
 				"executable-name-dummy",
 				tt.pthSpecs,
-				tt.pthLoads,
-				tt.pthRestraints,
 			}
 			main()
 		})
