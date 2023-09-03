@@ -224,3 +224,6 @@ func loadsConvert(ls []Load) []*mesh.Load {
 	}
 	return loads
 }
+
+// TODO: For 3D print analysis, all the voxels at the same Z layer are considered as restraint.
+// Since, the 3D print floor is at the same Z level.
