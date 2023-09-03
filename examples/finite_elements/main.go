@@ -64,9 +64,9 @@ type Component struct {
 }
 
 type ResultInfo struct {
-	LayersX        int
-	LayersY        int
-	LayersZ        int
+	VoxelsX        int
+	VoxelsY        int
+	VoxelsZ        int
 	ComponentCount int
 	Components     []Component
 }
@@ -146,13 +146,13 @@ func Run(
 	}
 
 	// Create a mesh of finite elements.
-	m, layersX, layersY, layersZ := mesh.NewFem(inSdf, render.NewMarchingCubesFeUniform(specs.Resolution, order, shape))
+	m, voxelsX, voxelsY, voxelsZ := mesh.NewFem(inSdf, render.NewMarchingCubesFeUniform(specs.Resolution, order, shape))
 
 	components := m.Components()
 	ri := ResultInfo{
-		LayersX:        layersX,
-		LayersY:        layersY,
-		LayersZ:        layersZ,
+		VoxelsX:        voxelsX,
+		VoxelsY:        voxelsY,
+		VoxelsZ:        voxelsZ,
 		ComponentCount: len(components),
 		Components:     make([]Component, len(components)),
 	}
