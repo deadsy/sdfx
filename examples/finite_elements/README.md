@@ -6,7 +6,7 @@ Output is generated as `inp` files for ABAQUS or CalculiX. Nodes and elements ar
 
 ## Loading
 
-The final `inp` file applies a distributed *gravity* load to all elements. Additional point loads are defined by a JSON file.
+The final `inp` file can apply a distributed *gravity* load to all elements. Additional point loads can be defined by a JSON file.
 
 ## Boundary
 
