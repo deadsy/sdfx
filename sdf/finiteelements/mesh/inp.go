@@ -29,6 +29,9 @@ type Inp struct {
 	PathBou string
 	// For writing loads to a separate file.
 	PathLoad string
+	// For writing gravity to a separate file.
+	PathGravity     string
+	GravityIsNeeded bool
 	// Output `inp` file would include start layer.
 	LayerStart int
 	// Output `inp` file would exclude end layer.
@@ -63,6 +66,7 @@ func NewInp(
 	loads []*Load,
 	gravityDirection v3.Vec,
 	gravityMagnitude float64,
+	gravityIsNeeded bool,
 ) *Inp {
 	inp := &Inp{
 		Mesh:             m,
@@ -74,6 +78,8 @@ func NewInp(
 		PathElsC3D20R:    path + ".elements_C3D20R",
 		PathBou:          path + ".boundary",
 		PathLoad:         path + ".load",
+		PathGravity:      path + ".gravity",
+		GravityIsNeeded:  gravityIsNeeded,
 		LayerStart:       layerStart,
 		LayerEnd:         layerEnd,
 		TempVBuff:        buffer.NewVB(),
@@ -547,6 +553,72 @@ func (inp *Inp) writeLoad() error {
 	return nil
 }
 
+func (inp *Inp) writeGravity() error {
+	// Write to a separate file to avoid cluttering the `inp` file.
+	f, err := os.Create(inp.PathGravity)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	// Write distributed loads.
+
+	_, err = f.WriteString("*DLOAD\n")
+	if err != nil {
+		return err
+	}
+
+	// Assign gravity loading in any direction with any magnitude to all elements.
+	//
+	// 9810 could be gravity magnitude in mm/sec^2 units.
+	//
+	// SLA 3D printing is done upside-down. 3D model is hanging from the print floor.
+	// That's why gravity could be in "positive" z-direction.
+	// Here ”gravity” really stands for any acceleration vector.
+	//
+	// Refer to CalculiX solver documentation:
+	// http://www.dhondt.de/ccx_2.20.pdf
+	_, err = f.WriteString(
+		fmt.Sprintf(
+			"eC3D4,GRAV,%v,%v,%v,%v\n",
+			inp.GravityMagnitude,
+			inp.GravityDirection.X, inp.GravityDirection.Y, inp.GravityDirection.Z,
+		),
+	)
+	if err != nil {
+		return err
+	}
+	_, err = f.WriteString(
+		fmt.Sprintf(
+			"eC3D10,GRAV,%v,%v,%v,%v\n",
+			inp.GravityMagnitude,
+			inp.GravityDirection.X, inp.GravityDirection.Y, inp.GravityDirection.Z,
+		),
+	)
+	if err != nil {
+		return err
+	}
+	_, err = f.WriteString(
+		fmt.Sprintf(
+			"eC3D8,GRAV,%v,%v,%v,%v\n",
+			inp.GravityMagnitude,
+			inp.GravityDirection.X, inp.GravityDirection.Y, inp.GravityDirection.Z,
+		),
+	)
+	if err != nil {
+		return err
+	}
+	_, err = f.WriteString(
+		fmt.Sprintf(
+			"eC3D20R,GRAV,%v,%v,%v,%v\n",
+			inp.GravityMagnitude,
+			inp.GravityDirection.X, inp.GravityDirection.Y, inp.GravityDirection.Z,
+		),
+	)
+
+	return err
+}
+
 func (inp *Inp) writeFooter(f *os.File) error {
 
 	// Define material.
@@ -616,62 +688,17 @@ func (inp *Inp) writeFooter(f *os.File) error {
 		return err
 	}
 
-	// Write distributed loads.
+	if inp.GravityIsNeeded {
+		// Include a separate file to avoid cluttering the `inp` file.
+		_, err = f.WriteString(fmt.Sprintf("*INCLUDE,INPUT=%s\n", inp.PathGravity))
+		if err != nil {
+			return err
+		}
 
-	_, err = f.WriteString("*DLOAD\n")
-	if err != nil {
-		return err
-	}
-
-	// Assign gravity loading in any direction with any magnitude to all elements.
-	//
-	// 9810 could be gravity magnitude in mm/sec^2 units.
-	//
-	// SLA 3D printing is done upside-down. 3D model is hanging from the print floor.
-	// That's why gravity could be in "positive" z-direction.
-	// Here ”gravity” really stands for any acceleration vector.
-	//
-	// Refer to CalculiX solver documentation:
-	// http://www.dhondt.de/ccx_2.20.pdf
-	_, err = f.WriteString(
-		fmt.Sprintf(
-			"eC3D4,GRAV,%v,%v,%v,%v\n",
-			inp.GravityMagnitude,
-			inp.GravityDirection.X, inp.GravityDirection.Y, inp.GravityDirection.Z,
-		),
-	)
-	if err != nil {
-		return err
-	}
-	_, err = f.WriteString(
-		fmt.Sprintf(
-			"eC3D10,GRAV,%v,%v,%v,%v\n",
-			inp.GravityMagnitude,
-			inp.GravityDirection.X, inp.GravityDirection.Y, inp.GravityDirection.Z,
-		),
-	)
-	if err != nil {
-		return err
-	}
-	_, err = f.WriteString(
-		fmt.Sprintf(
-			"eC3D8,GRAV,%v,%v,%v,%v\n",
-			inp.GravityMagnitude,
-			inp.GravityDirection.X, inp.GravityDirection.Y, inp.GravityDirection.Z,
-		),
-	)
-	if err != nil {
-		return err
-	}
-	_, err = f.WriteString(
-		fmt.Sprintf(
-			"eC3D20R,GRAV,%v,%v,%v,%v\n",
-			inp.GravityMagnitude,
-			inp.GravityDirection.X, inp.GravityDirection.Y, inp.GravityDirection.Z,
-		),
-	)
-	if err != nil {
-		return err
+		err = inp.writeGravity()
+		if err != nil {
+			return err
+		}
 	}
 
 	// Pick element results.
