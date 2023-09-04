@@ -180,8 +180,36 @@ func (m *Fem) WriteInpLayers(
 	gravityMagnitude float64,
 	gravityIsNeeded bool,
 ) error {
+	restraints = restraintSetup(m, restraints)
+	loads = loadSetup(m, loads)
 	inp := NewInp(m, path, layerStart, layerEnd, massDensity, youngModulus, poissonRatio, restraints, loads, gravityDirection, gravityMagnitude, gravityIsNeeded)
 	return inp.Write()
+}
+
+//-----------------------------------------------------------------------------
+
+func restraintSetup(m *Fem, restraints []*Restraint) []*Restraint {
+	// Figure out voxels for each.
+	for _, r := range restraints {
+		// Set voxels, if they are not already set.
+		// If voxels are already set, it means the caller has decided about voxels.
+		if len(r.voxels) < 1 {
+			r.voxels, _, _ = m.VoxelsIntersecting(r.Location)
+		}
+	}
+	return restraints
+}
+
+func loadSetup(m *Fem, loads []*Load) []*Load {
+	// Figure out voxels for each.
+	for _, l := range loads {
+		// Set voxels, if they are not already set.
+		// If voxels are already set, it means the caller has decided about voxels.
+		if len(l.voxels) < 1 {
+			l.voxels, _, _ = m.VoxelsIntersecting(l.Location)
+		}
+	}
+	return loads
 }
 
 //-----------------------------------------------------------------------------

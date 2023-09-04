@@ -58,3 +58,12 @@ func NewLoad(location []v3.Vec, magnitude v3.Vec) *Load {
 		nodeREF:   0,
 	}
 }
+
+func NewLoadByVoxel(voxels []v3i.Vec, magnitude v3.Vec) *Load {
+	return &Load{
+		Location:  []v3.Vec{},
+		Magnitude: magnitude,
+		voxels:    voxels,
+		nodeREF:   0,
+	}
+}
