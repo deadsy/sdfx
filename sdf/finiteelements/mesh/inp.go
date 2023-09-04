@@ -92,14 +92,6 @@ func NewInp(
 		GravityMagnitude: gravityMagnitude,
 	}
 
-	// TODO: complete loading.
-	//
-	// Figure out node and voxel for each load.
-	// TODO: move this statement to the logic that writes loads to file.
-	for _, l := range inp.Loads {
-		l.voxels, _, _ = inp.Mesh.VoxelsIntersecting(l.Location)
-	}
-
 	return inp
 }
 
@@ -365,15 +357,6 @@ func (inp *Inp) writeBoundary() error {
 	}
 	defer f.Close()
 
-	// Figure out reference node and voxels for each restraint.
-	for _, r := range inp.Restraints {
-		// Set voxels, if they are not already set.
-		// If voxels are already set, it means the caller has decided about voxels.
-		if len(r.voxels) < 1 {
-			r.voxels, _, _ = inp.Mesh.VoxelsIntersecting(r.Location)
-		}
-	}
-
 	for i, r := range inp.Restraints {
 		isFixedX, isFixedY, isFixedZ := r.IsFixedX, r.IsFixedY, r.IsFixedZ
 		if !isFixedX && !isFixedY && !isFixedZ {
@@ -512,13 +495,6 @@ func (inp *Inp) writeLoad() error {
 	_, err = f.WriteString("*CLOAD\n")
 	if err != nil {
 		return err
-	}
-
-	// TODO: complete loading.
-
-	// Figure out node and voxel for each.
-	for _, l := range inp.Loads {
-		l.voxels, _, _ = inp.Mesh.VoxelsIntersecting(l.Location)
 	}
 
 	// The closest node to any restraint is already computed.
