@@ -165,9 +165,10 @@ func main() {
 // For 3D print analysis, all the voxels at the first layer along Z axis are considered as restraint.
 // Since, the 3D print floor is at the first Z level.
 func restraintsPrintFloor(m *mesh.Fem) []*mesh.Restraint {
-	restraints := make([]*mesh.Restraint, 1)
 	voxels := m.VoxelsOn1stLayerZ()
-	restraint := mesh.NewRestraintByVoxel(voxels, true, true, true)
-	restraints[0] = restraint
+	restraints := make([]*mesh.Restraint, len(voxels))
+	for i, voxel := range voxels {
+		restraints[i] = mesh.NewRestraintByVoxel(voxel, true, true, true)
+	}
 	return restraints
 }

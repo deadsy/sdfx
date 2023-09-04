@@ -1,6 +1,8 @@
 package mesh
 
 import (
+	"fmt"
+	"log"
 	"math"
 
 	"github.com/deadsy/sdfx/render"
@@ -79,11 +81,11 @@ func (m *Fem) iterate(f func(int, int, int, []*buffer.Element)) {
 	m.IBuff.Iterate(f)
 }
 
-// The closest node is identified.
+// The closest vertex/node is identified.
 // Also, the containing voxel is figured out.
 //
 // This logic has to be here, since we need access to any node vertex.
-func (m *Fem) Locate(location v3.Vec) (uint32, v3i.Vec) {
+func (m *Fem) Locate(location v3.Vec) (v3.Vec, v3i.Vec) {
 	// Calculating voxel indices.
 	idxX := int(math.Floor((location.X - m.IBuff.Grid.Voxels[0].Min.X) / (m.IBuff.Grid.Dim.X)))
 	idxY := int(math.Floor((location.Y - m.IBuff.Grid.Voxels[0].Min.Y) / (m.IBuff.Grid.Dim.Y)))
@@ -104,7 +106,7 @@ func (m *Fem) Locate(location v3.Vec) (uint32, v3i.Vec) {
 	elements := m.IBuff.Grid.Get(idxX, idxY, idxZ)
 
 	// Find the closest node
-	var closestNode uint32
+	var closestNode v3.Vec
 	minDistance := math.Inf(1)
 
 	for _, element := range elements {
@@ -115,7 +117,7 @@ func (m *Fem) Locate(location v3.Vec) (uint32, v3i.Vec) {
 			distance := location.Sub(nodePos).Length()
 			if distance < minDistance {
 				minDistance = distance
-				closestNode = node
+				closestNode = nodePos
 			}
 		}
 	}
@@ -189,24 +191,38 @@ func (m *Fem) WriteInpLayers(
 //-----------------------------------------------------------------------------
 
 func restraintSetup(m *Fem, restraints []*Restraint) []*Restraint {
-	// Figure out voxels for each.
+	// Figure out voxel for each.
 	for _, r := range restraints {
-		// Set voxels, if they are not already set.
-		// If voxels are already set, it means the caller has decided about voxels.
-		if len(r.voxels) < 1 {
-			r.voxels, _, _ = m.VoxelsIntersecting(r.Location)
+		// Set voxel, if not already set.
+		// If voxel is already set, it means the caller has decided about voxel.
+		if r.voxel.X == -1 && r.voxel.Y == -1 && r.voxel.Z == -1 {
+			voxels, _, _ := m.VoxelsIntersecting([]v3.Vec{r.Location})
+			if len(voxels) < 1 {
+				log.Fatalln("no voxel is intersecting with the point restraint")
+			}
+			r.voxel = voxels[0]
 		}
 	}
 	return restraints
 }
 
 func loadSetup(m *Fem, loads []*Load) []*Load {
-	// Figure out voxels for each.
+	// Figure out voxel for each.
 	for _, l := range loads {
-		// Set voxels, if they are not already set.
-		// If voxels are already set, it means the caller has decided about voxels.
-		if len(l.voxels) < 1 {
-			l.voxels, _, _ = m.VoxelsIntersecting(l.Location)
+		// Set voxel, if not already set.
+		// If voxel is already set, it means the caller has decided about voxel.
+		if l.voxel.X == -1 && l.voxel.Y == -1 && l.voxel.Z == -1 {
+			voxels, _, _ := m.VoxelsIntersecting([]v3.Vec{l.Location})
+			if len(voxels) < 1 {
+				log.Fatalln("no voxel is intersecting with the point load")
+			}
+			l.voxel = voxels[0]
+			closestVertex, closestVoxel := m.Locate(l.Location)
+			l.voxel = closestVoxel
+			l.nodeREF = closestVertex
+			if voxels[0].X != closestVoxel.X && voxels[0].Y != closestVoxel.Y && voxels[0].Z != closestVoxel.Z {
+				fmt.Println("m.VoxelsIntersecting() != m.Locate()")
+			}
 		}
 	}
 	return loads

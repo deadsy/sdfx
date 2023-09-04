@@ -174,7 +174,7 @@ func main() {
 func restraintsConvert(rs []Restraint) []*mesh.Restraint {
 	restraints := make([]*mesh.Restraint, len(rs))
 	for i, r := range rs {
-		restraint := mesh.NewRestraint([]v3.Vec{{X: r.LocX, Y: r.LocY, Z: r.LocZ}}, r.IsFixedX, r.IsFixedY, r.IsFixedZ)
+		restraint := mesh.NewRestraint(v3.Vec{X: r.LocX, Y: r.LocY, Z: r.LocZ}, r.IsFixedX, r.IsFixedY, r.IsFixedZ)
 		restraints[i] = restraint
 	}
 	return restraints
@@ -183,7 +183,7 @@ func restraintsConvert(rs []Restraint) []*mesh.Restraint {
 func loadsConvert(ls []Load) []*mesh.Load {
 	loads := make([]*mesh.Load, len(ls))
 	for i, l := range ls {
-		load := mesh.NewLoad([]v3.Vec{{X: l.LocX, Y: l.LocY, Z: l.LocZ}}, v3.Vec{X: l.MagX, Y: l.MagY, Z: l.MagZ})
+		load := mesh.NewLoad(v3.Vec{X: l.LocX, Y: l.LocY, Z: l.LocZ}, v3.Vec{X: l.MagX, Y: l.MagY, Z: l.MagZ})
 		loads[i] = load
 	}
 	return loads

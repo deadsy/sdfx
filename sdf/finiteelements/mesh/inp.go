@@ -365,19 +365,14 @@ func (inp *Inp) writeBoundary() error {
 
 		nodeSet := make([]uint32, 0)
 
-		for _, vox := range r.voxels {
-
-			// Get elements in the voxel
-			elements := inp.Mesh.IBuff.Grid.Get(vox.X, vox.Y, vox.Z)
-
-			for _, element := range elements {
-				for _, node := range element.Nodes {
-					// Node ID should be consistant with the temp vertex buffer.
-					// Node ID is different on these two: (1) original vertex buffer, (2) temp vertex buffer.
-					vertex := inp.Mesh.vertex(node)
-					id := inp.TempVBuff.Id(vertex)
-					nodeSet = append(nodeSet, id)
-				}
+		elements := inp.Mesh.IBuff.Grid.Get(r.voxel.X, r.voxel.Y, r.voxel.Z)
+		for _, element := range elements {
+			for _, node := range element.Nodes {
+				// Node ID should be consistant with the temp vertex buffer.
+				// Node ID is different on these two: (1) original vertex buffer, (2) temp vertex buffer.
+				vertex := inp.Mesh.vertex(node)
+				id := inp.TempVBuff.Id(vertex)
+				nodeSet = append(nodeSet, id)
 			}
 		}
 
@@ -501,8 +496,7 @@ func (inp *Inp) writeLoad() error {
 	for _, l := range inp.Loads {
 		// Node ID should be consistant with the temp vertex buffer.
 		// Node ID is different on these two: (1) original vertex buffer, (2) temp vertex buffer.
-		vertex := inp.Mesh.vertex(l.nodeREF)
-		id := inp.TempVBuff.Id(vertex)
+		id := inp.TempVBuff.Id(l.nodeREF)
 
 		// To be written:
 		//
