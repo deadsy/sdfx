@@ -33,6 +33,7 @@ type Specs struct {
 	GravityDirectionY      float64
 	GravityDirectionZ      float64
 	GravityMagnitude       float64
+	GravityIsNeeded        bool
 	Resolution             int  // Number of voxels on the longest axis of 3D model AABB.
 	NonlinearConsidered    bool // If true, nonlinear finite elements are generated.
 	ExactSurfaceConsidered bool // If true, surface is approximated by tetrahedral finite elements.
@@ -162,6 +163,7 @@ func main() {
 		restraintsConvert(restraints),
 		loadsConvert(loads),
 		v3.Vec{X: specs.GravityDirectionX, Y: specs.GravityDirectionY, Z: specs.GravityDirectionZ}, specs.GravityMagnitude,
+		specs.GravityIsNeeded,
 	)
 
 	if err != nil {
