@@ -141,10 +141,10 @@ func main() {
 	}
 
 	// The first few layers are ignored.
-	for z := 3; z < voxelsZ; z++ {
+	for z := 3; z <= voxelsZ; z++ {
 		err := m.WriteInpLayers(
 			strings.Replace(specs.PathResult, "#", fmt.Sprintf("%d", z), 1),
-			0, z,
+			0, z, // Note that the start layer is included, the end layer is excluded.
 			float32(specs.MassDensity), float32(specs.YoungModulus), float32(specs.PoissonRatio),
 			restraintsPrintFloor(m),
 			[]*mesh.Load{}, // Load is empty since only gravity is assumed responsible for 3D print collapse.
