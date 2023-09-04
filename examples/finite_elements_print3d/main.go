@@ -149,6 +149,7 @@ func main() {
 			restraintsPrintFloor(m),
 			[]*mesh.Load{}, // Load is empty since only gravity is assumed responsible for 3D print collapse.
 			v3.Vec{X: specs.GravityDirectionX, Y: specs.GravityDirectionY, Z: specs.GravityDirectionZ}, specs.GravityMagnitude,
+			true,
 		)
 		if err != nil {
 			log.Fatalf(err.Error())
