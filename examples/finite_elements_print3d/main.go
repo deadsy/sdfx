@@ -23,19 +23,19 @@ import (
 )
 
 type Specs struct {
-	PathStl                string // Input STL file.
-	PathResult             string // Result file, consumable by ABAQUS or CalculiX. Must include "#" character as placeholder for layer number.
-	PathResultInfo         string // Result details and info.
-	MassDensity            float64
-	YoungModulus           float64
-	PoissonRatio           float64
-	GravityDirectionX      float64
-	GravityDirectionY      float64
-	GravityDirectionZ      float64
-	GravityMagnitude       float64
-	Resolution             int  // Number of voxels on the longest axis of 3D model AABB.
-	NonlinearConsidered    bool // If true, nonlinear finite elements are generated.
-	ExactSurfaceConsidered bool // If true, surface is approximated by tetrahedral finite elements.
+	PathStl                   string // Input STL file.
+	PathResultWithPlaceholder string // Result file, consumable by ABAQUS or CalculiX. Must include "#" character as placeholder for layer number.
+	PathResultInfo            string // Result details and info.
+	MassDensity               float64
+	YoungModulus              float64
+	PoissonRatio              float64
+	GravityDirectionX         float64
+	GravityDirectionY         float64
+	GravityDirectionZ         float64
+	GravityMagnitude          float64
+	Resolution                int  // Number of voxels on the longest axis of 3D model AABB.
+	NonlinearConsidered       bool // If true, nonlinear finite elements are generated.
+	ExactSurfaceConsidered    bool // If true, surface is approximated by tetrahedral finite elements.
 }
 
 type Restraint struct {
@@ -143,7 +143,7 @@ func main() {
 	// The first few layers are ignored.
 	for z := 3; z <= voxelsZ; z++ {
 		err := m.WriteInpLayers(
-			strings.Replace(specs.PathResult, "#", fmt.Sprintf("%d", z), 1),
+			strings.Replace(specs.PathResultWithPlaceholder, "#", fmt.Sprintf("%d", z), 1),
 			0, z, // Note that the start layer is included, the end layer is excluded.
 			float32(specs.MassDensity), float32(specs.YoungModulus), float32(specs.PoissonRatio),
 			restraintsPrintFloor(m),
