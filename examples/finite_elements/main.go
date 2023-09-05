@@ -26,7 +26,6 @@ type Specs struct {
 	PathRestraintPoints    string // File containing point restraints.
 	PathResult             string // Result file, consumable by ABAQUS or CalculiX.
 	PathResultInfo         string // Result details and info.
-	PathLogFea             string // Log file of FEA.
 	MassDensity            float64
 	YoungModulus           float64
 	PoissonRatio           float64

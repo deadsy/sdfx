@@ -35,7 +35,6 @@ func Test_main(t *testing.T) {
 				PathStl:                   filepath.Join("..", "..", "files", "teapot.stl"),
 				PathResultWithPlaceholder: filepath.Join(os.TempDir(), "teapot-result-layer0-to-layer#.inp"),
 				PathResultInfo:            filepath.Join(os.TempDir(), "teapot-result-info.json"),
-				PathLogFea:                filepath.Join(os.TempDir(), "teapot-FEA-log.txt"),
 				LayerToStartFea:           3,
 				MassDensity:               7.85e-9,
 				YoungModulus:              210000,
