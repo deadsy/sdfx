@@ -138,12 +138,12 @@ func main() {
 	// Generate finite elements layer-by-layer.
 	// Applicable to 3D print analysis that is done layer-by-layer.
 
-	if voxelsZ < 8 {
-		log.Fatalf("not enough voxel layers along the Z axis %d", voxelsZ)
+	if voxelsZ < specs.LayerToStartFea+3 {
+		log.Fatalf("not enough voxel layers along the Z axis %d < %d", voxelsZ, specs.LayerToStartFea+3)
 	}
 
 	// The first few layers are ignored.
-	for z := 3; z <= voxelsZ; z++ {
+	for z := specs.LayerToStartFea; z <= voxelsZ; z++ {
 		err := m.WriteInpLayers(
 			strings.Replace(specs.PathResultWithPlaceholder, "#", fmt.Sprintf("%d", z), 1),
 			0, z, // Note that the start layer is included, the end layer is excluded.
