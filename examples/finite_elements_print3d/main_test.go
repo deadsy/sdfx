@@ -40,8 +40,8 @@ func Test_main(t *testing.T) {
 				PoissonRatio:              0.3,
 				GravityDirectionX:         0,
 				GravityDirectionY:         0,
-				GravityDirectionZ:         +1, // SLA 3D print is usually done upside down.
-				GravityMagnitude:          9810,
+				GravityDirectionZ:         +1,   // SLA 3D print is usually done upside down.
+				GravityMagnitude:          9810, // mm unit.
 				Resolution:                50,
 				NonlinearConsidered:       false,
 				ExactSurfaceConsidered:    true,
