@@ -1,7 +1,6 @@
 package mesh
 
 import (
-	"fmt"
 	"log"
 	"math"
 
@@ -215,12 +214,13 @@ func loadSetup(m *Fem, loads []*Load) []*Load {
 		}
 
 		closestVertex, closestVoxel := m.Locate(l.Location)
-		l.voxel = closestVoxel
-		l.nodeREF = closestVertex
 
 		if voxels[0].X != closestVoxel.X && voxels[0].Y != closestVoxel.Y && voxels[0].Z != closestVoxel.Z {
-			fmt.Println("just a double-check: m.VoxelsIntersecting() != m.Locate()")
+			log.Fatalln("point load is not in a valid/consistent voxel: m.VoxelsIntersecting() != m.Locate()")
 		}
+
+		l.voxel = closestVoxel
+		l.nodeREF = closestVertex
 	}
 	return loads
 }
