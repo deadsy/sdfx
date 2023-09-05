@@ -155,7 +155,7 @@ func main() {
 		if err != nil {
 			log.Fatalf(err.Error())
 		}
-		fmt.Printf("Finite elements are generated from layer 0 to layer %v out of %v total.\n", z, voxelsZ-1)
+		fmt.Printf("Finite elements are generated from layer 0 to layer %v out of %v total.\n", z, voxelsZ)
 	}
 
 	if err != nil {
