@@ -194,6 +194,7 @@ func restraintSetup(m *Fem, restraints []*Restraint) []*Restraint {
 	for _, r := range restraints {
 		// Set voxel, if not already set.
 		// If voxel is already set, it means the caller has decided about voxel.
+		// It means all the nodes inside the voxel will be restraint.
 		if r.voxel.X == -1 && r.voxel.Y == -1 && r.voxel.Z == -1 {
 			voxels, _, _ := m.VoxelsIntersecting([]v3.Vec{r.Location})
 			if len(voxels) < 1 {
