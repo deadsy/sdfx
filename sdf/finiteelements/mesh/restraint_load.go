@@ -37,6 +37,7 @@ func NewRestraint(location v3.Vec, isFixedX, isFixedY, isFixedZ bool) *Restraint
 	}
 }
 
+// All the nodes inside the input voxel will be considered as restraint.
 func NewRestraintByVoxel(voxel v3i.Vec, isFixedX, isFixedY, isFixedZ bool) *Restraint {
 	return &Restraint{
 		IsFixedX: isFixedX,
@@ -51,12 +52,5 @@ func NewLoad(location v3.Vec, magnitude v3.Vec) *Load {
 		Location:  location,
 		Magnitude: magnitude,
 		voxel:     v3i.Vec{X: -1, Y: -1, Z: -1}, // We depend on -1 value to see if voxel is valid.
-	}
-}
-
-func NewLoadByVoxel(voxel v3i.Vec, magnitude v3.Vec) *Load {
-	return &Load{
-		Magnitude: magnitude,
-		voxel:     voxel,
 	}
 }

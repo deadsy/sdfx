@@ -209,20 +209,17 @@ func restraintSetup(m *Fem, restraints []*Restraint) []*Restraint {
 func loadSetup(m *Fem, loads []*Load) []*Load {
 	// Figure out voxel for each.
 	for _, l := range loads {
-		// Set voxel, if not already set.
-		// If voxel is already set, it means the caller has decided about voxel.
-		if l.voxel.X == -1 && l.voxel.Y == -1 && l.voxel.Z == -1 {
-			voxels, _, _ := m.VoxelsIntersecting([]v3.Vec{l.Location})
-			if len(voxels) < 1 {
-				log.Fatalln("no voxel is intersecting with the point load")
-			}
-			l.voxel = voxels[0]
-			closestVertex, closestVoxel := m.Locate(l.Location)
-			l.voxel = closestVoxel
-			l.nodeREF = closestVertex
-			if voxels[0].X != closestVoxel.X && voxels[0].Y != closestVoxel.Y && voxels[0].Z != closestVoxel.Z {
-				fmt.Println("m.VoxelsIntersecting() != m.Locate()")
-			}
+		voxels, _, _ := m.VoxelsIntersecting([]v3.Vec{l.Location})
+		if len(voxels) < 1 {
+			log.Fatalln("no voxel is intersecting with the point load")
+		}
+
+		closestVertex, closestVoxel := m.Locate(l.Location)
+		l.voxel = closestVoxel
+		l.nodeREF = closestVertex
+
+		if voxels[0].X != closestVoxel.X && voxels[0].Y != closestVoxel.Y && voxels[0].Z != closestVoxel.Z {
+			fmt.Println("just a double-check: m.VoxelsIntersecting() != m.Locate()")
 		}
 	}
 	return loads
