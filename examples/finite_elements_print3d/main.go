@@ -27,6 +27,7 @@ type Specs struct {
 	PathResultWithPlaceholder string // Result file, consumable by ABAQUS or CalculiX. Must include "#" character as placeholder for layer number.
 	PathResultInfo            string // Result details and info.
 	PathLogFea                string // Log file of FEA.
+	LayerToStartFea           int    // FEA will be done after this layer.
 	MassDensity               float64
 	YoungModulus              float64
 	PoissonRatio              float64
