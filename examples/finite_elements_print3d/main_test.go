@@ -18,8 +18,6 @@ import (
 	"testing"
 )
 
-// Benchmark reference:
-// https://github.com/calculix/CalculiX-Examples/tree/master/NonLinear/Sections
 func Test_main(t *testing.T) {
 	tests := []struct {
 		skip      bool
