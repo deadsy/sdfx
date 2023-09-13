@@ -30,6 +30,7 @@ type Specs struct {
 	MassDensity               float64
 	YoungModulus              float64
 	PoissonRatio              float64
+	TensileStrength           float64
 	GravityDirectionX         float64
 	GravityDirectionY         float64
 	GravityDirectionZ         float64
