@@ -222,6 +222,7 @@ func loadSetup(m *Fem, loads []*Load) []*Load {
 
 		l.voxel = closestVoxel
 		l.nodeREF = closestVertex
+		log.Printf("point load coordinates %f, %f, %f\n", l.nodeREF.X, l.nodeREF.Y, l.nodeREF.Z)
 	}
 	return loads
 }
