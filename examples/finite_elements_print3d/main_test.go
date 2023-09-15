@@ -30,9 +30,9 @@ func Test_main(t *testing.T) {
 			name:      "teapot",
 			pathSpecs: filepath.Join(os.TempDir(), "teapot-specs.json"),
 			specs: Specs{
-				PathStl:                   filepath.Join("..", "..", "files", "teapot.stl"),
 				PathResultWithPlaceholder: filepath.Join(os.TempDir(), "teapot-result-layer0-to-layer#.inp"),
 				PathReport:                filepath.Join(os.TempDir(), "teapot-report.json"),
+				PathStl:                   filepath.Join("..", "..", "files", "teapot.stl"),
 				MassDensity:               7.85e-9,
 				YoungModulus:              210000,
 				PoissonRatio:              0.3,

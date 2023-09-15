@@ -23,9 +23,9 @@ import (
 )
 
 type Specs struct {
-	PathStl                   string // Input STL file.
 	PathResultWithPlaceholder string // Result file, consumable by ABAQUS or CalculiX. Must include "#" character as placeholder for layer number.
 	PathReport                string // Report some details after finite elements are generated.
+	PathStl                   string // Input STL file.
 	MassDensity               float64
 	YoungModulus              float64
 	PoissonRatio              float64
