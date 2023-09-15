@@ -140,8 +140,8 @@ func main() {
 		log.Fatalf("not enough voxel layers along the Z axis %d < %d", voxelsZ, 3)
 	}
 
-	// All layers are considered.
-	for z := 0; z <= voxelsZ; z++ {
+	// Skip 0 and start from 1, to be sensible.
+	for z := 1; z <= voxelsZ; z++ {
 		err := m.WriteInpLayers(
 			strings.Replace(specs.PathResultWithPlaceholder, "#", fmt.Sprintf("%d", z), 1),
 			0, z, // Note that the start layer is included, the end layer is excluded.

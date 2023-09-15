@@ -170,7 +170,7 @@ func (inp *Inp) Write() error {
 
 func (inp *Inp) writeHeader(f *os.File) error {
 	_, _, layersZ := inp.Mesh.Size()
-	if 0 <= inp.LayerStart && inp.LayerStart <= inp.LayerEnd && inp.LayerEnd <= layersZ {
+	if 0 <= inp.LayerStart && inp.LayerStart < inp.LayerEnd && inp.LayerEnd <= layersZ {
 		// Good.
 	} else {
 		return fmt.Errorf("start or end layer is beyond range")
