@@ -21,11 +21,11 @@ import (
 )
 
 type Specs struct {
+	PathResult             string // Result file, consumable by ABAQUS or CalculiX.
+	PathReport             string // Report some details after finite elements are generated.
 	PathStl                string // Input STL file.
 	PathLoadPoints         string // File containing point loads.
 	PathRestraintPoints    string // File containing point restraints.
-	PathResult             string // Result file, consumable by ABAQUS or CalculiX.
-	PathReport             string // Report some details after finite elements are generated.
 	MassDensity            float64
 	YoungModulus           float64
 	PoissonRatio           float64
