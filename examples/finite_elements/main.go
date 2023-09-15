@@ -25,7 +25,7 @@ type Specs struct {
 	PathLoadPoints         string // File containing point loads.
 	PathRestraintPoints    string // File containing point restraints.
 	PathResult             string // Result file, consumable by ABAQUS or CalculiX.
-	PathResultInfo         string // Result details and info.
+	PathReport             string // Report some details after finite elements are generated.
 	MassDensity            float64
 	YoungModulus           float64
 	PoissonRatio           float64
@@ -61,7 +61,7 @@ type Component struct {
 	VoxelCount int
 }
 
-type ResultInfo struct {
+type Report struct {
 	VoxelsX        int
 	VoxelsY        int
 	VoxelsZ        int
@@ -136,7 +136,7 @@ func main() {
 	m, voxelsX, voxelsY, voxelsZ := mesh.NewFem(inSdf, render.NewMarchingCubesFeUniform(specs.Resolution, order, shape))
 
 	components := m.Components()
-	info := ResultInfo{
+	report := Report{
 		VoxelsX:        voxelsX,
 		VoxelsY:        voxelsY,
 		VoxelsZ:        voxelsZ,
@@ -144,14 +144,14 @@ func main() {
 		Components:     make([]Component, len(components)),
 	}
 	for i, component := range components {
-		info.Components[i] = Component{VoxelCount: component.VoxelCount()}
+		report.Components[i] = Component{VoxelCount: component.VoxelCount()}
 	}
 
-	jsonData, err = json.MarshalIndent(info, "", "    ")
+	jsonData, err = json.MarshalIndent(report, "", "    ")
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
-	err = os.WriteFile(specs.PathResultInfo, jsonData, 0644)
+	err = os.WriteFile(specs.PathReport, jsonData, 0644)
 	if err != nil {
 		log.Fatalf(err.Error())
 	}

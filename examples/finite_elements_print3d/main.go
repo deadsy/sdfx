@@ -25,8 +25,7 @@ import (
 type Specs struct {
 	PathStl                   string // Input STL file.
 	PathResultWithPlaceholder string // Result file, consumable by ABAQUS or CalculiX. Must include "#" character as placeholder for layer number.
-	PathResultInfo            string // Result details and info.
-	LayerToStartFea           int    // FEA will be done after this layer.
+	PathReport                string // Report some details after finite elements are generated.
 	MassDensity               float64
 	YoungModulus              float64
 	PoissonRatio              float64
@@ -61,7 +60,7 @@ type Component struct {
 	VoxelCount int
 }
 
-type ResultInfo struct {
+type Report struct {
 	VoxelsX        int
 	VoxelsY        int
 	VoxelsZ        int
@@ -114,7 +113,7 @@ func main() {
 	m, voxelsX, voxelsY, voxelsZ := mesh.NewFem(inSdf, render.NewMarchingCubesFeUniform(specs.Resolution, order, shape))
 
 	components := m.Components()
-	info := ResultInfo{
+	report := Report{
 		VoxelsX:        voxelsX,
 		VoxelsY:        voxelsY,
 		VoxelsZ:        voxelsZ,
@@ -122,14 +121,14 @@ func main() {
 		Components:     make([]Component, len(components)),
 	}
 	for i, component := range components {
-		info.Components[i] = Component{VoxelCount: component.VoxelCount()}
+		report.Components[i] = Component{VoxelCount: component.VoxelCount()}
 	}
 
-	jsonData, err = json.MarshalIndent(info, "", "    ")
+	jsonData, err = json.MarshalIndent(report, "", "    ")
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
-	err = os.WriteFile(specs.PathResultInfo, jsonData, 0644)
+	err = os.WriteFile(specs.PathReport, jsonData, 0644)
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
@@ -137,12 +136,12 @@ func main() {
 	// Generate finite elements layer-by-layer.
 	// Applicable to 3D print analysis that is done layer-by-layer.
 
-	if voxelsZ < specs.LayerToStartFea+3 {
-		log.Fatalf("not enough voxel layers along the Z axis %d < %d", voxelsZ, specs.LayerToStartFea+3)
+	if voxelsZ < 3 {
+		log.Fatalf("not enough voxel layers along the Z axis %d < %d", voxelsZ, 3)
 	}
 
-	// The first few layers are ignored.
-	for z := specs.LayerToStartFea; z <= voxelsZ; z++ {
+	// All layers are considered.
+	for z := 0; z <= voxelsZ; z++ {
 		err := m.WriteInpLayers(
 			strings.Replace(specs.PathResultWithPlaceholder, "#", fmt.Sprintf("%d", z), 1),
 			0, z, // Note that the start layer is included, the end layer is excluded.
