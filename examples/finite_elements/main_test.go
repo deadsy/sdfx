@@ -13,6 +13,7 @@ package main
 
 import (
 	"encoding/json"
+	"math"
 	"os"
 	"path/filepath"
 	"testing"
@@ -29,6 +30,39 @@ func Test_main(t *testing.T) {
 		loads      []Load // If load is zero, gravity would be the dominant force.
 		restraints []Restraint
 	}{
+		{
+			skip:      false,
+			name:      "teapot",
+			pathSpecs: filepath.Join(os.TempDir(), "specs.json"),
+			specs: Specs{
+				PathResult:             filepath.Join(os.TempDir(), "result.inp"),
+				PathReport:             filepath.Join(os.TempDir(), "report.json"),
+				PathStl:                filepath.Join("..", "..", "files", "teapot.stl"), // Valid STL, Unit: mm
+				PathLoadPoints:         filepath.Join(os.TempDir(), "load-points.json"),
+				PathRestraintPoints:    filepath.Join(os.TempDir(), "restraint-points.json"),
+				MassDensity:            1130 * math.Pow(10, -12), // (N*s2/mm4) // Assumed: 1.13 g/cm3
+				YoungModulus:           1.6 * 1000,               // MPa (N/mm2)
+				PoissonRatio:           0.3,                      // Unitless.
+				GravityDirectionX:      0,
+				GravityDirectionY:      0,
+				GravityDirectionZ:      -1,
+				GravityMagnitude:       9810, // mm/s2
+				GravityIsNeeded:        false,
+				Resolution:             50,
+				NonlinearConsidered:    false,
+				ExactSurfaceConsidered: true,
+			},
+			loads: []Load{
+				{LocX: -7.7018147506213062, LocY: -0.4793329364029888, LocZ: 5.4655784011739659, MagX: -70.381474830032147, MagY: -174.42493975029208, MagZ: 59.390099907428898},
+				{LocX: -0.011008272390835461, LocY: -0.7768798803556729, LocZ: 8.0940818810755175, MagX: -7.1696819796276845, MagY: -157.24707657594607, MagZ: -122.86811489950169},
+				{LocX: 7.7771501865767299, LocY: -0.44676917365822177, LocZ: 6.1957182567021745, MagX: 8.5251191596139506, MagY: -198.29032531361477, MagZ: 18.196364257032524},
+			},
+			restraints: []Restraint{
+				{LocX: 2.6121906631017695, LocY: 0.20348199936959829, LocZ: 0.050483960817894413, IsFixedX: true, IsFixedY: true, IsFixedZ: true},
+				{LocX: -1.3968227044257533, LocY: -2.035934011608322, LocZ: 0.04909315835598238, IsFixedX: true, IsFixedY: true, IsFixedZ: true},
+				{LocX: -1.8197506822193277, LocY: 2.2580011513606717, LocZ: 0.064527793304306025, IsFixedX: true, IsFixedY: true, IsFixedZ: true},
+			},
+		},
 		{
 			skip:      false,
 			name:      "benchmarkSquare",
