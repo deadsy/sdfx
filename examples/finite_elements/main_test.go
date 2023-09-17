@@ -48,7 +48,7 @@ func Test_main(t *testing.T) {
 				GravityDirectionZ:      -1,
 				GravityMagnitude:       9810, // mm/s2
 				GravityIsNeeded:        false,
-				Resolution:             50,
+				Resolution:             60,
 				NonlinearConsidered:    false,
 				ExactSurfaceConsidered: true,
 			},
