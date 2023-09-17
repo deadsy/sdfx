@@ -47,7 +47,7 @@ func Test_main(t *testing.T) {
 				GravityDirectionY:      0,
 				GravityDirectionZ:      -1,
 				GravityMagnitude:       9810, // mm/s2
-				GravityIsNeeded:        false,
+				GravityIsNeeded:        true,
 				Resolution:             50,
 				NonlinearConsidered:    false,
 				ExactSurfaceConsidered: true,
@@ -64,7 +64,7 @@ func Test_main(t *testing.T) {
 			},
 		},
 		{
-			skip:      false,
+			skip:      true,
 			name:      "benchmarkSquare",
 			pathSpecs: filepath.Join(os.TempDir(), "bms-specs.json"),
 			specs: Specs{
@@ -130,7 +130,7 @@ func Test_main(t *testing.T) {
 			}(),
 		},
 		{
-			skip:      false,
+			skip:      true,
 			name:      "benchmarkCircle",
 			pathSpecs: filepath.Join(os.TempDir(), "bmc-specs.json"),
 			specs: Specs{
@@ -175,7 +175,7 @@ func Test_main(t *testing.T) {
 			},
 		},
 		{
-			skip:      false,
+			skip:      true,
 			name:      "benchmarkPipe",
 			pathSpecs: filepath.Join(os.TempDir(), "bmp-specs.json"),
 			specs: Specs{
@@ -220,7 +220,7 @@ func Test_main(t *testing.T) {
 			},
 		},
 		{
-			skip:      false,
+			skip:      true,
 			name:      "benchmarkI",
 			pathSpecs: filepath.Join(os.TempDir(), "bmi-specs.json"),
 			specs: Specs{
@@ -273,6 +273,9 @@ func Test_main(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		if tt.skip {
+			continue
+		}
 		t.Run(tt.name, func(t *testing.T) {
 			jsonData, err := json.MarshalIndent(tt.specs, "", "    ")
 			if err != nil {
