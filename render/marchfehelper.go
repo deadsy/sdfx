@@ -27,11 +27,26 @@ func point(edges [12]v3.Vec, corners [8]v3.Vec, index int) v3.Vec {
 }
 
 // -----------------------------------------------------------------------------
-// To avoid distorted tetrahedron with non-positive Jacobian or with flat shape or with degenerate faces.
-// Regradless of input values at corners, return the point at the middle of the edge.
+// Tries to avoid distorted tetrahedron with
+// non-positive Jacobian or with flat shape or with degenerate faces.
+// Points that are close to corners, are handled differently.
 func mcInterpolateFE(p1, p2 v3.Vec, v1, v2, x float64) v3.Vec {
-	// Pick the half way point
-	t := 0.5
+	// Try 80/20 rule.
+	closeToV1 := math.Abs(x-v1)/math.Abs(v2-v1) < 0.2
+	closeToV2 := math.Abs(x-v1)/math.Abs(v2-v1) > 0.8
+
+	var t float64
+
+	if closeToV1 {
+		// Pick a point away from corner
+		t = 0.2
+	} else if closeToV2 {
+		// Pick a point away from corner
+		t = 0.8
+	} else {
+		// linear interpolation
+		t = (x - v1) / (v2 - v1)
+	}
 
 	return v3.Vec{
 		X: p1.X + t*(p2.X-p1.X),
