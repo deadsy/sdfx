@@ -44,8 +44,8 @@ type RenderFe interface {
 func ToTriangles(
 	s sdf.SDF3, // sdf3 to render
 	r Render3, // rendering method
-) []sdf.Triangle3 {
-	triangles := make([]sdf.Triangle3, 0)
+) []*sdf.Triangle3 {
+	triangles := make([]*sdf.Triangle3, 0)
 	var wg sync.WaitGroup
 	// To write the triangles.
 	output := sdf.WriteTriangles(&wg, &triangles)

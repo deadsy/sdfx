@@ -145,7 +145,7 @@ func (t *Triangle3) intersectRay(rp, rv v3.Vec) []v3.Vec {
 //-----------------------------------------------------------------------------
 
 // WriteTriangles writes a stream of triangles to a slice.
-func WriteTriangles(wg *sync.WaitGroup, triangles *[]Triangle3) chan<- []*Triangle3 {
+func WriteTriangles(wg *sync.WaitGroup, triangles *[]*Triangle3) chan<- []*Triangle3 {
 	// External code writes triangles to this channel.
 	// This goroutine reads the channel and appends the triangles to a slice.
 	c := make(chan []*Triangle3)
@@ -156,7 +156,7 @@ func WriteTriangles(wg *sync.WaitGroup, triangles *[]Triangle3) chan<- []*Triang
 		// read triangles from the channel and append them to the slice
 		for ts := range c {
 			for _, t := range ts {
-				*triangles = append(*triangles, *t)
+				*triangles = append(*triangles, t)
 			}
 		}
 	}()
