@@ -124,7 +124,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
+	// Rendering to STL directly:
 	render.ToSTL(s2, "gyroid_teapot.stl", render.NewMarchingCubesUniform(200))
+	// Rendering to triangles and then saving the STL. The output file should be the same as before:
+	m2 := render.ToTriangles(s2, render.NewMarchingCubesUniform(200))
+	render.SaveSTL("gyroid_teapot_mesh.stl", m2)
 }
 
 //-----------------------------------------------------------------------------
