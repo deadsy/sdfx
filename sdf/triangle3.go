@@ -67,7 +67,7 @@ func v3ToPoint(v v3.Vec) rtreego.Point {
 }
 
 // Bounds returns a r-tree bounding rectangle for the triangle.
-func (t *Triangle3) Bounds() *rtreego.Rect {
+func (t *Triangle3) Bounds() rtreego.Rect {
 	b := t.BoundingBox()
 	r, _ := rtreego.NewRectFromPoints(v3ToPoint(b.Min), v3ToPoint(b.Max))
 	return r
