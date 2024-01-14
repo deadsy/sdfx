@@ -13,6 +13,8 @@ import (
 	"sync"
 
 	"github.com/deadsy/sdfx/sdf"
+	v3 "github.com/deadsy/sdfx/vec/v3"
+	"github.com/deadsy/sdfx/vec/v3i"
 )
 
 //-----------------------------------------------------------------------------
@@ -27,6 +29,13 @@ type Render3 interface {
 type Render2 interface {
 	Render(s sdf.SDF2, output sdf.Line2Writer)
 	Info(s sdf.SDF2) string
+}
+
+// RenderFe renders a finite element mesh over the bounding volume of an sdf3.
+type RenderFe interface {
+	RenderFe(sdf3 sdf.SDF3, output sdf.FeWriter)
+	Info(sdf3 sdf.SDF3) string
+	Voxels(sdf3 sdf.SDF3) (v3i.Vec, v3.Vec, []v3.Vec, []v3.Vec)
 }
 
 //-----------------------------------------------------------------------------
@@ -48,6 +57,36 @@ func ToTriangles(
 	wg.Wait()
 	// return all the triangles
 	return triangles
+}
+
+//-----------------------------------------------------------------------------
+
+// ToFem renders an SDF3 to finite elements.
+func ToFem(
+	s sdf.SDF3, // sdf3 to render
+	r RenderFe, // rendering method
+) []sdf.Fe {
+	fmt.Printf("rendering %s\n", r.Info(s))
+
+	voxelCount, _, _, _ := r.Voxels(s)
+	fmt.Printf("voxel counts of marching algorithm are: (%v x %v x %v)\n", voxelCount.X, voxelCount.Y, voxelCount.Z)
+
+	// Will be filled by the rendering.
+	fes := make([]sdf.Fe, 0)
+
+	var wg sync.WaitGroup
+
+	// To write the finite elements.
+	output := sdf.WriteFes(&wg, &fes)
+
+	// run the renderer
+	r.RenderFe(s, sdf.NewFeBuffer(output))
+	// stop the writer reading on the channel
+	close(output)
+	// wait for the file write to complete
+	wg.Wait()
+
+	return fes
 }
 
 //-----------------------------------------------------------------------------

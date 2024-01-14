@@ -39,6 +39,10 @@ func (t *triMeshSdf) Evaluate(p v3.Vec) float64 {
 	closestTriangle := math.MaxFloat64
 	// Quickly skip checking most triangles by only checking the N closest neighbours (AABB based)
 	neighbors := t.rtree.NearestNeighbors(t.numNeighbors, v3ToPoint(p))
+
+	// To check if all the distances have the same sign.
+	dists := make([]float64, 0, t.numNeighbors)
+
 	for _, neighbor := range neighbors {
 		triangle := neighbor.(*sdf.Triangle3)
 		testPointToTriangle := p.Sub(triangle[0])
@@ -50,8 +54,65 @@ func (t *triMeshSdf) Evaluate(p v3.Vec) float64 {
 			closestTriangle = distToTri
 			signedDistanceResult = signedDistanceToTriPlane
 		}
+		dists = append(dists, signedDistanceToTriPlane)
 	}
+
+	// Does the approach of this paper make sense:
+	// https://www2.imm.dtu.dk/pubdb/edoc/imm1289.pdf
+	// TODO: If so, try to implement it in the future.
+
+	if !sameSign(dists) {
+		// Sometimes the sign of the final result is not consistent.
+		signedDistanceResult = signConsistency(dists, signedDistanceResult)
+	}
+
 	return signedDistanceResult
+}
+
+func sameSign(values []float64) bool {
+
+	positive, negative := false, false
+
+	for _, v := range values {
+		if v > 0 {
+			positive = true
+		} else if v < 0 {
+			negative = true
+		}
+
+		// If we've seen both positive and negative, return early
+		if positive && negative {
+			return false
+		}
+	}
+
+	// All values must have been the same sign
+	return true
+}
+
+func signConsistency(values []float64, value float64) float64 {
+	positive := 0
+	negative := 0
+
+	for _, v := range values {
+		if v > 0 {
+			positive++
+		} else if v < 0 {
+			negative++
+		}
+	}
+
+	if positive > negative {
+		if value < 0 {
+			return -value
+		}
+	} else if negative > positive {
+		if value > 0 {
+			return -value
+		}
+	}
+
+	return value
 }
 
 func (t *triMeshSdf) BoundingBox() sdf.Box3 {
