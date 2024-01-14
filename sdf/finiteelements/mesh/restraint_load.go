@@ -6,6 +6,7 @@ import (
 )
 
 // A voxel is detected that intersects with the restraint location.
+// ... or that is closest to the restraint location.
 // Boundary is created for all the nodes inside that voxel.
 // This way, the stress concentration at the restraint may be alleviated by distributing it.
 type Restraint struct {
@@ -17,6 +18,7 @@ type Restraint struct {
 }
 
 // A voxel is detected that intersects with the point load location.
+// ... or that is closest the point load location.
 // A vertex inside that voxel is selected, i.e. the vertex closest to load location.
 // The vertex is assigned the load.
 // This way, point load is applied to a single node/vertex of the mesh.
