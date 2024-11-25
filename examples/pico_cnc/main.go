@@ -27,6 +27,44 @@ const shrink = 1.0 / 0.999 // PLA ~0.1%
 //const shrink = 1.0/0.995; // ABS ~0.5%
 
 //-----------------------------------------------------------------------------
+// pcb mount base for rs232/ttl serial converter
+
+func serialConverter() (sdf.SDF3, error) {
+
+	pcbSize := v3.Vec{21.5, 40.0, 1.5}
+	//pcbMargin := v3.Vec{0.5, 0.5, 0.5}
+
+	const baseY0 = 3.0
+	const baseY1 = 15.0
+	baseX0 := (0.5 * pcbSize.Y) - 0.5
+	const baseX1 = 4.0
+	const baseX2 = 8.0
+	baseX := baseX0 + baseX1 + baseX2
+	const baseZ = 25.0
+
+	p := sdf.NewPolygon()
+	p.Add(0, 0)
+	p.Add(baseX, 0).Rel()
+	p.Add(0, baseY0).Rel()
+	p.Add(-baseX2, 0).Rel()
+	p.Add(0, baseY1).Rel()
+	p.Add(-baseX1, -baseX1).Rel()
+	p.Add(baseX0, baseY0)
+	p.Add(-baseX0, 0).Rel()
+	p.Add(0, -baseY0).Rel()
+	s, err := sdf.Polygon2D(p.Vertices())
+	if err != nil {
+		return nil, err
+	}
+	base0 := sdf.Extrude3D(s, baseZ)
+	base1 := sdf.Transform3D(base0, sdf.MirrorYZ())
+	base := sdf.Union3D(base0, base1)
+
+	return base, nil
+}
+
+//-----------------------------------------------------------------------------
+// pcb mount base for pico cnc
 
 const baseThickness = 3.0
 const pcbX = 92.0
@@ -112,6 +150,12 @@ func main() {
 		log.Fatalf("error: %s", err)
 	}
 	render.ToSTL(sdf.ScaleUniform3D(s, shrink), "pico_cnc.stl", render.NewMarchingCubesOctree(300))
+
+	s, err = serialConverter()
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	render.ToSTL(sdf.ScaleUniform3D(s, shrink), "serial.stl", render.NewMarchingCubesOctree(300))
 }
 
 //-----------------------------------------------------------------------------
