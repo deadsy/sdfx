@@ -38,40 +38,35 @@ func serialConverter() (sdf.SDF3, error) {
 	pcb := v3.Vec{21.5, 40.0, 1.5}
 
 	const margin0 = 0.5
-
 	const baseY0 = 3.0
 	const baseY1 = 15.0
+
 	baseX0 := (0.5 * pcb.Y) - margin0
-	const baseX1 = 4.0
-	const baseX2 = 8.0
-	baseX := baseX0 + baseX1 + baseX2
-	const baseZ = 25.0
+	const baseX1 = 5.0
+	baseX := baseX0 + baseX1
+	baseZ := pcb.X + 6.0
 
 	// body profile
 	p := sdf.NewPolygon()
 	p.Add(0, 0)
 	p.Add(baseX, 0).Rel()
-	p.Add(0, baseY0).Rel()
-	p.Add(-baseX2, 0).Rel()
-	p.Add(0, baseY1).Rel()
-	p.Add(-baseX1, -0.5*baseX1).Rel()
+	p.Add(0, baseY0+baseY1).Rel()
+	p.Add(-baseX1, 0).Rel()
 	p.Add(baseX0, baseY0)
 	p.Add(-baseX0, 0).Rel()
-	p.Add(0, -baseY0).Rel()
+	p.Add(0, 0)
 	s2d, _ := sdf.Polygon2D(p.Vertices())
 	base0 := sdf.Extrude3D(s2d, baseZ)
 
 	// indent for pcb board
-	const margin1 = 0.5
-	indentHeight := pcb.Z + margin1 + 2.0
+	const margin1 = 0.3
 	boardY := (baseY0 + baseY1) * 0.5
 
 	p = sdf.NewPolygon()
 	p.Add(0, 0)
 	p.Add(0.5*pcb.Y+margin1, 0).Rel()
-	p.Add(0, pcb.Z+margin1).Rel()
-	p.Add(baseX0, indentHeight)
-	p.Add(0, indentHeight)
+	p.Add(baseX0, 2.0*pcb.Z)
+	p.Add(-baseX0, 0).Rel()
 	p.Add(0, 0)
 	s2d, _ = sdf.Polygon2D(p.Vertices())
 	pcbIndent := sdf.Extrude3D(s2d, pcb.X+margin1)
@@ -81,7 +76,7 @@ func serialConverter() (sdf.SDF3, error) {
 	// base mounting hole
 	hole, _ := sdf.Cylinder3D(3*baseY0, baseHoleDiameter*0.5, 0)
 	hole = sdf.Transform3D(hole, sdf.RotateX(sdf.DtoR(90)))
-	hole = sdf.Transform3D(hole, sdf.Translate3d(v3.Vec{baseX - 0.5*baseX2, 0, 0}))
+	hole = sdf.Transform3D(hole, sdf.Translate3d(v3.Vec{baseX0 * 0.7, 0, 0}))
 	base0 = sdf.Difference3D(base0, hole)
 
 	base1 := sdf.Transform3D(base0, sdf.MirrorYZ())
