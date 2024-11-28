@@ -35,10 +35,12 @@ const baseHoleDiameter = 3.5
 
 func serialConverter1() (sdf.SDF3, error) {
 
-	pcb := v3.Vec{21.5, 40.0, 1.5}.Add(v3.Vec{0, 0.4, 0.1})
+	// v3.Vec{0, 0.4, 0.1} // too tight
+
+	pcb := v3.Vec{21.5, 40.0, 1.5}.Add(v3.Vec{0, 0.8, 0.4})
 
 	wallThickness := 5.0
-	innerBox := v3.Vec{pcb.X, pcb.Y - 2.0, 15}
+	innerBox := v3.Vec{pcb.X, pcb.Y - 3.0, 15}
 	outerBox := innerBox.Add(v3.Vec{wallThickness, 2.0 * wallThickness, wallThickness})
 
 	outer, _ := sdf.Box3D(outerBox, 0.5*wallThickness)
