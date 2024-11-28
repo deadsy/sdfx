@@ -33,6 +33,40 @@ const baseHoleDiameter = 3.5
 //-----------------------------------------------------------------------------
 // pcb mount base for rs232/ttl serial converter
 
+func serialConverter1() (sdf.SDF3, error) {
+
+	pcb := v3.Vec{21.5, 40.0, 1.5}.Add(v3.Vec{0, 0.4, 0.1})
+
+	wallThickness := 5.0
+	innerBox := v3.Vec{pcb.X, pcb.Y - 2.0, 15}
+	outerBox := innerBox.Add(v3.Vec{wallThickness, 2.0 * wallThickness, wallThickness})
+
+	outer, _ := sdf.Box3D(outerBox, 0.5*wallThickness)
+	inner, _ := sdf.Box3D(innerBox, 0)
+
+	// body
+	s := sdf.Difference3D(outer, inner)
+	s = sdf.Cut3D(s, v3.Vec{0.5 * innerBox.X, 0, 0}, v3.Vec{-1, 0, 0})
+	s = sdf.Cut3D(s, v3.Vec{0, 0, 0.5 * innerBox.Z}, v3.Vec{0, 0, -1})
+
+	// base mounting hole
+	hole0, _ := sdf.Cylinder3D(10*wallThickness, baseHoleDiameter*0.5, 0)
+	hole0 = sdf.Transform3D(hole0, sdf.Translate3d(v3.Vec{0, 0.35 * innerBox.Y, 0}))
+	hole1 := sdf.Transform3D(hole0, sdf.MirrorXZ())
+	holes := sdf.Union3D(hole0, hole1)
+
+	// pcb
+	board, _ := sdf.Box3D(pcb, 0)
+
+	s = sdf.Difference3D(s, holes)
+	s = sdf.Difference3D(s, board)
+
+	return s, nil
+}
+
+//-----------------------------------------------------------------------------
+// pcb mount base for rs232/ttl serial converter
+
 func serialConverter() (sdf.SDF3, error) {
 
 	pcb := v3.Vec{21.5, 40.0, 1.5}
@@ -173,7 +207,7 @@ func main() {
 	}
 	render.ToSTL(sdf.ScaleUniform3D(s, shrink), "pico_cnc.stl", render.NewMarchingCubesOctree(300))
 
-	s, err = serialConverter()
+	s, err = serialConverter1()
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
