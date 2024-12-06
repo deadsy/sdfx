@@ -11,6 +11,7 @@ package stand
 import (
 	"math"
 
+	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/sdf"
 	v2 "github.com/deadsy/sdfx/vec/v2"
 	v3 "github.com/deadsy/sdfx/vec/v3"
@@ -30,6 +31,9 @@ const baseLength = 160.0
 
 const baseFootX = 30.0
 const baseFootY = 15.0
+const baseHoleRadius = 2.0
+
+var baseHolePosn = v2.Vec{0.7, 0.8}
 
 const supportPosn = 0.25 // fraction of baseWidth
 const supportHeight = 120.0
@@ -105,7 +109,7 @@ func base() (sdf.SDF3, error) {
 
 //-----------------------------------------------------------------------------
 
-func baseHole() (sdf.SDF3, error) {
+func baseCutout() (sdf.SDF3, error) {
 	holeSize := v2.Vec{baseLength - 2*baseFootX, baseWidth - 2*baseFootY}
 	s2d := sdf.Box2D(holeSize, filletRadius)
 	s := sdf.Extrude3D(s2d, baseHeight)
@@ -113,6 +117,29 @@ func baseHole() (sdf.SDF3, error) {
 	s = sdf.Transform3D(s, sdf.RotateY(sdf.DtoR(90)))
 	s = sdf.Transform3D(s, sdf.Translate3d(v3.Vec{0.5 * baseWidth, 0.5 * baseHeight, 0}))
 	return s, nil
+}
+
+func baseHole() (sdf.SDF3, error) {
+	s, err := obj.CounterSunkHole3D(baseHeight, baseHoleRadius)
+	if err != nil {
+		return nil, err
+	}
+	return sdf.Transform3D(s, sdf.Translate3d(v3.Vec{0, 0, 0.5 * baseHeight})), nil
+}
+
+func baseHoles() (sdf.SDF3, error) {
+	s, err := baseHole()
+	if err != nil {
+		return nil, err
+	}
+
+	dx := 0.5 * baseHolePosn.X * baseWidth
+	dy := 0.5 * baseHolePosn.Y * baseLength
+
+	holes := sdf.Multi3D(s, v3.VecSet{{dx, dy, 0}, {-dx, dy, 0}, {dx, -dy, 0}, {-dx, -dy, 0}})
+	holes = sdf.Transform3D(holes, sdf.RotateX(sdf.DtoR(-90)))
+	holes = sdf.Transform3D(holes, sdf.Translate3d(v3.Vec{0.5 * baseWidth, 0, 0}))
+	return holes, nil
 }
 
 //-----------------------------------------------------------------------------
@@ -134,12 +161,17 @@ func DisplayStand() (sdf.SDF3, error) {
 		return nil, err
 	}
 
-	hole, err := baseHole()
+	cutout, err := baseCutout()
 	if err != nil {
 		return nil, err
 	}
 
-	return sdf.Difference3D(sdf.Union3D(base, webs, supports), sdf.Union3D(hole)), nil
+	baseHoles, err := baseHoles()
+	if err != nil {
+		return nil, err
+	}
+
+	return sdf.Difference3D(sdf.Union3D(base, webs, supports), sdf.Union3D(cutout, baseHoles)), nil
 }
 
 //-----------------------------------------------------------------------------
