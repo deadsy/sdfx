@@ -310,6 +310,30 @@ func powerPanel() (sdf.SDF3, error) {
 	return sdf.Extrude3D(sdf.Difference2D(s, cutouts), baseThickness), nil
 }
 
+// powerPanelRouting returns a routing pattern for the power panel.
+func powerPanelRouting() (sdf.SDF3, error) {
+
+	const baseThickness = 4
+
+	k := obj.PanelParms{
+		Size:         v2.Vec{85, 95},
+		CornerRadius: 5.0,
+		HoleDiameter: 4.0,
+		HoleMargin:   [4]float64{5.0, 5.0, 5.0, 5.0},
+		HolePattern:  [4]string{"x", "x", "x", "x"},
+	}
+
+	s, err := obj.Panel2D(&k)
+	if err != nil {
+		return nil, err
+	}
+
+	// panel cutout
+	c := sdf.Box2D(v2.Vec{55, 65}, 3)
+
+	return sdf.Extrude3D(sdf.Difference2D(s, c), baseThickness), nil
+}
+
 //-----------------------------------------------------------------------------
 
 // arPanel returns the panel for an attack/release module.
@@ -415,35 +439,41 @@ func bbPanel() (sdf.SDF3, error) {
 
 func main() {
 
-	p0, err := arPanel()
+	p, err := arPanel()
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.ToSTL(sdf.ScaleUniform3D(p0, shrink), "ar_panel.stl", render.NewMarchingCubesOctree(300))
+	render.ToSTL(sdf.ScaleUniform3D(p, shrink), "ar_panel.stl", render.NewMarchingCubesOctree(300))
 
-	p1, err := powerBoardMount()
+	p, err = powerBoardMount()
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.ToSTL(sdf.ScaleUniform3D(p1, shrink), "pwr_mount.stl", render.NewMarchingCubesOctree(300))
+	render.ToSTL(sdf.ScaleUniform3D(p, shrink), "pwr_mount.stl", render.NewMarchingCubesOctree(300))
 
-	p2, err := powerPanel()
+	p, err = powerPanel()
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.ToSTL(sdf.ScaleUniform3D(p2, shrink), "pwr_panel.stl", render.NewMarchingCubesOctree(300))
+	render.ToSTL(sdf.ScaleUniform3D(p, shrink), "pwr_panel.stl", render.NewMarchingCubesOctree(300))
 
-	p3, err := psuMount()
+	p, err = powerPanelRouting()
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.ToSTL(sdf.ScaleUniform3D(p3, shrink), "psu_mount.stl", render.NewMarchingCubesOctree(300))
+	render.ToSTL(sdf.ScaleUniform3D(p, shrink), "pwr_panel_routing.stl", render.NewMarchingCubesOctree(300))
 
-	p4, err := bbPanel()
+	p, err = psuMount()
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.ToSTL(sdf.ScaleUniform3D(p4, shrink), "bb_panel.stl", render.NewMarchingCubesOctree(300))
+	render.ToSTL(sdf.ScaleUniform3D(p, shrink), "psu_mount.stl", render.NewMarchingCubesOctree(300))
+
+	p, err = bbPanel()
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	render.ToSTL(sdf.ScaleUniform3D(p, shrink), "bb_panel.stl", render.NewMarchingCubesOctree(300))
 }
 
 //-----------------------------------------------------------------------------
