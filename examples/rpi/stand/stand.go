@@ -19,7 +19,7 @@ import (
 
 //-----------------------------------------------------------------------------
 
-const displayAngle = 15.0 // degrees
+const displayAngle = 15.0 // degrees from vertical
 var tanTheta = math.Tan(sdf.DtoR(displayAngle))
 var invCosTheta = 1.0 / math.Cos(sdf.DtoR(displayAngle))
 
@@ -42,6 +42,12 @@ const supportLength = 20.0
 
 const webSize = 7.0
 const webLength = 5.0
+
+// 4 x M3 mounting holes on display
+const displayW = 126.2
+const displayH = 65.65
+const displayHoleRadius = 0.5 * 3.9
+const displayPosn = 0.7 // fraction of supportHeight
 
 //-----------------------------------------------------------------------------
 
@@ -144,6 +150,29 @@ func baseHoles() (sdf.SDF3, error) {
 
 //-----------------------------------------------------------------------------
 
+func displayHoles() (sdf.SDF3, error) {
+
+	s, err := sdf.Cylinder3D(2*supportThickness, displayHoleRadius, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	dx := 0.5 * displayW
+	dy := 0.5 * displayH
+
+	holes := sdf.Multi3D(s, v3.VecSet{{dx, dy, 0}, {-dx, dy, 0}, {dx, -dy, 0}, {-dx, -dy, 0}})
+	holes = sdf.Transform3D(holes, sdf.RotateY(sdf.DtoR(90)))
+	holes = sdf.Transform3D(holes, sdf.RotateZ(sdf.DtoR(15)))
+
+	yOfs := displayPosn * supportHeight
+	xOfs := (1-supportPosn)*baseWidth - (baseHeight * tanTheta) - (yOfs * tanTheta)
+	holes = sdf.Transform3D(holes, sdf.Translate3d(v3.Vec{xOfs, yOfs, 0}))
+
+	return holes, nil
+}
+
+//-----------------------------------------------------------------------------
+
 func DisplayStand() (sdf.SDF3, error) {
 
 	base, err := base()
@@ -171,7 +200,12 @@ func DisplayStand() (sdf.SDF3, error) {
 		return nil, err
 	}
 
-	return sdf.Difference3D(sdf.Union3D(base, webs, supports), sdf.Union3D(cutout, baseHoles)), nil
+	displayHoles, err := displayHoles()
+	if err != nil {
+		return nil, err
+	}
+
+	return sdf.Difference3D(sdf.Union3D(base, webs, supports), sdf.Union3D(cutout, baseHoles, displayHoles)), nil
 }
 
 //-----------------------------------------------------------------------------
