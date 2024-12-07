@@ -21,7 +21,7 @@ import (
 func vent2() (sdf.SDF3, error) {
 	k := &obj.DrainCoverParms{
 		WallDiameter:   1.9 * sdf.MillimetresPerInch,
-		WallHeight:     0.75 * sdf.MillimetresPerInch,
+		WallHeight:     0.5 * sdf.MillimetresPerInch,
 		WallThickness:  0.125 * sdf.MillimetresPerInch,
 		WallDraft:      0,
 		OuterWidth:     0.2 * sdf.MillimetresPerInch,
