@@ -18,6 +18,24 @@ import (
 
 //-----------------------------------------------------------------------------
 
+func vent2() (sdf.SDF3, error) {
+	k := &obj.DrainCoverParms{
+		WallDiameter:   1.9 * sdf.MillimetresPerInch,
+		WallHeight:     0.75 * sdf.MillimetresPerInch,
+		WallThickness:  0.125 * sdf.MillimetresPerInch,
+		WallDraft:      0,
+		OuterWidth:     0.2 * sdf.MillimetresPerInch,
+		InnerWidth:     0.18 * sdf.MillimetresPerInch,
+		CoverThickness: 0.125 * sdf.MillimetresPerInch,
+		GrateNumber:    8,
+		GrateWidth:     1.1,
+		GrateDraft:     0,
+		CrossBarWidth:  0,
+		CrossBarWeb:    false,
+	}
+	return obj.DrainCover(k)
+}
+
 func drain4() (sdf.SDF3, error) {
 	k := &obj.DrainCoverParms{
 		WallDiameter:   3.9 * sdf.MillimetresPerInch,
@@ -75,7 +93,14 @@ func drain12() (sdf.SDF3, error) {
 //-----------------------------------------------------------------------------
 
 func main() {
-	s, err := drain4()
+
+	s, err := vent2()
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	render.ToSTL(s, "vent2.stl", render.NewMarchingCubesOctree(300))
+
+	s, err = drain4()
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
