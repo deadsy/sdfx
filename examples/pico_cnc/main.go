@@ -31,9 +31,47 @@ const shrink = 1.0 / 0.999 // PLA ~0.1%
 const baseHoleDiameter = 3.5
 
 //-----------------------------------------------------------------------------
+// keypad panel
+
+func keypadPanel() (sdf.SDF3, error) {
+
+	const panelThickness = 5.5
+	const panelX = 75
+	const panelYa = 25
+	const panelYb = 45
+	const panelY = 2 * (panelYa + panelYb)
+
+	k := &obj.PanelParms{
+		Size:         v2.Vec{panelX, panelY},
+		CornerRadius: 4,
+		HoleDiameter: baseHoleDiameter,
+		HoleMargin:   [4]float64{7, 7, 7, 7},
+		HolePattern:  [4]string{"x", "xx", "x", "xx"},
+		Thickness:    panelThickness,
+	}
+
+	// key hole
+	const holeRadius = (22.0 + 1.5) * 0.5
+
+	hole0, err := sdf.Cylinder3D(panelThickness, holeRadius, 0)
+	if err != nil {
+		return nil, err
+	}
+	hole1 := sdf.Transform3D(hole0, sdf.Translate3d(v3.Vec{0, panelYb, 0}))
+	hole2 := sdf.Transform3D(hole0, sdf.Translate3d(v3.Vec{0, -panelYb, 0}))
+
+	panel, err := obj.Panel3D(k)
+	if err != nil {
+		return nil, err
+	}
+
+	return sdf.Difference3D(panel, sdf.Union3D(hole0, hole1, hole2)), nil
+}
+
+//-----------------------------------------------------------------------------
 // pcb mount base for rs232/ttl serial converter
 
-func serialConverter1() (sdf.SDF3, error) {
+func serialConverter() (sdf.SDF3, error) {
 
 	// v3.Vec{0, 0.4, 0.1} // too tight
 
@@ -64,61 +102,6 @@ func serialConverter1() (sdf.SDF3, error) {
 	s = sdf.Difference3D(s, board)
 
 	return s, nil
-}
-
-//-----------------------------------------------------------------------------
-// pcb mount base for rs232/ttl serial converter
-
-func serialConverter() (sdf.SDF3, error) {
-
-	pcb := v3.Vec{21.5, 40.0, 1.5}
-
-	const margin0 = 0.5
-	const baseY0 = 3.0
-	const baseY1 = 15.0
-
-	baseX0 := (0.5 * pcb.Y) - margin0
-	const baseX1 = 5.0
-	baseX := baseX0 + baseX1
-	baseZ := pcb.X + 6.0
-
-	// body profile
-	p := sdf.NewPolygon()
-	p.Add(0, 0)
-	p.Add(baseX, 0).Rel()
-	p.Add(0, baseY0+baseY1).Rel()
-	p.Add(-baseX1, 0).Rel()
-	p.Add(baseX0, baseY0)
-	p.Add(-baseX0, 0).Rel()
-	p.Add(0, 0)
-	s2d, _ := sdf.Polygon2D(p.Vertices())
-	base0 := sdf.Extrude3D(s2d, baseZ)
-
-	// indent for pcb board
-	const margin1 = 0.3
-	boardY := (baseY0 + baseY1) * 0.5
-
-	p = sdf.NewPolygon()
-	p.Add(0, 0)
-	p.Add(0.5*pcb.Y+margin1, 0).Rel()
-	p.Add(baseX0, 2.0*pcb.Z)
-	p.Add(-baseX0, 0).Rel()
-	p.Add(0, 0)
-	s2d, _ = sdf.Polygon2D(p.Vertices())
-	pcbIndent := sdf.Extrude3D(s2d, pcb.X+margin1)
-	pcbIndent = sdf.Transform3D(pcbIndent, sdf.Translate3d(v3.Vec{0, boardY, 0}))
-	base0 = sdf.Difference3D(base0, pcbIndent)
-
-	// base mounting hole
-	hole, _ := sdf.Cylinder3D(3*baseY0, baseHoleDiameter*0.5, 0)
-	hole = sdf.Transform3D(hole, sdf.RotateX(sdf.DtoR(90)))
-	hole = sdf.Transform3D(hole, sdf.Translate3d(v3.Vec{baseX0 * 0.7, 0, 0}))
-	base0 = sdf.Difference3D(base0, hole)
-
-	base1 := sdf.Transform3D(base0, sdf.MirrorYZ())
-	base := sdf.Union3D(base0, base1)
-
-	return base, nil
 }
 
 //-----------------------------------------------------------------------------
@@ -209,11 +192,17 @@ func main() {
 	}
 	render.ToSTL(sdf.ScaleUniform3D(s, shrink), "pico_cnc.stl", render.NewMarchingCubesOctree(300))
 
-	s, err = serialConverter1()
+	s, err = serialConverter()
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 	render.ToSTL(sdf.ScaleUniform3D(s, shrink), "serial.stl", render.NewMarchingCubesOctree(300))
+
+	s, err = keypadPanel()
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	render.ToSTL(sdf.ScaleUniform3D(s, shrink), "keypad_panel.stl", render.NewMarchingCubesOctree(300))
 }
 
 //-----------------------------------------------------------------------------
