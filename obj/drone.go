@@ -188,6 +188,7 @@ func DroneMotorArm(k *DroneArmParms) (sdf.SDF3, error) {
 //-----------------------------------------------------------------------------
 // socket to fit the motor arm
 
+// DroneArmSocketParms defines a socket for a drone motor arm.
 type DroneArmSocketParms struct {
 	Arm       *DroneArmParms // drone arm parameters
 	Size      v3.Vec         // body size for socket
@@ -237,6 +238,7 @@ func socketStop(k *DroneArmSocketParms) (sdf.SDF3, error) {
 	return s, nil
 }
 
+// DroneMotorArmSocket returns a socket for a drone motor arm.
 func DroneMotorArmSocket(k *DroneArmSocketParms) (sdf.SDF3, error) {
 	h := socketHeight(k)
 	if k.Size.Y <= h || k.Size.Z <= h {
