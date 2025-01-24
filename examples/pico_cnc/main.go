@@ -31,6 +31,22 @@ const shrink = 1.0 / 0.999 // PLA ~0.1%
 const baseHoleDiameter = 3.5
 
 //-----------------------------------------------------------------------------
+// pen holder
+
+func penHolder() (sdf.SDF3, error) {
+
+	k := obj.SpringParms{
+		Width:         20, // width of spring
+		Height:        10, // height of spring (3d only)
+		WallThickness: 1,  // thickness of wall
+		Diameter:      5,  // diameter of spring turn
+		NumSections:   6,  // number of spring sections
+	}
+
+	return obj.Spring3D(&k)
+}
+
+//-----------------------------------------------------------------------------
 // keypad panel
 
 func keypadPanel() (sdf.SDF3, error) {
@@ -203,6 +219,12 @@ func main() {
 		log.Fatalf("error: %s", err)
 	}
 	render.ToSTL(sdf.ScaleUniform3D(s, shrink), "keypad_panel.stl", render.NewMarchingCubesOctree(300))
+
+	s, err = penHolder()
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	render.ToSTL(sdf.ScaleUniform3D(s, shrink), "pen_holder.stl", render.NewMarchingCubesOctree(300))
 }
 
 //-----------------------------------------------------------------------------
