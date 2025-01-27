@@ -28,7 +28,7 @@ type SpringParms struct {
 }
 
 // springLength returns the total spring length.
-func (k *SpringParms) springLength() float64 {
+func (k *SpringParms) SpringLength() float64 {
 	length := k.Boss[0] + k.Boss[1]
 	length += k.WallThickness * (float64(k.NumSections) - 1)
 	length += (k.Diameter - 2.0*k.WallThickness) * float64(k.NumSections)
@@ -80,7 +80,7 @@ func (k *SpringParms) Spring2D() (sdf.SDF2, error) {
 
 	// build the spring
 	var parts []sdf.SDF2
-	posn := v2.Vec{-0.5 * k.springLength(), 0}
+	posn := v2.Vec{-0.5 * k.SpringLength(), 0}
 	for i, t := range wt {
 		wall := sdf.Box2D(v2.Vec{t, k.Width + k.WallThickness}, 0.5*k.WallThickness)
 		posn.X += 0.5 * t

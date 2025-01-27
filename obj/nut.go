@@ -16,6 +16,48 @@ import (
 
 //-----------------------------------------------------------------------------
 
+type ThreadedCylinderParms struct {
+	Height    float64 // height of cylinder
+	Diameter  float64 // diameter of cylinder
+	Thread    string  // name of thread
+	Tolerance float64 // add to internal thread radius
+}
+
+// Object returns a cylinder with an internal thread.
+func (k *ThreadedCylinderParms) Object() (sdf.SDF3, error) {
+	// validate parameters
+	t, err := sdf.ThreadLookup(k.Thread)
+	if err != nil {
+		return nil, err
+	}
+	if k.Diameter < 0 {
+		return nil, sdf.ErrMsg("Diameter < 0")
+	}
+	if k.Height < 0 {
+		return nil, sdf.ErrMsg("Height < 0")
+	}
+	if k.Tolerance < 0 {
+		return nil, sdf.ErrMsg("Tolerance < 0")
+	}
+	body, err := sdf.Cylinder3D(k.Height, 0.5*k.Diameter, 0)
+	if err != nil {
+		return nil, err
+	}
+	// internal thread
+	t = t.ToMillimetre()
+	isoThread, err := sdf.ISOThread(t.Radius+k.Tolerance, t.Pitch, false)
+	if err != nil {
+		return nil, err
+	}
+	thread, err := sdf.Screw3D(isoThread, k.Height, t.Taper, t.Pitch, 1)
+	if err != nil {
+		return nil, err
+	}
+	return sdf.Difference3D(body, thread), nil
+}
+
+//-----------------------------------------------------------------------------
+
 // NutParms defines the parameters for a nut.
 type NutParms struct {
 	Thread    string  // name of thread

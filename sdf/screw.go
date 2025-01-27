@@ -42,6 +42,21 @@ type ThreadParameters struct {
 	Units        string  // "inch" or "mm"
 }
 
+// ToMillimetre converts thread parameters from inch to millimetre.
+func (t *ThreadParameters) ToMillimetre() *ThreadParameters {
+	if t.Units == "mm" {
+		return t
+	}
+	return &ThreadParameters{
+		Name:         t.Name,
+		Radius:       t.Radius * MillimetresPerInch,
+		Pitch:        t.Pitch * MillimetresPerInch,
+		Taper:        t.Taper,
+		HexFlat2Flat: t.HexFlat2Flat * MillimetresPerInch,
+		Units:        "mm",
+	}
+}
+
 type threadDatabase map[string]*ThreadParameters
 
 var threadDB = initThreadLookup()
@@ -58,7 +73,7 @@ func (m threadDatabase) UTSAdd(
 	}
 	t := ThreadParameters{}
 	t.Name = name
-	t.Radius = diameter / 2.0
+	t.Radius = 0.5 * diameter
 	t.Pitch = 1.0 / tpi
 	t.HexFlat2Flat = ftof
 	t.Units = "inch"
@@ -77,7 +92,7 @@ func (m threadDatabase) ISOAdd(
 	}
 	t := ThreadParameters{}
 	t.Name = name
-	t.Radius = diameter / 2.0
+	t.Radius = 0.5 * diameter
 	t.Pitch = pitch
 	t.HexFlat2Flat = ftof
 	t.Units = "mm"
@@ -96,7 +111,7 @@ func (m threadDatabase) NPTAdd(
 	}
 	t := ThreadParameters{}
 	t.Name = name
-	t.Radius = diameter / 2.0
+	t.Radius = 0.5 * diameter
 	t.Pitch = 1.0 / tpi
 	t.Taper = math.Atan(1.0 / 32.0)
 	t.HexFlat2Flat = ftof
@@ -108,6 +123,10 @@ func (m threadDatabase) NPTAdd(
 func initThreadLookup() threadDatabase {
 	m := make(threadDatabase)
 	// UTS Coarse
+	m.UTSAdd("unc_4_40", 0.112, 40, 0.183) // ftof?
+	m.UTSAdd("unc_6_32", 0.138, 32, 0.226) // ftof?
+	m.UTSAdd("unc_8_32", 0.164, 32, 0.27)  // ftof?
+	m.UTSAdd("unc_10_24", 0.19, 24, 0.312) // ftof?
 	m.UTSAdd("unc_1/4", 1.0/4.0, 20, 7.0/16.0)
 	m.UTSAdd("unc_5/16", 5.0/16.0, 18, 1.0/2.0)
 	m.UTSAdd("unc_3/8", 3.0/8.0, 16, 9.0/16.0)
@@ -118,7 +137,12 @@ func initThreadLookup() threadDatabase {
 	m.UTSAdd("unc_3/4", 3.0/4.0, 10, 9.0/8.0)
 	m.UTSAdd("unc_7/8", 7.0/8.0, 9, 21.0/16.0)
 	m.UTSAdd("unc_1", 1.0, 8, 3.0/2.0)
+
 	// UTS Fine
+	m.UTSAdd("unf_4_48", 0.112, 48, 0.183) // ftof?
+	m.UTSAdd("unf_6_40", 0.138, 40, 0.226) // ftof?
+	m.UTSAdd("unf_8_36", 0.164, 36, 0.27)  // ftof?
+	m.UTSAdd("unf_10_32", 0.19, 32, 0.312) // ftof?
 	m.UTSAdd("unf_1/4", 1.0/4.0, 28, 7.0/16.0)
 	m.UTSAdd("unf_5/16", 5.0/16.0, 24, 1.0/2.0)
 	m.UTSAdd("unf_3/8", 3.0/8.0, 24, 9.0/16.0)
@@ -166,6 +190,7 @@ func initThreadLookup() threadDatabase {
 	m.ISOAdd("M48x5", 48, 5, 75)
 	m.ISOAdd("M56x5.5", 56, 5.5, 85)
 	m.ISOAdd("M64x6", 64, 6, 95)
+
 	// ISO Fine
 	m.ISOAdd("M1x0.2", 1, 0.2, 1.75)    // ftof?
 	m.ISOAdd("M1.2x0.2", 1.2, 0.2, 2.0) // ftof?
