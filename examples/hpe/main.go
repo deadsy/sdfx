@@ -64,8 +64,8 @@ func ap745Standoffs() (sdf.SDF3, error) {
 
 func ap745mount() (sdf.SDF3, error) {
 
-	baseX := 180.0
-	baseY := 200.0
+	baseX := 170.0
+	baseY := 190.0
 
 	pcbX := 6102.36 * sdf.Mil
 	pcbY := 7047.24 * sdf.Mil
@@ -76,7 +76,7 @@ func ap745mount() (sdf.SDF3, error) {
 		CornerRadius: 5.0,
 		HoleDiameter: 3.5,
 		HoleMargin:   [4]float64{5.0, 5.0, 5.0, 5.0},
-		HolePattern:  [4]string{"xx", "xx", "xx", "xx"},
+		//HolePattern:  [4]string{"xx", "xxx", ".xx", ".xx"},
 	}
 	s0, err := obj.Panel2D(pp)
 	if err != nil {
