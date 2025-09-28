@@ -20,16 +20,12 @@ import (
 
 //-----------------------------------------------------------------------------
 
-// material shrinkage
-var shrink = 1.0 / 0.999 // PLA ~0.1%
-//var shrink = 1.0/0.995; // ABS ~0.5%
-
-//-----------------------------------------------------------------------------
-
 var baseThickness = 3.0
 var pillarHeight = 15.0
 
 //-----------------------------------------------------------------------------
+
+const holeSquare = 6102.36 * sdf.Mil
 
 func ap745Standoffs() (sdf.SDF3, error) {
 
@@ -44,10 +40,11 @@ func ap745Standoffs() (sdf.SDF3, error) {
 	}
 
 	positions0 := v3.VecSet{
-		{0, 6102.36 * sdf.Mil, zOfs},                 // 138 mil
-		{0, 0, zOfs},                                 // 138 mil
-		{6102.36 * sdf.Mil, 6102.36 * sdf.Mil, zOfs}, // 138 mil
-		{6102.36 * sdf.Mil, 0, zOfs},                 // 138 mil
+		{0, holeSquare, zOfs},          // 138 mil
+		{0, 0, zOfs},                   // 138 mil
+		{holeSquare, holeSquare, zOfs}, // 138 mil
+		{holeSquare, 0, zOfs},          // 138 mil
+
 		{3937.01 * sdf.Mil, 7047.24 * sdf.Mil, zOfs}, // 118 mil
 		{1240.16 * sdf.Mil, 5570.87 * sdf.Mil, zOfs}, // 118 mil
 		{2648.46 * sdf.Mil, 3485.15 * sdf.Mil, zOfs}, // 118 mil
@@ -95,6 +92,15 @@ func ap745mount() (sdf.SDF3, error) {
 	yOfs := 0.5 * pcbY
 	s2 = sdf.Transform3D(s2, sdf.Translate3d(v3.Vec{xOfs, yOfs, 0}))
 
+	// reinforcing ribs
+	const ribHeight = 5.0
+	r0, _ := sdf.Box3D(v3.Vec{3.0, 0.75 * pcbY, ribHeight}, 0)
+	yOfs = 0.5*pcbY - 12.0
+	zOfs := 0.5 * (ribHeight + baseThickness)
+	r0 = sdf.Transform3D(r0, sdf.Translate3d(v3.Vec{0, yOfs, zOfs}))
+	r1 := sdf.Transform3D(r0, sdf.Translate3d(v3.Vec{holeSquare, 0, 0}))
+	s2 = sdf.Union3D(s2, r0, r1)
+
 	// add the standoffs
 	s3, err := ap745Standoffs()
 	if err != nil {
@@ -115,7 +121,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.ToSTL(sdf.ScaleUniform3D(ap745mount, shrink), "ap745.stl", render.NewMarchingCubesOctree(500))
+	render.ToSTL(ap745mount, "ap745.stl", render.NewMarchingCubesOctree(500))
 
 }
 
