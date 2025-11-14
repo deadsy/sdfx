@@ -25,6 +25,68 @@ var pillarHeight = 15.0
 
 //-----------------------------------------------------------------------------
 
+func ap723hStandoffs() (sdf.SDF3, error) {
+
+	zOfs := 0.5 * (pillarHeight + baseThickness)
+
+	// standoffs with screw holes
+	k := &obj.StandoffParms{
+		PillarHeight:   pillarHeight,
+		PillarDiameter: 9.0,
+		HoleDepth:      10.0,
+		HoleDiameter:   2.4, // #4 screw
+	}
+
+	positions0 := v3.VecSet{
+		{0, 0, zOfs},
+		{103.0, 0, zOfs},
+		{103.0, 152.0, zOfs},
+		{0, 152.0, zOfs},
+	}
+
+	s, _ := obj.Standoff3D(k)
+	s0 := sdf.Multi3D(s, positions0)
+
+	return s0, nil
+}
+
+func ap723hMount() (sdf.SDF3, error) {
+
+	baseX := 120.0
+	baseY := 175.0
+
+	// base
+	pp := &obj.PanelParms{
+		Size:         v2.Vec{baseX, baseY},
+		CornerRadius: 5.0,
+	}
+	s0, err := obj.Panel2D(pp)
+	if err != nil {
+		return nil, err
+	}
+
+	var c1, c2 sdf.SDF2
+
+	// extrude the base
+	s2 := sdf.Extrude3D(sdf.Difference2D(s0, sdf.Union2D(c1, c2)), baseThickness)
+	xOfs := 0.5 * baseX
+	yOfs := 0.5 * baseY
+	s2 = sdf.Transform3D(s2, sdf.Translate3d(v3.Vec{xOfs, yOfs, 0}))
+
+	// add the standoffs
+	s3, err := ap723hStandoffs()
+	if err != nil {
+		return nil, err
+	}
+
+	s4 := sdf.Union3D(s2, s3)
+	s4.(*sdf.UnionSDF3).SetMin(sdf.PolyMin(3.0))
+
+	return s4, nil
+}
+
+//-----------------------------------------------------------------------------
+
 func ap725Standoffs() (sdf.SDF3, error) {
 
 	zOfs := 0.5 * (pillarHeight + baseThickness)
@@ -52,7 +114,7 @@ func ap725Standoffs() (sdf.SDF3, error) {
 	return s0, nil
 }
 
-func ap725mount() (sdf.SDF3, error) {
+func ap725Mount() (sdf.SDF3, error) {
 
 	baseX := 165.0
 	baseY := 150.0
@@ -147,7 +209,7 @@ func ap745Standoffs() (sdf.SDF3, error) {
 	return s0, nil
 }
 
-func ap745mount() (sdf.SDF3, error) {
+func ap745Mount() (sdf.SDF3, error) {
 
 	baseX := 170.0
 	baseY := 190.0
@@ -205,17 +267,24 @@ func ap745mount() (sdf.SDF3, error) {
 
 func main() {
 
-	ap725mount, err := ap725mount()
+	ap725, err := ap725Mount()
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.ToSTL(ap725mount, "ap725.stl", render.NewMarchingCubesOctree(500))
+	render.ToSTL(ap725, "ap725.stl", render.NewMarchingCubesOctree(500))
 
-	ap745mount, err := ap745mount()
+	ap745, err := ap745Mount()
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.ToSTL(ap745mount, "ap745.stl", render.NewMarchingCubesOctree(500))
+	render.ToSTL(ap745, "ap745.stl", render.NewMarchingCubesOctree(500))
+
+	ap723h, err := ap723hMount()
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	render.ToSTL(ap723h, "ap723h.stl", render.NewMarchingCubesOctree(500))
+
 }
 
 //-----------------------------------------------------------------------------
