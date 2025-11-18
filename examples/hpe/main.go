@@ -27,15 +27,26 @@ var pillarHeight = 15.0
 
 func ap723hStandoffs() (sdf.SDF3, error) {
 
-	zOfs := 0.5 * (pillarHeight + baseThickness)
-
 	// standoffs with screw holes
-	k := &obj.StandoffParms{
+	k0 := &obj.StandoffParms{
 		PillarHeight:   pillarHeight,
 		PillarDiameter: 10.0,
 		HoleDepth:      10.0,
+		HoleDiameter:   4.0,
+	}
+
+	k1 := &obj.StandoffParms{
+		PillarHeight:   pillarHeight + 1.5,
+		PillarDiameter: 6.0,
+		HoleDepth:      10.0,
 		HoleDiameter:   2.4, // #4 screw
 	}
+
+	s0, _ := obj.Standoff3D(k0)
+	s1, _ := obj.Standoff3D(k1)
+	s := sdf.Union3D(s0, s1)
+
+	zOfs := 0.5 * (pillarHeight + baseThickness)
 
 	positions0 := v3.VecSet{
 		{0, 0, zOfs},
@@ -44,10 +55,7 @@ func ap723hStandoffs() (sdf.SDF3, error) {
 		{0, 152.0, zOfs},
 	}
 
-	s, _ := obj.Standoff3D(k)
-	s0 := sdf.Multi3D(s, positions0)
-
-	return s0, nil
+	return sdf.Multi3D(s, positions0), nil
 }
 
 func ap723hMount() (sdf.SDF3, error) {
