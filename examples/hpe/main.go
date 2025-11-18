@@ -36,8 +36,8 @@ func ap723hStandoffs() (sdf.SDF3, error) {
 	}
 
 	k1 := &obj.StandoffParms{
-		PillarHeight:   pillarHeight + 1.5,
-		PillarDiameter: 6.0,
+		PillarHeight:   pillarHeight + 2.0,
+		PillarDiameter: 5.5,
 		HoleDepth:      10.0,
 		HoleDiameter:   2.4, // #4 screw
 	}
@@ -60,7 +60,7 @@ func ap723hStandoffs() (sdf.SDF3, error) {
 
 func ap723hMount() (sdf.SDF3, error) {
 
-	pcbX := 103.0
+	pcbX := 102.5
 	pcbY := 152.0
 
 	baseX := pcbX + 20.0
