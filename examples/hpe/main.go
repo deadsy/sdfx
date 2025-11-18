@@ -32,7 +32,7 @@ func ap723hStandoffs() (sdf.SDF3, error) {
 	// standoffs with screw holes
 	k := &obj.StandoffParms{
 		PillarHeight:   pillarHeight,
-		PillarDiameter: 9.0,
+		PillarDiameter: 10.0,
 		HoleDepth:      10.0,
 		HoleDiameter:   2.4, // #4 screw
 	}
@@ -52,8 +52,11 @@ func ap723hStandoffs() (sdf.SDF3, error) {
 
 func ap723hMount() (sdf.SDF3, error) {
 
-	baseX := 120.0
-	baseY := 175.0
+	pcbX := 103.0
+	pcbY := 152.0
+
+	baseX := pcbX + 20.0
+	baseY := pcbY + 20.0
 
 	// base
 	pp := &obj.PanelParms{
@@ -65,13 +68,31 @@ func ap723hMount() (sdf.SDF3, error) {
 		return nil, err
 	}
 
-	var c1, c2 sdf.SDF2
+	// cutouts
+	c1 := sdf.Box2D(v2.Vec{baseX - 35, baseY - 35}, 5.0)
 
 	// extrude the base
-	s2 := sdf.Extrude3D(sdf.Difference2D(s0, sdf.Union2D(c1, c2)), baseThickness)
-	xOfs := 0.5 * baseX
-	yOfs := 0.5 * baseY
+	s2 := sdf.Extrude3D(sdf.Difference2D(s0, c1), baseThickness)
+	xOfs := 0.5 * pcbX
+	yOfs := 0.5 * pcbY
 	s2 = sdf.Transform3D(s2, sdf.Translate3d(v3.Vec{xOfs, yOfs, 0}))
+
+	// reinforcing ribs
+	const ribHeight = 5.0
+	r0, _ := sdf.Box3D(v3.Vec{3.0, 0.9 * pcbY, ribHeight}, 0)
+	yOfs = 0.5 * pcbY
+	xOfs = pcbX
+	zOfs := 0.5 * (ribHeight + baseThickness)
+	r0 = sdf.Transform3D(r0, sdf.Translate3d(v3.Vec{0, yOfs, zOfs}))
+	r1 := sdf.Transform3D(r0, sdf.Translate3d(v3.Vec{xOfs, 0, 0}))
+
+	r2, _ := sdf.Box3D(v3.Vec{0.8 * pcbX, 3.0, ribHeight}, 0)
+	yOfs = pcbY
+	xOfs = 0.5 * pcbX
+	r2 = sdf.Transform3D(r2, sdf.Translate3d(v3.Vec{xOfs, 0, zOfs}))
+	r3 := sdf.Transform3D(r2, sdf.Translate3d(v3.Vec{0, yOfs, 0}))
+
+	s2 = sdf.Union3D(s2, r0, r1, r2, r3)
 
 	// add the standoffs
 	s3, err := ap723hStandoffs()
