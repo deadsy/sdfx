@@ -25,6 +25,33 @@ var pillarHeight = 15.0
 
 //-----------------------------------------------------------------------------
 
+func ap723hSupport() (sdf.SDF3, error) {
+
+	const w0 = 20
+	const l0 = 60
+	const h0 = 6
+
+	b0, _ := sdf.Box3D(v3.Vec{w0, l0, h0}, 0)
+
+	const h1 = 3.7
+	const l1 = 47
+
+	b1, _ := sdf.Box3D(v3.Vec{w0, l1, h1}, 0)
+	zOfs := 0.5 * (h1 - h0)
+	yOfs := 0.5 * (l1 - l0)
+	b1 = sdf.Transform3D(b1, sdf.Translate3d(v3.Vec{0, yOfs, zOfs}))
+
+	hole, _ := sdf.Cylinder3D(h0-h1, 1.2, 0)
+	xOfs := 0.5*w0 - 3.0
+	yOfs = l1 - 0.5*l0
+	zOfs = 0.5 * h1
+	hole = sdf.Transform3D(hole, sdf.Translate3d(v3.Vec{xOfs, yOfs, zOfs}))
+
+	s := sdf.Difference3D(b0, sdf.Union3D(b1, hole))
+
+	return s, nil
+}
+
 func ap723hStandoffs() (sdf.SDF3, error) {
 
 	// standoffs with screw holes
@@ -313,6 +340,12 @@ func main() {
 		log.Fatalf("error: %s", err)
 	}
 	render.ToSTL(ap723h, "ap723h.stl", render.NewMarchingCubesOctree(500))
+
+	support, err := ap723hSupport()
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	render.ToSTL(support, "ap723h_support.stl", render.NewMarchingCubesOctree(500))
 
 }
 
