@@ -5,6 +5,8 @@ Radio Parts
 
 Variable Capacitor: https://a.co/d/hFRjz4D
 
+Ferrite Rod: https://a.co/d/c1uaYZN
+
 */
 //-----------------------------------------------------------------------------
 
@@ -22,10 +24,35 @@ import (
 
 //-----------------------------------------------------------------------------
 
-const screwHoleRadius = 3.7 * 0.5
-const shaftRadius = 8.0 * 0.5
+func ferriteMount() (sdf.SDF3, error) {
+
+	const rodRadius = 10.6 * 0.5
+	const WallThickness = 4.0
+	const holderDepth = 8.0
+
+	holderRadius := WallThickness + rodRadius
+	holderLength := holderDepth + WallThickness
+
+	holder, err := sdf.Cylinder3D(holderLength, holderRadius, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	rodHole, err := sdf.Cylinder3D(holderDepth, rodRadius, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	zOfs := 0.5 * (holderLength - holderDepth)
+	rodHole = sdf.Transform3D(rodHole, sdf.Translate3d(v3.Vec{0, 0, zOfs}))
+
+	return sdf.Difference3D(holder, rodHole), nil
+}
 
 //-----------------------------------------------------------------------------
+
+const screwHoleRadius = 3.7 * 0.5
+const shaftRadius = 8.0 * 0.5
 
 func vcapMountHole(length float64) (sdf.SDF3, error) {
 	// screw holes for mounting
@@ -47,8 +74,8 @@ func vcapMountHole(length float64) (sdf.SDF3, error) {
 func vcapShaftHole(length float64) (sdf.SDF3, error) {
 
 	// tip for variable cpacitor shaft
-	const tipRadius = 6.4 * 0.5
-	const tipFlatToFlat = 4.4
+	const tipRadius = 6.6 * 0.5
+	const tipFlatToFlat = 4.5
 	const tipLength = 2.5
 	tip, err := sdf.Cylinder3D(tipLength, tipRadius, 0)
 	xOfs := tipFlatToFlat * 0.5
@@ -121,17 +148,24 @@ func vcapMount() (sdf.SDF3, error) {
 
 func main() {
 
-	knob, err := vcapKnob()
+	vcapKnob, err := vcapKnob()
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.ToSTL(knob, "knob.stl", render.NewMarchingCubesUniform(500))
+	render.ToSTL(vcapKnob, "vc_knob.stl", render.NewMarchingCubesUniform(500))
 
-	mount, err := vcapMount()
+	vcapMount, err := vcapMount()
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.ToSTL(mount, "mount.stl", render.NewMarchingCubesOctree(500))
+	render.ToSTL(vcapMount, "vc_mount.stl", render.NewMarchingCubesOctree(500))
+
+	ferriteMount, err := ferriteMount()
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	render.ToSTL(ferriteMount, "fr_mount.stl", render.NewMarchingCubesOctree(500))
+
 }
 
 //-----------------------------------------------------------------------------
