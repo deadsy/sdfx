@@ -18,7 +18,6 @@ import (
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
-	v2 "github.com/deadsy/sdfx/vec/v2"
 	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
@@ -57,18 +56,18 @@ const shaftRadius = 8.0 * 0.5
 func vcapMountHole(length float64) (sdf.SDF3, error) {
 	// screw holes for mounting
 	const screwOffset = 14.0 * 0.5
-	sh, err := sdf.Circle2D(screwHoleRadius)
+	sh, err := obj.ChamferedHole3D(length, screwHoleRadius, 0.5)
 	if err != nil {
 		return nil, err
 	}
-	h0 := sdf.Transform2D(sh, sdf.Translate2d(v2.Vec{screwOffset, 0}))
-	h1 := sdf.Transform2D(sh, sdf.Translate2d(v2.Vec{-screwOffset, 0}))
+	h0 := sdf.Transform3D(sh, sdf.Translate3d(v3.Vec{screwOffset, 0, 0}))
+	h1 := sdf.Transform3D(sh, sdf.Translate3d(v3.Vec{-screwOffset, 0, 0}))
 	// shaft hole
-	h2, err := sdf.Circle2D(shaftRadius + 0.4)
+	h2, err := sdf.Cylinder3D(length, shaftRadius+0.4, 0)
 	if err != nil {
 		return nil, err
 	}
-	return sdf.Extrude3D(sdf.Union2D(h0, h1, h2), length), nil
+	return sdf.Union3D(h0, h1, h2), nil
 }
 
 func vcapShaftHole(length float64) (sdf.SDF3, error) {
@@ -100,25 +99,35 @@ func vcapShaftHole(length float64) (sdf.SDF3, error) {
 	return sdf.Union3D(hole, tip, cs), nil
 }
 
+const mountThickness = 5.0
+
 func vcapKnob() (sdf.SDF3, error) {
 
 	const knobRadius = 40.0 * 0.5
-	const knobHeight = 22.0
+	const knobWidth = 15.0
+	const shaftLength = mountThickness + 1.0
 
-	knob, err := obj.KnurledHead3D(knobRadius, knobHeight, 3.0)
+	knob, err := sdf.Cylinder3D(knobWidth, knobRadius, 2.0)
 	if err != nil {
 		return nil, err
 	}
 
-	const shaftLength = knobHeight + 8.0
-	shaft, err := sdf.Cylinder3D(shaftLength, shaftRadius, 0)
+	knurl, err := obj.KnurledHead3D(knobRadius, knobWidth*0.67, 3.0)
 	if err != nil {
 		return nil, err
 	}
-	zOfs := 0.5 * (shaftLength - knobHeight)
+
+	knob = sdf.Union3D(knob, knurl)
+
+	totalLength := knobWidth + shaftLength
+	shaft, err := sdf.Cylinder3D(totalLength, shaftRadius, 0)
+	if err != nil {
+		return nil, err
+	}
+	zOfs := 0.5 * shaftLength
 	shaft = sdf.Transform3D(shaft, sdf.Translate3d(v3.Vec{0, 0, zOfs}))
 
-	hole, err := vcapShaftHole(shaftLength)
+	hole, err := vcapShaftHole(totalLength)
 	if err != nil {
 		return nil, err
 	}
@@ -128,15 +137,14 @@ func vcapKnob() (sdf.SDF3, error) {
 }
 
 func vcapMount() (sdf.SDF3, error) {
-	const length = 40.0
-	const thickness = 3.2
+	const length = 45.0
 
-	mount, err := sdf.Box3D(v3.Vec{length, length, thickness}, 0)
+	mount, err := sdf.Box3D(v3.Vec{length, length, mountThickness}, 0)
 	if err != nil {
 		return nil, err
 	}
 
-	holes, err := vcapMountHole(thickness)
+	holes, err := vcapMountHole(mountThickness)
 	if err != nil {
 		return nil, err
 	}
