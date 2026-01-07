@@ -25,9 +25,9 @@ import (
 
 func ferriteMount() (sdf.SDF3, error) {
 
-	const rodRadius = 10.6 * 0.5
-	const WallThickness = 4.0
-	const holderDepth = 8.0
+	const rodRadius = 10.4 * 0.5
+	const WallThickness = 3.0
+	const holderDepth = 6.0
 
 	holderRadius := WallThickness + rodRadius
 	holderLength := holderDepth + WallThickness
@@ -73,8 +73,8 @@ func vcapMountHole(length float64) (sdf.SDF3, error) {
 func vcapShaftHole(length float64) (sdf.SDF3, error) {
 
 	// tip for variable cpacitor shaft
-	const tipRadius = 6.6 * 0.5
-	const tipFlatToFlat = 4.5
+	const tipRadius = 6.8 * 0.5
+	const tipFlatToFlat = 4.7
 	const tipLength = 2.5
 	tip, err := sdf.Cylinder3D(tipLength, tipRadius, 0)
 	xOfs := tipFlatToFlat * 0.5
@@ -105,7 +105,7 @@ func vcapKnob() (sdf.SDF3, error) {
 
 	const knobRadius = 40.0 * 0.5
 	const knobWidth = 15.0
-	const shaftLength = mountThickness + 1.0
+	const shaftLength = mountThickness - 1.1
 
 	knob, err := sdf.Cylinder3D(knobWidth, knobRadius, 2.0)
 	if err != nil {
