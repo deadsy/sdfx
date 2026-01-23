@@ -26,26 +26,57 @@ import (
 func ferriteMount() (sdf.SDF3, error) {
 
 	const rodRadius = 10.4 * 0.5
+	const baseSize = 20.0
+	const rodHeight = 25.0
 	const WallThickness = 3.0
 	const holderDepth = 6.0
+	const holderRadius = WallThickness + rodRadius
+	const holderLength = holderDepth + WallThickness
 
-	holderRadius := WallThickness + rodRadius
-	holderLength := holderDepth + WallThickness
+	// support wall
+	wall2d, err := obj.IsocelesTriangle2D(baseSize, rodHeight)
+	if err != nil {
+		return nil, err
+	}
+	wall2d = sdf.Offset2D(wall2d, holderRadius)
+	wall := sdf.Extrude3D(wall2d, WallThickness)
 
+	// base
+	const baseX = baseSize + 2.0*holderRadius
+	const baseY = holderRadius
+	const baseZ = 20.0
+	base, err := sdf.Box3D(v3.Vec{baseX, baseY, baseZ}, 0)
+	if err != nil {
+		return nil, err
+	}
+	yOfs := -0.5 * (baseY + rodHeight)
+	zOfs := 0.5 * (baseZ - WallThickness)
+	base = sdf.Transform3D(base, sdf.Translate3d(v3.Vec{0, yOfs, zOfs}))
+
+	// holder
 	holder, err := sdf.Cylinder3D(holderLength, holderRadius, 0)
 	if err != nil {
 		return nil, err
 	}
-
 	rodHole, err := sdf.Cylinder3D(holderDepth, rodRadius, 0)
 	if err != nil {
 		return nil, err
 	}
-
-	zOfs := 0.5 * (holderLength - holderDepth)
+	zOfs = 0.5 * (holderLength - holderDepth)
 	rodHole = sdf.Transform3D(rodHole, sdf.Translate3d(v3.Vec{0, 0, zOfs}))
+	holder = sdf.Difference3D(holder, rodHole)
 
-	return sdf.Difference3D(holder, rodHole), nil
+	// move the holder
+	yOfs = rodHeight * 0.5
+	zOfs = 0.5 * (holderLength - WallThickness)
+	holder = sdf.Transform3D(holder, sdf.Translate3d(v3.Vec{0, yOfs, zOfs}))
+
+	// cut off the excess base
+	fm := sdf.Union3D(base, wall, holder)
+	yOfs = -0.5*rodHeight - WallThickness
+	fm = sdf.Cut3D(fm, v3.Vec{0, yOfs, 0}, v3.Vec{0, 1, 0})
+
+	return fm, nil
 }
 
 //-----------------------------------------------------------------------------
