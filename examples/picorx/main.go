@@ -35,7 +35,7 @@ func display0Bezel(thickness float64, positive bool) (sdf.SDF3, error) {
 	}
 
 	// return the display support standoffs
-	const standOffZ = 5.0
+	const standOffZ = 4.0
 
 	// standoffs with screw holes
 	k0 := &obj.StandoffParms{
@@ -102,7 +102,7 @@ func display1Bezel(thickness float64, positive bool) (sdf.SDF3, error) {
 	}
 
 	// return the display support standoffs
-	const standOffZ = 3.5
+	const standOffZ = 2.1
 
 	// standoffs with screw holes
 	k0 := &obj.StandoffParms{
@@ -155,6 +155,39 @@ func bezel1() (sdf.SDF3, error) {
 
 //-----------------------------------------------------------------------------
 
+func bezel2() (sdf.SDF3, error) {
+
+	const panelX = 80.0
+	const panelY = 40.0
+	const panelThickness = 2.5
+
+	p0 := sdf.Box2D(v2.Vec{panelX, panelY}, 2.0)
+	panel := sdf.Extrude3D(p0, panelThickness)
+
+	// push button
+	pb, err := sdf.Box3D(v3.Vec{13.2, 10.8, panelThickness}, 0)
+	if err != nil {
+		return nil, err
+	}
+	const xOfs = 24.0
+	pb0 := sdf.Transform3D(pb, sdf.Translate3d(v3.Vec{xOfs, 0, 0}))
+	pb1 := sdf.Transform3D(pb, sdf.Translate3d(v3.Vec{-xOfs, 0, 0}))
+
+	// rotary encoder
+	k := obj.PanelHoleParms{
+		Diameter:  9.8,
+		Thickness: panelThickness,
+	}
+	r0, err := obj.PanelHole3D(&k)
+	if err != nil {
+		return nil, err
+	}
+
+	return sdf.Difference3D(panel, sdf.Union3D(pb0, pb1, r0)), nil
+}
+
+//-----------------------------------------------------------------------------
+
 func main() {
 	b0, err := bezel0()
 	if err != nil {
@@ -167,6 +200,13 @@ func main() {
 		log.Fatalf("error: %s", err)
 	}
 	render.ToSTL(b1, "bezel1.stl", render.NewMarchingCubesOctree(500))
+
+	b2, err := bezel2()
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	render.ToSTL(b2, "bezel2.stl", render.NewMarchingCubesOctree(500))
+
 }
 
 //-----------------------------------------------------------------------------
