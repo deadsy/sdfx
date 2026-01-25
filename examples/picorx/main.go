@@ -23,44 +23,19 @@ import (
 // display0 : 320x240 TJCTM24028-SPI
 func display0(thickness float64, negative bool) (sdf.SDF3, error) {
 
-	const displayX = 60.0
-	const displayY = 45.0
-	const cornerRounding = 2.0
-
-	if negative {
-		// return a panel hole for the display
-		s0 := sdf.Box2D(v2.Vec{displayX, displayY}, cornerRounding)
-		return sdf.Extrude3D(s0, thickness), nil
+	k := obj.DisplayParms{
+		Window:          v2.Vec{60, 45},
+		Rounding:        2.0,
+		Supports:        v2.Vec{76.08, 44.0},
+		SupportHeight:   4.0,
+		SupportDiameter: 5.0,
+		HoleDiameter:    2.5, // 2M screw
+		Offset:          v2.Vec{-4.5, 0},
+		Thickness:       thickness,
+		Countersunk:     true,
 	}
 
-	// return the display support standoffs
-	const standOffZ = 4.0
-
-	// standoffs with screw holes
-	k0 := &obj.StandoffParms{
-		PillarHeight:   standOffZ,
-		PillarDiameter: 5.0,
-		HoleDepth:      standOffZ,
-		HoleDiameter:   2.4, // #4 screw
-	}
-
-	s0, err := obj.Standoff3D(k0)
-	if err != nil {
-		return nil, err
-	}
-
-	const xOfs = 0.5 * (86.0 - 3.0 - 6.92)
-	const yOfs = 0.5 * (50.0 - 3.0 - 3.0)
-	zOfs := 0.5 * (standOffZ + thickness)
-	skew := xOfs - 0.5*displayX - 4.5
-
-	positions := v3.VecSet{
-		{xOfs + skew, yOfs, zOfs},
-		{xOfs + skew, -yOfs, zOfs},
-		{-xOfs + skew, yOfs, zOfs},
-		{-xOfs + skew, -yOfs, zOfs},
-	}
-	return sdf.Multi3D(s0, positions), nil
+	return obj.Display(&k, negative)
 }
 
 //-----------------------------------------------------------------------------
@@ -74,7 +49,7 @@ func display1(thickness float64, negative bool) (sdf.SDF3, error) {
 		Supports:        v2.Vec{23.5, 23.8},
 		SupportHeight:   2.1,
 		SupportDiameter: 4.0,
-		HoleDiameter:    2.0, // 2M screw
+		HoleDiameter:    2.5, // 2M screw
 		Offset:          v2.Vec{0, -2.0},
 		Thickness:       thickness,
 		Countersunk:     true,
@@ -91,7 +66,7 @@ func bezel3() (sdf.SDF3, error) {
 	var xOfs, yOfs float64
 
 	kPanel := obj.PanelParms{
-		Size:         v2.Vec{100, 100},
+		Size:         v2.Vec{175, 75},
 		CornerRadius: 5.0,
 		HoleDiameter: 4.0,
 		HoleMargin:   [4]float64{4, 4, 4, 4},
@@ -133,17 +108,31 @@ func bezel3() (sdf.SDF3, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	yOfs = 20
-	d1n = sdf.Transform3D(d1n, sdf.Translate3d(v3.Vec{0, yOfs, 0}))
-	d1p = sdf.Transform3D(d1p, sdf.Translate3d(v3.Vec{0, yOfs, 0}))
+	yOfs = 13.0
+	xOfs = 47.0
+	d1n = sdf.Transform3D(d1n, sdf.Translate3d(v3.Vec{xOfs, yOfs, 0}))
+	d1p = sdf.Transform3D(d1p, sdf.Translate3d(v3.Vec{xOfs, yOfs, 0}))
 
 	// group and move the inputs
-	yOfs = -10
+	yOfs = -17.0
 	input := sdf.Union3D(re, pb0, pb1)
-	input = sdf.Transform3D(input, sdf.Translate3d(v3.Vec{0, yOfs, 0}))
+	input = sdf.Transform3D(input, sdf.Translate3d(v3.Vec{xOfs, yOfs, 0}))
 
-	return sdf.Difference3D(sdf.Union3D(panel, d1p), sdf.Union3D(input, d1n)), nil
+	// 320x240 display
+	d0n, err := display0(panelThickness, true)
+	if err != nil {
+		return nil, err
+	}
+	d0p, err := display0(panelThickness, false)
+	if err != nil {
+		return nil, err
+	}
+	yOfs = 0.0
+	xOfs = -35.0
+	d0n = sdf.Transform3D(d0n, sdf.Translate3d(v3.Vec{xOfs, yOfs, 0}))
+	d0p = sdf.Transform3D(d0p, sdf.Translate3d(v3.Vec{xOfs, yOfs, 0}))
+
+	return sdf.Difference3D(sdf.Union3D(panel, d0p, d1p), sdf.Union3D(input, d0n, d1n)), nil
 }
 
 //-----------------------------------------------------------------------------
