@@ -3,7 +3,6 @@
 
 Pico RX Housing
 
-
 */
 //-----------------------------------------------------------------------------
 
@@ -21,14 +20,14 @@ import (
 
 //-----------------------------------------------------------------------------
 
-// display0Bezel : 320x240 TJCTM24028-SPI
-func display0Bezel(thickness float64, positive bool) (sdf.SDF3, error) {
+// display0 : 320x240 TJCTM24028-SPI
+func display0(thickness float64, negative bool) (sdf.SDF3, error) {
 
 	const displayX = 60.0
 	const displayY = 45.0
 	const cornerRounding = 2.0
 
-	if positive == false {
+	if negative {
 		// return a panel hole for the display
 		s0 := sdf.Box2D(v2.Vec{displayX, displayY}, cornerRounding)
 		return sdf.Extrude3D(s0, thickness), nil
@@ -64,149 +63,98 @@ func display0Bezel(thickness float64, positive bool) (sdf.SDF3, error) {
 	return sdf.Multi3D(s0, positions), nil
 }
 
-func bezel0() (sdf.SDF3, error) {
+//-----------------------------------------------------------------------------
 
-	const panelX = 100.0
-	const panelY = 60.0
-	const thickness = 3.0
+// display1 : GME12864-11 (128x64 SSD1306)
+func display1(thickness float64, negative bool) (sdf.SDF3, error) {
 
-	p0 := sdf.Box2D(v2.Vec{panelX, panelY}, 2.0)
-	panel := sdf.Extrude3D(p0, thickness)
-
-	b0, err := display0Bezel(thickness, false)
-	if err != nil {
-		return nil, err
+	k := obj.DisplayParms{
+		Window:          v2.Vec{26, 14},
+		Rounding:        1,
+		Supports:        v2.Vec{23.5, 23.8},
+		SupportHeight:   2.1,
+		SupportDiameter: 4.0,
+		HoleDiameter:    2.0, // 2M screw
+		Offset:          v2.Vec{0, -2.0},
+		Thickness:       thickness,
+		Countersunk:     true,
 	}
 
-	b1, err := display0Bezel(thickness, true)
-	if err != nil {
-		return nil, err
-	}
-
-	return sdf.Union3D(b1, sdf.Difference3D(panel, b0)), nil
+	return obj.Display(&k, negative)
 }
 
 //-----------------------------------------------------------------------------
 
-// display1Bezel : GME12864-11 (128x64 SSD1306)
-func display1Bezel(thickness float64, positive bool) (sdf.SDF3, error) {
+func bezel3() (sdf.SDF3, error) {
 
-	const displayX = 26.0
-	const displayY = 14.0
-	const cornerRounding = 1.0
+	const panelThickness = 3.0
+	var xOfs, yOfs float64
 
-	if positive == false {
-		// return a panel hole for the display
-		s0 := sdf.Box2D(v2.Vec{displayX, displayY}, cornerRounding)
-		return sdf.Extrude3D(s0, thickness), nil
+	kPanel := obj.PanelParms{
+		Size:         v2.Vec{100, 100},
+		CornerRadius: 5.0,
+		HoleDiameter: 4.0,
+		HoleMargin:   [4]float64{4, 4, 4, 4},
+		HolePattern:  [4]string{"x", "x", "x", "x"},
+		Thickness:    panelThickness,
 	}
-
-	// return the display support standoffs
-	const standOffZ = 2.1
-
-	// standoffs with screw holes
-	k0 := &obj.StandoffParms{
-		PillarHeight:   standOffZ,
-		PillarDiameter: 4.0,
-		HoleDepth:      standOffZ,
-		HoleDiameter:   2.4, // #4 screw
-	}
-
-	s0, err := obj.Standoff3D(k0)
+	panel, err := obj.Panel3D(&kPanel)
 	if err != nil {
 		return nil, err
 	}
 
-	const xOfs = 0.5 * 23.5
-	const yOfs = 0.5 * 23.8
-	zOfs := 0.5 * (standOffZ + thickness)
-	skew := yOfs - 0.5*displayY - 2.0
-
-	positions := v3.VecSet{
-		{xOfs, yOfs + skew, zOfs},
-		{xOfs, -yOfs + skew, zOfs},
-		{-xOfs, yOfs + skew, zOfs},
-		{-xOfs, -yOfs + skew, zOfs},
+	// rotary encoder
+	kRotaryEncoder := obj.KeyedHoleParms{
+		Diameter:  9.6,
+		KeySize:   0.9,
+		NumKeys:   2,
+		Thickness: panelThickness,
 	}
-	return sdf.Multi3D(s0, positions), nil
-}
-
-func bezel1() (sdf.SDF3, error) {
-
-	const panelX = 40.0
-	const panelY = 40.0
-	const thickness = 3.0
-
-	p0 := sdf.Box2D(v2.Vec{panelX, panelY}, 2.0)
-	panel := sdf.Extrude3D(p0, thickness)
-
-	b0, err := display1Bezel(thickness, false)
+	re, err := obj.KeyedHole3D(&kRotaryEncoder)
 	if err != nil {
 		return nil, err
 	}
 
-	b1, err := display1Bezel(thickness, true)
-	if err != nil {
-		return nil, err
-	}
-
-	return sdf.Union3D(b1, sdf.Difference3D(panel, b0)), nil
-}
-
-//-----------------------------------------------------------------------------
-
-func bezel2() (sdf.SDF3, error) {
-
-	const panelX = 80.0
-	const panelY = 40.0
-	const panelThickness = 2.5
-
-	p0 := sdf.Box2D(v2.Vec{panelX, panelY}, 2.0)
-	panel := sdf.Extrude3D(p0, panelThickness)
-
-	// push button
+	// push buttons
 	pb, err := sdf.Box3D(v3.Vec{13.2, 10.8, panelThickness}, 0)
 	if err != nil {
 		return nil, err
 	}
-	const xOfs = 24.0
+	xOfs = 22.0
 	pb0 := sdf.Transform3D(pb, sdf.Translate3d(v3.Vec{xOfs, 0, 0}))
 	pb1 := sdf.Transform3D(pb, sdf.Translate3d(v3.Vec{-xOfs, 0, 0}))
 
-	// rotary encoder
-	k := obj.PanelHoleParms{
-		Diameter:  9.8,
-		Thickness: panelThickness,
+	// 128x64 display
+	d1n, err := display1(panelThickness, true)
+	if err != nil {
+		return nil, err
 	}
-	r0, err := obj.PanelHole3D(&k)
+	d1p, err := display1(panelThickness, false)
 	if err != nil {
 		return nil, err
 	}
 
-	return sdf.Difference3D(panel, sdf.Union3D(pb0, pb1, r0)), nil
+	yOfs = 20
+	d1n = sdf.Transform3D(d1n, sdf.Translate3d(v3.Vec{0, yOfs, 0}))
+	d1p = sdf.Transform3D(d1p, sdf.Translate3d(v3.Vec{0, yOfs, 0}))
+
+	// group and move the inputs
+	yOfs = -10
+	input := sdf.Union3D(re, pb0, pb1)
+	input = sdf.Transform3D(input, sdf.Translate3d(v3.Vec{0, yOfs, 0}))
+
+	return sdf.Difference3D(sdf.Union3D(panel, d1p), sdf.Union3D(input, d1n)), nil
 }
 
 //-----------------------------------------------------------------------------
 
 func main() {
-	b0, err := bezel0()
+
+	b3, err := bezel3()
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.ToSTL(b0, "bezel0.stl", render.NewMarchingCubesOctree(500))
-
-	b1, err := bezel1()
-	if err != nil {
-		log.Fatalf("error: %s", err)
-	}
-	render.ToSTL(b1, "bezel1.stl", render.NewMarchingCubesOctree(500))
-
-	b2, err := bezel2()
-	if err != nil {
-		log.Fatalf("error: %s", err)
-	}
-	render.ToSTL(b2, "bezel2.stl", render.NewMarchingCubesOctree(500))
-
+	render.ToSTL(b3, "bezel3.stl", render.NewMarchingCubesOctree(500))
 }
 
 //-----------------------------------------------------------------------------

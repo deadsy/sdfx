@@ -93,3 +93,39 @@ func BoltCircle3D(
 }
 
 //-----------------------------------------------------------------------------
+
+// KeyedHole defines the parameters for a keyed hole.
+type KeyedHoleParms struct {
+	Diameter  float64 // diameter of hole
+	KeySize   float64 // key size / hole diameter, [0..1]
+	NumKeys   int     // number of key flats (1 or 2)
+	Thickness float64 // hole thickness (3d only)
+}
+
+// KeyedHole2D retuns a 2D object for a round hole with a flat section.
+func KeyedHole2D(k *KeyedHoleParms) (sdf.SDF2, error) {
+	s, err := sdf.Circle2D(k.Diameter * 0.5)
+	if err != nil {
+		return nil, err
+	}
+	if k.NumKeys == 1 {
+		yOfs := k.Diameter * (k.KeySize - 0.5)
+		return sdf.Cut2D(s, v2.Vec{0, yOfs}, v2.Vec{1, 0}), nil
+	} else if k.NumKeys == 2 {
+		yOfs := 0.5 * k.Diameter * k.KeySize
+		s = sdf.Cut2D(s, v2.Vec{0, yOfs}, v2.Vec{1, 0})
+		return sdf.Cut2D(s, v2.Vec{0, -yOfs}, v2.Vec{-1, 0}), nil
+	}
+	return nil, sdf.ErrMsg("NumKeys must be 1 or 2")
+}
+
+// KeyedHole3D retuns a 3D object for a round hole with a flat section.
+func KeyedHole3D(k *KeyedHoleParms) (sdf.SDF3, error) {
+	s, err := KeyedHole2D(k)
+	if err != nil {
+		return nil, err
+	}
+	return sdf.Extrude3D(s, k.Thickness), nil
+}
+
+//-----------------------------------------------------------------------------
