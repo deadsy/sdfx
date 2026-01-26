@@ -30,7 +30,7 @@ func display0(thickness float64, negative bool) (sdf.SDF3, error) {
 		SupportHeight:   4.0,
 		SupportDiameter: 5.0,
 		HoleDiameter:    2.5, // 2M screw
-		Offset:          v2.Vec{-4.5, 0},
+		Offset:          v2.Vec{2.5, 0},
 		Thickness:       thickness,
 		Countersunk:     true,
 	}
@@ -72,6 +72,7 @@ func bezel3() (sdf.SDF3, error) {
 		HoleMargin:   [4]float64{4, 4, 4, 4},
 		HolePattern:  [4]string{"x", "x", "x", "x"},
 		Thickness:    panelThickness,
+		Ridge:        true,
 	}
 	panel, err := obj.Panel3D(&kPanel)
 	if err != nil {
@@ -80,7 +81,7 @@ func bezel3() (sdf.SDF3, error) {
 
 	// rotary encoder
 	kRotaryEncoder := obj.KeyedHoleParms{
-		Diameter:  9.6,
+		Diameter:  9.4, // 9.6 == loose
 		KeySize:   0.9,
 		NumKeys:   2,
 		Thickness: panelThickness,

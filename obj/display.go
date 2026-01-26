@@ -59,7 +59,7 @@ func Display(k *DisplayParms, negative bool) (sdf.SDF3, error) {
 		var hole sdf.SDF3
 		var err error
 		if k.Countersunk {
-			hole, err = ChamferedHole3D(length, radius, 1.2*radius)
+			hole, err = ChamferedHole3D(length, radius, 1.1*radius)
 			if err != nil {
 				return nil, err
 			}

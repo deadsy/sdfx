@@ -39,6 +39,7 @@ type PanelParms struct {
 	HoleMargin   [4]float64 // hole margins for top, right, bottom, left
 	HolePattern  [4]string  // hole pattern for top, right, bottom, left
 	Thickness    float64    // panel thickness (3d only)
+	Ridge        bool       // add side ridges for reinforcing (3d only)
 }
 
 // Panel2D returns a 2d panel with holes on the edges.
@@ -76,11 +77,40 @@ func Panel3D(k *PanelParms) (sdf.SDF3, error) {
 	if k.Thickness <= 0 {
 		return nil, sdf.ErrMsg("k.Thickness <= 0")
 	}
-	s, err := Panel2D(k)
+	s0, err := Panel2D(k)
 	if err != nil {
 		return nil, err
 	}
-	return sdf.Extrude3D(s, k.Thickness), nil
+	s := sdf.Extrude3D(s0, k.Thickness)
+	if !k.Ridge {
+		return s, nil
+	}
+
+	// create a reinforcing ridges for x-side
+	xSize := k.Size.X - 2.0*k.CornerRadius - 1.5*k.HoleDiameter
+	ySize := k.Thickness
+	zSize := k.Thickness * 1.5
+	rx, err := sdf.Box3D(v3.Vec{xSize, ySize, zSize}, 0)
+	if err != nil {
+		return nil, err
+	}
+	zOfs := 0.5 * (k.Thickness + zSize)
+	yOfs := 0.5 * (k.Size.Y - ySize)
+	rx0 := sdf.Transform3D(rx, sdf.Translate3d(v3.Vec{0, yOfs, zOfs}))
+	rx1 := sdf.Transform3D(rx, sdf.Translate3d(v3.Vec{0, -yOfs, zOfs}))
+
+	// create a reinforcing ridges for y-side
+	xSize = k.Thickness
+	ySize = k.Size.Y - 2.0*k.CornerRadius - 1.5*k.HoleDiameter
+	ry, err := sdf.Box3D(v3.Vec{xSize, ySize, zSize}, 0)
+	if err != nil {
+		return nil, err
+	}
+	xOfs := 0.5 * (k.Size.X - xSize)
+	ry0 := sdf.Transform3D(ry, sdf.Translate3d(v3.Vec{xOfs, 0, zOfs}))
+	ry1 := sdf.Transform3D(ry, sdf.Translate3d(v3.Vec{-xOfs, 0, zOfs}))
+
+	return sdf.Union3D(s, rx0, rx1, ry0, ry1), nil
 }
 
 //-----------------------------------------------------------------------------
