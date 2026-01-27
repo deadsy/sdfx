@@ -29,7 +29,7 @@ func display0(thickness float64, negative bool) (sdf.SDF3, error) {
 		Supports:        v2.Vec{76.08, 44.0},
 		SupportHeight:   4.0,
 		SupportDiameter: 5.0,
-		HoleDiameter:    2.5, // 2M screw
+		HoleDiameter:    3.0, // 2.5M screw
 		Offset:          v2.Vec{2.5, 0},
 		Thickness:       thickness,
 		Countersunk:     true,
@@ -60,7 +60,7 @@ func display1(thickness float64, negative bool) (sdf.SDF3, error) {
 
 //-----------------------------------------------------------------------------
 
-func bezel3() (sdf.SDF3, error) {
+func picoRxBezel() (sdf.SDF3, error) {
 
 	const panelThickness = 3.0
 	var xOfs, yOfs float64
@@ -140,11 +140,11 @@ func bezel3() (sdf.SDF3, error) {
 
 func main() {
 
-	b3, err := bezel3()
+	s, err := picoRxBezel()
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.ToSTL(b3, "bezel3.stl", render.NewMarchingCubesOctree(500))
+	render.ToSTL(s, "picorx_bezel.stl", render.NewMarchingCubesOctree(500))
 }
 
 //-----------------------------------------------------------------------------
