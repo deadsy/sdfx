@@ -9,10 +9,66 @@ Holes
 package obj
 
 import (
+	"math"
+
 	"github.com/deadsy/sdfx/sdf"
 	v2 "github.com/deadsy/sdfx/vec/v2"
 	v3 "github.com/deadsy/sdfx/vec/v3"
 )
+
+//-----------------------------------------------------------------------------
+
+// CircleGrilleParms defines the parameters for a circular grille pattern.
+type CircleGrilleParms struct {
+	HoleDiameter      float64 // diameter of the grille holes
+	GrilleDiameter    float64 // diameter of grille
+	RadialSpacing     float64 // radial spacing of holes
+	TangentialSpacing float64 // tangential spacing of holes
+	Thickness         float64 // hole thickness (3d only)
+}
+
+// CircleGrille2D returns the SDF2 for a circular grille.
+func CircleGrille2D(k *CircleGrilleParms) (sdf.SDF2, error) {
+	var s []sdf.SDF2
+
+	holeRadius := k.HoleDiameter * 0.5
+	grilleRadius := k.GrilleDiameter * 0.5
+	rSpacing := 1.0 + k.RadialSpacing
+	tSpacing := 1.0 + k.TangentialSpacing
+
+	// central base hole
+	c, err := sdf.Circle2D(holeRadius)
+	if err != nil {
+		return nil, err
+	}
+	s = append(s, c)
+
+	steps := int(math.Floor((grilleRadius / (rSpacing * k.HoleDiameter)) - 0.5))
+	rDelta := grilleRadius / (float64(steps) + 0.5)
+	theta := 0.0
+
+	for i := 1; i <= steps; i++ {
+		r := rDelta * float64(i)
+		k := int(math.Floor((sdf.Tau * r) / (k.HoleDiameter * tSpacing)))
+		dTheta := sdf.Tau / float64(k)
+		c0 := sdf.Transform2D(c, sdf.Translate2d(v2.Vec{0, r}))
+		for j := 0; j < k; j++ {
+			c1 := sdf.Transform2D(c0, sdf.Rotate2d(theta+float64(j)*dTheta))
+			s = append(s, c1)
+		}
+		theta += 0.5 * dTheta
+	}
+	return sdf.Union2D(s...), nil
+}
+
+// CircleGrille3D returns the SDF3 for a circular grille.
+func CircleGrille3D(k *CircleGrilleParms) (sdf.SDF3, error) {
+	s, err := CircleGrille2D(k)
+	if err != nil {
+		return nil, err
+	}
+	return sdf.Extrude3D(s, k.Thickness), nil
+}
 
 //-----------------------------------------------------------------------------
 
@@ -94,7 +150,7 @@ func BoltCircle3D(
 
 //-----------------------------------------------------------------------------
 
-// KeyedHole defines the parameters for a keyed hole.
+// KeyedHoleParms defines the parameters for a keyed hole.
 type KeyedHoleParms struct {
 	Diameter  float64 // diameter of hole
 	KeySize   float64 // key size / hole diameter, [0..1]

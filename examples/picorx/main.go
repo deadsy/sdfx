@@ -138,6 +138,37 @@ func picoRxBezel() (sdf.SDF3, error) {
 
 //-----------------------------------------------------------------------------
 
+func speaker() (sdf.SDF3, error) {
+
+	const panelThickness = 3.0
+
+	kPanel := obj.PanelParms{
+		Size:         v2.Vec{110, 110},
+		CornerRadius: 5.0,
+		Thickness:    panelThickness,
+	}
+	panel, err := obj.Panel3D(&kPanel)
+	if err != nil {
+		return nil, err
+	}
+
+	k := obj.CircleGrilleParms{
+		HoleDiameter:      4.0,
+		GrilleDiameter:    78.0,
+		RadialSpacing:     0.5,
+		TangentialSpacing: 0.5,
+		Thickness:         panelThickness,
+	}
+	grille, err := obj.CircleGrille3D(&k)
+	if err != nil {
+		return nil, err
+	}
+
+	return sdf.Difference3D(panel, grille), nil
+}
+
+//-----------------------------------------------------------------------------
+
 func main() {
 
 	s, err := picoRxBezel()
@@ -145,6 +176,13 @@ func main() {
 		log.Fatalf("error: %s", err)
 	}
 	render.ToSTL(s, "picorx_bezel.stl", render.NewMarchingCubesOctree(500))
+
+	s, err = speaker()
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	render.ToSTL(s, "speaker.stl", render.NewMarchingCubesOctree(500))
+
 }
 
 //-----------------------------------------------------------------------------
