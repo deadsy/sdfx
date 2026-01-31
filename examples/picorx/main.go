@@ -143,7 +143,7 @@ func speaker() (sdf.SDF3, error) {
 	const panelThickness = 3.0
 
 	kPanel := obj.PanelParms{
-		Size:         v2.Vec{110, 110},
+		Size:         v2.Vec{90, 90},
 		CornerRadius: 5.0,
 		Thickness:    panelThickness,
 	}
@@ -152,19 +152,32 @@ func speaker() (sdf.SDF3, error) {
 		return nil, err
 	}
 
-	k := obj.CircleGrilleParms{
+	const grilleRadius = 77.5 * 0.5
+
+	kGrille := obj.CircleGrilleParms{
 		HoleDiameter:      4.0,
-		GrilleDiameter:    78.0,
+		GrilleDiameter:    2.0 * grilleRadius,
 		RadialSpacing:     0.5,
 		TangentialSpacing: 0.5,
 		Thickness:         panelThickness,
 	}
-	grille, err := obj.CircleGrille3D(&k)
+	grille, err := obj.CircleGrille3D(&kGrille)
 	if err != nil {
 		return nil, err
 	}
 
-	return sdf.Difference3D(panel, grille), nil
+	kWall := obj.WasherParms{
+		Thickness:   panelThickness,
+		InnerRadius: grilleRadius,
+		OuterRadius: grilleRadius + panelThickness,
+	}
+	wall, err := obj.Washer3D(&kWall)
+	if err != nil {
+		return nil, err
+	}
+	wall = sdf.Transform3D(wall, sdf.Translate3d(v3.Vec{0, 0, panelThickness}))
+
+	return sdf.Difference3D(sdf.Union3D(panel, wall), grille), nil
 }
 
 //-----------------------------------------------------------------------------
