@@ -19,6 +19,40 @@ import (
 	v3 "github.com/deadsy/sdfx/vec/v3"
 )
 
+
+//-----------------------------------------------------------------------------
+
+const panelHoleDiameter = 4.0
+const baseHoleDiameter = 4.0
+
+//-----------------------------------------------------------------------------
+
+// pam8302: 2.5W Class D Audio Amplifier (https://www.adafruit.com/product/2130)
+func pam8302(thickness float64) (sdf.SDF3, error) {
+
+	const pillarHeight = 4.5
+
+	// standoff with screw holes
+	k := obj.StandoffParms{
+		PillarHeight:   pillarHeight,
+		PillarDiameter: 4.5,
+		HoleDepth:      pillarHeight,
+		HoleDiameter:   2.0, // #2 screw
+	}
+	s, err := obj.Standoff3D(&k)
+	if err != nil {
+		return nil, err
+	}
+
+	xOfs := 0.4 * sdf.MillimetresPerInch * 0.5
+	zOfs := 0.5 * (thickness + pillarHeight)
+	positions := v3.VecSet{
+		{xOfs, 0, zOfs},
+		{-xOfs, 0, zOfs},
+	}
+	return sdf.Multi3D(s, positions), nil
+}
+
 //-----------------------------------------------------------------------------
 
 // display0 : 320x240 TJCTM24028-SPI
@@ -92,6 +126,7 @@ func speakerGrille(thickness float64, negative bool) (sdf.SDF3, error) {
 
 //-----------------------------------------------------------------------------
 
+
 func picoRxBezel(thickness float64) (sdf.SDF3, error) {
 
 	var xOfs, yOfs float64
@@ -99,7 +134,7 @@ func picoRxBezel(thickness float64) (sdf.SDF3, error) {
 	kPanel := obj.PanelParms{
 		Size:         v2.Vec{175, 75},
 		CornerRadius: 5.0,
-		HoleDiameter: 4.0,
+		HoleDiameter: panelHoleDiameter,
 		HoleMargin:   [4]float64{4, 4, 4, 4},
 		HolePattern:  [4]string{"x", "x", "x", "x"},
 		Thickness:    thickness,
@@ -169,6 +204,21 @@ func picoRxBezel(thickness float64) (sdf.SDF3, error) {
 
 //-----------------------------------------------------------------------------
 
+func twoHoles(thickness, diameter, distance float64) (sdf.SDF3, error) {
+
+	h, err := sdf.Cylinder3D(thickness, 0.5*diameter, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	xOfs := 0.5 * distance
+
+	h0 := sdf.Transform3D(h, sdf.Translate3d(v3.Vec{xOfs, 0, 0}))
+	h1 := sdf.Transform3D(h, sdf.Translate3d(v3.Vec{-xOfs, 0, 0}))
+
+	return sdf.Union3D(h0, h1), nil
+}
+
 func sideMount(thickness float64, lhs bool) (sdf.SDF3, error) {
 
 	const mWidth = 15.0
@@ -204,6 +254,31 @@ func sideMount(thickness float64, lhs bool) (sdf.SDF3, error) {
 	s = sdf.Cut3D(s, v3.Vec{0, 0, 0}, v3.Vec{0, 0, -1})
 	s = sdf.Transform3D(s, sdf.Translate3d(v3.Vec{0, 0, mWidth - 0.5*thickness}))
 
+	// base holes
+	baseHoles, err := twoHoles(thickness, baseHoleDiameter, 0.7*mLength)
+	if err != nil {
+		return nil, err
+	}
+	baseHoles = sdf.Transform3D(baseHoles, sdf.RotateX(sdf.DtoR(-90)))
+	xOfs := 0.5 * (mLength - mHeight)
+	yOfs := 0.5 * (mHeight - thickness)
+	zOfs := 0.5 * mWidth
+	baseHoles = sdf.Transform3D(baseHoles, sdf.Translate3d(v3.Vec{xOfs,-yOfs,zOfs}))
+
+	// panel holes
+	panelHoles, err := twoHoles(2.0 * thickness, panelHoleDiameter, 67.0)
+	if err != nil {
+		return nil, err
+	}
+	panelHoles = sdf.Transform3D(panelHoles, sdf.RotateX(sdf.DtoR(-90)))
+	panelHoles = sdf.Transform3D(panelHoles, sdf.RotateZ(sdf.DtoR(-45)))
+	xOfs = mLength - 0.5 * (mHeight + d) - thickness
+	yOfs = 0.5 * (mHeight - d) - thickness
+	zOfs = 0.5 * mWidth
+	panelHoles = sdf.Transform3D(panelHoles, sdf.Translate3d(v3.Vec{xOfs,yOfs,zOfs}))
+
+	s = sdf.Difference3D(s, sdf.Union3D(baseHoles, panelHoles))
+
 	if lhs {
 		s = sdf.Transform3D(s, sdf.MirrorXZ())
 	}
@@ -230,7 +305,13 @@ func rhsMount(thickness float64) (sdf.SDF3, error) {
 		return nil, err
 	}
 
-	return sdf.Difference3D(sdf.Union3D(rhs, sp), sn), nil
+	amp, err := pam8302(thickness)
+	if err != nil {
+		return nil, err
+	}
+	amp = sdf.Transform3D(amp, sdf.Translate3d(v3.Vec{55, -10, 0}))
+
+	return sdf.Difference3D(sdf.Union3D(rhs, sp, amp), sn), nil
 }
 
 //-----------------------------------------------------------------------------
