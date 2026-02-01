@@ -10,6 +10,7 @@ package main
 
 import (
 	"log"
+	"math"
 
 	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
@@ -60,9 +61,39 @@ func display1(thickness float64, negative bool) (sdf.SDF3, error) {
 
 //-----------------------------------------------------------------------------
 
-func picoRxBezel() (sdf.SDF3, error) {
+func speakerGrille(thickness float64, negative bool) (sdf.SDF3, error) {
 
-	const panelThickness = 3.0
+	const grilleRadius = 77.5 * 0.5
+
+	if negative {
+		// grille holes
+		kGrille := obj.CircleGrilleParms{
+			HoleDiameter:      4.0,
+			GrilleDiameter:    2.0 * grilleRadius,
+			RadialSpacing:     0.5,
+			TangentialSpacing: 0.5,
+			Thickness:         thickness,
+		}
+		return obj.CircleGrille3D(&kGrille)
+	}
+
+	// speaker wall
+	kWall := obj.WasherParms{
+		Thickness:   thickness,
+		InnerRadius: grilleRadius,
+		OuterRadius: grilleRadius + thickness,
+	}
+	wall, err := obj.Washer3D(&kWall)
+	if err != nil {
+		return nil, err
+	}
+	return sdf.Transform3D(wall, sdf.Translate3d(v3.Vec{0, 0, thickness})), nil
+}
+
+//-----------------------------------------------------------------------------
+
+func picoRxBezel(thickness float64) (sdf.SDF3, error) {
+
 	var xOfs, yOfs float64
 
 	kPanel := obj.PanelParms{
@@ -71,7 +102,7 @@ func picoRxBezel() (sdf.SDF3, error) {
 		HoleDiameter: 4.0,
 		HoleMargin:   [4]float64{4, 4, 4, 4},
 		HolePattern:  [4]string{"x", "x", "x", "x"},
-		Thickness:    panelThickness,
+		Thickness:    thickness,
 		Ridge:        true,
 	}
 	panel, err := obj.Panel3D(&kPanel)
@@ -84,7 +115,7 @@ func picoRxBezel() (sdf.SDF3, error) {
 		Diameter:  9.4, // 9.6 == loose
 		KeySize:   0.9,
 		NumKeys:   2,
-		Thickness: panelThickness,
+		Thickness: thickness,
 	}
 	re, err := obj.KeyedHole3D(&kRotaryEncoder)
 	if err != nil {
@@ -92,7 +123,7 @@ func picoRxBezel() (sdf.SDF3, error) {
 	}
 
 	// push buttons
-	pb, err := sdf.Box3D(v3.Vec{13.2, 10.8, panelThickness}, 0)
+	pb, err := sdf.Box3D(v3.Vec{13.2, 10.8, thickness}, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -101,11 +132,11 @@ func picoRxBezel() (sdf.SDF3, error) {
 	pb1 := sdf.Transform3D(pb, sdf.Translate3d(v3.Vec{-xOfs, 0, 0}))
 
 	// 128x64 display
-	d1n, err := display1(panelThickness, true)
+	d1n, err := display1(thickness, true)
 	if err != nil {
 		return nil, err
 	}
-	d1p, err := display1(panelThickness, false)
+	d1p, err := display1(thickness, false)
 	if err != nil {
 		return nil, err
 	}
@@ -120,11 +151,11 @@ func picoRxBezel() (sdf.SDF3, error) {
 	input = sdf.Transform3D(input, sdf.Translate3d(v3.Vec{xOfs, yOfs, 0}))
 
 	// 320x240 display
-	d0n, err := display0(panelThickness, true)
+	d0n, err := display0(thickness, true)
 	if err != nil {
 		return nil, err
 	}
-	d0p, err := display0(panelThickness, false)
+	d0p, err := display0(thickness, false)
 	if err != nil {
 		return nil, err
 	}
@@ -138,63 +169,105 @@ func picoRxBezel() (sdf.SDF3, error) {
 
 //-----------------------------------------------------------------------------
 
-func speaker() (sdf.SDF3, error) {
+func sideMount(thickness float64, lhs bool) (sdf.SDF3, error) {
 
-	const panelThickness = 3.0
+	const mWidth = 15.0
+	const mHeight = 95.0
+	const mLength = 125.0
+	const mSlope = 75.0
+	const mRound0 = 2.0 // internal rounding
 
-	kPanel := obj.PanelParms{
-		Size:         v2.Vec{90, 90},
-		CornerRadius: 5.0,
-		Thickness:    panelThickness,
+	mRound2 := mRound0 + thickness // external rounding
+
+	// build an internal box that we will offset to build the inside and outside envelope.
+	d := mSlope / math.Sqrt(2)
+	bh := mHeight - 2.0*mRound2
+	bl := mLength - 2.0*mRound2
+	bw := 2.0 * (mWidth - mRound2)
+
+	p := sdf.NewPolygon()
+	p.Add(-bh*0.5, bh*0.5)
+	p.Add(0, -bh).Rel()
+	p.Add(bl, 0).Rel()
+	p.Add(0, bh-d).Rel()
+	p.Add(-d, d).Rel()
+	b0, err := sdf.Polygon2D(p.Vertices())
+	if err != nil {
+		return nil, err
 	}
-	panel, err := obj.Panel3D(&kPanel)
+	box := sdf.Extrude3D(b0, bw)
+
+	inner := sdf.Offset3D(box, mRound0)
+	outer := sdf.Offset3D(box, mRound2)
+	s := sdf.Difference3D(outer, inner)
+
+	s = sdf.Cut3D(s, v3.Vec{0, 0, 0}, v3.Vec{0, 0, -1})
+	s = sdf.Transform3D(s, sdf.Translate3d(v3.Vec{0, 0, mWidth - 0.5*thickness}))
+
+	if lhs {
+		s = sdf.Transform3D(s, sdf.MirrorXZ())
+	}
+
+	return s, nil
+}
+
+//-----------------------------------------------------------------------------
+
+func rhsMount(thickness float64) (sdf.SDF3, error) {
+
+	rhs, err := sideMount(thickness, false)
 	if err != nil {
 		return nil, err
 	}
 
-	const grilleRadius = 77.5 * 0.5
-
-	kGrille := obj.CircleGrilleParms{
-		HoleDiameter:      4.0,
-		GrilleDiameter:    2.0 * grilleRadius,
-		RadialSpacing:     0.5,
-		TangentialSpacing: 0.5,
-		Thickness:         panelThickness,
-	}
-	grille, err := obj.CircleGrille3D(&kGrille)
+	sn, err := speakerGrille(thickness, true)
 	if err != nil {
 		return nil, err
 	}
 
-	kWall := obj.WasherParms{
-		Thickness:   panelThickness,
-		InnerRadius: grilleRadius,
-		OuterRadius: grilleRadius + panelThickness,
-	}
-	wall, err := obj.Washer3D(&kWall)
+	sp, err := speakerGrille(thickness, false)
 	if err != nil {
 		return nil, err
 	}
-	wall = sdf.Transform3D(wall, sdf.Translate3d(v3.Vec{0, 0, panelThickness}))
 
-	return sdf.Difference3D(sdf.Union3D(panel, wall), grille), nil
+	return sdf.Difference3D(sdf.Union3D(rhs, sp), sn), nil
+}
+
+//-----------------------------------------------------------------------------
+
+func lhsMount(thickness float64) (sdf.SDF3, error) {
+
+	lhs, err := sideMount(thickness, true)
+	if err != nil {
+		return nil, err
+	}
+
+	return lhs, nil
 }
 
 //-----------------------------------------------------------------------------
 
 func main() {
 
-	s, err := picoRxBezel()
+	const panelThickness = 3.0
+
+	s, err := picoRxBezel(panelThickness)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 	render.ToSTL(s, "picorx_bezel.stl", render.NewMarchingCubesOctree(500))
 
-	s, err = speaker()
+	s, err = rhsMount(panelThickness)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.ToSTL(s, "speaker.stl", render.NewMarchingCubesOctree(500))
+	render.ToSTL(s, "rhs.stl", render.NewMarchingCubesOctree(500))
+
+	s, err = lhsMount(panelThickness)
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	render.ToSTL(s, "lhs.stl", render.NewMarchingCubesOctree(500))
 
 }
 
