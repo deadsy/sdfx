@@ -87,7 +87,7 @@ func Panel3D(k *PanelParms) (sdf.SDF3, error) {
 	if k.Ridge.X > 0 {
 		xSize := k.Ridge.X
 		ySize := k.Thickness
-		zSize := k.Thickness * 1.5
+		zSize := k.Thickness * 2.0
 		rx, err := sdf.Box3D(v3.Vec{xSize, ySize, zSize}, 0)
 		if err != nil {
 			return nil, err
@@ -103,7 +103,7 @@ func Panel3D(k *PanelParms) (sdf.SDF3, error) {
 	if k.Ridge.Y > 0 {
 		xSize := k.Thickness
 		ySize := k.Ridge.Y
-		zSize := k.Thickness * 1.5
+		zSize := k.Thickness * 2.0
 		ry, err := sdf.Box3D(v3.Vec{xSize, ySize, zSize}, 0)
 		if err != nil {
 			return nil, err
