@@ -133,6 +133,61 @@ func speakerGrille(thickness float64, negative bool) (sdf.SDF3, error) {
 
 //-----------------------------------------------------------------------------
 
+// pcbMount0 mounts the adafruit half breadboard with the rpi-pico.
+func pcbMount0() (sdf.SDF3, error) {
+
+	const width = 60.0
+	const length = 90.0
+	const margin = 5.0
+	const height = 10.0
+	const thickness = 3.0
+
+	pp := obj.PanelParms{
+		Size:         v2.Vec{width, length},
+		CornerRadius: margin,
+		HoleDiameter: 3,
+		HoleMargin:   [4]float64{margin, margin, margin, margin},
+		HolePattern:  [4]string{"x", "x", "x", "x"},
+		Thickness:    thickness,
+		Ridge:        v2.Vec{width - 3.0*margin, length - 3.0*margin},
+	}
+	panel, err := obj.Panel3D(&pp)
+	if err != nil {
+		return nil, err
+	}
+
+	// standoff with screw hole
+	sp := obj.StandoffParms{
+		PillarHeight:   height,
+		PillarDiameter: 8,
+		HoleDepth:      height,
+		HoleDiameter:   2.4, // #4 screw
+	}
+	standoff, err := obj.Standoff3D(&sp)
+	if err != nil {
+		return nil, err
+	}
+
+	// two standoffs, 2.9" apart
+	zOfs := 0.5 * (height + thickness)
+	yOfs := 0.5 * 2.9 * sdf.MillimetresPerInch
+	positions := v3.VecSet{
+		{0, -yOfs, zOfs},
+		{0, yOfs, zOfs},
+	}
+	standoffs := sdf.Multi3D(standoff, positions)
+
+	return sdf.Union3D(panel, standoffs), nil
+}
+
+// pcbMount1 mounts the sdr front end.
+func pcbMount1() (sdf.SDF3, error) {
+
+	return nil, nil
+}
+
+//-----------------------------------------------------------------------------
+
 func picoRxBezel(thickness float64) (sdf.SDF3, error) {
 
 	var xOfs, yOfs float64
@@ -328,7 +383,14 @@ func lhsMount(thickness float64) (sdf.SDF3, error) {
 //-----------------------------------------------------------------------------
 
 func main() {
-	s, err := picoRxBezel(panelThickness)
+
+	s, err := pcbMount0()
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	render.ToSTL(s, "pcb_mount0.stl", render.NewMarchingCubesOctree(500))
+
+	s, err = picoRxBezel(panelThickness)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
