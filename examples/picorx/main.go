@@ -145,11 +145,11 @@ func pcbMount0() (sdf.SDF3, error) {
 	pp := obj.PanelParms{
 		Size:         v2.Vec{width, length},
 		CornerRadius: margin,
-		HoleDiameter: 3,
+		HoleDiameter: 3.8,
 		HoleMargin:   [4]float64{margin, margin, margin, margin},
 		HolePattern:  [4]string{"x", "x", "x", "x"},
 		Thickness:    thickness,
-		Ridge:        v2.Vec{width - 3.0*margin, length - 3.0*margin},
+		Ridge:        v2.Vec{width - 3.5*margin, length - 3.5*margin},
 	}
 	panel, err := obj.Panel3D(&pp)
 	if err != nil {
@@ -180,10 +180,53 @@ func pcbMount0() (sdf.SDF3, error) {
 	return sdf.Union3D(panel, standoffs), nil
 }
 
-// pcbMount1 mounts the sdr front end.
+//-----------------------------------------------------------------------------
+
+// pcbMount1 mounts a pcb with the SDR frontend.
 func pcbMount1() (sdf.SDF3, error) {
 
-	return nil, nil
+	const width = 70.0
+	const length = 110.0
+	const margin = 5.0
+	const height = 10.0
+	const thickness = 3.0
+
+	pp := obj.PanelParms{
+		Size:         v2.Vec{width, length},
+		CornerRadius: margin,
+		HoleDiameter: 3.8,
+		HoleMargin:   [4]float64{margin, margin, margin, margin},
+		HolePattern:  [4]string{"x", "x", "x", "x"},
+		Thickness:    thickness,
+		Ridge:        v2.Vec{width - 3.5*margin, length - 3.5*margin},
+	}
+	panel, err := obj.Panel3D(&pp)
+	if err != nil {
+		return nil, err
+	}
+
+	// standoff with screw hole
+	sp := obj.StandoffParms{
+		PillarHeight:   height,
+		PillarDiameter: 8,
+		HoleDepth:      height,
+		HoleDiameter:   2.4, // #4 screw
+	}
+	standoff, err := obj.Standoff3D(&sp)
+	if err != nil {
+		return nil, err
+	}
+
+	// two standoffs, 3.4" apart
+	zOfs := 0.5 * (height + thickness)
+	yOfs := 0.5 * 3.4 * sdf.MillimetresPerInch
+	positions := v3.VecSet{
+		{0, -yOfs, zOfs},
+		{0, yOfs, zOfs},
+	}
+	standoffs := sdf.Multi3D(standoff, positions)
+
+	return sdf.Union3D(panel, standoffs), nil
 }
 
 //-----------------------------------------------------------------------------
@@ -389,6 +432,12 @@ func main() {
 		log.Fatalf("error: %s", err)
 	}
 	render.ToSTL(s, "pcb_mount0.stl", render.NewMarchingCubesOctree(500))
+
+	s, err = pcbMount1()
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	render.ToSTL(s, "pcb_mount1.stl", render.NewMarchingCubesOctree(500))
 
 	s, err = picoRxBezel(panelThickness)
 	if err != nil {
