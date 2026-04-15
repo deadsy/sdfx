@@ -101,7 +101,7 @@ func (a *Line2) IntersectLine(b *Line2) []v2.Vec {
 		if x != nil {
 			// collinear, intersecting
 			p0 := p.Add(r.MulScalar(x[0]))
-			if x[0] == x[1] {
+			if math.Abs(x[0]-x[1]) <= tolerance {
 				return []v2.Vec{p0}
 			}
 			p1 := p.Add(r.MulScalar(x[1]))

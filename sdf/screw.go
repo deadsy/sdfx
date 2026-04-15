@@ -360,13 +360,17 @@ func PlasticButtressThread(
 
 // ScrewSDF3 is a 3d screw form.
 type ScrewSDF3 struct {
-	thread SDF2    // 2D thread profile
-	pitch  float64 // thread to thread distance
-	lead   float64 // distance per turn (starts * pitch)
-	length float64 // total length of screw
-	taper  float64 // thread taper angle
-	starts int     // number of thread starts
-	bb     Box3    // bounding box
+	thread      SDF2    // 2D thread profile
+	pitch       float64 // thread to thread distance
+	lead        float64 // distance per turn (starts * pitch)
+	leadOver2π  float64 // lead / (2π), precomputed for the helical correction
+	length      float64 // total length of screw
+	taper       float64 // thread taper angle
+	tanTaper    float64 // tan(taper), precomputed
+	tan2Taper   float64 // tan²(taper), precomputed
+	threadDepth float64 // radial extent of thread profile (max.Y - min.Y)
+	starts      int     // number of thread starts
+	bb          Box3    // bounding box
 }
 
 // Screw3D returns a screw SDF3.
@@ -398,36 +402,92 @@ func Screw3D(
 	s.length = length / 2
 	s.taper = taper
 	s.lead = -pitch * float64(starts)
+	s.leadOver2π = s.lead / Tau
+	s.tanTaper = math.Tan(taper)
+	s.tan2Taper = s.tanTaper * s.tanTaper
 	// Work out the bounding box.
 	// The max-y axis of the sdf2 bounding box is the radius of the thread.
 	bb := s.thread.BoundingBox()
+	s.threadDepth = bb.Max.Y - bb.Min.Y
 	r := bb.Max.Y
 	// add the taper increment
-	r += s.length * math.Tan(taper)
+	r += s.length * s.tanTaper
 	s.bb = Box3{v3.Vec{-r, -r, -s.length}, v3.Vec{r, r, s.length}}
 	return &s, nil
 }
 
 // Evaluate returns the minimum distance to a 3d screw form.
 func (s *ScrewSDF3) Evaluate(p v3.Vec) float64 {
-	// map the 3d point back to the xy space of the profile
+	// Map the 3d point back to the 2d thread profile space.
 	p0 := v2.Vec{}
-	// the distance from the 3d z-axis maps to the 2d y-axis
-	p0.Y = math.Sqrt(p.X*p.X + p.Y*p.Y)
+	// The distance from the z-axis maps to the 2d y-axis (radial coordinate).
+	r := math.Sqrt(p.X*p.X + p.Y*p.Y)
+	p0.Y = r
 	if s.taper != 0 {
-		p0.Y += p.Z * math.Atan(s.taper)
+		// Adjust radial position for taper: the thread radius changes linearly
+		// with z. tanTaper converts the taper angle to a slope (rise/run).
+		p0.Y += p.Z * s.tanTaper
 	}
-	// the x/y angle and the z-height map to the 2d x-axis
-	// ie: the position along thread pitch
+	// The x/y angle and z-height map to the 2d x-axis: this unwraps the
+	// helical path into a linear coordinate along the thread pitch.
 	theta := math.Atan2(p.Y, p.X)
 	z := p.Z + s.lead*theta/Tau
 	p0.X = SawTooth(z, s.pitch)
-	// get the thread profile distance
+	// Get the thread profile distance in the 2d mapped space.
+	// The thread profile covers one pitch period, and SawTooth wraps the
+	// helical coordinate into [-pitch/2, +pitch/2]. For asymmetric profiles
+	// (e.g. buttress), the SDF has a discontinuity at the wrap boundary
+	// because the profile shape differs at x = +pitch/2 vs x = -pitch/2.
+	// The correct SDF for a periodic thread is the union (min) of adjacent
+	// periods — each thread tooth is a copy, and min gives union semantics.
 	d0 := s.thread.Evaluate(p0)
-	// create a region for the screw length
+	dL := s.thread.Evaluate(v2.Vec{X: p0.X - s.pitch, Y: p0.Y})
+	dR := s.thread.Evaluate(v2.Vec{X: p0.X + s.pitch, Y: p0.Y})
+	d0 = math.Min(d0, math.Min(dL, dR))
+	// Create a region for the screw length.
 	d1 := math.Abs(p.Z) - s.length
-	// return the intersection
-	return math.Max(d0, d1)
+	// Intersect the thread with the length constraint.
+	d := math.Max(d0, d1)
+	// The 3D→2D mapping stretches distances: a unit step in 3D maps to
+	// a larger step in the unwrapped 2D space. Without correction, the
+	// SDF overestimates distances, causing the octree renderer's isEmpty
+	// check to skip cubes that contain the surface (producing holes).
+	//
+	// The Jacobian of the mapping (r,θ,z) → (p0.X, p0.Y) in physical
+	// cylindrical coordinates is:
+	//   J = | 0      k      1      |   where k = lead/(2πr)
+	//       | 1      0      tan(t) |   and t = taper angle
+	//
+	// The maximum stretch factor is the largest singular value of J,
+	// i.e. sqrt(λ_max) of J·Jᵀ:
+	//   | 1+k²     tan(t)      |
+	//   | tan(t)    1+tan²(t)  |
+	//
+	// When taper=0 this reduces to sqrt(1+k²).
+	//
+	// Dividing by this factor gives a correct distance bound (Lipschitz-1).
+	// Applied to the final intersection result rather than d0 alone to
+	// preserve end cap surface positions (d=0 stays at 0).
+	//
+	// The stretch factor varies with r (larger near the axis). The octree
+	// isEmpty check evaluates at cube centers, but the nearest surface may
+	// be at a smaller r where the stretch is larger. Using r reduced by the
+	// thread depth gives a conservative bound: the nearest surface point
+	// on the thread can be at most threadDepth closer to the axis.
+	if r > 0 {
+		rEff := r - s.threadDepth
+		if rEff < r*0.5 {
+			rEff = r * 0.5
+		}
+		k2 := s.leadOver2π / rEff
+		k2 *= k2
+		a := 1 + k2
+		c := 1 + s.tan2Taper
+		disc := (a-c)*(a-c) + 4*s.tan2Taper
+		stretch2 := (a + c + math.Sqrt(disc)) * 0.5
+		d /= math.Sqrt(stretch2)
+	}
+	return d
 }
 
 // BoundingBox returns the bounding box for a 3d screw form.
