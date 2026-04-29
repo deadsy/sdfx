@@ -431,31 +431,31 @@ func main() {
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.ToSTL(s, "pcb_mount0.stl", render.NewMarchingCubesOctreeParallel(500))
+	render.ToSTL(s, "pcb_mount0.stl", render.NewMarchingCubesOctree(500))
 
 	s, err = pcbMount1()
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.ToSTL(s, "pcb_mount1.stl", render.NewMarchingCubesOctreeParallel(500))
+	render.ToSTL(s, "pcb_mount1.stl", render.NewMarchingCubesOctree(500))
 
 	s, err = picoRxBezel(panelThickness)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.ToSTL(s, "bezel.stl", render.NewMarchingCubesOctreeParallel(500))
+	render.ToSTL(s, "bezel.stl", render.NewMarchingCubesOctree(500))
 
 	s, err = rhsMount(panelThickness)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.ToSTL(s, "rhs.stl", render.NewMarchingCubesOctreeParallel(500))
+	render.ToSTL(s, "rhs.stl", render.NewMarchingCubesOctree(500))
 
 	s, err = lhsMount(panelThickness)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.ToSTL(s, "lhs.stl", render.NewMarchingCubesOctreeParallel(500))
+	render.ToSTL(s, "lhs.stl", render.NewMarchingCubesOctree(500))
 }
 
 //-----------------------------------------------------------------------------

@@ -45,7 +45,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	render.ToSTL(s1, "shape.stl", render.NewMarchingCubesOctree(600))
+	render.ToSTL(s1, "shape.stl", render.NewMarchingCubesOctreeSingle(600))
 }
 
 //-----------------------------------------------------------------------------

@@ -1,7 +1,7 @@
 //-----------------------------------------------------------------------------
 /*
 
-Marching Cubes Octree
+Marching Cubes Octree (Single Threaded)
 
 Convert an SDF3 to a triangle mesh.
 Uses octree space subdivision.
@@ -157,20 +157,20 @@ func marchingCubesOctree(s sdf.SDF3, resolution float64, output sdf.Triangle3Wri
 
 //-----------------------------------------------------------------------------
 
-// MarchingCubesOctree renders using marching cubes with octree space sampling.
-type MarchingCubesOctree struct {
+// MarchingCubesOctreeSingle renders using marching cubes with octree space sampling.
+type MarchingCubesOctreeSingle struct {
 	meshCells int // number of cells on the longest axis of bounding box. e.g 200
 }
 
-// NewMarchingCubesOctree returns a Render3 object.
-func NewMarchingCubesOctree(meshCells int) *MarchingCubesOctree {
-	return &MarchingCubesOctree{
+// NewMarchingCubesOctreeSingle returns a Render3 object.
+func NewMarchingCubesOctreeSingle(meshCells int) *MarchingCubesOctreeSingle {
+	return &MarchingCubesOctreeSingle{
 		meshCells: meshCells,
 	}
 }
 
 // Info returns a string describing the rendered volume.
-func (r *MarchingCubesOctree) Info(s sdf.SDF3) string {
+func (r *MarchingCubesOctreeSingle) Info(s sdf.SDF3) string {
 	bbSize := s.BoundingBox().Size()
 	resolution := bbSize.MaxComponent() / float64(r.meshCells)
 	cells := conv.V3ToV3i(bbSize.MulScalar(1 / resolution))
@@ -178,7 +178,7 @@ func (r *MarchingCubesOctree) Info(s sdf.SDF3) string {
 }
 
 // Render produces a 3d triangle mesh over the bounding volume of an sdf3.
-func (r *MarchingCubesOctree) Render(s sdf.SDF3, output sdf.Triangle3Writer) {
+func (r *MarchingCubesOctreeSingle) Render(s sdf.SDF3, output sdf.Triangle3Writer) {
 	// work out the sampling resolution to use
 	bbSize := s.BoundingBox().Size()
 	resolution := bbSize.MaxComponent() / float64(r.meshCells)
