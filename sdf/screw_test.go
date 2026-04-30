@@ -4,8 +4,51 @@ import (
 	"math"
 	"testing"
 
+	v2 "github.com/deadsy/sdfx/vec/v2"
 	v3 "github.com/deadsy/sdfx/vec/v3"
 )
+
+// Test_Buttress_WrapContinuity verifies that asymmetric buttress thread
+// profiles produce the same SDF at x = +pitch/2 and x = -pitch/2 — the
+// SawTooth wrap boundary. A discontinuity here would cause octree marching
+// cubes to skip cubes straddling the boundary and produce mesh holes; the
+// 2-period polygon design is what makes the SDF wrap-continuous.
+func Test_Buttress_WrapContinuity(t *testing.T) {
+	cases := []struct {
+		name   string
+		make   func(r, p float64) (SDF2, error)
+		radius float64
+		pitch  float64
+	}{
+		{"ANSI", ANSIButtressThread, 5, 2},
+		{"Plastic", PlasticButtressThread, 5, 2},
+		{"ANSI_steep", ANSIButtressThread, 2.5, 3},
+		{"Plastic_steep", PlasticButtressThread, 2.5, 3},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			s, err := c.make(c.radius, c.pitch)
+			if err != nil {
+				t.Fatal(err)
+			}
+			hp := c.pitch / 2
+			// Sample a vertical line of points at the wrap boundary, comparing
+			// SDF(+pitch/2, y) vs SDF(-pitch/2, y) at radii covering the
+			// thread region. Tolerance is generous enough to absorb numerical
+			// noise from polygon edge intersections, but tight enough to
+			// catch the ~0.4mm gap that the periodic union previously masked.
+			tol := 1e-6
+			for _, y := range []float64{c.radius - 0.1, c.radius - 0.3, c.radius - 0.5, c.radius} {
+				dR := s.Evaluate(v2.Vec{X: hp, Y: y})
+				dL := s.Evaluate(v2.Vec{X: -hp, Y: y})
+				if math.Abs(dR-dL) > tol {
+					t.Errorf("y=%.3f: SDF discontinuous at wrap: dR(%+.4f)=%+.6f dL(%+.4f)=%+.6f delta=%.6f",
+						y, hp, dR, -hp, dL, dR-dL)
+				}
+			}
+		})
+	}
+}
 
 // Test_Screw_TaperSlope verifies that Evaluate uses tan(taper) not atan(taper)
 // for the taper slope computation. At 30° the error is 16.5%.

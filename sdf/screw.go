@@ -306,6 +306,14 @@ func ISOThread(
 // ANSIButtressThread returns the 2d profile for an ANSI 45/7 buttress thread.
 // https://en.wikipedia.org/wiki/Buttress_thread
 // AMSE B1.9-1973
+//
+// The polygon spans x ∈ [-pitch, +pitch] and is evaluated by Screw3D within
+// the central pitch period x ∈ [-pitch/2, +pitch/2]. The extensions on both
+// sides reproduce the periodic thread structure (45° flank descending toward
+// next/previous valley) so the SDF is continuous across the SawTooth wrap
+// boundary at x = ±pitch/2 — required because buttress profiles are
+// asymmetric and a flat crest extension would create a wrap discontinuity
+// that breaks octree marching cubes.
 func ANSIButtressThread(
 	radius float64, // radius of thread
 	pitch float64, // thread to thread distance
@@ -318,20 +326,29 @@ func ANSIButtressThread(
 	h1 := ((b / 2.0) * pitch) + (0.5 * h0)
 	hp := pitch / 2.0
 
+	xV := t0*h0 - hp       // valley root x
+	x7 := hp - (h0-h1)*t1  // 7° flank top x (start of right-side crest)
+	x45 := (h0-h1)*t0 - hp // 45° flank top x (end of left-side crest)
+	yEdge := radius + x45  // y on 45° flank at x=±pitch (slope -1, x45<0)
+
 	tp := NewPolygon()
 	tp.Add(pitch, 0)
-	tp.Add(pitch, radius)
-	tp.Add(hp-((h0-h1)*t1), radius)
-	tp.Add(t0*h0-hp, radius-h1).Smooth(0.0714*pitch, 5)
-	tp.Add((h0-h1)*t0-hp, radius)
-	tp.Add(-pitch, radius)
+	tp.Add(pitch, yEdge)
+	tp.Add(x45+pitch, radius)
+	tp.Add(x7, radius)
+	tp.Add(xV, radius-h1).Smooth(0.0714*pitch, 5)
+	tp.Add(x45, radius)
+	tp.Add(x7-pitch, radius)
+	tp.Add(xV-pitch, radius-h1).Smooth(0.0714*pitch, 5)
+	tp.Add(-pitch, yEdge)
 	tp.Add(-pitch, 0)
 
 	return Polygon2D(tp.Vertices())
 }
 
 // PlasticButtressThread returns the 2d profile for a screw top style plastic buttress thread.
-// Similar to ANSI 45/7 - but with more corner rounding
+// Similar to ANSI 45/7 - but with more corner rounding.
+// See ANSIButtressThread for an explanation of the 2-period polygon shape.
 func PlasticButtressThread(
 	radius float64, // radius of thread
 	pitch float64, // thread to thread distance
@@ -344,13 +361,21 @@ func PlasticButtressThread(
 	h1 := ((b / 2.0) * pitch) + (0.5 * h0)
 	hp := pitch / 2.0
 
+	xV := t0*h0 - hp
+	x7 := hp - (h0-h1)*t1
+	x45 := (h0-h1)*t0 - hp
+	yEdge := radius + x45
+
 	tp := NewPolygon()
 	tp.Add(pitch, 0)
-	tp.Add(pitch, radius)
-	tp.Add(hp-((h0-h1)*t1), radius).Smooth(0.05*pitch, 5)
-	tp.Add(t0*h0-hp, radius-h1).Smooth(0.15*pitch, 5)
-	tp.Add((h0-h1)*t0-hp, radius).Smooth(0.15*pitch, 5)
-	tp.Add(-pitch, radius)
+	tp.Add(pitch, yEdge)
+	tp.Add(x45+pitch, radius).Smooth(0.15*pitch, 5)
+	tp.Add(x7, radius).Smooth(0.05*pitch, 5)
+	tp.Add(xV, radius-h1).Smooth(0.15*pitch, 5)
+	tp.Add(x45, radius).Smooth(0.15*pitch, 5)
+	tp.Add(x7-pitch, radius).Smooth(0.05*pitch, 5)
+	tp.Add(xV-pitch, radius-h1).Smooth(0.15*pitch, 5)
+	tp.Add(-pitch, yEdge)
 	tp.Add(-pitch, 0)
 
 	return Polygon2D(tp.Vertices())
@@ -434,16 +459,7 @@ func (s *ScrewSDF3) Evaluate(p v3.Vec) float64 {
 	z := p.Z + s.lead*theta/Tau
 	p0.X = SawTooth(z, s.pitch)
 	// Get the thread profile distance in the 2d mapped space.
-	// The thread profile covers one pitch period, and SawTooth wraps the
-	// helical coordinate into [-pitch/2, +pitch/2]. For asymmetric profiles
-	// (e.g. buttress), the SDF has a discontinuity at the wrap boundary
-	// because the profile shape differs at x = +pitch/2 vs x = -pitch/2.
-	// The correct SDF for a periodic thread is the union (min) of adjacent
-	// periods — each thread tooth is a copy, and min gives union semantics.
 	d0 := s.thread.Evaluate(p0)
-	dL := s.thread.Evaluate(v2.Vec{X: p0.X - s.pitch, Y: p0.Y})
-	dR := s.thread.Evaluate(v2.Vec{X: p0.X + s.pitch, Y: p0.Y})
-	d0 = math.Min(d0, math.Min(dL, dR))
 	// Create a region for the screw length.
 	d1 := math.Abs(p.Z) - s.length
 	// Intersect the thread with the length constraint.
