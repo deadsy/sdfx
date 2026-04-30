@@ -15,6 +15,7 @@ package sdf
 
 import (
 	"fmt"
+	"sync"
 
 	v2 "github.com/deadsy/sdfx/vec/v2"
 )
@@ -24,6 +25,7 @@ import (
 // CacheSDF2 is an SDF2 cache.
 type CacheSDF2 struct {
 	sdf         SDF2
+	lock        sync.RWMutex
 	cache       map[v2.Vec]float64
 	reads, hits uint
 }
@@ -43,13 +45,18 @@ func (s *CacheSDF2) String() string {
 
 // Evaluate returns the minimum distance to a cached 2d sdf.
 func (s *CacheSDF2) Evaluate(p v2.Vec) float64 {
+	s.lock.RLock()
 	s.reads++
 	if d, ok := s.cache[p]; ok {
 		s.hits++
+		s.lock.RUnlock()
 		return d
 	}
+	s.lock.RUnlock()
 	d := s.sdf.Evaluate(p)
+	s.lock.Lock()
 	s.cache[p] = d
+	s.lock.Unlock()
 	return d
 }
 
