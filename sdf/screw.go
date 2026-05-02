@@ -399,6 +399,34 @@ type ScrewSDF3 struct {
 }
 
 // Screw3D returns a screw SDF3.
+//
+// The thread SDF2 represents the 2D thread profile, which is helically swept
+// to form the screw. Screw3D's evaluation maps any 3D point back to a 2D
+// coordinate via SawTooth-wrapping the helical position into [-pitch/2,
+// +pitch/2] and queries thread.Evaluate at that point.
+//
+// For the resulting SDF to be continuous (and therefore usable with the
+// octree marching cubes renderer, which prunes "empty" cubes by SDF
+// magnitude), the thread profile must satisfy:
+//
+//	thread.Evaluate(+pitch/2, y) == thread.Evaluate(-pitch/2, y)  for all y
+//
+// at least up to floating-point tolerance. In other words, the profile must
+// describe the periodic shape such that what's just to the left of x=+pitch/2
+// matches what's just to the right of x=-pitch/2 — including any flanks,
+// crests, or other features near the boundary.
+//
+// This is automatic for symmetric profiles like ISO and ACME, where the
+// polygon is mirror-symmetric in x and the wrap point sits in a region of
+// constant curvature. For asymmetric profiles like buttress threads, the
+// polygon must be authored to extend past ±pitch/2 with the actual periodic
+// continuation (next/previous flank descending into next/previous valley)
+// rather than flat scaffolding. See ANSIButtressThread for an example.
+//
+// Screw3D verifies wrap continuity at construction time and returns an error
+// if the profile is discontinuous. The uniform renderer is forgiving of
+// discontinuities (it samples on a regular grid), but the octree renderer
+// will silently produce holes — fail-fast at construction is preferable.
 func Screw3D(
 	thread SDF2, // 2D thread profile
 	length float64, // length of screw
@@ -421,6 +449,9 @@ func Screw3D(
 	if pitch <= 0 {
 		return nil, ErrMsg("pitch <= 0")
 	}
+	if err := checkThreadWrapContinuous(thread, pitch); err != nil {
+		return nil, err
+	}
 	s := ScrewSDF3{}
 	s.thread = thread
 	s.pitch = pitch
@@ -439,6 +470,37 @@ func Screw3D(
 	r += s.length * s.tanTaper
 	s.bb = Box3{v3.Vec{-r, -r, -s.length}, v3.Vec{r, r, s.length}}
 	return &s, nil
+}
+
+// checkThreadWrapContinuous asserts that the thread profile's SDF agrees at
+// x=+pitch/2 and x=-pitch/2 — the SawTooth wrap boundary — at sample radii
+// across the profile. A mismatch indicates the profile doesn't represent the
+// actual periodic shape near the wrap and will produce holes when rendered
+// with the octree marching cubes renderer.
+func checkThreadWrapContinuous(thread SDF2, pitch float64) error {
+	bb := thread.BoundingBox()
+	hp := pitch / 2
+	yMin, yMax := bb.Min.Y, bb.Max.Y
+	// Sample at several radii spanning the profile. The crest level is the
+	// region that matters most (the surface is there); valleys are inside the
+	// material so a small wrap mismatch deep below the crest is harmless,
+	// but anywhere near or above the surface a discontinuity is fatal for
+	// the octree's empty-cube check.
+	const tol = 1e-6
+	for _, frac := range []float64{0.5, 0.7, 0.9, 1.0} {
+		y := yMin + frac*(yMax-yMin)
+		dPlus := thread.Evaluate(v2.Vec{X: hp, Y: y})
+		dMinus := thread.Evaluate(v2.Vec{X: -hp, Y: y})
+		if math.Abs(dPlus-dMinus) > tol {
+			return ErrMsg(fmt.Sprintf(
+				"thread profile is discontinuous at the SawTooth wrap boundary "+
+					"x=±pitch/2 (pitch=%g): SDF(+pitch/2,%g)=%g vs SDF(-pitch/2,%g)=%g, "+
+					"|Δ|=%g. Asymmetric profiles must extend past ±pitch/2 with the "+
+					"actual periodic continuation; see ANSIButtressThread for an example.",
+				pitch, y, dPlus, y, dMinus, math.Abs(dPlus-dMinus)))
+		}
+	}
+	return nil
 }
 
 // Evaluate returns the minimum distance to a 3d screw form.
