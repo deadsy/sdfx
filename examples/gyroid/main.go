@@ -10,10 +10,8 @@ Gyroid Teapot
 package main
 
 import (
-	"errors"
 	"log"
 
-	"github.com/deadsy/sdfx/obj"
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
 	v3 "github.com/deadsy/sdfx/vec/v3"
@@ -78,57 +76,19 @@ func gyroidSurface() (sdf.SDF3, error) {
 
 //-----------------------------------------------------------------------------
 
-func gyroidTeapot(cyclesPerSide int) (sdf.SDF3, error) {
-	if cyclesPerSide < 1 {
-		return nil, errors.New("cycles per side should not be <= 0")
-	}
-
-	// create the SDF from the STL mesh
-	teapot, err := obj.ImportSTL("../../files/teapot.stl", 20, 3, 5)
-	if err != nil {
-		return nil, err
-	}
-
-	min := teapot.BoundingBox().Min
-	max := teapot.BoundingBox().Max
-
-	kX := (max.X - min.X) / float64(cyclesPerSide)
-	kY := (max.Y - min.Y) / float64(cyclesPerSide)
-	kZ := (max.Z - min.Z) / float64(cyclesPerSide)
-
-	gyroid, err := sdf.Gyroid3D(v3.Vec{kX, kY, kZ})
-	if err != nil {
-		return nil, err
-	}
-
-	return sdf.Intersect3D(teapot, gyroid), nil
-}
-
-//-----------------------------------------------------------------------------
-
 func main() {
 
 	s0, err := gyroidCube()
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.ToSTL(s0, "gyroid_cube.stl", render.NewMarchingCubesUniform(300))
+	render.ToSTL(s0, "gyroid_cube.stl", render.NewMarchingCubesOctree(300))
 
 	s1, err := gyroidSurface()
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.ToSTL(s1, "gyroid_surface.stl", render.NewMarchingCubesUniform(150))
-
-	s2, err := gyroidTeapot(10)
-	if err != nil {
-		log.Fatalf("error: %s", err)
-	}
-	// Rendering to STL directly:
-	render.ToSTL(s2, "gyroid_teapot.stl", render.NewMarchingCubesUniform(200))
-	// Rendering to triangles and then saving the STL. The output file should be the same as before:
-	m2 := render.ToTriangles(s2, render.NewMarchingCubesUniform(200))
-	render.SaveSTL("gyroid_teapot_mesh.stl", m2)
+	render.ToSTL(s1, "gyroid_surface.stl", render.NewMarchingCubesOctree(150))
 }
 
 //-----------------------------------------------------------------------------
