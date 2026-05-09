@@ -191,7 +191,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
-	render.ToSTL(vcapKnob, "vc_knob.stl", render.NewMarchingCubesUniform(500))
+	render.ToSTL(vcapKnob, "vc_knob.stl", render.NewMarchingCubesOctree(500))
 
 	vcapMount, err := vcapMount()
 	if err != nil {

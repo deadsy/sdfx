@@ -50,7 +50,7 @@ func inch() error {
 		return err
 	}
 	bolt = sdf.ScaleUniform3D(bolt, sdf.MillimetresPerInch)
-	render.ToSTL(bolt, "inch_bolt.stl", render.NewMarchingCubesUniform(quality))
+	render.ToSTL(bolt, "inch_bolt.stl", render.NewMarchingCubesOctree(quality))
 
 	// nut
 	nutParms := obj.NutParms{
@@ -63,7 +63,7 @@ func inch() error {
 		return err
 	}
 	nut = sdf.ScaleUniform3D(nut, sdf.MillimetresPerInch)
-	render.ToSTL(nut, "inch_nut.stl", render.NewMarchingCubesUniform(quality))
+	render.ToSTL(nut, "inch_nut.stl", render.NewMarchingCubesOctree(quality))
 
 	return nil
 }
@@ -84,7 +84,7 @@ func metric() error {
 	if err != nil {
 		return err
 	}
-	render.ToSTL(bolt, "metric_bolt.stl", render.NewMarchingCubesUniform(quality))
+	render.ToSTL(bolt, "metric_bolt.stl", render.NewMarchingCubesOctree(quality))
 
 	// nut
 	nutParms := obj.NutParms{
@@ -96,7 +96,7 @@ func metric() error {
 	if err != nil {
 		return err
 	}
-	render.ToSTL(nut, "metric_nut.stl", render.NewMarchingCubesUniform(quality))
+	render.ToSTL(nut, "metric_nut.stl", render.NewMarchingCubesOctree(quality))
 
 	return nil
 }
