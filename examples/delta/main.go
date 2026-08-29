@@ -249,23 +249,40 @@ const holderHeight = 2.6
 
 func rodEnd() (sdf.SDF3, error) {
 
+	// round head
 	const endRadius = holderRadius * 1.5
 	const endHeight = rodRadius * 2.0 * 1.5
-	const round = endHeight * 0.1
-	end, err := sdf.Cylinder3D(endHeight, endRadius, round)
+	end, err := sdf.Cylinder3D(endHeight, endRadius, 0)
 	if err != nil {
 		return nil, err
 	}
 
-	const endX = 3 * endHeight
-	box, err := sdf.Box3D(v3.Vec{endX, endHeight, endHeight}, round)
+	// box body
+	const bodyX = 3 * endHeight
+	box, err := sdf.Box3D(v3.Vec{bodyX, endHeight, endHeight}, 0)
 	if err != nil {
 		return nil, err
 	}
-	box = sdf.Transform3D(box, sdf.Translate3d(v3.Vec{0.5 * endX, 0, 0}))
+	box = sdf.Transform3D(box, sdf.Translate3d(v3.Vec{0.5 * bodyX, 0, 0}))
 
-	const rodHole = (endX - endRadius) * 0.9
-	const ofsX = endX - 0.5*rodHole
+	// spring block
+	const blockX = endHeight
+	const blockY = endHeight
+	const blockZ = 2.0 * endHeight
+	block, err := sdf.Box3D(v3.Vec{blockX, blockY, blockZ}, 0)
+	if err != nil {
+		return nil, err
+	}
+	const blockOffsetX = bodyX - 0.5*blockX
+	const blockOffsetZ = 0.5 * endHeight
+	block = sdf.Transform3D(block, sdf.Translate3d(v3.Vec{blockOffsetX, 0, blockOffsetZ}))
+
+	// end + box + block
+	s := sdf.Union3D(end, box, block)
+
+	// rod hole
+	const rodHole = (bodyX - endRadius) * 0.9
+	const ofsX = bodyX - 0.5*rodHole
 	rod, err := sdf.Cylinder3D(rodHole, rodRadius, 0)
 	if err != nil {
 		return nil, err
@@ -273,6 +290,7 @@ func rodEnd() (sdf.SDF3, error) {
 	rod = sdf.Transform3D(rod, sdf.RotateY(sdf.DtoR(90)))
 	rod = sdf.Transform3D(rod, sdf.Translate3d(v3.Vec{ofsX, 0, 0}))
 
+	// magnet holder
 	holder, err := sdf.Cylinder3D(holderHeight, holderRadius, 0)
 	if err != nil {
 		return nil, err
@@ -280,16 +298,29 @@ func rodEnd() (sdf.SDF3, error) {
 	const ofsZ = (endHeight - holderHeight) * 0.5
 	holder = sdf.Transform3D(holder, sdf.Translate3d(v3.Vec{0, 0, ofsZ}))
 
-	// end + box with fillets
-	s := sdf.Union3D(end, box)
-	s.(*sdf.UnionSDF3).SetMin(sdf.PolyMin(endRadius * 0.1))
+	// spring slot
+	const slotX = endHeight
+	const slotY = 0.1 * endHeight
+	const slotZ = 0.5 * endHeight
+	slot, err := sdf.Box3D(v3.Vec{slotX, slotY, slotZ}, 0)
+	if err != nil {
+		return nil, err
+	}
+	const slotOffsetX = bodyX - 0.5*blockX
+	const slotOffsetZ = blockOffsetZ + 0.5*(blockZ-slotZ)
+	slot = sdf.Transform3D(slot, sdf.Translate3d(v3.Vec{slotOffsetX, 0, slotOffsetZ}))
 
-	// bump removal
-	s = sdf.Cut3D(s, v3.Vec{0, 0, -endHeight * 0.5}, v3.Vec{0, 0, 1})
-	s = sdf.Cut3D(s, v3.Vec{0, 0, endHeight * 0.5}, v3.Vec{0, 0, -1})
+	// spring pin
+	const pinZ = 4.0 * blockY
+	const pinR = 0.05 * endHeight
+	pin, err := sdf.Cylinder3D(pinZ, pinR, 0)
+	const pinOffsetX = slotOffsetX
+	const pinOffsetZ = slotOffsetZ
+	pin = sdf.Transform3D(pin, sdf.RotateX(sdf.DtoR(90)))
+	pin = sdf.Transform3D(pin, sdf.Translate3d(v3.Vec{pinOffsetX, 0, pinOffsetZ}))
 
 	// remove the cavities
-	s = sdf.Difference3D(s, sdf.Union3D(holder, rod))
+	s = sdf.Difference3D(s, sdf.Union3D(holder, rod, slot, pin))
 
 	return s, nil
 }
