@@ -7,11 +7,11 @@ require (
 	github.com/dhconnelly/rtreego v1.2.0
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/hpinc/go3mf v0.24.2
-	github.com/llgcode/draw2d v0.0.0-20260213073409-1c39bbefe083
+	github.com/llgcode/draw2d v0.0.0-20260422081035-c4331ac66734
 	github.com/stretchr/testify v1.7.0
 	github.com/yofu/dxf v0.0.0-20250806094206-f3988c7f0176
-	golang.org/x/image v0.38.0
-	gonum.org/v1/gonum v0.15.1
+	golang.org/x/image v0.45.0
+	gonum.org/v1/gonum v0.17.0
 )
 
 require (
