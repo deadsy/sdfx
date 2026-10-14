@@ -145,10 +145,11 @@ func (s *SorSDF3) BoundingBox() Box3 {
 
 // ExtrudeSDF3 extrudes an SDF2 to an SDF3.
 type ExtrudeSDF3 struct {
-	sdf     SDF2
-	height  float64
-	extrude ExtrudeFunc
-	bb      Box3
+	sdf        SDF2
+	height     float64
+	extrude    ExtrudeFunc
+	bb         Box3
+	invStretch float64 // 1/(Lipschitz stretch of the 3D→2D projection); 1 for identity
 }
 
 // Extrude3D does a linear extrude on an SDF3.
@@ -157,6 +158,7 @@ func Extrude3D(sdf SDF2, height float64) SDF3 {
 	s.sdf = sdf
 	s.height = height / 2
 	s.extrude = NormalExtrude
+	s.invStretch = 1
 	// work out the bounding box
 	bb := sdf.BoundingBox()
 	s.bb = Box3{v3.Vec{bb.Min.X, bb.Min.Y, -s.height}, v3.Vec{bb.Max.X, bb.Max.Y, s.height}}
@@ -173,6 +175,17 @@ func TwistExtrude3D(sdf SDF2, height, twist float64) SDF3 {
 	bb := sdf.BoundingBox()
 	l := bb.Max.Length()
 	s.bb = Box3{v3.Vec{-l, -l, -s.height}, v3.Vec{l, l, s.height}}
+	// The twist mapping rotates (x,y) by θ=k·z where k=twist/height. Its
+	// Jacobian has maximum singular value σ_max = √(1 + k²r²) with
+	// r² = x² + y². Without correction, the returned SDF overestimates
+	// true 3D distance by up to σ_max, causing the octree isEmpty check
+	// to skip cubes that contain the surface (holes). All surfaces of the
+	// extruded shape lie within the 2D bounding box, so r ≤ rMax and we
+	// can use a single global correction constant.
+	k := twist / height
+	rMax2 := math.Max(bb.Min.X*bb.Min.X, bb.Max.X*bb.Max.X) +
+		math.Max(bb.Min.Y*bb.Min.Y, bb.Max.Y*bb.Max.Y)
+	s.invStretch = 1 / math.Sqrt(1+k*k*rMax2)
 	return &s
 }
 
@@ -182,6 +195,7 @@ func ScaleExtrude3D(sdf SDF2, height float64, scale v2.Vec) SDF3 {
 	s.sdf = sdf
 	s.height = height / 2
 	s.extrude = ScaleExtrude(height, scale)
+	s.invStretch = 1
 	// work out the bounding box
 	bb := sdf.BoundingBox()
 	bb = bb.Extend(Box2{bb.Min.Mul(scale), bb.Max.Mul(scale)})
@@ -195,6 +209,7 @@ func ScaleTwistExtrude3D(sdf SDF2, height, twist float64, scale v2.Vec) SDF3 {
 	s.sdf = sdf
 	s.height = height / 2
 	s.extrude = ScaleTwistExtrude(height, twist, scale)
+	s.invStretch = 1
 	// work out the bounding box
 	bb := sdf.BoundingBox()
 	bb = bb.Extend(Box2{bb.Min.Mul(scale), bb.Max.Mul(scale)})
@@ -209,8 +224,9 @@ func (s *ExtrudeSDF3) Evaluate(p v3.Vec) float64 {
 	a := s.sdf.Evaluate(s.extrude(p))
 	// sdf for the extrusion region: z = [-height, height]
 	b := math.Abs(p.Z) - s.height
-	// return the intersection
-	return math.Max(a, b)
+	// return the intersection, scaled to compensate for any non-isometric
+	// projection done by extrude (twist/scale stretch the SDF above 1-Lipschitz).
+	return math.Max(a, b) * s.invStretch
 }
 
 // SetExtrude sets the extrusion control function.
