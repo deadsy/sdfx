@@ -9,6 +9,8 @@ Voxel-based cache/smoothing to remove deep SDF2/SDF3 hierarchies and speed up ev
 package sdf
 
 import (
+	"math"
+
 	"github.com/deadsy/sdfx/vec/conv"
 	v3 "github.com/deadsy/sdfx/vec/v3"
 	"github.com/deadsy/sdfx/vec/v3i"
@@ -33,6 +35,12 @@ type VoxelSDF3 struct {
 	bb Box3
 	// Number of voxelCorners to consider
 	numVoxels v3i.Vec
+	// invStretch is 1/σ_max of the trilinear interpolant's gradient. Even a
+	// Lipschitz-1 source inflates to √3 through trilinear interp in the
+	// worst case (one partial derivative per axis can each approach 1);
+	// non-SDF sources inflate further. Measured tightly from adjacent-corner
+	// deltas so the octree's isEmpty skip stays safe.
+	invStretch float64
 }
 
 // NewVoxelSDF3 returns a VoxelSDF3.
@@ -58,10 +66,41 @@ func NewVoxelSDF3(s SDF3, meshCells int, progress chan float64) SDF3 {
 		}
 	}
 
+	// Tight Lipschitz bound on the trilinear interpolant: gradient
+	// magnitude is bounded by √(Lx² + Ly² + Lz²) where Lx is the largest
+	// finite-difference along the x grid spacing (analogously for y,z).
+	voxelSize := bbSize.Div(conv.V3iToV3(cells))
+	maxDx, maxDy, maxDz := 0.0, 0.0, 0.0
+	for idx, v := range voxelCorners {
+		if idx.X+1 <= cells.X {
+			if d := math.Abs(voxelCorners[idx.Add(v3i.Vec{1, 0, 0})] - v); d > maxDx {
+				maxDx = d
+			}
+		}
+		if idx.Y+1 <= cells.Y {
+			if d := math.Abs(voxelCorners[idx.Add(v3i.Vec{0, 1, 0})] - v); d > maxDy {
+				maxDy = d
+			}
+		}
+		if idx.Z+1 <= cells.Z {
+			if d := math.Abs(voxelCorners[idx.Add(v3i.Vec{0, 0, 1})] - v); d > maxDz {
+				maxDz = d
+			}
+		}
+	}
+	lx := maxDx / voxelSize.X
+	ly := maxDy / voxelSize.Y
+	lz := maxDz / voxelSize.Z
+	sigma2 := lx*lx + ly*ly + lz*lz
+	invStretch := 1.0
+	if sigma2 > 1 {
+		invStretch = 1 / math.Sqrt(sigma2)
+	}
 	return &VoxelSDF3{
 		voxelCorners: voxelCorners,
 		bb:           bb,
 		numVoxels:    cells,
+		invStretch:   invStretch,
 	}
 }
 
@@ -92,7 +131,7 @@ func (m *VoxelSDF3) Evaluate(p v3.Vec) float64 {
 	c1 := c01*(1-d.Y) + c11*d.Y
 	// - 1 trilinear interpolation
 	c := c0*(1-d.Z) + c1*d.Z
-	return c
+	return c * m.invStretch
 }
 
 // BoundingBox returns the bounding box for a VoxelSDF3.
