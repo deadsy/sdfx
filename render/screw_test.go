@@ -145,6 +145,61 @@ func Test_Screw_Watertight_Tapered(t *testing.T) {
 	}
 }
 
+// Test_Screw_Watertight_HighTaperHighRes pins the configurations from the
+// screw_assortment example that produced boundary edges on Linux at the
+// example's cells=300 resolution: high-taper screws where the cone narrows
+// far enough that the closest surface r at any query may be much smaller
+// than r_query - threadDepth. Without clamping rEff at rSurfaceMin, the
+// Lipschitz correction underestimates σ_max for those queries and the
+// octree isEmpty check skips cubes that contain surface.
+//
+// Cell count matches the example so the borderline FP regime that
+// surfaces these failures is exercised here too.
+//
+// Coverage:
+//   - the four originally-reported failing configs
+//   - a wider taper sweep (35°, 40°) at standard pitch/length
+//   - multi-start at high taper
+//   - alternative thread profiles (acme, plastic-buttress) at high taper
+//   - varied length (longer cone narrows further)
+//   - very fine pitch at high taper (small rEff → huge σ_max)
+func Test_Screw_Watertight_HighTaperHighRes(t *testing.T) {
+	cases := []screwTestConfig{
+		// Originally-reported failing configs.
+		{"taper_45", 5, 2, 20, 45, 1, 300, "iso"},
+		{"taper_30_coarse", 5, 5, 20, 30, 1, 300, "iso"},
+		{"taper_30_buttress", 5, 2, 20, 30, 1, 300, "buttress"},
+		{"taper_30_left_buttress", 5, 2, 20, 30, -1, 300, "buttress"},
+		// Wider taper sweep at standard pitch/length.
+		{"taper_35_iso", 5, 2, 20, 35, 1, 300, "iso"},
+		{"taper_40_iso", 5, 2, 20, 40, 1, 300, "iso"},
+		{"taper_45_buttress", 5, 2, 20, 45, 1, 300, "buttress"},
+		// High-taper multi-start.
+		{"taper_30_4start", 5, 2, 20, 30, 4, 300, "iso"},
+		{"taper_30_8start", 5, 2, 20, 30, 8, 300, "iso"},
+		// Alternative profiles at high taper.
+		{"taper_30_acme", 5, 2, 20, 30, 1, 300, "acme"},
+		{"taper_30_plastic_butt", 5, 2, 20, 30, 1, 300, "plastic-buttress"},
+		{"taper_30_iso_internal", 5, 2, 20, 30, 1, 300, "iso-int"},
+		// Longer cone — narrows further.
+		{"taper_30_long_l40", 5, 2, 40, 30, 1, 300, "iso"},
+		// Fine pitch + high taper — small rEff at the tip → huge σ_max
+		// without rSurfaceMin floor.
+		{"taper_30_fine_p1", 5, 1, 20, 30, 1, 300, "iso"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			screw := buildScrew(t, c)
+			tris := CollectTriangles(screw, NewMarchingCubesOctree(c.cells))
+			be := CountBoundaryEdges(tris)
+			if be != 0 {
+				t.Errorf("octree mesh has %d boundary edges (want 0 for watertight)", be)
+			}
+			t.Logf("%d tris, %d boundary edges", len(tris), be)
+		})
+	}
+}
+
 func Test_Screw_EndCap_Position(t *testing.T) {
 	// Verify octree and uniform renderers agree on end-cap Z positions.
 	configs := straightScrewConfigs()

@@ -394,6 +394,7 @@ type ScrewSDF3 struct {
 	tanTaper    float64 // tan(taper), precomputed
 	tan2Taper   float64 // tan²(taper), precomputed
 	threadDepth float64 // radial extent of thread profile (max.Y - min.Y)
+	rSurfaceMin float64 // lower bound on surface r anywhere on the screw
 	starts      int     // number of thread starts
 	bb          Box3    // bounding box
 }
@@ -469,6 +470,18 @@ func Screw3D(
 	// add the taper increment
 	r += s.length * s.tanTaper
 	s.bb = Box3{v3.Vec{-r, -r, -s.length}, v3.Vec{r, r, s.length}}
+	// Lower bound on surface r anywhere on the screw, used to clamp rEff
+	// in Evaluate. For a cylindrical screw this equals the root radius
+	// (thread.Max.Y - threadDepth). For a tapered screw the cone narrows
+	// toward the top: at z = +length/2 the crest sits at thread.Max.Y −
+	// length·tan(taper), and the root is threadDepth shallower than that.
+	// At sharp tapers the cone may pinch to or past the axis — floor at
+	// 5% of the crest radius so σ_max stays bounded; the renderer will
+	// over-evaluate cubes near the cone tip but won't punch holes.
+	s.rSurfaceMin = bb.Max.Y - s.length*s.tanTaper - s.threadDepth
+	if floor := bb.Max.Y * 0.05; s.rSurfaceMin < floor {
+		s.rSurfaceMin = floor
+	}
 	return &s, nil
 }
 
@@ -552,10 +565,22 @@ func (s *ScrewSDF3) Evaluate(p v3.Vec) float64 {
 	// be at a smaller r where the stretch is larger. Using r reduced by the
 	// thread depth gives a conservative bound: the nearest surface point
 	// on the thread can be at most threadDepth closer to the axis.
+	//
+	// For tapered screws the cone narrows along z, so the closest surface
+	// point at any query may sit at a much smaller r than r_query allows
+	// for — e.g. a query at the wide end can have its closest surface at
+	// the narrow end of the cone if the cube spans z. Clamping rEff at
+	// rSurfaceMin (the smallest surface r anywhere on the screw) keeps
+	// the bound conservative across the full z range. Cylindrical screws
+	// have rSurfaceMin = root radius and this clamp is a no-op for queries
+	// inside the screw radius, a small extra correction outside.
 	if r > 0 {
 		rEff := r - s.threadDepth
 		if rEff < r*0.5 {
 			rEff = r * 0.5
+		}
+		if rEff > s.rSurfaceMin {
+			rEff = s.rSurfaceMin
 		}
 		k2 := s.leadOver2π / rEff
 		k2 *= k2
