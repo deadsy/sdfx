@@ -586,6 +586,11 @@ type TransformSDF3 struct {
 	matrix  M44
 	inverse M44
 	bb      Box3
+	// invStretch is 1/σ_max(M⁻¹_3x3) clamped to ≤ 1. Evaluating the inner
+	// SDF at M⁻¹·p has Lipschitz factor σ_max of that inverse linear map;
+	// scaling the result by invStretch restores Lipschitz-1 (safe for the
+	// octree marching-cubes isEmpty pruning rule).
+	invStretch float64
 }
 
 // Transform3D applies a transformation matrix to an SDF3.
@@ -595,13 +600,55 @@ func Transform3D(sdf SDF3, matrix M44) SDF3 {
 	s.matrix = matrix
 	s.inverse = matrix.Inverse()
 	s.bb = matrix.MulBox(sdf.BoundingBox())
+	sigma2 := m44LinearSigmaMax2(&s.inverse)
+	s.invStretch = 1
+	if sigma2 > 1 {
+		s.invStretch = 1 / math.Sqrt(sigma2)
+	}
 	return &s
 }
 
+// m44LinearSigmaMax2 returns σ_max² of the 3x3 linear block of a 4x4 matrix
+// — the largest eigenvalue of MᵀM. Closed-form symmetric-3×3 eigenvalue
+// (Smith 1961) so we avoid an iterative SVD on the construction path.
+func m44LinearSigmaMax2(m *M44) float64 {
+	a, b, c := m[0], m[1], m[2]
+	d, e, f := m[4], m[5], m[6]
+	g, h, i := m[8], m[9], m[10]
+	// A = MᵀM (symmetric)
+	a00 := a*a + d*d + g*g
+	a11 := b*b + e*e + h*h
+	a22 := c*c + f*f + i*i
+	a01 := a*b + d*e + g*h
+	a02 := a*c + d*f + g*i
+	a12 := b*c + e*f + h*i
+	p1 := a01*a01 + a02*a02 + a12*a12
+	if p1 == 0 {
+		// diagonal
+		return math.Max(math.Max(a00, a11), a22)
+	}
+	q := (a00 + a11 + a22) / 3
+	d0, d1, d2 := a00-q, a11-q, a22-q
+	p2 := d0*d0 + d1*d1 + d2*d2 + 2*p1
+	p := math.Sqrt(p2 / 6)
+	// det((A - qI)/p) / 2
+	b00, b11, b22 := d0/p, d1/p, d2/p
+	b01, b02, b12 := a01/p, a02/p, a12/p
+	detB := b00*(b11*b22-b12*b12) - b01*(b01*b22-b12*b02) + b02*(b01*b12-b11*b02)
+	r := detB / 2
+	if r < -1 {
+		r = -1
+	} else if r > 1 {
+		r = 1
+	}
+	phi := math.Acos(r) / 3
+	return q + 2*p*math.Cos(phi)
+}
+
 // Evaluate returns the minimum distance to a transformed SDF3.
-// Distance is *not* preserved with scaling.
+// Distance is *not* preserved with scaling — invStretch corrects for it.
 func (s *TransformSDF3) Evaluate(p v3.Vec) float64 {
-	return s.sdf.Evaluate(s.inverse.MulPosition(p))
+	return s.sdf.Evaluate(s.inverse.MulPosition(p)) * s.invStretch
 }
 
 // BoundingBox returns the bounding box of a transformed SDF3.
