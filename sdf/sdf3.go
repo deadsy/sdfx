@@ -308,6 +308,7 @@ type LoftSDF3 struct {
 	height     float64
 	round      float64
 	bb         Box3
+	invStretch float64 // 1/(Lipschitz of the (a, b) → d combiner); 1 if no inflation
 }
 
 // Loft3D extrudes an SDF3 that transitions between two SDF2 shapes.
@@ -338,7 +339,41 @@ func Loft3D(sdf0, sdf1 SDF2, height, round float64) (SDF3, error) {
 	bb1 := sdf1.BoundingBox()
 	bb := bb0.Extend(bb1)
 	s.bb = Box3{v3.Vec{bb.Min.X, bb.Min.Y, -s.height}.SubScalar(round), v3.Vec{bb.Max.X, bb.Max.Y, s.height}.AddScalar(round)}
+	// Lipschitz correction. For a = Mix(a0, a1, k) with k = 0.5·z/h + 0.5
+	// (h = height/2 − round), the xy gradient is a convex combination of
+	// the two Lipschitz-1 inner gradients so Lip_xy ≤ 1; the z gradient is
+	// bounded by L_z = max|a1−a0|/(2h). The outer d = √(a² + b²) end-cap
+	// gives a Lipschitz factor of √(1 + L_z·(L_z + √(L_z² + 4))/2), which
+	// is ≥ √(1 + L_z²).
+	lz := maxAbsDifference(sdf0, sdf1, bb, 16) / (2 * s.height)
+	lend2 := 1 + lz*(lz+math.Sqrt(lz*lz+4))/2
+	s.invStretch = 1
+	if lend2 > 1 {
+		s.invStretch = 1 / math.Sqrt(lend2)
+	}
 	return &s, nil
+}
+
+// maxAbsDifference returns an upper bound on max|a0(p) − a1(p)| over bb by
+// sampling an n×n grid and adding a Lipschitz-2 between-samples safety term
+// (a0 − a1 is Lipschitz-2 since each sdf is Lipschitz-1).
+func maxAbsDifference(a0, a1 SDF2, bb Box2, n int) float64 {
+	maxDiff := 0.0
+	dx := bb.Max.X - bb.Min.X
+	dy := bb.Max.Y - bb.Min.Y
+	for i := 0; i < n; i++ {
+		for j := 0; j < n; j++ {
+			ti := float64(i) / float64(n-1)
+			tj := float64(j) / float64(n-1)
+			p := v2.Vec{bb.Min.X + dx*ti, bb.Min.Y + dy*tj}
+			d := math.Abs(a0.Evaluate(p) - a1.Evaluate(p))
+			if d > maxDiff {
+				maxDiff = d
+			}
+		}
+	}
+	halfDiag := math.Hypot(dx/float64(n-1), dy/float64(n-1)) / 2
+	return maxDiff + 2*halfDiag
 }
 
 // Evaluate returns the minimum distance to a loft extrusion.
@@ -371,7 +406,7 @@ func (s *LoftSDF3) Evaluate(p v3.Vec) float64 {
 			d = a
 		}
 	}
-	return d - s.round
+	return (d - s.round) * s.invStretch
 }
 
 // BoundingBox returns the bounding box for a loft extrusion.
