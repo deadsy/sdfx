@@ -11,6 +11,7 @@ package main
 import (
 	"log"
 
+	"github.com/deadsy/sdfx/examples/rpi/rpi5cam"
 	"github.com/deadsy/sdfx/examples/rpi/stand"
 	"github.com/deadsy/sdfx/render"
 	"github.com/deadsy/sdfx/sdf"
@@ -30,6 +31,13 @@ func main() {
 		log.Fatalf("error: %s", err)
 	}
 	render.ToSTL(sdf.ScaleUniform3D(s, shrink), "display_stand.stl", render.NewMarchingCubesOctree(300))
+
+	s, err = rpi5cam.Support()
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+	render.ToSTL(sdf.ScaleUniform3D(s, shrink), "rpi5cam.stl", render.NewMarchingCubesOctree(300))
+
 }
 
 //-----------------------------------------------------------------------------
