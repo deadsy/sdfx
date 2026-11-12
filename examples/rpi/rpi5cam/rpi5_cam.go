@@ -90,11 +90,14 @@ func rpiStandoffs(yOfs float64) (sdf.SDF3, error) {
 
 func Support() (sdf.SDF3, error) {
 
-	s0, _ := cameraStandoffs(-55.0)
-	s1, _ := rpiStandoffs(10.0)
-
 	const baseX = 65.0
-	const baseY = 150.0
+	const baseY = 140.0
+
+	const rpiOffset = 0.5 * (baseY - rpiY) - 28.0
+	const camOffset = 0.5 * (cameraY - baseY) + 13.0
+
+	s0, _ := cameraStandoffs(camOffset)
+	s1, _ := rpiStandoffs(rpiOffset)
 
 	// base
 	pp := &obj.PanelParms{
