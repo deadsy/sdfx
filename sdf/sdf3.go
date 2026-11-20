@@ -145,10 +145,11 @@ func (s *SorSDF3) BoundingBox() Box3 {
 
 // ExtrudeSDF3 extrudes an SDF2 to an SDF3.
 type ExtrudeSDF3 struct {
-	sdf     SDF2
-	height  float64
-	extrude ExtrudeFunc
-	bb      Box3
+	sdf        SDF2
+	height     float64
+	extrude    ExtrudeFunc
+	bb         Box3
+	invStretch float64 // 1/(Lipschitz stretch of the 3D→2D projection); 1 for identity
 }
 
 // Extrude3D does a linear extrude on an SDF3.
@@ -157,6 +158,7 @@ func Extrude3D(sdf SDF2, height float64) SDF3 {
 	s.sdf = sdf
 	s.height = height / 2
 	s.extrude = NormalExtrude
+	s.invStretch = 1
 	// work out the bounding box
 	bb := sdf.BoundingBox()
 	s.bb = Box3{v3.Vec{bb.Min.X, bb.Min.Y, -s.height}, v3.Vec{bb.Max.X, bb.Max.Y, s.height}}
@@ -169,6 +171,7 @@ func TwistExtrude3D(sdf SDF2, height, twist float64) SDF3 {
 	s.sdf = sdf
 	s.height = height / 2
 	s.extrude = TwistExtrude(height, twist)
+	s.invStretch = 1
 	// work out the bounding box
 	bb := sdf.BoundingBox()
 	l := bb.Max.Length()
@@ -186,7 +189,39 @@ func ScaleExtrude3D(sdf SDF2, height float64, scale v2.Vec) SDF3 {
 	bb := sdf.BoundingBox()
 	bb = bb.Extend(Box2{bb.Min.Mul(scale), bb.Max.Mul(scale)})
 	s.bb = Box3{v3.Vec{bb.Min.X, bb.Min.Y, -s.height}, v3.Vec{bb.Max.X, bb.Max.Y, s.height}}
+	// Lipschitz correction for the scale map f(x,y,z) = (x·s_x(z), y·s_y(z))
+	// with s_x(z) = m_x·z + b_x (b_x makes s_x(-h/2)=1, s_x(h/2)=1/scale_x).
+	// Jacobian rows: (s_x, 0, m_x·x), (0, s_y, m_y·y). For 2x2 JJᵀ:
+	//   A = s_x² + m_x²x², C = s_y² + m_y²y², B² = m_x²m_y²x²y²
+	//   λ_max = (A+C)/2 + √((A-C)²/4 + B²).
+	// λ_max is monotone in x², y² and in s_x², s_y². Its max over the volume
+	// is at one of the two z endpoints with |x|, |y| at their extreme.
+	invX := 1 / scale.X
+	invY := 1 / scale.Y
+	mx := (invX - 1) / height
+	my := (invY - 1) / height
+	xMax := math.Max(math.Abs(s.bb.Min.X), math.Abs(s.bb.Max.X))
+	yMax := math.Max(math.Abs(s.bb.Min.Y), math.Abs(s.bb.Max.Y))
+	a := mx * mx * xMax * xMax
+	c := my * my * yMax * yMax
+	sigma2 := math.Max(
+		scaleExtrudeLambdaMax(1, 1, a, c),
+		scaleExtrudeLambdaMax(invX*invX, invY*invY, a, c),
+	)
+	s.invStretch = 1
+	if sigma2 > 1 {
+		s.invStretch = 1 / math.Sqrt(sigma2)
+	}
 	return &s
+}
+
+// scaleExtrudeLambdaMax returns λ_max of the 2x2 matrix JJᵀ for the scale
+// extrude Jacobian with diagonal scale entries sx², sy² and z-column squared
+// entries a = m_x²x², c = m_y²y² (so B² = a·c).
+func scaleExtrudeLambdaMax(sx2, sy2, a, c float64) float64 {
+	A := sx2 + a
+	C := sy2 + c
+	return (A+C)/2 + math.Sqrt((A-C)*(A-C)/4+a*c)
 }
 
 // ScaleTwistExtrude3D extrudes an SDF2 and scales and twists it over the height of the extrusion.
@@ -200,6 +235,41 @@ func ScaleTwistExtrude3D(sdf SDF2, height, twist float64, scale v2.Vec) SDF3 {
 	bb = bb.Extend(Box2{bb.Min.Mul(scale), bb.Max.Mul(scale)})
 	l := bb.Max.Length()
 	s.bb = Box3{v3.Vec{-l, -l, -s.height}, v3.Vec{l, l, s.height}}
+	// Lipschitz correction for the composed map
+	//   f(x,y,z) = R(k·z) · (x·s_x(z), y·s_y(z)),   k = twist/height.
+	// Rotation is orthogonal so σ_max is invariant to R. The rotation-free
+	// Jacobian columns are (s_x,0), (0,s_y), and
+	//   ∂z = (m_x·x − k·y·s_y, k·x·s_x + m_y·y).
+	// At fixed z, λ_max(x,y) of JJᵀ is a convex quadratic form in (x,y) so
+	// its max over the 2D bbox is attained at a corner. z is checked at
+	// the two endpoints (s_x², s_y² are parabolas with interior minima).
+	k := twist / height
+	invX := 1 / scale.X
+	invY := 1 / scale.Y
+	mx := (invX - 1) / height
+	my := (invY - 1) / height
+	sigma2 := 1.0
+	zs := [2]float64{-s.height, s.height}
+	xs := [2]float64{s.bb.Min.X, s.bb.Max.X}
+	ys := [2]float64{s.bb.Min.Y, s.bb.Max.Y}
+	for _, z := range zs {
+		sx := mx*z + (invX+1)/2
+		sy := my*z + (invY+1)/2
+		for _, x := range xs {
+			for _, y := range ys {
+				j13 := mx*x - k*sy*y
+				j23 := k*sx*x + my*y
+				A := sx*sx + j13*j13
+				C := sy*sy + j23*j23
+				B := j13 * j23
+				lam := (A+C)/2 + math.Sqrt((A-C)*(A-C)/4+B*B)
+				if lam > sigma2 {
+					sigma2 = lam
+				}
+			}
+		}
+	}
+	s.invStretch = 1 / math.Sqrt(sigma2)
 	return &s
 }
 
@@ -209,8 +279,9 @@ func (s *ExtrudeSDF3) Evaluate(p v3.Vec) float64 {
 	a := s.sdf.Evaluate(s.extrude(p))
 	// sdf for the extrusion region: z = [-height, height]
 	b := math.Abs(p.Z) - s.height
-	// return the intersection
-	return math.Max(a, b)
+	// return the intersection, scaled to compensate for any non-isometric
+	// projection done by extrude (scale stretches the SDF above 1-Lipschitz).
+	return math.Max(a, b) * s.invStretch
 }
 
 // SetExtrude sets the extrusion control function.
