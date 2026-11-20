@@ -29,6 +29,7 @@ type triMeshSdf struct {
 	rtree        *rtreego.Rtree
 	numNeighbors int
 	bb           sdf.Box3
+	numTriangles int
 }
 
 const stlEpsilon = 1e-1
@@ -37,8 +38,13 @@ func (t *triMeshSdf) Evaluate(p v3.Vec) float64 {
 	// Check all triangle distances
 	signedDistanceResult := 1.
 	closestTriangle := math.MaxFloat64
+
+	// The max possible neighbor count is number of triangles.
+	neighborCount := t.numTriangles
+
 	// Quickly skip checking most triangles by only checking the N closest neighbours (AABB based)
-	neighbors := t.rtree.NearestNeighbors(t.numNeighbors, v3ToPoint(p))
+	neighbors := t.rtree.NearestNeighbors(neighborCount, v3ToPoint(p))
+
 	for _, neighbor := range neighbors {
 		triangle := neighbor.(*sdf.Triangle3)
 		testPointToTriangle := p.Sub(triangle[0])
@@ -51,6 +57,11 @@ func (t *triMeshSdf) Evaluate(p v3.Vec) float64 {
 			signedDistanceResult = signedDistanceToTriPlane
 		}
 	}
+
+	// Does the approach of this paper make sense:
+	// https://www2.imm.dtu.dk/pubdb/edoc/imm1289.pdf
+	// TODO: If so, try to implement it in the future.
+
 	return signedDistanceResult
 }
 
@@ -85,6 +96,7 @@ func ImportTriMesh(mesh []*sdf.Triangle3, numNeighbors, minChildren, maxChildren
 		rtree:        rtreego.NewTree(3, minChildren, maxChildren, bulkLoad...),
 		numNeighbors: numNeighbors,
 		bb:           bb,
+		numTriangles: len(mesh),
 	}
 }
 
