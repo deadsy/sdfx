@@ -232,6 +232,24 @@ func mcToTriangles(p [8]v3.Vec, v [8]float64, x float64) []*sdf.Triangle3 {
 //-----------------------------------------------------------------------------
 
 func mcInterpolate(p1, p2 v3.Vec, v1, v2, x float64) v3.Vec {
+	// Canonicalize argument order so a shared cube edge interpolated from
+	// two adjacent cubes produces bit-identical results. Adjacent cubes
+	// number the same cube edge with swapped endpoints (e.g. cube A's
+	// edge 1 == cube B's edge 3 on their shared +X/-X face, with p1/p2
+	// reversed). Algebraically p1 + t·(p2−p1) and p2 + t'·(p1−p2) are
+	// equal, but in floating-point they can differ by ~1 ULP. The
+	// downstream `int32(c · 1e4)` vertex quantization (in mesh.go) lands
+	// the two near-equal results in different buckets whenever the
+	// crossing sits near a 1e-4-aligned coordinate (typical on
+	// axis-aligned box faces), producing phantom boundary edges in the
+	// watertightness check. Sorting (p1, p2) into a fixed lexicographic
+	// order makes both cubes evaluate the identical FP expression.
+	if p2.X < p1.X ||
+		(p2.X == p1.X && p2.Y < p1.Y) ||
+		(p2.X == p1.X && p2.Y == p1.Y && p2.Z < p1.Z) {
+		p1, p2 = p2, p1
+		v1, v2 = v2, v1
+	}
 
 	closeToV1 := math.Abs(x-v1) < epsilon
 	closeToV2 := math.Abs(x-v2) < epsilon
